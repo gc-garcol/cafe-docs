@@ -93,6 +93,16 @@ const DOCS = [
     related: ['Bloom Filter'],
   },
   {
+    title: 'Roaring Bitmap',
+    path: 'content/roaring-bitmap/roaring-bitmap.html',
+    category: 'Data structures',
+    topic: 'Bitmaps',
+    level: 'Intermediate',
+    tags: ['bitmap', 'compression', 'integer set', 'index', 'simd', 'union', 'intersection'],
+    summary: 'A compressed set of 32-bit integers. Split values into chunks and store each one as an array, a bitmap, or runs, whichever is smallest.',
+    related: ['Sparse Table', 'Skip List'],
+  },
+  {
     title: 'Genetic Algorithm',
     path: 'content/genetic-algorithm/genetic-algorithm.html',
     category: 'Algorithms',
