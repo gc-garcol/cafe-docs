@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Count-Min Sketch: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+a{color:var(--link)}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+
+.card{margin:24px 0 0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.scroll{overflow-x:auto;padding:0 8px}
+.scroll svg{display:block;height:auto}
+
+.controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;margin-top:16px;align-items:start}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:0 0 12px}
+.row label{font-family:var(--mono);font-size:13px;font-weight:600}
+input[type=text]{width:140px;min-height:40px;padding:0 10px;border:1px solid var(--rule-solid);border-radius:6px;font:500 14px var(--mono);color:var(--ink);background:#fff}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.btn:disabled{opacity:.4;cursor:not-allowed;background:transparent;color:var(--ink)}
+#readout{margin:0;padding:0;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink);border:0;background:none}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:3px;border:1px solid var(--ink);display:inline-block}
+
+pre{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .t{color:var(--link)} .c{color:var(--soft);font-style:italic}
+
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:36px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+
+table.ops{border-collapse:collapse;width:100%;max-width:720px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule)}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
+
+@media (max-width:860px){.controls{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" href="../../index.html">&larr; Back to home</a>
+
+<header>
+  <div class="eyebrow">Data structures · Probabilistic</div>
+  <h1>Count-Min Sketch</h1>
+  <p class="lede">A small grid of counters that estimates how often each item appeared in a stream. It never stores the items, uses fixed memory, and may over-count but never under-counts.</p>
+</header>
+
+<section>
+  <h2>Try the machine first</h2>
+  <p>The sketch has 4 rows and 12 columns. Each row has its own hash function. <b>Add</b> an item and it bumps one counter in every row. <b>Query</b> an item and it reports the smallest of its 4 counters. With only 12 columns, collisions happen fast, so you can see the estimate drift above the true count.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">A 4 × 12 count-min sketch</span></div>
+    <div class="scroll">
+      <svg id="cms" width="880" height="250" viewBox="0 0 880 250" style="min-width:880px" role="img" aria-labelledby="cms-title cms-desc">
+        <title id="cms-title">Count-min sketch with 4 rows and 12 columns of counters</title>
+        <desc id="cms-desc">Each row is a separate hash function. Adding an item increments one counter per row. Querying an item highlights its four counters and reports the smallest value. Counters touched by the last operation are highlighted.</desc>
+        <g id="cells"></g>
+      </svg>
+    </div>
+    <div class="card-bottom"><span class="hint">estimate = min over rows of counter[row][hash_row(item)]</span><span class="live" id="live"></span></div>
+  </figure>
+
+  <div class="controls">
+    <div class="panel">
+      <form id="form" class="row" novalidate>
+        <label for="item">Item</label>
+        <input type="text" id="item" maxlength="16" value="apple" autocomplete="off" spellcheck="false">
+        <button type="submit" class="btn" id="add">Add</button>
+        <button type="button" class="btn" id="query">Query</button>
+      </form>
+      <div class="row">
+        <button type="button" class="btn" id="stream">Add sample stream</button>
+        <button type="button" class="btn" id="reset">Reset</button>
+      </div>
+      <div class="legend" aria-label="Legend">
+        <span><i class="sw" style="background:rgba(191,69,32,.18);border-color:#bf4520"></i>touched by last op</span>
+        <span><i class="sw" style="background:rgba(46,90,168,.16);border-color:#2e5aa8"></i>the minimum (the estimate)</span>
+      </div>
+    </div>
+    <div class="panel"><pre id="readout" aria-live="polite"></pre></div>
+  </div>
+</section>
+
+<section>
+  <h2>1. The idea</h2>
+  <p>A hash map that counts every distinct item grows with the number of distinct items. For a stream of URLs, IPs or search queries, that can be billions of keys. A count-min sketch gives up exactness to keep memory fixed.</p>
+  <p>It is a <code>d × w</code> matrix of counters. Each of the <code>d</code> rows uses its own hash function that maps an item to one of <code>w</code> columns.</p>
+  <p class="callout">Different items can share a counter, which only ever adds. So every counter is at least the true count, and the smallest one is the best guess.</p>
+</section>
+
+<section>
+  <h2>2. Add and query</h2>
+  <p>To add an item, increment one counter in each row. To query, read the same <code>d</code> counters and take the minimum.</p>
+  <pre><span class="k">class</span> CountMin {
+  <span class="k">constructor</span>(w, d) {
+    <span class="k">this</span>.w = w; <span class="k">this</span>.d = d;
+    <span class="k">this</span>.t = Array.from({ length: d }, () =&gt; <span class="k">new</span> Uint32Array(w));
+  }
+  add(x, n = 1) {
+    <span class="k">for</span> (<span class="k">let</span> j = 0; j &lt; <span class="k">this</span>.d; j++) <span class="k">this</span>.t[j][hash(x, j) % <span class="k">this</span>.w] += n;
+  }
+  count(x) {
+    <span class="k">let</span> m = Infinity;
+    <span class="k">for</span> (<span class="k">let</span> j = 0; j &lt; <span class="k">this</span>.d; j++) m = Math.min(m, <span class="k">this</span>.t[j][hash(x, j) % <span class="k">this</span>.w]);
+    <span class="k">return</span> m;
+  }
+}</pre>
+  <p>Both operations touch exactly <code>d</code> counters, so they cost <code>O(d)</code> no matter how many items the sketch has seen.</p>
+</section>
+
+<section>
+  <h2>3. Why the minimum</h2>
+  <p>Take an item with true count <code>f</code>. In each row, its counter holds <code>f</code> plus the counts of any other items that landed in the same column. Collisions in different rows hit different items, because the hash functions differ. It is unlikely that all <code>d</code> rows collide with something heavy at once, so at least one counter is usually close to <code>f</code>. The minimum picks it.</p>
+  <ul class="tight">
+    <li>The estimate is never below the true count.</li>
+    <li>With <code>w = &lceil;e / &epsilon;&rceil;</code> and <code>d = &lceil;ln(1 / &delta;)&rceil;</code>, the estimate exceeds the truth by more than <code>&epsilon; · N</code> with probability at most <code>&delta;</code>. <code>N</code> is the total number of items added.</li>
+  </ul>
+  <p>The error scales with the stream length <code>N</code>, not with the item's own count. So the sketch is accurate for heavy hitters and weak for rare items. In the demo, query an item you never added. It can still return a positive number.</p>
+</section>
+
+<section>
+  <h2>4. Sizing</h2>
+  <div class="cards">
+    <div class="stat focal"><div class="eyebrow">Width w</div><div class="big">e / &epsilon;</div><p>Wider means smaller error per query.</p></div>
+    <div class="stat"><div class="eyebrow">Depth d</div><div class="big">ln(1 / &delta;)</div><p>Deeper means a lower failure chance.</p></div>
+    <div class="stat"><div class="eyebrow">Memory</div><div class="big">O(w · d)</div><p>Fixed, however many items arrive.</p></div>
+  </div>
+  <p>Example: <code>&epsilon; = 0.001</code> and <code>&delta; = 0.01</code> give <code>w = 2719</code> and <code>d = 5</code>. That is about 13,600 counters, or roughly 54 KB with 32-bit counters, for a stream of any length.</p>
+</section>
+
+<section>
+  <h2>5. Properties</h2>
+  <table class="ops">
+    <thead><tr><th>Operation</th><th>Time</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>Add</td><td><code>O(d)</code></td><td>One increment per row</td></tr>
+      <tr><td>Query</td><td><code>O(d)</code></td><td>Minimum of d counters</td></tr>
+      <tr><td>Merge two sketches</td><td><code>O(w · d)</code></td><td>Add the matrices, same size and hashes</td></tr>
+      <tr><td>Delete</td><td><code>O(d)</code></td><td>Subtract. Safe only for items that were added</td></tr>
+      <tr><td>List all items</td><td>not possible</td><td>Items are not stored</td></tr>
+    </tbody>
+  </table>
+  <p>Merging makes sketches easy to use across machines. Each node builds its own, and a coordinator adds them.</p>
+</section>
+
+<section>
+  <h2>6. Where it shows up</h2>
+  <ul class="tight">
+    <li><b>Heavy hitters:</b> pair the sketch with a small <a href="../heap/heap.html">heap</a> of the top-k items seen so far.</li>
+    <li><b>Network monitoring:</b> per-flow packet counts at line rate.</li>
+    <li><b>Databases:</b> frequency estimates for query planning.</li>
+    <li><b>Rate limiting and abuse detection:</b> approximate request counts per key.</li>
+    <li><b>Caches:</b> TinyLFU uses a count-min sketch to decide which entries to admit.</li>
+  </ul>
+  <p>If you need to answer "have I seen this item?" rather than "how many times?", a Bloom filter is the lighter tool. The count-min sketch is its counting cousin.</p>
+</section>
+
+</main>
+
+<script>
+(function () {
+  var D = 4, W = 12, NS = 'http://www.w3.org/2000/svg';
+  var CW = 58, CH = 48, X0 = 112, Y0 = 36;
+  var STREAM = [['apple', 8], ['banana', 5], ['cherry', 3], ['date', 2], ['elder', 2], ['fig', 1], ['grape', 1], ['honey', 1], ['iris', 1], ['jade', 1]];
+  var table, truth, touched, minCells, log;
+
+  function el(name, attrs, text) {
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (text != null) e.textContent = text;
+    return e;
+  }
+
+  // FNV-1a style hash with a per-row seed
+  function hash(s, seed) {
+    var h = (2166136261 ^ Math.imul(seed + 1, 0x9e3779b1)) >>> 0;
+    for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
+    h ^= h >>> 15; h = Math.imul(h, 2246822519) >>> 0; h ^= h >>> 13;
+    return h >>> 0;
+  }
+  function col(s, j) { return hash(s, j) % W; }
+
+  function fresh() {
+    table = []; for (var j = 0; j < D; j++) table.push(new Array(W).fill(0));
+    truth = {}; touched = []; minCells = [];
+  }
+  function bump(x) {
+    for (var j = 0; j < D; j++) table[j][col(x, j)]++;
+    truth[x] = (truth[x] || 0) + 1;
+  }
+  function total() { var n = 0; for (var k in truth) n += truth[k]; return n; }
+  function cleanItem() { return document.getElementById('item').value.trim().toLowerCase(); }
+
+  function add(x) {
+    bump(x);
+    touched = []; minCells = [];
+    var lines = ['add "' + x + '"'];
+    for (var j = 0; j < D; j++) { var c = col(x, j); touched.push([j, c]); lines.push('row ' + j + ': column ' + c + ' -> ' + table[j][c]); }
+    log = lines.join('\n');
+  }
+
+  function query(x) {
+    var vals = [], best = Infinity, bj = 0;
+    touched = [];
+    for (var j = 0; j < D; j++) {
+      var c = col(x, j), v = table[j][c];
+      vals.push(v); touched.push([j, c]);
+      if (v < best) { best = v; bj = j; }
+    }
+    minCells = [[bj, col(x, bj)]];
+    var tc = truth[x] || 0, lines = ['query "' + x + '"'];
+    vals.forEach(function (v, j) { lines.push('row ' + j + ': column ' + col(x, j) + ' = ' + v); });
+    lines.push('estimate = min = ' + best);
+    lines.push('true count = ' + tc + (best > tc ? '  (over by ' + (best - tc) + ', collisions)' : '  (exact)'));
+    log = lines.join('\n');
+  }
+
+  function has(list, j, c) { return list.some(function (p) { return p[0] === j && p[1] === c; }); }
+
+  function render() {
+    var g = document.getElementById('cells');
+    g.textContent = '';
+    for (var c = 0; c < W; c++) g.appendChild(el('text', { x: X0 + c * CW + CW / 2, y: 22, 'text-anchor': 'middle', 'font-family': "'Geist Mono',monospace", 'font-size': 10, fill: '#5a6580' }, c));
+    for (var j = 0; j < D; j++) {
+      var y = Y0 + j * (CH + 8);
+      g.appendChild(el('text', { x: X0 - 16, y: y + CH / 2 + 4, 'text-anchor': 'end', 'font-family': "'Geist Mono',monospace", 'font-size': 12, 'font-weight': 600, fill: '#2d3142' }, 'h' + j));
+      for (var c2 = 0; c2 < W; c2++) {
+        var isMin = has(minCells, j, c2), hot = has(touched, j, c2);
+        g.appendChild(el('rect', {
+          x: X0 + c2 * CW + 2, y: y, width: CW - 4, height: CH, rx: 5,
+          fill: isMin ? 'rgba(46,90,168,.16)' : hot ? 'rgba(191,69,32,.14)' : '#fff',
+          stroke: isMin ? '#2e5aa8' : hot ? '#bf4520' : 'rgba(45,49,66,.35)',
+          'stroke-width': hot || isMin ? 1.8 : 1
+        }));
+        g.appendChild(el('text', {
+          x: X0 + c2 * CW + CW / 2, y: y + CH / 2 + 5, 'text-anchor': 'middle',
+          'font-family': "'Geist',sans-serif", 'font-size': 15, 'font-weight': 600,
+          fill: table[j][c2] ? '#2d3142' : 'rgba(45,49,66,.3)'
+        }, table[j][c2]));
+      }
+    }
+    document.getElementById('readout').textContent = log;
+    var n = total(), distinct = Object.keys(truth).length;
+    document.getElementById('live').textContent = 'N = ' + n + ' · distinct = ' + distinct + ' · counters = ' + (D * W);
+  }
+
+  function reset(msg) { fresh(); log = msg; render(); }
+
+  document.getElementById('form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var x = cleanItem();
+    if (!x) { log = 'Type an item first.'; touched = []; minCells = []; return render(); }
+    add(x); render();
+  });
+  document.getElementById('query').addEventListener('click', function () {
+    var x = cleanItem();
+    if (!x) { log = 'Type an item first.'; touched = []; minCells = []; return render(); }
+    query(x); render();
+  });
+  document.getElementById('stream').addEventListener('click', function () {
+    STREAM.forEach(function (p) { for (var i = 0; i < p[1]; i++) bump(p[0]); });
+    touched = []; minCells = [];
+    log = 'Added a stream of ' + STREAM.reduce(function (a, p) { return a + p[1]; }, 0) + ' items.\napple x8, banana x5, cherry x3, and 7 rarer items.\nQuery "apple" or an item you never added.';
+    render();
+  });
+  document.getElementById('reset').addEventListener('click', function () { reset('Sketch cleared.'); });
+
+  reset('Add an item, then query it. Try "Add sample stream" to force collisions.');
+})();
+</script>
+</body>
+</html>
