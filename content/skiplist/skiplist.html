@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Skip List: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+
+/* Fig 1: framed card */
+.lab{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:24px;align-items:start;margin-top:24px}
+.card{margin:0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--ink)}
+.stage{padding:0 8px}
+.stage svg{display:block;width:100%;height:auto;max-height:640px}
+#rack [data-k]{cursor:pointer}
+#rack [data-k]:hover polygon{filter:brightness(.97)}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:2px;border:1px solid var(--ink);display:inline-block}
+
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.seg{display:flex;gap:0;border:1px solid var(--rule-solid);border-radius:6px;overflow:hidden;margin-bottom:16px}
+.seg button{flex:1;min-height:40px;border:0;background:transparent;font:500 14px var(--sans);color:var(--muted);cursor:pointer}
+.seg button+button{border-left:1px solid var(--rule-solid)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.row{display:grid;grid-template-columns:28px 1fr 28px;gap:12px;align-items:center;margin:10px 0}
+.row label{font-family:var(--mono);font-size:13px;font-weight:600}
+.row output{font-family:var(--mono);font-size:13px;text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);min-height:28px}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer;margin-top:8px}
+.btn:hover{background:var(--ink);color:var(--paper)}
+#readout{margin:16px 0 0;padding:14px 16px;background:var(--paper);border:1px solid var(--rule);border-radius:6px;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink)}
+.na{color:var(--soft)}
+.c-a{color:var(--link);font-weight:600}.c-b{color:var(--accent);font-weight:600}
+
+/* static diagrams */
+.fig{margin:20px 0 8px}
+.scroll{overflow-x:auto;border:1px solid var(--rule);border-radius:8px;background:#fff;padding:8px}
+.scroll svg{display:block;height:auto}
+.cap{font-family:var(--mono);font-size:11px;color:var(--soft);margin:8px 0 0}
+
+pre{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .t{color:var(--link)} .c{color:var(--soft);font-style:italic}
+
+.cards{display:grid;grid-template-columns:1.1fr 1fr .9fr;gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:36px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+
+table.ops{border-collapse:collapse;width:100%;max-width:720px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);border-radius:6px;font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule)}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+.ok{color:#1d6b3a;font-weight:600}.no{color:var(--accent);font-weight:600}
+ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
+
+@media (max-width:860px){.lab{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+</style>
+<style>
+.btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.btns .btn{margin-top:0}
+.btn:disabled{opacity:.4;cursor:default}.btn:disabled:hover{background:transparent;color:var(--ink)}
+.numrow{display:grid;grid-template-columns:60px 1fr;gap:12px;align-items:center;margin:10px 0}
+.numrow label{font-family:var(--mono);font-size:13px;font-weight:600}
+input[type=number]{width:100%;min-height:40px;padding:0 12px;border:1px solid var(--rule-solid);border-radius:6px;font:500 15px var(--mono);background:#fff;color:var(--ink)}
+.lab{grid-template-columns:1fr}
+.stage svg{max-height:none}
+.row.wide{grid-template-columns:60px 1fr 28px}
+.step{font-family:var(--mono);font-size:11px;color:var(--soft);margin-top:12px}
+table.ops td:first-child{white-space:nowrap}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" href="../../index.html">&larr; Back to home</a>
+
+<header>
+  <div class="eyebrow">Data structures · Ordered sets</div>
+  <h1>Skip List</h1>
+  <p class="lede">A sorted linked list with express lanes on top. Random coin flips decide who gets promoted, and search takes expected O(log n) steps without any rebalancing.</p>
+</header>
+
+<section>
+  <h2>Ride the express lanes</h2>
+  <p>The model below is a real skip list holding <code>3, 6, 7, 9, 12, 17, 19, 21, 25</code>. Each tower is one key, and its height is the number of lanes it joins. Lane 0 visits everyone. Higher lanes visit fewer towers, so you can travel far in one hop. <b>Search</b> walks the path step by step. <b>Insert</b> shows which links get rewired.</p>
+
+  <div class="lab">
+    <figure class="card">
+      <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">The express-lane rack</span></div>
+      <div class="stage">
+        <svg id="rack" viewBox="0 0 560 520" role="img" aria-labelledby="rack-title rack-desc">
+          <title id="rack-title">Skip list as towers joined by rails</title>
+          <desc id="rack-desc">Each key is a tower. Rail level l connects the towers tall enough to reach level l. A search probe starts on the top rail of the head and drops a level whenever the next key is too large.</desc>
+          <g id="scene"></g>
+        </svg>
+      </div>
+      <div class="card-bottom"><span class="hint" id="hint">Click a tower to search for it</span><span class="live" id="live"></span></div>
+    </figure>
+
+    <div>
+      <div class="panel">
+        <div class="seg" role="group" aria-label="Mode">
+          <button type="button" id="modeS" aria-pressed="true">Search</button>
+          <button type="button" id="modeI" aria-pressed="false">Insert</button>
+        </div>
+
+        <div id="panelS">
+          <div class="numrow"><label for="inT">key</label><input type="number" id="inT" min="0" max="99" value="17"></div>
+          <div class="btns">
+            <button type="button" class="btn" id="bPrev">Back</button>
+            <button type="button" class="btn" id="bNext">Step</button>
+            <button type="button" class="btn" id="bPlay">Play</button>
+            <button type="button" class="btn" id="bRestart">Restart</button>
+          </div>
+          <div class="step" id="stepLabel"></div>
+        </div>
+
+        <div id="panelI" hidden>
+          <div class="numrow"><label for="inK">key</label><input type="number" id="inK" min="0" max="99" value="15"></div>
+          <div class="row wide"><label for="inH">height</label><input type="range" id="inH" min="1" max="4" value="2"><output id="outH">2</output></div>
+          <div class="btns">
+            <button type="button" class="btn" id="bInsert">Insert</button>
+            <button type="button" class="btn" id="bReset">Reset list</button>
+          </div>
+        </div>
+
+        <div id="readout" aria-live="polite"></div>
+      </div>
+      <div class="legend" aria-label="Legend">
+        <span><i class="sw" style="background:#f09a78;border-color:#7a2a10"></i>probe / path</span>
+        <span><i class="sw" style="background:#8db3ec;border-color:#1f3f7a"></i>next key compared</span>
+        <span><i class="sw" style="background:#fbe6dd;border-color:#7a2a10"></i>new node</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>1. The idea</h2>
+  <p>Searching a sorted linked list is slow because you can only move one node at a time. Binary search is fast, but it needs random access. A skip list adds extra lanes so you can skip ahead, then come back down to a finer lane when you would overshoot.</p>
+  <p>Every node is on lane 0. Each node is promoted to the next lane with probability <code>1/2</code>, so lane <code>l</code> holds about <code>n / 2<sup>l</sup></code> nodes. The result behaves like a balanced tree without ever being rebalanced.</p>
+
+  <div class="fig">
+    <div class="scroll"><svg width="1000" height="288" viewBox="0 0 1000 288" style="min-width:1000px" role="img" aria-labelledby="struct-title struct-desc">
+<title id="struct-title">Skip list with four lanes</title>
+<desc id="struct-desc">Nine towers of different heights. Each lane links the towers that reach it, and HEAD and NIL reach every lane.</desc>
+<defs><marker id="struct-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#4f5d75" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></marker>
+<marker id="struct-ac" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#bf4520" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+<line x1="160" y1="224" x2="173" y2="224" stroke="#4f5d75" stroke-width="1" marker-end="url(#struct-ar)"/>
+<line x1="240" y1="224" x2="253" y2="224" stroke="#4f5d75" stroke-width="1" marker-end="url(#struct-ar)"/>
+<line x1="320" y1="224" x2="333" y2="224" stroke="#4f5d75" stroke-width="1" marker-end="url(#struct-ar)"/>
+<line x1="400" y1="224" x2="413" y2="224" stroke="#4f5d75" stroke-width="1" marker-end="url(#struct-ar)"/>
+<line x1="480" y1="224" x2="493" y2="224" stroke="#4f5d75" stroke-width="1" marker-end="url(#struct-ar)"/>
+<line x1="560" y1="224" x2="573" y2="224" stroke="#4f5d75" stroke-width="1" marker-end="url(#struct-ar)"/>
+<line x1="640" y1="224" x2="653" y2="224" stroke="#4f5d75" stroke-width="1" marker-end="url(#struct-ar)"/>
+<line x1="720" y1="224" x2="733" y2="224" stroke="#4f5d75" stroke-width="1" marker-end="url(#struct-ar)"/>
+<line x1="800" y1="224" x2="813" y2="224" stroke="#4f5d75" stroke-width="1" marker-end="url(#struct-ar)"/>
+<line x1="880" y1="224" x2="893" y2="224" stroke="#4f5d75" stroke-width="1" marker-end="url(#struct-ar)"/>
+<line x1="160" y1="168" x2="173" y2="168" stroke="#4f5d75" stroke-width="1" marker-end="url(#struct-ar)"/>
+<line x1="240" y1="168" x2="333" y2="168" stroke="#4f5d75" stroke-width="1" marker-end="url(#struct-ar)"/>
+<line x1="400" y1="168" x2="493" y2="168" stroke="#4f5d75" stroke-width="1" marker-end="url(#struct-ar)"/>
+<line x1="560" y1="168" x2="653" y2="168" stroke="#4f5d75" stroke-width="1" marker-end="url(#struct-ar)"/>
+<line x1="720" y1="168" x2="813" y2="168" stroke="#4f5d75" stroke-width="1" marker-end="url(#struct-ar)"/>
+<line x1="880" y1="168" x2="893" y2="168" stroke="#4f5d75" stroke-width="1" marker-end="url(#struct-ar)"/>
+<line x1="160" y1="112" x2="333" y2="112" stroke="#4f5d75" stroke-width="1" marker-end="url(#struct-ar)"/>
+<line x1="400" y1="112" x2="653" y2="112" stroke="#4f5d75" stroke-width="1" marker-end="url(#struct-ar)"/>
+<line x1="720" y1="112" x2="893" y2="112" stroke="#4f5d75" stroke-width="1" marker-end="url(#struct-ar)"/>
+<line x1="160" y1="56" x2="653" y2="56" stroke="#4f5d75" stroke-width="1" marker-end="url(#struct-ar)"/>
+<line x1="720" y1="56" x2="893" y2="56" stroke="#4f5d75" stroke-width="1" marker-end="url(#struct-ar)"/>
+<line x1="128" y1="184" x2="128" y2="208" stroke="rgba(45,49,66,.35)" stroke-width="1"/>
+<line x1="128" y1="128" x2="128" y2="152" stroke="rgba(45,49,66,.35)" stroke-width="1"/>
+<line x1="128" y1="72" x2="128" y2="96" stroke="rgba(45,49,66,.35)" stroke-width="1"/>
+<line x1="208" y1="184" x2="208" y2="208" stroke="rgba(45,49,66,.35)" stroke-width="1"/>
+<line x1="368" y1="184" x2="368" y2="208" stroke="rgba(45,49,66,.35)" stroke-width="1"/>
+<line x1="368" y1="128" x2="368" y2="152" stroke="rgba(45,49,66,.35)" stroke-width="1"/>
+<line x1="528" y1="184" x2="528" y2="208" stroke="rgba(45,49,66,.35)" stroke-width="1"/>
+<line x1="688" y1="184" x2="688" y2="208" stroke="rgba(45,49,66,.35)" stroke-width="1"/>
+<line x1="688" y1="128" x2="688" y2="152" stroke="rgba(45,49,66,.35)" stroke-width="1"/>
+<line x1="688" y1="72" x2="688" y2="96" stroke="rgba(45,49,66,.35)" stroke-width="1"/>
+<line x1="848" y1="184" x2="848" y2="208" stroke="rgba(45,49,66,.35)" stroke-width="1"/>
+<line x1="928" y1="184" x2="928" y2="208" stroke="rgba(45,49,66,.35)" stroke-width="1"/>
+<line x1="928" y1="128" x2="928" y2="152" stroke="rgba(45,49,66,.35)" stroke-width="1"/>
+<line x1="928" y1="72" x2="928" y2="96" stroke="rgba(45,49,66,.35)" stroke-width="1"/>
+<text x="16" y="228" font-family="'Geist',sans-serif" font-size="12" font-weight="600" fill="#2d3142">lane 0</text>
+<rect x="96" y="208" width="64" height="32" rx="6" fill="rgba(45,49,66,.05)" stroke="rgba(45,49,66,.35)" stroke-width="1"/><text x="128" y="228" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="10" font-weight="600" fill="#2d3142">HEAD</text>
+<rect x="176" y="208" width="64" height="32" rx="6" fill="#fff" stroke="#2d3142" stroke-width="1"/><text x="208" y="228" text-anchor="middle" font-family="'Geist',sans-serif" font-size="14" font-weight="600" fill="#2d3142">3</text>
+<rect x="256" y="208" width="64" height="32" rx="6" fill="#fff" stroke="#2d3142" stroke-width="1"/><text x="288" y="228" text-anchor="middle" font-family="'Geist',sans-serif" font-size="14" font-weight="600" fill="#2d3142">6</text>
+<rect x="336" y="208" width="64" height="32" rx="6" fill="#fff" stroke="#2d3142" stroke-width="1"/><text x="368" y="228" text-anchor="middle" font-family="'Geist',sans-serif" font-size="14" font-weight="600" fill="#2d3142">7</text>
+<rect x="416" y="208" width="64" height="32" rx="6" fill="#fff" stroke="#2d3142" stroke-width="1"/><text x="448" y="228" text-anchor="middle" font-family="'Geist',sans-serif" font-size="14" font-weight="600" fill="#2d3142">9</text>
+<rect x="496" y="208" width="64" height="32" rx="6" fill="#fff" stroke="#2d3142" stroke-width="1"/><text x="528" y="228" text-anchor="middle" font-family="'Geist',sans-serif" font-size="14" font-weight="600" fill="#2d3142">12</text>
+<rect x="576" y="208" width="64" height="32" rx="6" fill="#fff" stroke="#2d3142" stroke-width="1"/><text x="608" y="228" text-anchor="middle" font-family="'Geist',sans-serif" font-size="14" font-weight="600" fill="#2d3142">17</text>
+<rect x="656" y="208" width="64" height="32" rx="6" fill="#fff" stroke="#2d3142" stroke-width="1"/><text x="688" y="228" text-anchor="middle" font-family="'Geist',sans-serif" font-size="14" font-weight="600" fill="#2d3142">19</text>
+<rect x="736" y="208" width="64" height="32" rx="6" fill="#fff" stroke="#2d3142" stroke-width="1"/><text x="768" y="228" text-anchor="middle" font-family="'Geist',sans-serif" font-size="14" font-weight="600" fill="#2d3142">21</text>
+<rect x="816" y="208" width="64" height="32" rx="6" fill="#fff" stroke="#2d3142" stroke-width="1"/><text x="848" y="228" text-anchor="middle" font-family="'Geist',sans-serif" font-size="14" font-weight="600" fill="#2d3142">25</text>
+<rect x="896" y="208" width="64" height="32" rx="6" fill="rgba(45,49,66,.05)" stroke="rgba(45,49,66,.35)" stroke-width="1"/><text x="928" y="228" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="10" font-weight="600" fill="#2d3142">NIL</text>
+<text x="16" y="172" font-family="'Geist',sans-serif" font-size="12" font-weight="600" fill="#2d3142">lane 1</text>
+<rect x="96" y="152" width="64" height="32" rx="6" fill="rgba(45,49,66,.05)" stroke="rgba(45,49,66,.35)" stroke-width="1"/><text x="128" y="172" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="10" font-weight="600" fill="#2d3142">HEAD</text>
+<rect x="176" y="152" width="64" height="32" rx="6" fill="#fff" stroke="#2d3142" stroke-width="1"/><text x="208" y="172" text-anchor="middle" font-family="'Geist',sans-serif" font-size="14" font-weight="600" fill="#2d3142">3</text>
+<rect x="336" y="152" width="64" height="32" rx="6" fill="#fff" stroke="#2d3142" stroke-width="1"/><text x="368" y="172" text-anchor="middle" font-family="'Geist',sans-serif" font-size="14" font-weight="600" fill="#2d3142">7</text>
+<rect x="496" y="152" width="64" height="32" rx="6" fill="#fff" stroke="#2d3142" stroke-width="1"/><text x="528" y="172" text-anchor="middle" font-family="'Geist',sans-serif" font-size="14" font-weight="600" fill="#2d3142">12</text>
+<rect x="656" y="152" width="64" height="32" rx="6" fill="#fff" stroke="#2d3142" stroke-width="1"/><text x="688" y="172" text-anchor="middle" font-family="'Geist',sans-serif" font-size="14" font-weight="600" fill="#2d3142">19</text>
+<rect x="816" y="152" width="64" height="32" rx="6" fill="#fff" stroke="#2d3142" stroke-width="1"/><text x="848" y="172" text-anchor="middle" font-family="'Geist',sans-serif" font-size="14" font-weight="600" fill="#2d3142">25</text>
+<rect x="896" y="152" width="64" height="32" rx="6" fill="rgba(45,49,66,.05)" stroke="rgba(45,49,66,.35)" stroke-width="1"/><text x="928" y="172" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="10" font-weight="600" fill="#2d3142">NIL</text>
+<text x="16" y="116" font-family="'Geist',sans-serif" font-size="12" font-weight="600" fill="#2d3142">lane 2</text>
+<rect x="96" y="96" width="64" height="32" rx="6" fill="rgba(45,49,66,.05)" stroke="rgba(45,49,66,.35)" stroke-width="1"/><text x="128" y="116" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="10" font-weight="600" fill="#2d3142">HEAD</text>
+<rect x="336" y="96" width="64" height="32" rx="6" fill="#fff" stroke="#2d3142" stroke-width="1"/><text x="368" y="116" text-anchor="middle" font-family="'Geist',sans-serif" font-size="14" font-weight="600" fill="#2d3142">7</text>
+<rect x="656" y="96" width="64" height="32" rx="6" fill="#fff" stroke="#2d3142" stroke-width="1"/><text x="688" y="116" text-anchor="middle" font-family="'Geist',sans-serif" font-size="14" font-weight="600" fill="#2d3142">19</text>
+<rect x="896" y="96" width="64" height="32" rx="6" fill="rgba(45,49,66,.05)" stroke="rgba(45,49,66,.35)" stroke-width="1"/><text x="928" y="116" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="10" font-weight="600" fill="#2d3142">NIL</text>
+<text x="16" y="60" font-family="'Geist',sans-serif" font-size="12" font-weight="600" fill="#2d3142">lane 3</text>
+<rect x="96" y="40" width="64" height="32" rx="6" fill="rgba(45,49,66,.05)" stroke="rgba(45,49,66,.35)" stroke-width="1"/><text x="128" y="60" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="10" font-weight="600" fill="#2d3142">HEAD</text>
+<rect x="656" y="40" width="64" height="32" rx="6" fill="#fff" stroke="#2d3142" stroke-width="1"/><text x="688" y="60" text-anchor="middle" font-family="'Geist',sans-serif" font-size="14" font-weight="600" fill="#2d3142">19</text>
+<rect x="896" y="40" width="64" height="32" rx="6" fill="rgba(45,49,66,.05)" stroke="rgba(45,49,66,.35)" stroke-width="1"/><text x="928" y="60" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="10" font-weight="600" fill="#2d3142">NIL</text>
+</svg></div>
+    <p class="cap">Fig 2 · The same skip list as Fig 1. Node heights are 2, 1, 3, 1, 2, 1, 4, 1, 2. HEAD and NIL reach every lane.</p>
+  </div>
+</section>
+
+<section>
+  <h2>2. Search: right if you can, down if you must</h2>
+  <p>Start at the top lane of HEAD. Look at the next key on this lane. If it is smaller than the target, move right. Otherwise drop one lane. When you cannot drop any more, the next node on lane 0 is either the target or proof that it is missing.</p>
+<pre><span class="t">x</span> = HEAD
+<span class="k">for</span> lane <span class="k">from</span> top <span class="k">down to</span> 0:
+    <span class="k">while</span> x.next[lane].key &lt; target:  x = x.next[lane]
+x = x.next[0]
+<span class="k">return</span> x.key == target</pre>
+
+  <div class="fig">
+    <div class="scroll"><svg width="1000" height="288" viewBox="0 0 1000 288" style="min-width:1000px" role="img" aria-labelledby="path-title path-desc">
+<title id="path-title">Searching for 17</title>
+<desc id="path-desc">The search starts at the top lane of HEAD, drops to lane 2, moves right to 7, drops to lane 1, moves right to 12, drops to lane 0 and finds 17.</desc>
+<defs><marker id="path-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#4f5d75" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></marker>
+<marker id="path-ac" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#bf4520" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+<line x1="160" y1="224" x2="173" y2="224" stroke="#4f5d75" stroke-width="1" marker-end="url(#path-ar)"/>
+<line x1="240" y1="224" x2="253" y2="224" stroke="#4f5d75" stroke-width="1" marker-end="url(#path-ar)"/>
+<line x1="320" y1="224" x2="333" y2="224" stroke="#4f5d75" stroke-width="1" marker-end="url(#path-ar)"/>
+<line x1="400" y1="224" x2="413" y2="224" stroke="#4f5d75" stroke-width="1" marker-end="url(#path-ar)"/>
+<line x1="480" y1="224" x2="493" y2="224" stroke="#4f5d75" stroke-width="1" marker-end="url(#path-ar)"/>
+<line x1="560" y1="224" x2="573" y2="224" stroke="#4f5d75" stroke-width="1" marker-end="url(#path-ar)"/>
+<line x1="640" y1="224" x2="653" y2="224" stroke="#4f5d75" stroke-width="1" marker-end="url(#path-ar)"/>
+<line x1="720" y1="224" x2="733" y2="224" stroke="#4f5d75" stroke-width="1" marker-end="url(#path-ar)"/>
+<line x1="800" y1="224" x2="813" y2="224" stroke="#4f5d75" stroke-width="1" marker-end="url(#path-ar)"/>
+<line x1="880" y1="224" x2="893" y2="224" stroke="#4f5d75" stroke-width="1" marker-end="url(#path-ar)"/>
+<line x1="160" y1="168" x2="173" y2="168" stroke="#4f5d75" stroke-width="1" marker-end="url(#path-ar)"/>
+<line x1="240" y1="168" x2="333" y2="168" stroke="#4f5d75" stroke-width="1" marker-end="url(#path-ar)"/>
+<line x1="400" y1="168" x2="493" y2="168" stroke="#bf4520" stroke-width="1.8" marker-end="url(#path-ac)"/>
+<line x1="560" y1="168" x2="653" y2="168" stroke="#4f5d75" stroke-width="1" marker-end="url(#path-ar)"/>
+<line x1="720" y1="168" x2="813" y2="168" stroke="#4f5d75" stroke-width="1" marker-end="url(#path-ar)"/>
+<line x1="880" y1="168" x2="893" y2="168" stroke="#4f5d75" stroke-width="1" marker-end="url(#path-ar)"/>
+<line x1="160" y1="112" x2="333" y2="112" stroke="#bf4520" stroke-width="1.8" marker-end="url(#path-ac)"/>
+<line x1="400" y1="112" x2="653" y2="112" stroke="#4f5d75" stroke-width="1" marker-end="url(#path-ar)"/>
+<line x1="720" y1="112" x2="893" y2="112" stroke="#4f5d75" stroke-width="1" marker-end="url(#path-ar)"/>
+<line x1="160" y1="56" x2="653" y2="56" stroke="#4f5d75" stroke-width="1" marker-end="url(#path-ar)"/>
+<line x1="720" y1="56" x2="893" y2="56" stroke="#4f5d75" stroke-width="1" marker-end="url(#path-ar)"/>
+<line x1="128" y1="184" x2="128" y2="208" stroke="rgba(45,49,66,.35)" stroke-width="1"/>
+<line x1="128" y1="128" x2="128" y2="152" stroke="rgba(45,49,66,.35)" stroke-width="1"/>
+<line x1="128" y1="72" x2="128" y2="93" stroke="#bf4520" stroke-width="1.8" marker-end="url(#path-ac)"/>
+<line x1="208" y1="184" x2="208" y2="208" stroke="rgba(45,49,66,.35)" stroke-width="1"/>
+<line x1="368" y1="184" x2="368" y2="208" stroke="rgba(45,49,66,.35)" stroke-width="1"/>
+<line x1="368" y1="128" x2="368" y2="149" stroke="#bf4520" stroke-width="1.8" marker-end="url(#path-ac)"/>
+<line x1="528" y1="184" x2="528" y2="205" stroke="#bf4520" stroke-width="1.8" marker-end="url(#path-ac)"/>
+<line x1="688" y1="184" x2="688" y2="208" stroke="rgba(45,49,66,.35)" stroke-width="1"/>
+<line x1="688" y1="128" x2="688" y2="152" stroke="rgba(45,49,66,.35)" stroke-width="1"/>
+<line x1="688" y1="72" x2="688" y2="96" stroke="rgba(45,49,66,.35)" stroke-width="1"/>
+<line x1="848" y1="184" x2="848" y2="208" stroke="rgba(45,49,66,.35)" stroke-width="1"/>
+<line x1="928" y1="184" x2="928" y2="208" stroke="rgba(45,49,66,.35)" stroke-width="1"/>
+<line x1="928" y1="128" x2="928" y2="152" stroke="rgba(45,49,66,.35)" stroke-width="1"/>
+<line x1="928" y1="72" x2="928" y2="96" stroke="rgba(45,49,66,.35)" stroke-width="1"/>
+<text x="16" y="228" font-family="'Geist',sans-serif" font-size="12" font-weight="600" fill="#2d3142">lane 0</text>
+<rect x="96" y="208" width="64" height="32" rx="6" fill="rgba(45,49,66,.05)" stroke="rgba(45,49,66,.35)" stroke-width="1"/><text x="128" y="228" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="10" font-weight="600" fill="#2d3142">HEAD</text>
+<rect x="176" y="208" width="64" height="32" rx="6" fill="#fff" stroke="#2d3142" stroke-width="1"/><text x="208" y="228" text-anchor="middle" font-family="'Geist',sans-serif" font-size="14" font-weight="600" fill="#2d3142">3</text>
+<rect x="256" y="208" width="64" height="32" rx="6" fill="#fff" stroke="#2d3142" stroke-width="1"/><text x="288" y="228" text-anchor="middle" font-family="'Geist',sans-serif" font-size="14" font-weight="600" fill="#2d3142">6</text>
+<rect x="336" y="208" width="64" height="32" rx="6" fill="#fff" stroke="#2d3142" stroke-width="1"/><text x="368" y="228" text-anchor="middle" font-family="'Geist',sans-serif" font-size="14" font-weight="600" fill="#2d3142">7</text>
+<rect x="416" y="208" width="64" height="32" rx="6" fill="#fff" stroke="#2d3142" stroke-width="1"/><text x="448" y="228" text-anchor="middle" font-family="'Geist',sans-serif" font-size="14" font-weight="600" fill="#2d3142">9</text>
+<rect x="496" y="208" width="64" height="32" rx="6" fill="#fff" stroke="#bf4520" stroke-width="1.4"/><text x="528" y="228" text-anchor="middle" font-family="'Geist',sans-serif" font-size="14" font-weight="600" fill="#2d3142">12</text>
+<rect x="576" y="208" width="64" height="32" rx="6" fill="rgba(191,69,32,.12)" stroke="#bf4520" stroke-width="1.6"/><text x="608" y="228" text-anchor="middle" font-family="'Geist',sans-serif" font-size="14" font-weight="600" fill="#2d3142">17</text>
+<rect x="656" y="208" width="64" height="32" rx="6" fill="#fff" stroke="#2d3142" stroke-width="1"/><text x="688" y="228" text-anchor="middle" font-family="'Geist',sans-serif" font-size="14" font-weight="600" fill="#2d3142">19</text>
+<rect x="736" y="208" width="64" height="32" rx="6" fill="#fff" stroke="#2d3142" stroke-width="1"/><text x="768" y="228" text-anchor="middle" font-family="'Geist',sans-serif" font-size="14" font-weight="600" fill="#2d3142">21</text>
+<rect x="816" y="208" width="64" height="32" rx="6" fill="#fff" stroke="#2d3142" stroke-width="1"/><text x="848" y="228" text-anchor="middle" font-family="'Geist',sans-serif" font-size="14" font-weight="600" fill="#2d3142">25</text>
+<rect x="896" y="208" width="64" height="32" rx="6" fill="rgba(45,49,66,.05)" stroke="rgba(45,49,66,.35)" stroke-width="1"/><text x="928" y="228" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="10" font-weight="600" fill="#2d3142">NIL</text>
+<text x="16" y="172" font-family="'Geist',sans-serif" font-size="12" font-weight="600" fill="#2d3142">lane 1</text>
+<rect x="96" y="152" width="64" height="32" rx="6" fill="rgba(45,49,66,.05)" stroke="rgba(45,49,66,.35)" stroke-width="1"/><text x="128" y="172" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="10" font-weight="600" fill="#2d3142">HEAD</text>
+<rect x="176" y="152" width="64" height="32" rx="6" fill="#fff" stroke="#2d3142" stroke-width="1"/><text x="208" y="172" text-anchor="middle" font-family="'Geist',sans-serif" font-size="14" font-weight="600" fill="#2d3142">3</text>
+<rect x="336" y="152" width="64" height="32" rx="6" fill="#fff" stroke="#bf4520" stroke-width="1.4"/><text x="368" y="172" text-anchor="middle" font-family="'Geist',sans-serif" font-size="14" font-weight="600" fill="#2d3142">7</text>
+<rect x="496" y="152" width="64" height="32" rx="6" fill="#fff" stroke="#bf4520" stroke-width="1.4"/><text x="528" y="172" text-anchor="middle" font-family="'Geist',sans-serif" font-size="14" font-weight="600" fill="#2d3142">12</text>
+<rect x="656" y="152" width="64" height="32" rx="6" fill="#fff" stroke="#2d3142" stroke-width="1"/><text x="688" y="172" text-anchor="middle" font-family="'Geist',sans-serif" font-size="14" font-weight="600" fill="#2d3142">19</text>
+<rect x="816" y="152" width="64" height="32" rx="6" fill="#fff" stroke="#2d3142" stroke-width="1"/><text x="848" y="172" text-anchor="middle" font-family="'Geist',sans-serif" font-size="14" font-weight="600" fill="#2d3142">25</text>
+<rect x="896" y="152" width="64" height="32" rx="6" fill="rgba(45,49,66,.05)" stroke="rgba(45,49,66,.35)" stroke-width="1"/><text x="928" y="172" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="10" font-weight="600" fill="#2d3142">NIL</text>
+<text x="16" y="116" font-family="'Geist',sans-serif" font-size="12" font-weight="600" fill="#2d3142">lane 2</text>
+<rect x="96" y="96" width="64" height="32" rx="6" fill="rgba(45,49,66,.05)" stroke="#bf4520" stroke-width="1.4"/><text x="128" y="116" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="10" font-weight="600" fill="#2d3142">HEAD</text>
+<rect x="336" y="96" width="64" height="32" rx="6" fill="#fff" stroke="#bf4520" stroke-width="1.4"/><text x="368" y="116" text-anchor="middle" font-family="'Geist',sans-serif" font-size="14" font-weight="600" fill="#2d3142">7</text>
+<rect x="656" y="96" width="64" height="32" rx="6" fill="#fff" stroke="#2d3142" stroke-width="1"/><text x="688" y="116" text-anchor="middle" font-family="'Geist',sans-serif" font-size="14" font-weight="600" fill="#2d3142">19</text>
+<rect x="896" y="96" width="64" height="32" rx="6" fill="rgba(45,49,66,.05)" stroke="rgba(45,49,66,.35)" stroke-width="1"/><text x="928" y="116" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="10" font-weight="600" fill="#2d3142">NIL</text>
+<text x="16" y="60" font-family="'Geist',sans-serif" font-size="12" font-weight="600" fill="#2d3142">lane 3</text>
+<rect x="96" y="40" width="64" height="32" rx="6" fill="rgba(45,49,66,.05)" stroke="#bf4520" stroke-width="1.4"/><text x="128" y="60" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="10" font-weight="600" fill="#2d3142">HEAD</text>
+<rect x="656" y="40" width="64" height="32" rx="6" fill="#fff" stroke="#2d3142" stroke-width="1"/><text x="688" y="60" text-anchor="middle" font-family="'Geist',sans-serif" font-size="14" font-weight="600" fill="#2d3142">19</text>
+<rect x="896" y="40" width="64" height="32" rx="6" fill="rgba(45,49,66,.05)" stroke="rgba(45,49,66,.35)" stroke-width="1"/><text x="928" y="60" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="10" font-weight="600" fill="#2d3142">NIL</text>
+</svg></div>
+    <p class="cap">Fig 3 · Search for 17 stands only on HEAD, 7, 12 and 17. It peeks at 19 three times and never touches 3, 6, 9, 21 or 25.</p>
+  </div>
+  <div class="callout">The expected cost is about two steps per lane, and there are about log₂ n lanes.</div>
+</section>
+
+<section>
+  <h2>3. Insert: find the predecessors, flip coins, splice</h2>
+  <p>Insert is a search that remembers where it dropped down. On each lane, the last node before the new key is its <b>predecessor</b>. Then flip a coin until you get tails. The number of heads plus one is the new tower height. On every lane up to that height, splice the new node in right after its predecessor.</p>
+  <p>Delete works in reverse. Find the same predecessors, and on each lane where they point at the victim, make them point past it. Then shrink the top lane if it became empty.</p>
+  <p>Switch Fig 1 to <b>Insert</b>, pick a key and a height, and the highlighted rails are exactly the links that change.</p>
+</section>
+
+<section>
+  <h2>4. Code</h2>
+<pre><span class="k">const int</span> MAXL = 16;
+
+<span class="k">struct</span> Node {
+    <span class="k">int</span> key;
+    vector&lt;Node*&gt; nxt;
+    Node(<span class="k">int</span> k, <span class="k">int</span> h) : key(k), nxt(h, <span class="k">nullptr</span>) {}
+};
+
+<span class="k">struct</span> SkipList {
+    Node* head = <span class="k">new</span> Node(INT_MIN, MAXL);
+    <span class="k">int</span> level = 1;                        <span class="c">// lanes currently in use</span>
+    mt19937 rng{12345};
+
+    <span class="k">int</span> randomLevel() {
+        <span class="k">int</span> h = 1;
+        <span class="k">while</span> (h &lt; MAXL &amp;&amp; (rng() &amp; 1)) h++;   <span class="c">// p = 1/2</span>
+        <span class="k">return</span> h;
+    }
+
+    <span class="k">bool</span> find(<span class="k">int</span> key) {
+        Node* x = head;
+        <span class="k">for</span> (<span class="k">int</span> i = level - 1; i &gt;= 0; i--)
+            <span class="k">while</span> (x-&gt;nxt[i] &amp;&amp; x-&gt;nxt[i]-&gt;key &lt; key) x = x-&gt;nxt[i];
+        x = x-&gt;nxt[0];
+        <span class="k">return</span> x &amp;&amp; x-&gt;key == key;
+    }
+
+    <span class="k">void</span> insert(<span class="k">int</span> key) {
+        Node* update[MAXL];
+        Node* x = head;
+        <span class="k">for</span> (<span class="k">int</span> i = level - 1; i &gt;= 0; i--) {
+            <span class="k">while</span> (x-&gt;nxt[i] &amp;&amp; x-&gt;nxt[i]-&gt;key &lt; key) x = x-&gt;nxt[i];
+            update[i] = x;                   <span class="c">// predecessor on lane i</span>
+        }
+        <span class="k">int</span> h = randomLevel();
+        <span class="k">for</span> (<span class="k">int</span> i = level; i &lt; h; i++) update[i] = head;
+        level = max(level, h);
+
+        Node* n = <span class="k">new</span> Node(key, h);
+        <span class="k">for</span> (<span class="k">int</span> i = 0; i &lt; h; i++) {
+            n-&gt;nxt[i] = update[i]-&gt;nxt[i];
+            update[i]-&gt;nxt[i] = n;
+        }
+    }
+
+    <span class="k">void</span> erase(<span class="k">int</span> key) {
+        Node* update[MAXL];
+        Node* x = head;
+        <span class="k">for</span> (<span class="k">int</span> i = level - 1; i &gt;= 0; i--) {
+            <span class="k">while</span> (x-&gt;nxt[i] &amp;&amp; x-&gt;nxt[i]-&gt;key &lt; key) x = x-&gt;nxt[i];
+            update[i] = x;
+        }
+        x = x-&gt;nxt[0];
+        <span class="k">if</span> (!x || x-&gt;key != key) <span class="k">return</span>;
+        <span class="k">for</span> (<span class="k">int</span> i = 0; i &lt; level &amp;&amp; update[i]-&gt;nxt[i] == x; i++)
+            update[i]-&gt;nxt[i] = x-&gt;nxt[i];
+        <span class="k">delete</span> x;
+        <span class="k">while</span> (level &gt; 1 &amp;&amp; !head-&gt;nxt[level - 1]) level--;
+    }
+};</pre>
+  <p>This sketch does not reject duplicate keys. Check <code>find(key)</code> first, or store a count in the node.</p>
+</section>
+
+<section>
+  <h2>5. Cost</h2>
+  <div class="cards">
+    <div class="stat focal"><div class="eyebrow">Search · insert · delete</div><div class="big">O(log n)</div><p>Expected, for any input order. The coin flips do the balancing.</p></div>
+    <div class="stat"><div class="eyebrow">Space</div><div class="big">O(n)</div><p>About 2n pointers when p = 1/2.</p></div>
+    <div class="stat"><div class="eyebrow">Worst case</div><div class="big">O(n)</div><p>Possible, but with vanishing probability.</p></div>
+  </div>
+</section>
+
+<section>
+  <h2>6. How it compares</h2>
+  <table class="ops">
+    <thead><tr><th>Structure</th><th>Search</th><th>Insert</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>Sorted array</td><td class="ok">O(log n)</td><td class="no">O(n)</td><td>Fast to read, slow to shift.</td></tr>
+      <tr><td>Linked list</td><td class="no">O(n)</td><td class="ok">O(1) after search</td><td>No way to skip ahead.</td></tr>
+      <tr><td>Balanced BST</td><td class="ok">O(log n)</td><td class="ok">O(log n)</td><td>Rotations make it tricky to write.</td></tr>
+      <tr><td><b>Skip list</b></td><td class="ok">O(log n) exp.</td><td class="ok">O(log n) exp.</td><td>Simple code, easy range scans along lane 0.</td></tr>
+    </tbody>
+  </table>
+  <p>Skip lists are used in practice. Redis sorted sets are built on one, and they are popular for concurrent maps because an insert only touches a few neighbouring links.</p>
+
+  <h2 style="margin-top:32px">Pitfalls</h2>
+  <ul class="tight">
+    <li>Cap the height. <code>MAXL</code> around <code>log₂ n</code> is enough, 16 to 32 covers most uses.</li>
+    <li>Search with <code>&lt;</code>, not <code>&lt;=</code>. You want the predecessor, so that insert and delete can reuse the same walk.</li>
+    <li>When the new height exceeds the current <code>level</code>, the missing predecessors are HEAD.</li>
+    <li>Guarantees are probabilistic. Seed the generator properly, and do not share a predictable seed with adversarial input.</li>
+    <li>Pointer chasing is not cache friendly. A balanced tree or a B-tree can win on raw speed for small in-memory sets.</li>
+  </ul>
+</section>
+
+</main>
+<script>
+(() => {
+  // ---------- constants ----------
+  const L = 4, SLOTS = 12, P = 44, LS = 24, PH = 16;
+  const BASE_NODES = [[3, 2], [6, 1], [7, 3], [9, 1], [12, 2], [17, 1], [19, 4], [21, 1], [25, 2]];
+  const C30 = Math.sqrt(3) / 2;
+  const TH = 20 * Math.PI / 180, cT = Math.cos(TH), sT = Math.sin(TH), EL = 0.58;   // camera: low azimuth so the row reads left to right
+  const pj = (x, y, z) => [x * cT - y * sT, (x * sT + y * cT) * EL - z];
+  const f1 = n => n.toFixed(1);
+  const poly = (pts, fill, stroke, sw, dash) =>
+    `<polygon points="${pts.map(p => f1(p[0]) + ',' + f1(p[1])).join(' ')}" fill="${fill}" stroke="${stroke}" stroke-width="${sw || .7}" stroke-linejoin="round"${dash ? ' stroke-dasharray="2 2"' : ''}/>`;
+  function box(x, y, z, w, d, h, c, sw) {
+    const top = [pj(x, y, z + h), pj(x + w, y, z + h), pj(x + w, y + d, z + h), pj(x, y + d, z + h)];
+    const right = [pj(x + w, y, z), pj(x + w, y + d, z), pj(x + w, y + d, z + h), pj(x + w, y, z + h)];
+    const left = [pj(x, y + d, z), pj(x + w, y + d, z), pj(x + w, y + d, z + h), pj(x, y + d, z + h)];
+    return poly(left, c.left, c.stroke, sw) + poly(right, c.right, c.stroke, sw) + poly(top, c.top, c.stroke, sw);
+  }
+  const flat = (str, x, y, z, size, fill, weight, mono) =>
+    `<text transform="matrix(${cT.toFixed(4)},${(sT * EL).toFixed(4)},${(-sT).toFixed(4)},${(cT * EL).toFixed(4)},0,${f1(-z)})" x="${x}" y="${y}" font-size="${size}" font-weight="${weight || 600}" fill="${fill}" text-anchor="middle" font-family="${mono ? "'Geist Mono',ui-monospace,monospace" : "'Geist',system-ui,sans-serif"}">${str}</text>`;
+  // text on the +y (front-left) face; local y is -z
+  const faceText = (str, x, y0, z, size, fill) =>
+    `<text transform="matrix(${cT.toFixed(4)},${(sT * EL).toFixed(4)},0,1,${f1(-y0 * sT)},${f1(y0 * cT * EL)})" x="${x}" y="${f1(-z)}" font-size="${size}" font-weight="600" fill="${fill}" text-anchor="middle" font-family="'Geist Mono',ui-monospace,monospace">${str}</text>`;
+  const dot = (x, y, z, r) => { const p = pj(x, y, z); return `<circle cx="${f1(p[0])}" cy="${f1(p[1])}" r="${r}" fill="#2d3142" opacity=".55"/>`; };
+  const seg = (a, b, w, o) => `<line x1="${f1(a[0])}" y1="${f1(a[1])}" x2="${f1(b[0])}" y2="${f1(b[1])}" stroke="#4f5d75" stroke-width="${w}" opacity="${o}"/>`;
+
+  const BASEC = { top: '#dfe3ea', right: '#c6cbd6', left: '#b2b9c7', stroke: '#4f5d75' };
+  const FOOT = { top: '#9aa3b5', right: '#7d8699', left: '#6b7488', stroke: '#2d3142' };
+  const RAIL = { top: '#c4cad6', right: '#a7afc0', left: '#98a1b5', stroke: '#4f5d75' };
+  const PAL = {
+    def: { top: '#ffffff', right: '#e3e6ec', left: '#cdd2dc', stroke: '#4f5d75', text: '#2d3142' },
+    dim: { top: '#f0f1f4', right: '#e6e8ed', left: '#dcdfe6', stroke: '#aab0bd', text: '#8a92a3' },
+    A: { top: '#8db3ec', right: '#4f7fc4', left: '#3f6bb0', stroke: '#1f3f7a', text: '#0f2347' },
+    B: { top: '#f09a78', right: '#cf6a45', left: '#b95533', stroke: '#7a2a10', text: '#3d1405' },
+    G: { top: '#fbe6dd', right: '#e9b7a3', left: '#d99d84', stroke: '#7a2a10', text: '#bf4520' }
+  };
+
+  // ---------- state ----------
+  const $ = id => document.getElementById(id);
+  const scene = $('scene'), rack = $('rack');
+  const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let nodes = BASE_NODES.map(([key, h]) => ({ key, h }));
+  const st = { mode: 'search', target: 17, s: 0, insKey: 15, insH: 2 };
+  let E = [], ghostIdx = -1, steps = [], playTimer = 0;
+  let probe = { x: 0, z: 0, tx: 0, tz: 0, init: false };
+
+  // ---------- layout helpers ----------
+  const colW = m => (E[m].kind === 'head' ? 22 : 12);
+  const colX0 = m => m * P + (E[m].kind === 'head' ? 5 : 10);
+  const colL = colX0, colR = m => colX0(m) + colW(m);
+  const zc = l => PH + l * LS + 12;
+  const name = j => E[j].kind === 'head' ? 'HEAD' : E[j].kind === 'tail' ? 'NIL' : String(E[j].key);
+  const nextAt = (i, l) => { for (let j = i + 1; j < E.length; j++) if (E[j].h > l) return j; return E.length - 1; };
+  const predAt = (i, l) => { for (let j = i - 1; j >= 0; j--) if (E[j].h > l) return j; return 0; };
+
+  function ghostValid() {
+    const k = st.insKey;
+    return Number.isInteger(k) && k >= 0 && k <= 99 && !nodes.some(n => n.key === k) && nodes.length < SLOTS - 2;
+  }
+  function buildEntries() {
+    const list = nodes.map(n => ({ key: n.key, h: n.h, kind: 'node' }));
+    ghostIdx = -1;
+    if (st.mode === 'insert' && ghostValid()) {
+      let idx = list.findIndex(n => n.key > st.insKey); if (idx < 0) idx = list.length;
+      list.splice(idx, 0, { key: st.insKey, h: st.insH, kind: 'ghost' });
+      ghostIdx = idx + 1;
+    }
+    E = [{ key: -Infinity, h: L, kind: 'head' }, ...list, { key: Infinity, h: L, kind: 'tail' }];
+  }
+  function buildSteps() {
+    steps = [];
+    const t = st.target;
+    let cur = 0, l = L - 1;
+    for (;;) {
+      const j = nextAt(cur, l), nk = E[j].key;
+      if (nk < t) { steps.push({ cur, l, peek: j, kind: 'right' }); cur = j; }
+      else if (l > 0) { steps.push({ cur, l, peek: j, kind: 'down' }); l--; }
+      else { steps.push({ cur, l, peek: j, kind: nk === t ? 'found' : 'miss' }); break; }
+    }
+  }
+
+  // ---------- fit ----------
+  let mnX = 1e9, mxX = -1e9, mnY = 1e9, mxY = -1e9;
+  [[-24, -20], [SLOTS * P + 8, -20], [-24, 58], [SLOTS * P + 8, 58]].forEach(([x, y]) => [-18, PH + L * LS + 16].forEach(z => {
+    const p = pj(x, y, z);
+    mnX = Math.min(mnX, p[0]); mxX = Math.max(mxX, p[0]); mnY = Math.min(mnY, p[1]); mxY = Math.max(mxY, p[1]);
+  }));
+  const PAD = 14;
+  scene.setAttribute('transform', `translate(${f1(-mnX + PAD)},${f1(-mnY + PAD)})`);
+  rack.setAttribute('viewBox', `0 0 ${Math.ceil(mxX - mnX + 2 * PAD)} ${Math.ceil(mxY - mnY + 2 * PAD)}`);
+
+  // ---------- render ----------
+  function render() {
+    const hr = new Set(), ho = new Set(), hv = new Set(), sr = {};
+    const markRail = (l, i, j) => { for (let m = i; m < j; m++) hr.add(l + ':' + m); for (let m = i + 1; m < j; m++) ho.add(l + ':' + m); };
+    let foundIdx = -1;
+
+    if (st.mode === 'search') {
+      for (let q = 0; q < st.s; q++) {
+        const a = steps[q];
+        if (a.kind === 'right') markRail(a.l, a.cur, a.peek);
+        else if (a.kind === 'down') hv.add(a.cur + ':' + a.l);
+      }
+      const q = steps[st.s];
+      if (q.peek < E.length - 1) sr[q.peek + ':' + q.l] = 'A';
+      if (q.kind === 'found') { sr[q.peek + ':0'] = 'B'; foundIdx = q.peek; }
+    } else if (ghostIdx > 0) {
+      for (let l = 0; l < st.insH; l++) {
+        const p = predAt(ghostIdx, l), n = nextAt(ghostIdx, l);
+        markRail(l, p, ghostIdx); markRail(l, ghostIdx, n);
+        sr[p + ':' + l] = 'A';
+      }
+    }
+
+    // probe tween target
+    if (st.mode === 'search') {
+      const q = steps[st.s];
+      probe.tx = colR(q.cur) + 6; probe.tz = zc(q.l) + 2;
+      if (!probe.init || reduce) { probe.x = probe.tx; probe.z = probe.tz; probe.init = true; }
+    }
+
+    let out = '';
+    [[-18, -14], [SLOTS * P - 8, -14], [-18, 46], [SLOTS * P - 8, 46]].forEach(f => { out += box(f[0], f[1], -18, 12, 12, 8, FOOT, .7); });
+    out += box(-24, -20, -10, SLOTS * P + 32, 78, 10, BASEC, .8);
+    for (let s = 0; s < SLOTS; s++) {
+      const x = s * P, t = [pj(x - 2, -2, 0), pj(x + 34, -2, 0), pj(x + 34, 34, 0), pj(x - 2, 34, 0)];
+      out += poly(t, '#d3d8e1', '#8a92a3', .6, true);
+      out += seg(pj(x + 16, 40, 0), pj(x + 16, 46, 0), .6, .7);
+    }
+    out += seg(pj(0, 40, 0), pj((SLOTS - 1) * P + 32, 40, 0), .6, .7);
+    [[-18, -14], [SLOTS * P + 2, -14], [-18, 52], [SLOTS * P + 2, 52]].forEach(c => { out += dot(c[0], c[1], 0, 1.5); });
+
+    const last = E.length - 1;
+    const probeSlot = Math.max(0, Math.min(last, Math.floor(probe.x / P)));
+    for (let m = 0; m <= last; m++) {
+      const e = E[m], x = m * P, cw = colW(m), x0 = colX0(m);
+      const tone = e.kind === 'tail' ? PAL.dim : e.kind === 'ghost' ? PAL.G : (m === foundIdx ? PAL.B : PAL.def);
+      const colT = e.kind === 'tail' ? PAL.dim : e.kind === 'ghost' ? PAL.G : m === foundIdx ? PAL.B : PAL.def;
+      const label = e.kind === 'head' ? 'HEAD' : e.kind === 'tail' ? 'NIL' : e.key;
+      const attrs = e.kind === 'node' ? ` data-key="${e.key}"` : '';
+      out += `<g${attrs}>`;
+      out += box(x, 0, 0, 32, 32, PH, tone, .8);
+      out += faceText(label, x + 16, 32, 4, e.kind === 'node' || e.kind === 'ghost' ? 13 : 9, tone.text || '#2d3142');
+      out += box(x0, 6, PH, cw, 12, e.h * LS, colT, .8);
+      for (let l = 0; l < L; l++) if (hv.has(m + ':' + (l + 1))) out += box(x0 - 1.5, 4.5, zc(l) + 5, cw + 3, 15, zc(l + 1) - zc(l) - 6 + 6, PAL.B, .6);
+      for (let l = 0; l < e.h; l++) {
+        const role = sr[m + ':' + l], c = role ? PAL[role] : (e.kind === 'ghost' ? PAL.G : e.kind === 'tail' ? PAL.dim : PAL.def);
+        const sw = cw + 8, up = role ? 4 : 0, zb = zc(l) - 6;
+        out += box(x0 - 4, 3, zb, sw, 18, 12 + up, c, .7);
+        if (e.kind === 'head') out += faceText('L' + l, x0 - 4 + sw / 2, 21, zb + 3 + up, 9, '#2d3142');
+        else if (e.kind !== 'tail') out += faceText(e.key, x0 - 4 + sw / 2, 21, zb + 3 + up, 9, c.text || '#2d3142');
+      }
+      out += '</g>';
+      if (m < last) for (let l = 0; l < L; l++) {
+        const zr = zc(l) - 2;
+        if (e.h <= l) out += box(colL(m), 10, zr, colR(m) - colL(m), 4, 4, ho.has(l + ':' + m) ? PAL.B : RAIL, .6);
+        out += box(colR(m), 10, zr, colL(m + 1) - colR(m), 4, 4, hr.has(l + ':' + m) ? PAL.B : RAIL, .6);
+      }
+      if (st.mode === 'search' && m === probeSlot) out += box(probe.x, 7, probe.z, 10, 10, 10, PAL.B, .8);
+    }
+    scene.innerHTML = out;
+  }
+
+  // ---------- tween ----------
+  let raf = 0, last = 0;
+  function tick(t) {
+    const dt = Math.min(.05, (t - last) / 1000 || .016); last = t;
+    const f = 1 - Math.exp(-dt * 10);
+    probe.x += (probe.tx - probe.x) * f; probe.z += (probe.tz - probe.z) * f;
+    const moving = Math.abs(probe.tx - probe.x) > .2 || Math.abs(probe.tz - probe.z) > .2;
+    if (!moving) { probe.x = probe.tx; probe.z = probe.tz; }
+    render();
+    raf = moving ? requestAnimationFrame(tick) : 0;
+  }
+
+  // ---------- readout ----------
+  function searchWords() {
+    const q = steps[st.s], t = st.target, nk = E[q.peek].key, nn = name(q.peek);
+    let s = `<b>search(${t})</b>   <span class="na">step ${st.s + 1} of ${steps.length}</span>\n` +
+      `probe at <b>${name(q.cur)}</b>, lane ${q.l}\n` +
+      `next on lane ${q.l}: <span class="c-a">${nn === 'NIL' ? 'NIL (end)' : nn}</span>\n`;
+    if (q.kind === 'right') s += `${nn} &lt; ${t}  →  <b>move right</b>`;
+    else if (q.kind === 'down') s += `${nn === 'NIL' ? 'NIL' : nn + ' ≥ ' + t}  →  <b>drop to lane ${q.l - 1}</b>`;
+    else if (q.kind === 'found') s += `lane 0, next = ${nn}  →  <b class="c-b">found ${t}</b>`;
+    else s += `lane 0, next = ${nn}  →  <b>${t} is not in the list</b>`;
+    return s;
+  }
+  function insertWords() {
+    if (!Number.isInteger(st.insKey) || st.insKey < 0 || st.insKey > 99) return 'Enter a key between 0 and 99.';
+    if (nodes.some(n => n.key === st.insKey)) return `<b>${st.insKey}</b> is already in the list.\nChoose another key.`;
+    if (!ghostValid()) return 'The rack is full. Reset the list.';
+    const flips = (Array(st.insH - 1).fill('H').join(' ') + (st.insH < L ? ' T' : '')).trim();
+    let s = `<b>insert(${st.insKey})</b>   coin flips: ${flips}\nheight = ${st.insH}\n`;
+    for (let l = st.insH - 1; l >= 0; l--) {
+      const p = predAt(ghostIdx, l), n = nextAt(ghostIdx, l);
+      s += `lane ${l}: <span class="c-a">${name(p)}</span> → <span class="c-b">${st.insKey}</span> → ${name(n)}\n`;
+    }
+    return s.trimEnd();
+  }
+
+  // ---------- update ----------
+  function update() {
+    buildEntries();
+    if (st.mode === 'search') {
+      buildSteps();
+      st.s = Math.max(0, Math.min(st.s, steps.length - 1));
+    }
+    $('modeS').setAttribute('aria-pressed', st.mode === 'search');
+    $('modeI').setAttribute('aria-pressed', st.mode === 'insert');
+    $('panelS').hidden = st.mode !== 'search';
+    $('panelI').hidden = st.mode !== 'insert';
+    $('hint').textContent = st.mode === 'search' ? 'Click a tower to search for it' : 'Pick a key and a height, then Insert';
+    $('outH').textContent = st.insH;
+    if (st.mode === 'search') {
+      $('readout').innerHTML = searchWords();
+      $('bPrev').disabled = st.s === 0;
+      $('bNext').disabled = st.s >= steps.length - 1;
+      $('stepLabel').textContent = `${steps.length} comparisons in total`;
+      const q = steps[st.s];
+      $('live').textContent = st.s === steps.length - 1 ? (q.kind === 'found' ? `found ${st.target}` : `${st.target} not found`) : `step ${st.s + 1}/${steps.length}`;
+    } else {
+      $('readout').innerHTML = insertWords();
+      $('live').textContent = `${nodes.length} keys`;
+      $('bInsert').disabled = !ghostValid();
+    }
+    if (reduce || st.mode !== 'search') { render(); }
+    else if (!raf) { last = performance.now(); raf = requestAnimationFrame(tick); }
+    else render();
+  }
+  function stopPlay() { clearInterval(playTimer); playTimer = 0; $('bPlay').textContent = 'Play'; }
+
+  $('modeS').onclick = () => { stopPlay(); st.mode = 'search'; update(); };
+  $('modeI').onclick = () => { stopPlay(); st.mode = 'insert'; update(); };
+  $('inT').oninput = e => { stopPlay(); const v = parseInt(e.target.value, 10); if (Number.isInteger(v)) { st.target = Math.max(0, Math.min(99, v)); st.s = 0; update(); } };
+  $('bNext').onclick = () => { st.s++; update(); };
+  $('bPrev').onclick = () => { stopPlay(); st.s--; update(); };
+  $('bRestart').onclick = () => { stopPlay(); st.s = 0; update(); };
+  $('bPlay').onclick = () => {
+    if (playTimer) { stopPlay(); return; }
+    if (st.s >= steps.length - 1) st.s = 0;
+    update();
+    $('bPlay').textContent = 'Pause';
+    playTimer = setInterval(() => {
+      if (st.s >= steps.length - 1) { stopPlay(); return; }
+      st.s++; update();
+    }, 900);
+  };
+  $('inK').oninput = e => { const v = parseInt(e.target.value, 10); st.insKey = Number.isInteger(v) ? v : NaN; update(); };
+  $('inH').oninput = e => { st.insH = +e.target.value; update(); };
+  $('bInsert').onclick = () => {
+    if (!ghostValid()) return;
+    nodes.push({ key: st.insKey, h: st.insH }); nodes.sort((a, b) => a.key - b.key);
+    const free = [10, 15, 23, 1, 30, 14, 22].find(k => !nodes.some(n => n.key === k));
+    if (free !== undefined) { st.insKey = free; $('inK').value = free; }
+    update();
+  };
+  $('bReset').onclick = () => { nodes = BASE_NODES.map(([key, h]) => ({ key, h })); st.insKey = 15; $('inK').value = 15; update(); };
+  rack.addEventListener('click', e => {
+    const g = e.target.closest('[data-key]'); if (!g) return;
+    stopPlay();
+    st.mode = 'search'; st.target = +g.dataset.key; st.s = 0; $('inT').value = st.target; update();
+  });
+
+  update();
+})();
+</script>
+</body>
+</html>
