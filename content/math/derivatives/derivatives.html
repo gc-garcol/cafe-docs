@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Derivatives: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+.math{font-family:var(--serif);font-size:1.15em;font-style:italic}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;font-family:var(--serif);font-size:24px;text-align:center;overflow-x:auto}
+
+.lab{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:24px;align-items:start;margin-top:24px}
+.card{margin:0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.stage{padding:0 8px}
+.stage svg{display:block;width:100%;height:auto}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.seg{display:flex;border:1px solid var(--rule-solid);border-radius:6px;overflow:hidden;margin-bottom:16px}
+.seg button{flex:1;min-height:40px;border:0;background:transparent;font:500 13px var(--sans);color:var(--muted);cursor:pointer;padding:0 8px}
+.seg button+button{border-left:1px solid var(--rule-solid)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.row{display:grid;grid-template-columns:36px 1fr 64px;gap:12px;align-items:center;margin:12px 0}
+.row label{font-family:var(--mono);font-size:13px;font-weight:600}
+.row output{font-family:var(--mono);font-size:12px;text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);min-height:28px}
+#readout{margin:16px 0 0;padding:14px 16px;background:var(--paper);border:1px solid var(--rule);border-radius:6px;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;min-height:120px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:2px;border:1px solid var(--ink);display:inline-block}
+
+.fig{margin:20px 0 8px}
+.scroll{overflow-x:auto;border:1px solid var(--rule);border-radius:8px;background:#fff;padding:8px}
+.scroll svg{display:block;height:auto}
+.cap{font-family:var(--mono);font-size:11px;color:var(--soft);margin:8px 0 0}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:30px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+table.ops{border-collapse:collapse;width:100%;max-width:760px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);border-radius:6px;font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule)}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
+@media (max-width:860px){.lab{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" href="../../../index.html">&larr; Back to home</a>
+
+<header>
+  <div class="eyebrow">Mathematics · Calculus</div>
+  <h1>Derivatives</h1>
+  <p class="lede">The derivative is the instant rate of change: the slope of a curve at a single point. It is what you get when a secant line is squeezed into a tangent.</p>
+</header>
+
+<section>
+  <h2>Try it first</h2>
+  <p>The blue line is a secant through two points of the curve, <code>x = a</code> and <code>x = a + h</code>. Shrink <code>h</code> and watch it rotate into the dashed orange tangent. The secant slope turns into the derivative.</p>
+
+  <div class="lab">
+    <figure class="card">
+      <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title" id="fnTitle">Secant to tangent</span></div>
+      <div class="stage">
+        <svg id="plot" viewBox="0 0 560 400" role="img" aria-labelledby="plot-title plot-desc">
+          <title id="plot-title">Secant line approaching a tangent line</title>
+          <desc id="plot-desc">A curve with two marked points. A secant line passes through both. A dashed tangent line touches the curve only at the first point. As h shrinks the secant lines up with the tangent.</desc>
+        </svg>
+      </div>
+      <div class="card-bottom"><span class="hint">Move a along the curve, shrink h</span><span class="live" id="live"></span></div>
+    </figure>
+
+    <div>
+      <div class="panel">
+        <div class="seg" role="group" aria-label="Function">
+          <button type="button" data-fn="0" aria-pressed="true">x²</button>
+          <button type="button" data-fn="1" aria-pressed="false">sin x</button>
+          <button type="button" data-fn="2" aria-pressed="false">x³ − 3x</button>
+        </div>
+        <div class="row"><label for="inA">a</label><input type="range" id="inA" min="-30" max="30" value="10"><output id="outA"></output></div>
+        <div class="row"><label for="inH">h</label><input type="range" id="inH" min="-300" max="30" value="-10"><output id="outH"></output></div>
+        <div id="readout" aria-live="polite"></div>
+      </div>
+      <div class="legend" aria-label="Legend">
+        <span><i class="sw" style="background:#2e5aa8;border-color:#2e5aa8"></i>secant</span>
+        <span><i class="sw" style="background:#bf4520;border-color:#bf4520"></i>tangent</span>
+        <span><i class="sw" style="background:#2d3142"></i>curve</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>1. Average vs instant rate</h2>
+  <p>A car drives 60 km in 1 hour. Its average speed is 60 km/h. That is the slope of the secant between two moments. The speedometer shows something sharper: the speed right now, with the time gap shrunk to nothing.</p>
+  <div class="callout">Average rate over a gap, then let the gap go to zero.</div>
+</section>
+
+<section>
+  <h2>2. The definition</h2>
+  <p>The slope between <code>(a, f(a))</code> and <code>(a + h, f(a + h))</code> is the difference quotient. The derivative is its limit as <code>h → 0</code>. If this limit does not exist, <code>f</code> has no derivative at <code>a</code>.</p>
+  <div class="formula">f′(a) = lim<sub>h→0</sub> [ f(a + h) − f(a) ] / h</div>
+  <p>Worked example with <code>f(x) = x²</code>:</p>
+  <div class="formula">[ (a+h)² − a² ] / h = (2ah + h²) / h = 2a + h → 2a</div>
+  <p>So the slope of <code>x²</code> at any point is <code>2a</code>. At <code>a = 1.5</code> the slope is exactly <code>3</code>, which you can check with the panel above.</p>
+</section>
+
+<section>
+  <h2>3. Where a derivative fails</h2>
+  <div class="fig">
+    <div class="scroll">
+<svg width="760" height="220" viewBox="0 0 760 220" style="min-width:760px" role="img" aria-labelledby="fail-title fail-desc">
+<title id="fail-title">Three ways a derivative can fail to exist</title>
+<desc id="fail-desc">A sharp corner, a jump, and a vertical tangent. In each, the secant slopes from the two sides do not settle on one finite number.</desc>
+<g stroke="#bfc0c0"><line x1="20" y1="180" x2="240" y2="180"/><line x1="270" y1="180" x2="490" y2="180"/><line x1="520" y1="180" x2="740" y2="180"/></g>
+<g fill="none" stroke="#2e5aa8" stroke-width="2.4">
+<path d="M30 60 L130 170 L230 60"/>
+<path d="M280 150 L380 150"/><path d="M380 70 L480 70"/>
+<path d="M530 170 C 600 170, 630 160, 630 110 C 630 70, 660 40, 730 40"/>
+</g>
+<circle cx="380" cy="150" r="4" fill="#fff" stroke="#2e5aa8" stroke-width="2"/><circle cx="380" cy="70" r="4" fill="#fff" stroke="#2e5aa8" stroke-width="2"/>
+<g font-family="'Geist Mono',monospace" font-size="11" fill="#4f5d75" text-anchor="middle">
+<text x="130" y="206">corner: |x| at 0</text><text x="380" y="206">jump: not continuous</text><text x="630" y="206">vertical tangent: ∛x at 0</text>
+</g>
+</svg>
+    </div>
+    <p class="cap">Fig 2 · Differentiable means smooth: no corner, no break, no vertical tangent. Differentiable implies continuous, but not the other way around.</p>
+  </div>
+</section>
+
+<section>
+  <h2>4. Rules you actually use</h2>
+  <p>Nobody computes the limit each time. These rules cover most cases.</p>
+  <table class="ops">
+    <thead><tr><th>Rule</th><th>Derivative</th></tr></thead>
+    <tbody>
+      <tr><td>Constant</td><td><code>(c)′ = 0</code></td></tr>
+      <tr><td>Power</td><td><code>(x<sup>n</sup>)′ = n·x<sup>n−1</sup></code></td></tr>
+      <tr><td>Sum, constant multiple</td><td><code>(c·f + g)′ = c·f′ + g′</code></td></tr>
+      <tr><td>Product</td><td><code>(f·g)′ = f′·g + f·g′</code></td></tr>
+      <tr><td>Quotient</td><td><code>(f/g)′ = (f′·g − f·g′) / g²</code></td></tr>
+      <tr><td>Chain</td><td><code>(f(g(x)))′ = f′(g(x))·g′(x)</code></td></tr>
+      <tr><td>Exponential, log</td><td><code>(eˣ)′ = eˣ</code>, <code>(ln x)′ = 1/x</code></td></tr>
+      <tr><td>Trig</td><td><code>(sin x)′ = cos x</code>, <code>(cos x)′ = −sin x</code></td></tr>
+    </tbody>
+  </table>
+  <p>Example with the chain rule: <code>d/dx sin(x²) = cos(x²) · 2x</code>.</p>
+</section>
+
+<section>
+  <h2>5. What the slope tells you</h2>
+  <div class="cards">
+    <div class="stat focal"><div class="eyebrow">f′ &gt; 0</div><div class="big">rising</div><p>The function increases around that point.</p></div>
+    <div class="stat"><div class="eyebrow">f′ &lt; 0</div><div class="big">falling</div><p>The function decreases around that point.</p></div>
+    <div class="stat"><div class="eyebrow">f′ = 0</div><div class="big">flat</div><p>A candidate for a peak, a valley, or a flat bend. Check the sign on both sides.</p></div>
+  </div>
+  <p style="margin-top:20px">That last case is how you optimize: set <code>f′(x) = 0</code>, solve, and test the candidates. It is also the base of gradient descent in machine learning, where the slope tells you which way is downhill.</p>
+  <p>The second derivative <code>f″</code> measures how the slope itself changes. Positive means the curve bends up like a bowl, negative means it bends down like a hill.</p>
+</section>
+
+<section>
+  <h2>6. Next</h2>
+  <p>Derivatives take a function to its slope. The integral goes the other way, from a slope back to the accumulated total. The two are linked by the Fundamental Theorem of Calculus, covered in the Integrals guide.</p>
+</section>
+
+</main>
+
+<script>
+(function () {
+  var NSV = 'http://www.w3.org/2000/svg';
+  var W = 560, H = 400, M = 36;
+  var $ = function (s) { return document.querySelector(s); };
+
+  var FNS = [
+    { name: 'f(x) = x²', f: function (x) { return x * x; }, d: function (x) { return 2 * x; }, view: [-3, 3, -1, 9] },
+    { name: 'f(x) = sin x', f: Math.sin, d: Math.cos, view: [-4, 4, -2, 2] },
+    { name: 'f(x) = x³ − 3x', f: function (x) { return x * x * x - 3 * x; }, d: function (x) { return 3 * x * x - 3; }, view: [-3, 3, -4, 4] }
+  ];
+  var cur = 0;
+
+  function el(n, attrs, parent) {
+    var e = document.createElementNS(NSV, n);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function f4(v) { return (Math.abs(v) < 5e-7 ? 0 : v).toFixed(4); }
+
+  function render() {
+    var F = FNS[cur], v = F.view;
+    var a = +$('#inA').value / 10;
+    var h = Math.pow(10, +$('#inH').value / 100);
+    var svg = $('#plot');
+    Array.prototype.slice.call(svg.querySelectorAll('.dyn,defs')).forEach(function (n) { n.remove(); });
+    var defs = el('defs', {}, svg);
+    var cp = el('clipPath', { id: 'clip' }, defs);
+    el('rect', { x: M, y: M, width: W - 2 * M, height: H - 2 * M }, cp);
+    var g = el('g', { 'class': 'dyn' }, svg);
+    var X = function (x) { return M + (x - v[0]) / (v[1] - v[0]) * (W - 2 * M); };
+    var Y = function (y) { return H - M - (y - v[2]) / (v[3] - v[2]) * (H - 2 * M); };
+
+    for (var gx = Math.ceil(v[0]); gx <= v[1]; gx++) {
+      el('line', { x1: X(gx), x2: X(gx), y1: Y(v[2]), y2: Y(v[3]), stroke: gx === 0 ? '#2d3142' : 'rgba(45,49,66,.1)' }, g);
+      var t = el('text', { x: X(gx), y: H - M + 16, 'text-anchor': 'middle', 'font-size': 10, fill: '#5a6580', 'font-family': 'Geist Mono, monospace' }, g); t.textContent = gx;
+    }
+    for (var gy = Math.ceil(v[2]); gy <= v[3]; gy++) {
+      el('line', { x1: X(v[0]), x2: X(v[1]), y1: Y(gy), y2: Y(gy), stroke: gy === 0 ? '#2d3142' : 'rgba(45,49,66,.1)' }, g);
+      var t2 = el('text', { x: M - 6, y: Y(gy) + 3, 'text-anchor': 'end', 'font-size': 10, fill: '#5a6580', 'font-family': 'Geist Mono, monospace' }, g); t2.textContent = gy;
+    }
+
+    var c = el('g', { 'clip-path': 'url(#clip)' }, g);
+    var d = '', n = 400;
+    for (var i = 0; i <= n; i++) {
+      var x = v[0] + (v[1] - v[0]) * i / n;
+      d += (i ? ' L' : 'M') + X(x).toFixed(1) + ' ' + Y(F.f(x)).toFixed(1);
+    }
+    el('path', { d: d, fill: 'none', stroke: '#2d3142', 'stroke-width': 2.4 }, c);
+
+    var fa = F.f(a), fb = F.f(a + h);
+    var sec = (fb - fa) / h, tan = F.d(a);
+    var line = function (m, color, dash, w) {
+      el('line', { x1: X(v[0]), y1: Y(fa + m * (v[0] - a)), x2: X(v[1]), y2: Y(fa + m * (v[1] - a)), stroke: color, 'stroke-width': w, 'stroke-dasharray': dash }, c);
+    };
+    line(tan, '#bf4520', '6 4', 2);
+    line(sec, '#2e5aa8', '', 2);
+    el('circle', { cx: X(a), cy: Y(fa), r: 6, fill: '#bf4520' }, c);
+    el('circle', { cx: X(a + h), cy: Y(fb), r: 5, fill: '#2e5aa8' }, c);
+
+    $('#outA').textContent = a.toFixed(1);
+    $('#outH').textContent = h < 0.01 ? h.toExponential(0) : h.toFixed(3);
+    $('#fnTitle').textContent = F.name;
+    $('#live').textContent = "f′(a) = " + f4(tan);
+    $('#readout').textContent =
+      'a            = ' + a.toFixed(1) + '\n' +
+      'h            = ' + $('#outH').textContent + '\n' +
+      'f(a)         = ' + f4(fa) + '\n' +
+      'f(a + h)     = ' + f4(fb) + '\n' +
+      'secant slope = ' + f4(sec) + '\n' +
+      "tangent f′(a) = " + f4(tan) + '\n' +
+      'gap          = ' + f4(Math.abs(sec - tan));
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll('[data-fn]'), function (b) {
+    b.addEventListener('click', function () {
+      cur = +b.dataset.fn;
+      Array.prototype.forEach.call(document.querySelectorAll('[data-fn]'), function (o) { o.setAttribute('aria-pressed', o === b); });
+      render();
+    });
+  });
+  $('#inA').addEventListener('input', render);
+  $('#inH').addEventListener('input', render);
+  render();
+})();
+</script>
+</body>
+</html>

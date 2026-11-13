@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Limits: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+.math{font-family:var(--serif);font-size:1.15em;font-style:italic}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;font-family:var(--serif);font-size:24px;text-align:center;overflow-x:auto}
+
+.lab{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:24px;align-items:start;margin-top:24px}
+.card{margin:0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.stage{padding:0 8px}
+.stage svg{display:block;width:100%;height:auto}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.seg{display:flex;border:1px solid var(--rule-solid);border-radius:6px;overflow:hidden;margin-bottom:16px}
+.seg button{flex:1;min-height:40px;border:0;background:transparent;font:500 13px var(--sans);color:var(--muted);cursor:pointer;padding:0 8px}
+.seg button+button{border-left:1px solid var(--rule-solid)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.row{display:grid;grid-template-columns:70px 1fr 64px;gap:12px;align-items:center;margin:12px 0}
+.row label{font-family:var(--mono);font-size:13px;font-weight:600}
+.row output{font-family:var(--mono);font-size:12px;text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);min-height:28px}
+#readout{margin:16px 0 0;padding:14px 16px;background:var(--paper);border:1px solid var(--rule);border-radius:6px;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;min-height:120px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:2px;border:1px solid var(--ink);display:inline-block}
+
+.fig{margin:20px 0 8px}
+.scroll{overflow-x:auto;border:1px solid var(--rule);border-radius:8px;background:#fff;padding:8px}
+.scroll svg{display:block;height:auto}
+.cap{font-family:var(--mono);font-size:11px;color:var(--soft);margin:8px 0 0}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:30px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+table.ops{border-collapse:collapse;width:100%;max-width:760px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);border-radius:6px;font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule)}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
+@media (max-width:860px){.lab{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" href="../../../index.html">&larr; Back to home</a>
+
+<header>
+  <div class="eyebrow">Mathematics · Calculus</div>
+  <h1>Limits</h1>
+  <p class="lede">What value does a function head toward as its input gets close to a point? A limit answers that, even when the function is undefined at the point itself.</p>
+</header>
+
+<section>
+  <h2>Try it first</h2>
+  <p>Pick a function, choose a side, and slide the input toward the target point <code>a</code>. Watch the output <code>f(x)</code> settle on a value, or fail to agree between the two sides.</p>
+
+  <div class="lab">
+    <figure class="card">
+      <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title" id="fnTitle">Approaching a point</span></div>
+      <div class="stage">
+        <svg id="plot" viewBox="0 0 560 400" role="img" aria-labelledby="plot-title plot-desc">
+          <title id="plot-title">Graph of a function near a target point</title>
+          <desc id="plot-desc">A moving point slides along the curve toward the target x value. A dashed horizontal line marks the limit when it exists.</desc>
+        </svg>
+      </div>
+      <div class="card-bottom"><span class="hint">Drag the slider to move x closer to a</span><span class="live" id="live"></span></div>
+    </figure>
+
+    <div>
+      <div class="panel">
+        <div class="seg" role="group" aria-label="Function">
+          <button type="button" data-fn="0" aria-pressed="true">Hole</button>
+          <button type="button" data-fn="1" aria-pressed="false">sin x / x</button>
+          <button type="button" data-fn="2" aria-pressed="false">Jump</button>
+        </div>
+        <div class="seg" role="group" aria-label="Side">
+          <button type="button" data-side="-1" aria-pressed="true">From the left</button>
+          <button type="button" data-side="1" aria-pressed="false">From the right</button>
+        </div>
+        <div class="row"><label for="dist">closer</label><input type="range" id="dist" min="0" max="100" value="10"><output id="outDist"></output></div>
+        <div id="readout" aria-live="polite"></div>
+      </div>
+      <div class="legend" aria-label="Legend">
+        <span><i class="sw" style="background:#bf4520;border-color:#bf4520"></i>current point</span>
+        <span><i class="sw" style="background:#fff;border-color:#2e5aa8"></i>missing point</span>
+        <span><i class="sw" style="background:transparent;border-style:dashed"></i>limit L</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>1. The idea</h2>
+  <p>Take <span class="math">f(x) = (x² − 1) / (x − 1)</span>. At <code>x = 1</code> it is <code>0/0</code>, so <code>f(1)</code> does not exist. For every other <code>x</code> the fraction simplifies to <code>x + 1</code>.</p>
+  <p>Try <code>x = 0.9, 0.99, 0.999</code>. The outputs are <code>1.9, 1.99, 1.999</code>. They crowd toward <code>2</code>. From the right, <code>1.1, 1.01, 1.001</code> give <code>2.1, 2.01, 2.001</code>. Same target, so we write:</p>
+  <div class="formula">lim<sub>x→1</sub> (x² − 1)/(x − 1) = 2</div>
+  <div class="callout">A limit is about the neighborhood of a point, not the point itself.</div>
+</section>
+
+<section>
+  <h2>2. One-sided limits</h2>
+  <p>You can approach <code>a</code> from below (<code>x → a⁻</code>) or from above (<code>x → a⁺</code>). The two-sided limit exists only when both one-sided limits exist and are equal.</p>
+  <div class="formula">lim<sub>x→a</sub> f(x) = L ⇔ lim<sub>x→a⁻</sub> f(x) = L and lim<sub>x→a⁺</sub> f(x) = L</div>
+  <p>In the Jump example, <code>|x|/x</code> equals <code>−1</code> on the left of 0 and <code>+1</code> on the right. The two sides disagree, so the limit does not exist.</p>
+
+  <div class="fig">
+    <div class="scroll">
+<svg width="700" height="260" viewBox="0 0 700 260" style="min-width:700px" role="img" aria-labelledby="js-title js-desc">
+<title id="js-title">A jump discontinuity</title>
+<desc id="js-desc">The left branch ends at height minus one with an open circle. The right branch starts at height plus one with an open circle. The one-sided limits differ.</desc>
+<line x1="40" y1="130" x2="660" y2="130" stroke="#bfc0c0"/><line x1="350" y1="20" x2="350" y2="240" stroke="#bfc0c0"/>
+<line x1="60" y1="190" x2="350" y2="190" stroke="#2e5aa8" stroke-width="2.4"/>
+<line x1="350" y1="70" x2="640" y2="70" stroke="#bf4520" stroke-width="2.4"/>
+<circle cx="350" cy="190" r="5" fill="#fff" stroke="#2e5aa8" stroke-width="2"/>
+<circle cx="350" cy="70" r="5" fill="#fff" stroke="#bf4520" stroke-width="2"/>
+<g font-family="'Geist Mono',monospace" font-size="11" fill="#4f5d75">
+<text x="360" y="204">lim from left = −1</text><text x="360" y="62">lim from right = +1</text><text x="360" y="150">a = 0</text>
+</g>
+<text x="120" y="236" font-family="'Instrument Serif',serif" font-style="italic" font-size="18" fill="#2d3142">−1 ≠ +1, so the two-sided limit does not exist</text>
+</svg>
+    </div>
+    <p class="cap">Fig 2 · Both sides settle, but on different values.</p>
+  </div>
+</section>
+
+<section>
+  <h2>3. The precise definition</h2>
+  <p>"Gets close" needs a measuring stick. Someone picks a tolerance <code>ε &gt; 0</code> around <code>L</code>. You must answer with a window <code>δ &gt; 0</code> around <code>a</code> such that every <code>x</code> in the window (except <code>a</code> itself) lands inside the tolerance.</p>
+  <div class="formula">∀ε &gt; 0 ∃δ &gt; 0 : 0 &lt; |x − a| &lt; δ ⇒ |f(x) − L| &lt; ε</div>
+  <div class="fig">
+    <div class="scroll">
+<svg width="700" height="300" viewBox="0 0 700 300" style="min-width:700px" role="img" aria-labelledby="ed-title ed-desc">
+<title id="ed-title">Epsilon and delta</title>
+<desc id="ed-desc">A shaded horizontal band of half-width epsilon around L and a shaded vertical band of half-width delta around a. The curve inside the vertical band stays inside the horizontal band.</desc>
+<rect x="40" y="110" width="620" height="80" fill="rgba(191,69,32,.08)"/>
+<rect x="280" y="20" width="140" height="250" fill="rgba(46,90,168,.08)"/>
+<path d="M40 250 C 200 220, 300 160, 350 150 S 500 100, 660 60" fill="none" stroke="#2d3142" stroke-width="2.4"/>
+<line x1="350" y1="20" x2="350" y2="270" stroke="#4f5d75" stroke-dasharray="4 3"/>
+<line x1="40" y1="150" x2="660" y2="150" stroke="#4f5d75" stroke-dasharray="4 3"/>
+<g font-family="'Geist Mono',monospace" font-size="11" fill="#4f5d75">
+<text x="44" y="104">L + ε</text><text x="44" y="206">L − ε</text><text x="44" y="144">L</text>
+<text x="356" y="284">a</text><text x="282" y="34">a − δ</text><text x="380" y="34">a + δ</text>
+</g>
+</svg>
+    </div>
+    <p class="cap">Fig 3 · Inside the blue window the curve never leaves the orange band.</p>
+  </div>
+</section>
+
+<section>
+  <h2>4. Limit laws</h2>
+  <p>If <code>lim f = L</code> and <code>lim g = M</code>, limits behave well with arithmetic.</p>
+  <table class="ops">
+    <thead><tr><th>Rule</th><th>Statement</th></tr></thead>
+    <tbody>
+      <tr><td>Sum</td><td><code>lim (f + g) = L + M</code></td></tr>
+      <tr><td>Constant multiple</td><td><code>lim (c·f) = c·L</code></td></tr>
+      <tr><td>Product</td><td><code>lim (f·g) = L·M</code></td></tr>
+      <tr><td>Quotient</td><td><code>lim (f/g) = L/M</code> if <code>M ≠ 0</code></td></tr>
+      <tr><td>Power</td><td><code>lim f<sup>n</sup> = L<sup>n</sup></code></td></tr>
+      <tr><td>Squeeze</td><td>if <code>g ≤ f ≤ h</code> and <code>lim g = lim h = L</code>, then <code>lim f = L</code></td></tr>
+    </tbody>
+  </table>
+  <p>The squeeze rule gives the famous result below. It is the base of the derivative of sine.</p>
+  <div class="formula">lim<sub>x→0</sub> sin x / x = 1</div>
+</section>
+
+<section>
+  <h2>5. Common forms</h2>
+  <div class="cards">
+    <div class="stat focal"><div class="eyebrow">Direct</div><div class="big">plug in</div><p>If <code>f</code> is continuous at <code>a</code>, the limit is just <code>f(a)</code>.</p></div>
+    <div class="stat"><div class="eyebrow">0/0</div><div class="big">factor</div><p>Cancel the common factor, as in the hole example, then plug in.</p></div>
+    <div class="stat"><div class="eyebrow">At infinity</div><div class="big">divide</div><p>Divide top and bottom by the highest power of <code>x</code>. Example: <code>(3x²+1)/(x²−5) → 3</code>.</p></div>
+  </div>
+  <p style="margin-top:20px">A function is <b>continuous</b> at <code>a</code> when <code>lim f(x) = f(a)</code>. That one line says three things: the limit exists, <code>f(a)</code> exists, and they match.</p>
+  <ul class="tight">
+    <li>Hole: the limit exists but <code>f(a)</code> is missing or different. Removable.</li>
+    <li>Jump: both one-sided limits exist but differ.</li>
+    <li>Infinite: the output grows without bound, like <code>1/x²</code> at 0.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>6. Why it matters</h2>
+  <p>Limits are the base of calculus. The derivative is a limit of slopes of secant lines, and the integral is a limit of sums of thin rectangles. The next two guides build on this one.</p>
+</section>
+
+</main>
+
+<script>
+(function () {
+  var NSV = 'http://www.w3.org/2000/svg';
+  var W = 560, H = 400, M = 36;
+  var $ = function (s) { return document.querySelector(s); };
+
+  var FNS = [
+    { name: '(x² − 1) / (x − 1),  x → 1', f: function (x) { return x === 1 ? NaN : (x * x - 1) / (x - 1); }, a: 1, left: 2, right: 2, view: [-1, 3, -1, 4], hole: true },
+    { name: 'sin(x) / x,  x → 0', f: function (x) { return x === 0 ? NaN : Math.sin(x) / x; }, a: 0, left: 1, right: 1, view: [-8, 8, -1, 2], hole: true },
+    { name: '|x| / x,  x → 0', f: function (x) { return x === 0 ? NaN : Math.abs(x) / x; }, a: 0, left: -1, right: 1, view: [-3, 3, -2, 2], hole: false }
+  ];
+  var cur = 0, side = -1;
+
+  function el(n, attrs, parent) {
+    var e = document.createElementNS(NSV, n);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function fmt(v) { return isFinite(v) ? (Math.abs(v) < 1e-9 ? '0' : v.toFixed(6).replace(/0+$/, '').replace(/\.$/, '')) : 'undefined'; }
+
+  function dist() { return 2 * Math.pow(10, -3 * (+$('#dist').value) / 100); }
+
+  function render() {
+    var F = FNS[cur], v = F.view;
+    var svg = $('#plot');
+    Array.prototype.slice.call(svg.querySelectorAll('.dyn')).forEach(function (n) { n.remove(); });
+    var g = el('g', { 'class': 'dyn' }, svg);
+    var X = function (x) { return M + (x - v[0]) / (v[1] - v[0]) * (W - 2 * M); };
+    var Y = function (y) { return H - M - (y - v[2]) / (v[3] - v[2]) * (H - 2 * M); };
+
+    // grid and axes
+    for (var gx = Math.ceil(v[0]); gx <= v[1]; gx += (v[1] - v[0] > 10 ? 2 : 1)) {
+      el('line', { x1: X(gx), x2: X(gx), y1: Y(v[2]), y2: Y(v[3]), stroke: gx === 0 ? '#2d3142' : 'rgba(45,49,66,.1)' }, g);
+      var t = el('text', { x: X(gx), y: H - M + 16, 'text-anchor': 'middle', 'font-size': 10, fill: '#5a6580', 'font-family': 'Geist Mono, monospace' }, g); t.textContent = gx;
+    }
+    for (var gy = Math.ceil(v[2]); gy <= v[3]; gy += 1) {
+      el('line', { x1: X(v[0]), x2: X(v[1]), y1: Y(gy), y2: Y(gy), stroke: gy === 0 ? '#2d3142' : 'rgba(45,49,66,.1)' }, g);
+      var t2 = el('text', { x: M - 6, y: Y(gy) + 3, 'text-anchor': 'end', 'font-size': 10, fill: '#5a6580', 'font-family': 'Geist Mono, monospace' }, g); t2.textContent = gy;
+    }
+
+    // curve with gaps at holes and jumps
+    var d = '', prev = null, n = 600;
+    for (var i = 0; i <= n; i++) {
+      var x = v[0] + (v[1] - v[0]) * i / n, y = F.f(x);
+      if (!isFinite(y)) { prev = null; continue; }
+      var jump = prev !== null && Math.abs(y - prev) > (v[3] - v[2]) * 0.4;
+      d += (prev === null || jump ? ' M' : ' L') + X(x).toFixed(1) + ' ' + Y(y).toFixed(1);
+      prev = y;
+    }
+    el('path', { d: d.trim(), fill: 'none', stroke: '#2e5aa8', 'stroke-width': 2.4 }, g);
+
+    // limit line and holes
+    var L = side < 0 ? F.left : F.right;
+    el('line', { x1: X(F.a), x2: X(F.a), y1: Y(v[2]), y2: Y(v[3]), stroke: '#4f5d75', 'stroke-dasharray': '4 3' }, g);
+    el('line', { x1: X(v[0]), x2: X(v[1]), y1: Y(L), y2: Y(L), stroke: '#bf4520', 'stroke-dasharray': '5 4' }, g);
+    if (F.hole) el('circle', { cx: X(F.a), cy: Y(F.left), r: 5, fill: '#fff', stroke: '#2e5aa8', 'stroke-width': 2 }, g);
+    else { el('circle', { cx: X(F.a), cy: Y(F.left), r: 5, fill: '#fff', stroke: '#2e5aa8', 'stroke-width': 2 }, g); el('circle', { cx: X(F.a), cy: Y(F.right), r: 5, fill: '#fff', stroke: '#2e5aa8', 'stroke-width': 2 }, g); }
+
+    // moving point
+    var h = dist(), px = F.a + side * h, py = F.f(px);
+    el('line', { x1: X(px), x2: X(px), y1: Y(0 > v[2] ? 0 : v[2]), y2: Y(py), stroke: '#bf4520', 'stroke-width': 1 }, g);
+    el('circle', { cx: X(px), cy: Y(py), r: 6, fill: '#bf4520' }, g);
+
+    var dne = F.left !== F.right;
+    $('#outDist').textContent = h < 0.01 ? h.toExponential(1) : h.toFixed(3);
+    $('#live').textContent = 'f(x) = ' + fmt(py);
+    $('#fnTitle').textContent = F.name;
+    $('#readout').textContent =
+      'a      = ' + F.a + '\n' +
+      'x      = ' + fmt(px) + '   (|x − a| = ' + $('#outDist').textContent + ')\n' +
+      'f(x)   = ' + fmt(py) + '\n' +
+      (side < 0 ? 'left' : 'right') + ' limit = ' + L + '\n' +
+      '|f(x) − L| = ' + fmt(Math.abs(py - L)) + '\n\n' +
+      (dne ? 'Left (' + F.left + ') and right (' + F.right + ') differ:\nthe two-sided limit does not exist.' : 'Both sides agree: lim f(x) = ' + F.left + '.');
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll('[data-fn]'), function (b) {
+    b.addEventListener('click', function () {
+      cur = +b.dataset.fn;
+      Array.prototype.forEach.call(document.querySelectorAll('[data-fn]'), function (o) { o.setAttribute('aria-pressed', o === b); });
+      render();
+    });
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('[data-side]'), function (b) {
+    b.addEventListener('click', function () {
+      side = +b.dataset.side;
+      Array.prototype.forEach.call(document.querySelectorAll('[data-side]'), function (o) { o.setAttribute('aria-pressed', o === b); });
+      render();
+    });
+  });
+  $('#dist').addEventListener('input', render);
+  render();
+})();
+</script>
+</body>
+</html>
