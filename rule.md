@@ -29,10 +29,10 @@ The category, index, and search data live in `index.js`, not in the HTML.
 - Required fields: `title`, `path`, `category`, `topic`, `level`, `tags`, `summary`.
 - Optional field: `related`, a list of other doc titles.
 - Categories, tags, the mind map, and the contents list are derived from `DOCS`. Do not edit them by hand.
+- Do not list docs in `readme.md`. It has no `## Docs` section, so there is nothing to update there when adding a doc.
 
 ## 5. Checklist before merging
 
 - [ ] The page opens correctly from the file system.
 - [ ] The "Back to home" link works.
 - [ ] The doc is registered in `DOCS` and appears in search, the mind map, and contents.
-- [ ] The `readme.md` doc list is updated.
