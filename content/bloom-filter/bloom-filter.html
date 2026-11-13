@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bloom Filter: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+
+.card{margin:24px 0 0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.scroll{overflow-x:auto;padding:0 8px}
+.scroll svg{display:block;height:auto}
+
+.controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;margin-top:16px;align-items:start}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:0 0 12px}
+.row label{font-family:var(--mono);font-size:13px;font-weight:600}
+input[type=text]{width:180px;min-height:40px;padding:0 10px;border:1px solid var(--rule-solid);border-radius:6px;font:500 14px var(--mono);color:var(--ink);background:#fff}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.btn:disabled{opacity:.4;cursor:not-allowed;background:transparent;color:var(--ink)}
+#readout{margin:0;padding:0;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink);border:0;background:none;overflow:visible}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:3px;border:1px solid var(--ink);display:inline-block}
+
+pre{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .t{color:var(--link)} .c{color:var(--soft);font-style:italic}
+
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:36px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+
+table.ops{border-collapse:collapse;width:100%;max-width:720px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule)}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
+
+@media (max-width:860px){.controls{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" href="../../index.html">&larr; Back to home</a>
+
+<header>
+  <div class="eyebrow">Data structures · Probabilistic sets</div>
+  <h1>Bloom Filter</h1>
+  <p class="lede">A tiny bit array that answers "have I seen this before?" using a fraction of the memory of a real set. It never misses an item you added, but it sometimes says yes to one you did not.</p>
+</header>
+
+<section>
+  <h2>Try the machine first</h2>
+  <p>This filter has <b>32 bits</b> and <b>3 hash functions</b>. Add a word and it lights three bits. Check a word and it looks at the same three bits. If any of them is off, the word is definitely new. If all are on, the word is only probably there. Add a few words, then check one you never added.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">A Bloom filter with m = 32 bits and k = 3 hashes</span></div>
+    <div class="scroll">
+      <svg id="bits" width="880" height="190" viewBox="0 0 880 190" style="min-width:880px" role="img" aria-labelledby="bits-title bits-desc">
+        <title id="bits-title">Bloom filter bit array</title>
+        <desc id="bits-desc">Two rows of sixteen bits, numbered 0 to 31. Filled bits are set to one. The three bits probed by the last add or check are outlined.</desc>
+        <g id="cells"></g>
+      </svg>
+    </div>
+    <div class="card-bottom"><span class="hint">position i = (h1 + i × h2) mod 32</span><span class="live" id="live"></span></div>
+  </figure>
+
+  <div class="controls">
+    <div class="panel">
+      <form id="form" class="row" novalidate>
+        <label for="word">Word</label>
+        <input type="text" id="word" maxlength="20" value="apple" autocomplete="off" spellcheck="false">
+      </form>
+      <div class="row">
+        <button type="button" class="btn" id="add">Add</button>
+        <button type="button" class="btn" id="check">Check</button>
+        <button type="button" class="btn" id="fill">Add 5 random</button>
+        <button type="button" class="btn" id="reset">Reset</button>
+      </div>
+      <div class="legend" aria-label="Legend">
+        <span><i class="sw" style="background:#2d3142"></i>bit is 1</span>
+        <span><i class="sw" style="background:#fff"></i>bit is 0</span>
+        <span><i class="sw" style="background:rgba(191,69,32,.18);border-color:#bf4520"></i>probed by last action</span>
+      </div>
+    </div>
+    <div class="panel"><pre id="readout" aria-live="polite"></pre></div>
+  </div>
+</section>
+
+<section>
+  <h2>1. The idea</h2>
+  <p>A normal set stores every item, so it needs memory proportional to the items and their size. A Bloom filter stores only <b>bits</b>. To add an item, run it through <code>k</code> hash functions and set the bit at each of the <code>k</code> positions. To ask about an item, hash it the same way and read those bits.</p>
+  <ul class="tight">
+    <li>Any probed bit is <code>0</code>: the item was <b>never added</b>. This answer is always right.</li>
+    <li>All probed bits are <code>1</code>: the item was <b>probably added</b>. Other items may have set those same bits by chance.</li>
+  </ul>
+  <p class="callout">No false negatives. Some false positives. You pick how many.</p>
+</section>
+
+<section>
+  <h2>2. The code</h2>
+  <p>Real filters do not need <code>k</code> independent hash functions. Two hashes are enough. Combine them as <code>h1 + i × h2</code> to get as many positions as you want. This is called double hashing, and Fig 1 uses it.</p>
+  <pre><span class="k">class</span> <span class="t">Bloom</span> {
+  <span class="k">constructor</span>(m, k) {
+    <span class="k">this</span>.m = m; <span class="k">this</span>.k = k;
+    <span class="k">this</span>.bits = <span class="k">new</span> Uint8Array(m);
+  }
+  positions(item) {
+    <span class="k">const</span> h1 = hash1(item), h2 = hash2(item) | 1;
+    <span class="k">return</span> Array.from({ length: <span class="k">this</span>.k }, (_, i) =&gt; (h1 + i * h2) % <span class="k">this</span>.m);
+  }
+  add(item) {
+    <span class="k">for</span> (<span class="k">const</span> p <span class="k">of</span> <span class="k">this</span>.positions(item)) <span class="k">this</span>.bits[p] = 1;
+  }
+  mightContain(item) {
+    <span class="k">return</span> <span class="k">this</span>.positions(item).every(p =&gt; <span class="k">this</span>.bits[p] === 1);
+  }
+}</pre>
+  <p>There is no <code>remove</code>. Clearing a bit could erase evidence for other items that share it, and that would create false negatives.</p>
+</section>
+
+<section>
+  <h2>3. How wrong can it be?</h2>
+  <p>After inserting <code>n</code> items into <code>m</code> bits with <code>k</code> hashes, a given bit is still <code>0</code> with probability about <code>e<sup>-kn/m</sup></code>. A false positive needs all <code>k</code> probed bits to be <code>1</code>:</p>
+  <pre><span class="t">p</span> ≈ (1 - e<sup>-kn/m</sup>)<sup>k</sup></pre>
+  <p>More items push the rate up. More bits push it down. For a target rate <code>p</code> and expected count <code>n</code>, size the filter like this:</p>
+  <pre><span class="t">m</span> = -n · ln(p) / (ln 2)²     <span class="c">// bits</span>
+<span class="t">k</span> = (m / n) · ln 2           <span class="c">// hash functions</span></pre>
+  <p>For a 1% false positive rate that is about <code>9.6</code> bits and <code>7</code> hashes per item, whatever the item size. The live readout under Fig 1 uses the first formula.</p>
+</section>
+
+<section>
+  <h2>4. Cost</h2>
+  <div class="cards">
+    <div class="stat focal"><div class="eyebrow">Add / check</div><div class="big">O(k)</div><p>k hashes and k bit reads. Independent of n.</p></div>
+    <div class="stat"><div class="eyebrow">Memory</div><div class="big">~10 bits</div><p>Per item at a 1% false positive rate.</p></div>
+    <div class="stat"><div class="eyebrow">False negatives</div><div class="big">0</div><p>If an item was added, the answer is yes.</p></div>
+  </div>
+  <table class="ops">
+    <thead><tr><th>Variant</th><th>What it adds</th><th>Trade-off</th></tr></thead>
+    <tbody>
+      <tr><td>Counting Bloom</td><td>Supports delete</td><td>Counters instead of bits, about 4x the memory</td></tr>
+      <tr><td>Scalable Bloom</td><td>Grows as items arrive</td><td>A chain of filters, slower checks</td></tr>
+      <tr><td>Cuckoo filter</td><td>Delete, often smaller</td><td>Inserts can fail when full</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>5. Where it shows up</h2>
+  <ul class="tight">
+    <li><b>Databases</b> such as LSM-tree stores keep one per file to skip disk reads for keys that are not there.</li>
+    <li><b>Caches</b> use it to avoid storing items that were requested only once.</li>
+    <li><b>Crawlers and safe-browsing checks</b> test "seen this URL?" or "known bad URL?" with a small local filter before a slow lookup.</li>
+    <li><b>Distributed systems</b> send a filter instead of a full key list to compare what two nodes have.</li>
+  </ul>
+  <p>A good rule: use it when a false "yes" only costs one extra, slower lookup, and a false "no" would be a bug.</p>
+</section>
+
+</main>
+
+<script>
+(function () {
+  var NS = 'http://www.w3.org/2000/svg';
+  var M = 32, K = 3;
+  var WORDS = ['apple', 'banana', 'cherry', 'date', 'elder', 'fig', 'grape', 'honey', 'iris', 'jade', 'kiwi', 'lemon', 'mango', 'nectar', 'olive', 'peach', 'quince', 'rose', 'sage', 'thyme', 'umber', 'violet', 'walnut', 'yarrow', 'zinnia'];
+  var bits = [], added = {}, count = 0, probe = [], log = '';
+
+  function el(name, attrs, text) {
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (text != null) e.textContent = text;
+    return e;
+  }
+  function fnv(s) {
+    var h = 0x811c9dc5;
+    for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193); }
+    return h >>> 0;
+  }
+  function mix(h) {
+    h ^= h >>> 16; h = Math.imul(h, 0x85ebca6b);
+    h ^= h >>> 13; h = Math.imul(h, 0xc2b2ae35);
+    h ^= h >>> 16; return h >>> 0;
+  }
+  function positions(s) {
+    var h1 = fnv(s), h2 = (mix(h1 ^ 0x9e3779b9) | 1) >>> 0, out = [];
+    for (var i = 0; i < K; i++) out.push((h1 + i * h2) % M);
+    return out;
+  }
+  function clear() {
+    bits = []; for (var i = 0; i < M; i++) bits.push(0);
+    added = {}; count = 0; probe = [];
+    log = 'Empty filter. Add a word, then check it.';
+  }
+  function word() { return document.getElementById('word').value.trim().toLowerCase(); }
+  function describe(w, pos) { return '"' + w + '" hashes to bits ' + pos.join(', '); }
+
+  function add(w) {
+    var pos = positions(w), fresh = pos.filter(function (p, i) { return !bits[p] && pos.indexOf(p) === i; });
+    pos.forEach(function (p) { bits[p] = 1; });
+    if (!added[w]) { added[w] = true; count++; }
+    probe = pos;
+    log = 'add\n' + describe(w, pos) + '\n' + (fresh.length ? 'newly set: ' + fresh.join(', ') : 'all of those bits were already 1');
+  }
+  function check(w) {
+    var pos = positions(w), off = pos.filter(function (p) { return !bits[p]; });
+    probe = pos;
+    var head = 'check\n' + describe(w, pos) + '\n';
+    if (off.length) log = head + 'bit ' + off.join(', ') + ' is 0\n=> definitely NOT in the set';
+    else if (added[w]) log = head + 'all bits are 1\n=> probably in the set (and it was added)';
+    else log = head + 'all bits are 1, but "' + w + '" was never added\n=> FALSE POSITIVE. Other words set these bits.';
+  }
+
+  function render() {
+    var cells = document.getElementById('cells');
+    cells.textContent = '';
+    var cw = 52, x0 = (880 - 16 * cw) / 2;
+    for (var i = 0; i < M; i++) {
+      var row = i >> 4, col = i & 15, x = x0 + col * cw + 3, y = 20 + row * 84;
+      var on = bits[i] === 1, hot = probe.indexOf(i) >= 0;
+      cells.appendChild(el('rect', { x: x, y: y, width: cw - 6, height: 44, rx: 6, fill: hot ? (on ? '#bf4520' : 'rgba(191,69,32,.18)') : on ? '#2d3142' : '#fff', stroke: hot ? '#bf4520' : 'rgba(45,49,66,.45)', 'stroke-width': hot ? 2.4 : 1.2 }));
+      cells.appendChild(el('text', { x: x + (cw - 6) / 2, y: y + 28, 'text-anchor': 'middle', 'font-family': "'Geist Mono',monospace", 'font-size': 16, 'font-weight': 600, fill: on ? '#fff' : '#5a6580' }, bits[i]));
+      cells.appendChild(el('text', { x: x + (cw - 6) / 2, y: y + 60, 'text-anchor': 'middle', 'font-family': "'Geist Mono',monospace", 'font-size': 10, fill: '#5a6580' }, i));
+    }
+    var set = bits.reduce(function (a, b) { return a + b; }, 0);
+    var fp = Math.pow(1 - Math.exp(-K * count / M), K) * 100;
+    document.getElementById('live').textContent = 'n = ' + count + ' · bits set ' + set + '/' + M + ' · est. false positives ' + fp.toFixed(1) + '%';
+    document.getElementById('readout').textContent = log;
+  }
+
+  function needWord() {
+    var w = word();
+    if (!w) { probe = []; log = 'Type a word first.'; render(); return null; }
+    return w;
+  }
+  document.getElementById('add').addEventListener('click', function () { var w = needWord(); if (w) { add(w); render(); } });
+  document.getElementById('check').addEventListener('click', function () { var w = needWord(); if (w) { check(w); render(); } });
+  document.getElementById('form').addEventListener('submit', function (e) { e.preventDefault(); var w = needWord(); if (w) { add(w); render(); } });
+  document.getElementById('fill').addEventListener('click', function () {
+    var pool = WORDS.filter(function (w) { return !added[w]; }), got = [];
+    for (var i = 0; i < 5 && pool.length; i++) {
+      var w = pool.splice(Math.floor(Math.random() * pool.length), 1)[0];
+      add(w); got.push(w);
+    }
+    probe = [];
+    log = got.length ? 'added: ' + got.join(', ') + '\nNow check a word that is not in the list, for example "zebra".' : 'No unused sample words left. Reset to start over.';
+    render();
+  });
+  document.getElementById('reset').addEventListener('click', function () { clear(); render(); });
+
+  clear(); render();
+})();
+</script>
+</body>
+</html>
