@@ -103,6 +103,16 @@ const DOCS = [
     related: ['Sparse Table', 'Skip List'],
   },
   {
+    title: 'LSM Tree',
+    path: 'content/lsm-tree/lsm-tree.html',
+    category: 'Data structures',
+    topic: 'Storage engines',
+    level: 'Advanced',
+    tags: ['memtable', 'sstable', 'compaction', 'tombstone', 'write-optimized', 'database', 'O(1) write'],
+    summary: 'Buffer writes in memory, flush them as sorted immutable files, and merge in the background. Writes are sequential and fast, and reads check newest data first.',
+    related: ['Skip List', 'Bloom Filter'],
+  },
+  {
     title: 'Genetic Algorithm',
     path: 'content/genetic-algorithm/genetic-algorithm.html',
     category: 'Algorithms',

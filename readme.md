@@ -15,6 +15,7 @@ Home page: https://gc-garcol.github.io/cafe-docs
 - Roaring Bitmap: `content/roaring-bitmap/roaring-bitmap.html`
 - Bloom Filter: `content/bloom-filter/bloom-filter.html`
 - HyperLogLog: `content/hyperloglog/hyperloglog.html`
+- LSM Tree: `content/lsm-tree/lsm-tree.html`
 
 ### Algorithms
 - Genetic Algorithm: `content/genetic-algorithm/genetic-algorithm.html`
