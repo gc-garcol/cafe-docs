@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Red-Black Tree: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+
+.card{margin:24px 0 0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.scroll{overflow-x:auto;padding:0 8px}
+.scroll svg{display:block;height:auto}
+
+.controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;margin-top:16px;align-items:start}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:0 0 12px}
+.row label{font-family:var(--mono);font-size:13px;font-weight:600}
+input[type=number],input[type=text]{width:90px;min-height:40px;padding:0 10px;border:1px solid var(--rule-solid);border-radius:6px;font:500 14px var(--mono);color:var(--ink);background:#fff}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.btn:disabled{opacity:.4;cursor:not-allowed;background:transparent;color:var(--ink)}
+#readout{margin:0;padding:0;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink);border:0;background:none}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:50%;border:1px solid var(--ink);display:inline-block}
+
+pre{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .t{color:var(--link)} .c{color:var(--soft);font-style:italic}
+
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:36px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+
+table.ops{border-collapse:collapse;width:100%;max-width:720px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule)}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
+
+@media (max-width:860px){.controls{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" href="../../index.html">&larr; Back to home</a>
+
+<header>
+  <div class="eyebrow">Data structures · Ordered sets</div>
+  <h1>Red-Black Tree</h1>
+  <p class="lede">A binary search tree that paints every node red or black. A few color rules keep the longest path at most twice the shortest, so lookups stay O(log n) while updates need very little restructuring.</p>
+</header>
+
+<section>
+  <h2>Try the machine first</h2>
+  <p>This tree holds up to 15 numbers. Insert a value and read the log: the new node always starts <b>red</b>, then the tree fixes any broken rule by recoloring or rotating. Try inserting <code>10, 20, 30</code> in a row, then <code>5</code> and <code>1</code>.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">A red-black tree</span></div>
+    <div class="scroll">
+      <svg id="tree" width="880" height="460" viewBox="0 0 880 460" style="min-width:880px" role="img" aria-labelledby="rb-title rb-desc">
+        <title id="rb-title">Red-black tree with red and black nodes</title>
+        <desc id="rb-desc">A binary search tree where each node is red or black. The root is black, no red node has a red child, and every path from the root to a missing child has the same number of black nodes. Nodes changed by the last insert have a blue ring.</desc>
+        <g id="edges"></g>
+        <g id="nodes"></g>
+      </svg>
+    </div>
+    <div class="card-bottom"><span class="hint">Every root-to-leaf path has the same number of black nodes</span><span class="live" id="live"></span></div>
+  </figure>
+
+  <div class="controls">
+    <div class="panel">
+      <form id="form" class="row" novalidate>
+        <label for="val">Value</label>
+        <input type="number" id="val" min="-99" max="99" step="1" value="10" inputmode="numeric">
+        <button type="submit" class="btn" id="ins">Insert</button>
+      </form>
+      <div class="row">
+        <button type="button" class="btn" id="reset">Reset</button>
+      </div>
+      <div class="legend" aria-label="Legend">
+        <span><i class="sw" style="background:#c8372d;border-color:#c8372d"></i>red node</span>
+        <span><i class="sw" style="background:#2d3142"></i>black node</span>
+        <span><i class="sw" style="background:#fff;border:3px solid #2e5aa8"></i>changed by last insert</span>
+      </div>
+    </div>
+    <div class="panel"><pre id="readout" aria-live="polite"></pre></div>
+  </div>
+</section>
+
+<section>
+  <h2>1. The rules</h2>
+  <p>A red-black tree is a BST where each node carries one extra bit, its color. Five rules must hold at all times:</p>
+  <ul class="tight">
+    <li>Every node is red or black.</li>
+    <li>The root is black.</li>
+    <li>Missing children (nulls) count as black.</li>
+    <li>A red node never has a red child.</li>
+    <li>Every path from a node down to its null descendants has the same number of black nodes, called the <b>black height</b>.</li>
+  </ul>
+  <p class="callout">Black nodes form a perfectly balanced skeleton. Red nodes are slack that lets the tree absorb an insert without moving much.</p>
+  <p>Why does that bound the height? The shortest possible path is all black. The longest alternates red and black, so it is at most twice as long. That gives a height of at most <code>2 log₂(n + 1)</code>.</p>
+</section>
+
+<section>
+  <h2>2. Insert and fix up</h2>
+  <p>Insert like a normal BST and color the new node <b>red</b>. A red node cannot change any black height, so only one rule can break: a red node may now have a red parent. Walk up and repair it. Let <code>z</code> be the red node, <code>P</code> its red parent, <code>G</code> its grandparent (it exists, because a red node is never the root), and <code>U</code> its uncle.</p>
+  <table class="ops">
+    <thead><tr><th>Uncle</th><th>Shape</th><th>Fix</th></tr></thead>
+    <tbody>
+      <tr><td>Red</td><td>Any</td><td>Recolor P and U black, G red. Continue from G.</td></tr>
+      <tr><td>Black</td><td>Zig-zag (z is an inner child)</td><td>Rotate at P to make it a straight line, then use the next row.</td></tr>
+      <tr><td>Black</td><td>Straight line (z is an outer child)</td><td>Rotate at G, color P black and G red. Done.</td></tr>
+    </tbody>
+  </table>
+  <pre><span class="k">function</span> fixInsert(z) {
+  <span class="k">while</span> (z.parent &amp;&amp; z.parent.red) {
+    <span class="k">const</span> p = z.parent, g = p.parent;
+    <span class="k">const</span> left = (p === g.left);
+    <span class="k">const</span> u = left ? g.right : g.left;
+
+    <span class="k">if</span> (u &amp;&amp; u.red) {            <span class="c">// case 1: push the problem up</span>
+      p.red = u.red = <span class="k">false</span>;
+      g.red = <span class="k">true</span>;
+      z = g;
+    } <span class="k">else</span> {                     <span class="c">// cases 2 and 3: rotate and stop</span>
+      <span class="k">if</span> (z === (left ? p.right : p.left)) {
+        z = p;
+        left ? rotateLeft(z) : rotateRight(z);
+      }
+      z.parent.red = <span class="k">false</span>;
+      z.parent.parent.red = <span class="k">true</span>;
+      left ? rotateRight(z.parent.parent) : rotateLeft(z.parent.parent);
+      <span class="k">break</span>;
+    }
+  }
+  root.red = <span class="k">false</span>;
+}</pre>
+  <p>Recoloring can repeat up the tree, at most O(log n) times, but rotations happen at most <b>twice</b> per insert. That is the main practical win over AVL: fewer pointer changes per update.</p>
+</section>
+
+<section>
+  <h2>3. Delete in one paragraph</h2>
+  <p>Delete starts like a BST delete: a node with two children is replaced by its in-order successor, so you always remove a node with at most one child. Removing a <b>red</b> node breaks nothing. Removing a <b>black</b> node leaves one path with a missing black, called a "double black". The fix looks at the sibling and its children: recolor if the sibling is black with black children, rotate if one of its children is red, and rotate to turn a red sibling into a black one. It takes at most three rotations and O(log n) recolorings. The demo above skips delete because the case analysis is long, but the idea is the same as insert: local rotations and recoloring that preserve the five rules.</p>
+</section>
+
+<section>
+  <h2>4. Cost</h2>
+  <div class="cards">
+    <div class="stat focal"><div class="eyebrow">Search</div><div class="big">O(log n)</div><p>Height is at most 2 log₂(n + 1).</p></div>
+    <div class="stat"><div class="eyebrow">Insert</div><div class="big">O(log n)</div><p>At most 2 rotations.</p></div>
+    <div class="stat"><div class="eyebrow">Delete</div><div class="big">O(log n)</div><p>At most 3 rotations.</p></div>
+  </div>
+  <table class="ops">
+    <thead><tr><th>Operation</th><th>Time</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>Search</td><td><code>O(log n)</code></td><td>Plain BST walk, colors are ignored</td></tr>
+      <tr><td>Insert</td><td><code>O(log n)</code></td><td>Recolor up, rotate at most twice</td></tr>
+      <tr><td>Delete</td><td><code>O(log n)</code></td><td>Rotate at most three times</td></tr>
+      <tr><td>In-order traversal</td><td><code>O(n)</code></td><td>Sorted output</td></tr>
+      <tr><td>Space</td><td><code>O(n)</code></td><td>One color bit per node</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>5. Where it shows up</h2>
+  <ul class="tight">
+    <li><b>Standard library maps and sets</b>: C++ <code>std::map</code> and <code>std::set</code>, and Java <code>TreeMap</code> and <code>TreeSet</code>.</li>
+    <li><b>Operating systems</b>: the Linux kernel uses red-black trees for the process scheduler and memory areas.</li>
+    <li><b>Interval and order-statistic trees</b>: extra data is stored in each node on top of the same balancing.</li>
+  </ul>
+  <p>Compared with an AVL tree, a red-black tree has slightly taller shapes and slightly slower lookups, but cheaper updates. If you want a simpler idea, a skip list gives similar ordered operations with random levels instead of rotations.</p>
+</section>
+
+</main>
+
+<script>
+(function () {
+  var MAX = 15, NS = 'http://www.w3.org/2000/svg';
+  var INITIAL = [10, 20, 30, 15, 25];
+  var root = null, hot = [], steps = [], log = 'Tree ready. Insert a value.';
+
+  function el(name, attrs, text) {
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (text != null) e.textContent = text;
+    return e;
+  }
+  function count(n) { return n ? 1 + count(n.l) + count(n.r) : 0; }
+  function has(n, v) { while (n) { if (v === n.v) return true; n = v < n.v ? n.l : n.r; } return false; }
+  function blackHeight(n) { var h = 0; while (n) { if (!n.red) h++; n = n.l; } return h; }
+
+  function rotL(x) {
+    var y = x.r;
+    x.r = y.l; if (y.l) y.l.p = x;
+    y.p = x.p;
+    if (!x.p) root = y; else if (x === x.p.l) x.p.l = y; else x.p.r = y;
+    y.l = x; x.p = y;
+  }
+  function rotR(x) {
+    var y = x.l;
+    x.l = y.r; if (y.r) y.r.p = x;
+    y.p = x.p;
+    if (!x.p) root = y; else if (x === x.p.r) x.p.r = y; else x.p.l = y;
+    y.r = x; x.p = y;
+  }
+
+  function insert(v) {
+    hot = []; steps = [];
+    var y = null, x = root;
+    while (x) { y = x; x = v < x.v ? x.l : x.r; }
+    var z = { v: v, red: true, l: null, r: null, p: y };
+    if (!y) root = z; else if (v < y.v) y.l = z; else y.r = z;
+    hot.push(v);
+    steps.push('add ' + v + ' as a red leaf');
+
+    while (z.p && z.p.red) {
+      var p = z.p, g = p.p, left = (p === g.l), u = left ? g.r : g.l;
+      if (u && u.red) {
+        steps.push('parent ' + p.v + ' and uncle ' + u.v + ' are red: recolor them black and ' + g.v + ' red');
+        p.red = false; u.red = false; g.red = true;
+        hot.push(p.v, u.v, g.v);
+        z = g;
+      } else {
+        if (z === (left ? p.r : p.l)) {
+          steps.push('uncle is black and ' + z.v + ' is an inner child: rotate ' + (left ? 'left' : 'right') + ' at ' + p.v);
+          z = p;
+          if (left) rotL(z); else rotR(z);
+          p = z.p;
+        }
+        steps.push('uncle is black: color ' + p.v + ' black, ' + g.v + ' red, rotate ' + (left ? 'right' : 'left') + ' at ' + g.v);
+        p.red = false; g.red = true;
+        hot.push(p.v, g.v);
+        if (left) rotR(g); else rotL(g);
+        break;
+      }
+    }
+    if (root.red) { root.red = false; steps.push('root must be black: recolor ' + root.v); hot.push(root.v); }
+    if (steps.length === 1) steps.push('parent is black, no rule is broken');
+    log = 'insert ' + v + '\n' + steps.join('\n');
+  }
+
+  function layout() {
+    var list = [], i = 0;
+    (function walk(n, d) {
+      if (!n) return;
+      walk(n.l, d + 1); n.i = i++; n.d = d; list.push(n); walk(n.r, d + 1);
+    })(root, 0);
+    var cell = 56, x0 = (880 - list.length * cell) / 2 + cell / 2;
+    list.forEach(function (n) { n.x = x0 + n.i * cell; n.y = 36 + n.d * 52; });
+    return list;
+  }
+
+  function render() {
+    var edges = document.getElementById('edges'), nodes = document.getElementById('nodes');
+    edges.textContent = ''; nodes.textContent = '';
+    var list = layout();
+    list.forEach(function (n) {
+      [n.l, n.r].forEach(function (c) {
+        if (c) edges.appendChild(el('line', { x1: n.x, y1: n.y, x2: c.x, y2: c.y, stroke: 'rgba(45,49,66,.35)', 'stroke-width': 1.2 }));
+      });
+    });
+    list.forEach(function (n) {
+      var h = hot.indexOf(n.v) >= 0;
+      if (h) nodes.appendChild(el('circle', { cx: n.x, cy: n.y, r: 24, fill: 'none', stroke: '#2e5aa8', 'stroke-width': 3 }));
+      nodes.appendChild(el('circle', { cx: n.x, cy: n.y, r: 20, fill: n.red ? '#c8372d' : '#2d3142' }));
+      nodes.appendChild(el('text', { x: n.x, y: n.y + 5, 'text-anchor': 'middle', 'font-family': "'Geist',sans-serif", 'font-size': 14, 'font-weight': 600, fill: '#fff' }, n.v));
+    });
+    var c = count(root);
+    document.getElementById('readout').textContent = log;
+    document.getElementById('live').textContent = c ? 'black height ' + blackHeight(root) + ' · size ' + c + '/' + MAX : 'empty';
+    document.getElementById('ins').disabled = c >= MAX;
+  }
+
+  document.getElementById('form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var x = parseInt(document.getElementById('val').value, 10);
+    if (isNaN(x) || x < -99 || x > 99) { hot = []; log = 'Enter a whole number from -99 to 99.'; render(); return; }
+    if (count(root) >= MAX) return;
+    if (has(root, x)) { hot = []; log = x + ' is already in the tree. Keys are unique.'; render(); return; }
+    insert(x); render();
+  });
+  document.getElementById('reset').addEventListener('click', function () {
+    root = null; INITIAL.forEach(insert);
+    hot = []; log = 'Tree reset.'; render();
+  });
+  document.getElementById('reset').click();
+})();
+</script>
+</body>
+</html>
