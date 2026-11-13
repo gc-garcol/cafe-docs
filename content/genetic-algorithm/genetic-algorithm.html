@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Genetic Algorithm: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+
+/* Fig 1: framed card */
+.lab{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:24px;align-items:start;margin-top:24px}
+.card{margin:0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--ink)}
+.stage{padding:0 8px}
+.stage svg{display:block;width:100%;height:auto;max-height:640px}
+#rack [data-k]{cursor:pointer}
+#rack [data-k]:hover polygon{filter:brightness(.97)}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:2px;border:1px solid var(--ink);display:inline-block}
+
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.seg{display:flex;gap:0;border:1px solid var(--rule-solid);border-radius:6px;overflow:hidden;margin-bottom:16px}
+.seg button{flex:1;min-height:40px;border:0;background:transparent;font:500 14px var(--sans);color:var(--muted);cursor:pointer}
+.seg button+button{border-left:1px solid var(--rule-solid)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.row{display:grid;grid-template-columns:28px 1fr 28px;gap:12px;align-items:center;margin:10px 0}
+.row label{font-family:var(--mono);font-size:13px;font-weight:600}
+.row output{font-family:var(--mono);font-size:13px;text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);min-height:28px}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer;margin-top:8px}
+.btn:hover{background:var(--ink);color:var(--paper)}
+#readout{margin:16px 0 0;padding:14px 16px;background:var(--paper);border:1px solid var(--rule);border-radius:6px;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink)}
+.na{color:var(--soft)}
+.c-a{color:var(--link);font-weight:600}.c-b{color:var(--accent);font-weight:600}
+
+/* static diagrams */
+.fig{margin:20px 0 8px}
+.scroll{overflow-x:auto;border:1px solid var(--rule);border-radius:8px;background:#fff;padding:8px}
+.scroll svg{display:block;height:auto}
+.cap{font-family:var(--mono);font-size:11px;color:var(--soft);margin:8px 0 0}
+
+pre{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .t{color:var(--link)} .c{color:var(--soft);font-style:italic}
+
+.cards{display:grid;grid-template-columns:1.1fr 1fr .9fr;gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:36px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+
+table.ops{border-collapse:collapse;width:100%;max-width:720px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);border-radius:6px;font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule)}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+.ok{color:#1d6b3a;font-weight:600}.no{color:var(--accent);font-weight:600}
+ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
+
+@media (max-width:860px){.lab{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+.lab.wide{grid-template-columns:1fr}
+.lab.wide .stage svg{max-height:560px}
+.below{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:24px;align-items:start}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px}
+.btns .btn{margin-top:0}
+.btn[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.row{grid-template-columns:76px 1fr 44px}
+@media (max-width:860px){.below{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" href="../../index.html">&larr; Back to home</a>
+
+<header>
+  <div class="eyebrow">Algorithms · Optimization</div>
+  <h1>Genetic Algorithm</h1>
+  <p class="lede">Search by evolution. Keep a population of candidate answers, let the better ones breed, add a little random change, and repeat until a good answer appears.</p>
+</header>
+
+<section>
+  <h2>Try the machine first</h2>
+  <p>The dark row at the back is the <b>target</b>, 12 genes the population has never seen. Each row is one individual and its score is the number of genes that match the target. Matching genes rise above the shelf. Press <b>Next generation</b> and watch the skyline grow.</p>
+
+  <div class="lab wide">
+    <figure class="card">
+      <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">The evolution bench</span></div>
+      <div class="stage">
+        <svg id="rack" viewBox="0 0 560 560" role="img" aria-labelledby="rack-title rack-desc">
+          <title id="rack-title">Population of six bit strings evolving toward a target</title>
+          <desc id="rack-desc">The back row is the target. Each other row is one individual of twelve genes. Genes that match the target are raised, and the bar at the end of a row shows its fitness. Each new generation is made by selection, crossover and mutation.</desc>
+          <g id="scene"></g>
+        </svg>
+      </div>
+      <div class="card-bottom"><span class="hint">Colors show where each gene came from</span><span class="live" id="live"></span></div>
+    </figure>
+
+    <div class="below">
+      <div class="panel">
+        <div class="btns">
+          <button type="button" class="btn" id="stepBtn">Next generation</button>
+          <button type="button" class="btn" id="autoBtn" aria-pressed="false">Auto run</button>
+          <button type="button" class="btn" id="resetBtn">Reset</button>
+        </div>
+        <div class="row"><label for="inPm">mutation</label><input type="range" id="inPm" min="0" max="20" value="4"><output id="outPm">4%</output></div>
+        <div class="row"><label for="inPc">crossover</label><input type="range" id="inPc" min="0" max="100" step="10" value="90"><output id="outPc">90%</output></div>
+        <div id="readout" aria-live="polite"></div>
+      </div>
+      <div>
+        <div class="panel">
+          <div class="eyebrow" style="margin-bottom:6px">Fitness by generation</div>
+          <svg id="chart" viewBox="0 0 300 120" role="img" aria-labelledby="chart-title chart-desc" style="width:100%;height:auto;display:block">
+            <title id="chart-title">Best and average fitness per generation</title>
+            <desc id="chart-desc">Two lines: the best fitness and the average fitness of the population, generation by generation.</desc>
+          </svg>
+        </div>
+        <div class="legend" aria-label="Legend">
+          <span><i class="sw" style="background:#fff"></i>start / elite</span>
+          <span><i class="sw" style="background:#8db3ec;border-color:#1f3f7a"></i>from parent A</span>
+          <span><i class="sw" style="background:#f09a78;border-color:#7a2a10"></i>from parent B</span>
+          <span><i class="sw" style="background:#2d3142"></i>mutated</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>1. The idea</h2>
+  <p>Some problems have no formula, only a way to <b>score</b> an answer. A genetic algorithm borrows the trick nature uses: keep many candidates, favour the good ones, combine them, and perturb them slightly.</p>
+  <table class="ops">
+    <thead><tr><th>Biology</th><th>Algorithm</th><th>In the bench above</th></tr></thead>
+    <tbody>
+      <tr><td>Individual</td><td>A candidate solution</td><td>One row of 12 bits</td></tr>
+      <tr><td>Gene</td><td>One element of the candidate</td><td>One bit</td></tr>
+      <tr><td>Fitness</td><td>A score, higher is better</td><td>Matches with the target</td></tr>
+      <tr><td>Reproduction</td><td>Selection plus crossover</td><td>Parent A and parent B colors</td></tr>
+      <tr><td>Mutation</td><td>A rare random change</td><td>A dark cube</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>2. The loop</h2>
+  <p>Every generation repeats the same five steps. The new population replaces the old one, and the loop stops when the score is good enough or the budget of generations runs out.</p>
+  <div class="fig">
+    <div class="scroll"><svg width="920" height="260" viewBox="0 0 920 260" style="min-width:920px" role="img" aria-labelledby="ga-loop-title ga-loop-desc">
+<title id="ga-loop-title">The genetic algorithm loop</title>
+<desc id="ga-loop-desc">Score the population, select parents, cross them over, mutate the children, and the children become the next population.</desc>
+<defs><marker id="ga-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#4f5d75" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+<line x1="170" y1="84.0" x2="209" y2="84.0" stroke="#4f5d75" stroke-width="1" marker-end="url(#ga-arrow)"/>
+<line x1="350" y1="84.0" x2="389" y2="84.0" stroke="#4f5d75" stroke-width="1" marker-end="url(#ga-arrow)"/>
+<line x1="530" y1="84.0" x2="569" y2="84.0" stroke="#4f5d75" stroke-width="1" marker-end="url(#ga-arrow)"/>
+<line x1="710" y1="84.0" x2="749" y2="84.0" stroke="#4f5d75" stroke-width="1" marker-end="url(#ga-arrow)"/>
+<path d="M820.0,112 V168 Q820.0,176 812.0,176 H108.0 Q100.0,176 100.0,168 V113" fill="none" stroke="#4f5d75" stroke-width="1" stroke-dasharray="5 4" marker-end="url(#ga-arrow)"/>
+<text x="460.0" y="198" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="500" fill="#4f5d75">NEXT GENERATION</text>
+<rect x="30" y="56" width="140" height="56" rx="6" fill="#fff" stroke="rgba(45,49,66,.45)" stroke-width="1"/><text x="100.0" y="80" text-anchor="middle" font-family="'Geist',sans-serif" font-size="14" font-weight="600" fill="#2d3142">Population</text><text x="100.0" y="96" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">random at first</text>
+<text x="100.0" y="44" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="500" fill="#5a6580">start</text>
+<rect x="210" y="56" width="140" height="56" rx="6" fill="#fff" stroke="rgba(45,49,66,.45)" stroke-width="1"/><text x="280.0" y="80" text-anchor="middle" font-family="'Geist',sans-serif" font-size="14" font-weight="600" fill="#2d3142">Fitness</text><text x="280.0" y="96" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">score each one</text>
+<text x="280.0" y="44" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="500" fill="#5a6580">step 2</text>
+<rect x="390" y="56" width="140" height="56" rx="6" fill="rgba(191,69,32,.08)" stroke="#bf4520" stroke-width="1.4"/><text x="460.0" y="80" text-anchor="middle" font-family="'Geist',sans-serif" font-size="14" font-weight="600" fill="#2d3142">Selection</text><text x="460.0" y="96" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">pick parents</text>
+<text x="460.0" y="44" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="500" fill="#5a6580">step 3</text>
+<rect x="570" y="56" width="140" height="56" rx="6" fill="#fff" stroke="rgba(45,49,66,.45)" stroke-width="1"/><text x="640.0" y="80" text-anchor="middle" font-family="'Geist',sans-serif" font-size="14" font-weight="600" fill="#2d3142">Crossover</text><text x="640.0" y="96" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">mix two parents</text>
+<text x="640.0" y="44" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="500" fill="#5a6580">step 4</text>
+<rect x="750" y="56" width="140" height="56" rx="6" fill="#fff" stroke="rgba(45,49,66,.45)" stroke-width="1"/><text x="820.0" y="80" text-anchor="middle" font-family="'Geist',sans-serif" font-size="14" font-weight="600" fill="#2d3142">Mutation</text><text x="820.0" y="96" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">flip a few genes</text>
+<text x="820.0" y="44" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="500" fill="#5a6580">step 5</text>
+</svg></div>
+    <p class="cap">Fig 2 · One generation. Selection is where the pressure toward better answers comes from.</p>
+  </div>
+</section>
+
+<section>
+  <h2>3. The three operators</h2>
+  <p><b>Selection.</b> Better individuals should breed more often, but weak ones must keep a small chance. A <i>tournament</i> does both: draw <code>k</code> random individuals and keep the fittest. A larger <code>k</code> means stronger pressure.</p>
+  <p><b>Crossover.</b> Pick a random cut. The child takes genes before the cut from parent A and the rest from parent B. Good partial answers from two parents can end up in one child.</p>
+  <p><b>Mutation.</b> Flip each gene with a small probability. It brings back genes that the whole population has lost.</p>
+
+  <div class="fig">
+    <div class="scroll"><svg width="760" height="330" viewBox="0 0 760 330" style="min-width:760px" role="img" aria-labelledby="ga-op-title ga-op-desc">
+<title id="ga-op-title">One crossover and one mutation</title>
+<desc id="ga-op-desc">The child takes the first five genes from parent A and the rest from parent B. Mutation then flips one gene.</desc>
+<defs><marker id="ga-op-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#4f5d75" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+<text x="16" y="55.0" text-anchor="start" font-family="'Geist',sans-serif" font-size="12" font-weight="600" fill="#2d3142">Parent A</text><text x="16" y="68.0" text-anchor="start" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">fitter</text><rect x="150" y="40" width="36" height="34" rx="4" fill="rgba(46,90,168,.14)" stroke="#2e5aa8" stroke-width="1.2"/><text x="168.0" y="62" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">1</text><rect x="190" y="40" width="36" height="34" rx="4" fill="rgba(46,90,168,.14)" stroke="#2e5aa8" stroke-width="1.2"/><text x="208.0" y="62" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">0</text><rect x="230" y="40" width="36" height="34" rx="4" fill="rgba(46,90,168,.14)" stroke="#2e5aa8" stroke-width="1.2"/><text x="248.0" y="62" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">1</text><rect x="270" y="40" width="36" height="34" rx="4" fill="rgba(46,90,168,.14)" stroke="#2e5aa8" stroke-width="1.2"/><text x="288.0" y="62" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">1</text><rect x="310" y="40" width="36" height="34" rx="4" fill="rgba(46,90,168,.14)" stroke="#2e5aa8" stroke-width="1.2"/><text x="328.0" y="62" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">0</text><rect x="350" y="40" width="36" height="34" rx="4" fill="rgba(46,90,168,.14)" stroke="#2e5aa8" stroke-width="1.2"/><text x="368.0" y="62" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">0</text><rect x="390" y="40" width="36" height="34" rx="4" fill="rgba(46,90,168,.14)" stroke="#2e5aa8" stroke-width="1.2"/><text x="408.0" y="62" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">1</text><rect x="430" y="40" width="36" height="34" rx="4" fill="rgba(46,90,168,.14)" stroke="#2e5aa8" stroke-width="1.2"/><text x="448.0" y="62" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">0</text><rect x="470" y="40" width="36" height="34" rx="4" fill="rgba(46,90,168,.14)" stroke="#2e5aa8" stroke-width="1.2"/><text x="488.0" y="62" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">1</text><rect x="510" y="40" width="36" height="34" rx="4" fill="rgba(46,90,168,.14)" stroke="#2e5aa8" stroke-width="1.2"/><text x="528.0" y="62" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">1</text><rect x="550" y="40" width="36" height="34" rx="4" fill="rgba(46,90,168,.14)" stroke="#2e5aa8" stroke-width="1.2"/><text x="568.0" y="62" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">1</text><rect x="590" y="40" width="36" height="34" rx="4" fill="rgba(46,90,168,.14)" stroke="#2e5aa8" stroke-width="1.2"/><text x="608.0" y="62" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">0</text>
+<text x="16" y="107.0" text-anchor="start" font-family="'Geist',sans-serif" font-size="12" font-weight="600" fill="#2d3142">Parent B</text><text x="16" y="120.0" text-anchor="start" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">also selected</text><rect x="150" y="92" width="36" height="34" rx="4" fill="rgba(191,69,32,.12)" stroke="#bf4520" stroke-width="1.2"/><text x="168.0" y="114" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">0</text><rect x="190" y="92" width="36" height="34" rx="4" fill="rgba(191,69,32,.12)" stroke="#bf4520" stroke-width="1.2"/><text x="208.0" y="114" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">1</text><rect x="230" y="92" width="36" height="34" rx="4" fill="rgba(191,69,32,.12)" stroke="#bf4520" stroke-width="1.2"/><text x="248.0" y="114" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">1</text><rect x="270" y="92" width="36" height="34" rx="4" fill="rgba(191,69,32,.12)" stroke="#bf4520" stroke-width="1.2"/><text x="288.0" y="114" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">0</text><rect x="310" y="92" width="36" height="34" rx="4" fill="rgba(191,69,32,.12)" stroke="#bf4520" stroke-width="1.2"/><text x="328.0" y="114" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">1</text><rect x="350" y="92" width="36" height="34" rx="4" fill="rgba(191,69,32,.12)" stroke="#bf4520" stroke-width="1.2"/><text x="368.0" y="114" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">1</text><rect x="390" y="92" width="36" height="34" rx="4" fill="rgba(191,69,32,.12)" stroke="#bf4520" stroke-width="1.2"/><text x="408.0" y="114" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">0</text><rect x="430" y="92" width="36" height="34" rx="4" fill="rgba(191,69,32,.12)" stroke="#bf4520" stroke-width="1.2"/><text x="448.0" y="114" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">1</text><rect x="470" y="92" width="36" height="34" rx="4" fill="rgba(191,69,32,.12)" stroke="#bf4520" stroke-width="1.2"/><text x="488.0" y="114" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">0</text><rect x="510" y="92" width="36" height="34" rx="4" fill="rgba(191,69,32,.12)" stroke="#bf4520" stroke-width="1.2"/><text x="528.0" y="114" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">0</text><rect x="550" y="92" width="36" height="34" rx="4" fill="rgba(191,69,32,.12)" stroke="#bf4520" stroke-width="1.2"/><text x="568.0" y="114" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">1</text><rect x="590" y="92" width="36" height="34" rx="4" fill="rgba(191,69,32,.12)" stroke="#bf4520" stroke-width="1.2"/><text x="608.0" y="114" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">1</text>
+<line x1="348" y1="26" x2="348" y2="140" stroke="#2d3142" stroke-width="1.2" stroke-dasharray="4 3"/>
+<text x="348" y="20" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="500" fill="#2d3142">crossover point</text>
+<line x1="390" y1="144" x2="390" y2="168" stroke="#4f5d75" stroke-width="1" marker-end="url(#ga-op-arrow)"/>
+<text x="16" y="191.0" text-anchor="start" font-family="'Geist',sans-serif" font-size="12" font-weight="600" fill="#2d3142">Child</text><text x="16" y="204.0" text-anchor="start" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">A | B</text><rect x="150" y="176" width="36" height="34" rx="4" fill="rgba(46,90,168,.14)" stroke="#2e5aa8" stroke-width="1.2"/><text x="168.0" y="198" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">1</text><rect x="190" y="176" width="36" height="34" rx="4" fill="rgba(46,90,168,.14)" stroke="#2e5aa8" stroke-width="1.2"/><text x="208.0" y="198" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">0</text><rect x="230" y="176" width="36" height="34" rx="4" fill="rgba(46,90,168,.14)" stroke="#2e5aa8" stroke-width="1.2"/><text x="248.0" y="198" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">1</text><rect x="270" y="176" width="36" height="34" rx="4" fill="rgba(46,90,168,.14)" stroke="#2e5aa8" stroke-width="1.2"/><text x="288.0" y="198" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">1</text><rect x="310" y="176" width="36" height="34" rx="4" fill="rgba(46,90,168,.14)" stroke="#2e5aa8" stroke-width="1.2"/><text x="328.0" y="198" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">0</text><rect x="350" y="176" width="36" height="34" rx="4" fill="rgba(191,69,32,.12)" stroke="#bf4520" stroke-width="1.2"/><text x="368.0" y="198" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">1</text><rect x="390" y="176" width="36" height="34" rx="4" fill="rgba(191,69,32,.12)" stroke="#bf4520" stroke-width="1.2"/><text x="408.0" y="198" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">0</text><rect x="430" y="176" width="36" height="34" rx="4" fill="rgba(191,69,32,.12)" stroke="#bf4520" stroke-width="1.2"/><text x="448.0" y="198" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">1</text><rect x="470" y="176" width="36" height="34" rx="4" fill="rgba(191,69,32,.12)" stroke="#bf4520" stroke-width="1.2"/><text x="488.0" y="198" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">0</text><rect x="510" y="176" width="36" height="34" rx="4" fill="rgba(191,69,32,.12)" stroke="#bf4520" stroke-width="1.2"/><text x="528.0" y="198" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">0</text><rect x="550" y="176" width="36" height="34" rx="4" fill="rgba(191,69,32,.12)" stroke="#bf4520" stroke-width="1.2"/><text x="568.0" y="198" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">1</text><rect x="590" y="176" width="36" height="34" rx="4" fill="rgba(191,69,32,.12)" stroke="#bf4520" stroke-width="1.2"/><text x="608.0" y="198" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">1</text>
+<line x1="488.0" y1="216" x2="488.0" y2="252" stroke="#4f5d75" stroke-width="1" marker-end="url(#ga-op-arrow)"/>
+<text x="16" y="275.0" text-anchor="start" font-family="'Geist',sans-serif" font-size="12" font-weight="600" fill="#2d3142">Mutated</text><text x="16" y="288.0" text-anchor="start" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">gene 8 flipped</text><rect x="150" y="260" width="36" height="34" rx="4" fill="rgba(46,90,168,.14)" stroke="#2e5aa8" stroke-width="1.2"/><text x="168.0" y="282" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">1</text><rect x="190" y="260" width="36" height="34" rx="4" fill="rgba(46,90,168,.14)" stroke="#2e5aa8" stroke-width="1.2"/><text x="208.0" y="282" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">0</text><rect x="230" y="260" width="36" height="34" rx="4" fill="rgba(46,90,168,.14)" stroke="#2e5aa8" stroke-width="1.2"/><text x="248.0" y="282" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">1</text><rect x="270" y="260" width="36" height="34" rx="4" fill="rgba(46,90,168,.14)" stroke="#2e5aa8" stroke-width="1.2"/><text x="288.0" y="282" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">1</text><rect x="310" y="260" width="36" height="34" rx="4" fill="rgba(46,90,168,.14)" stroke="#2e5aa8" stroke-width="1.2"/><text x="328.0" y="282" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">0</text><rect x="350" y="260" width="36" height="34" rx="4" fill="rgba(191,69,32,.12)" stroke="#bf4520" stroke-width="1.2"/><text x="368.0" y="282" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">1</text><rect x="390" y="260" width="36" height="34" rx="4" fill="rgba(191,69,32,.12)" stroke="#bf4520" stroke-width="1.2"/><text x="408.0" y="282" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">0</text><rect x="430" y="260" width="36" height="34" rx="4" fill="rgba(191,69,32,.12)" stroke="#bf4520" stroke-width="1.2"/><text x="448.0" y="282" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">1</text><rect x="470" y="260" width="36" height="34" rx="4" fill="#2d3142" stroke="#111111" stroke-width="1.2"/><text x="488.0" y="282" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#f5f5f5">1</text><rect x="510" y="260" width="36" height="34" rx="4" fill="rgba(191,69,32,.12)" stroke="#bf4520" stroke-width="1.2"/><text x="528.0" y="282" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">0</text><rect x="550" y="260" width="36" height="34" rx="4" fill="rgba(191,69,32,.12)" stroke="#bf4520" stroke-width="1.2"/><text x="568.0" y="282" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">1</text><rect x="590" y="260" width="36" height="34" rx="4" fill="rgba(191,69,32,.12)" stroke="#bf4520" stroke-width="1.2"/><text x="608.0" y="282" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">1</text>
+<text x="488.0" y="316" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="10" font-weight="600" fill="#bf4520">0 → 1</text>
+</svg></div>
+    <p class="cap">Fig 3 · A single crossover at cut 5, then one mutation on gene 8.</p>
+  </div>
+
+  <div class="callout">Crossover recombines what the population already knows. Mutation adds what it does not know yet.</div>
+</section>
+
+<section>
+  <h2>4. Code</h2>
+  <p>The same loop as the bench above, with elitism: the best individual always survives unchanged, so the best score never goes down.</p>
+<pre><span class="k">import</span> random
+
+GENES, POP = 12, 6
+TARGET = [random.randint(0, 1) <span class="k">for</span> _ <span class="k">in</span> range(GENES)]
+
+<span class="k">def</span> fitness(g):                      <span class="c"># how many genes match the target</span>
+    <span class="k">return</span> sum(a == b <span class="k">for</span> a, b <span class="k">in</span> zip(g, TARGET))
+
+<span class="k">def</span> tournament(pop, k=2):             <span class="c"># best of k random individuals</span>
+    <span class="k">return</span> max(random.sample(pop, k), key=fitness)
+
+<span class="k">def</span> crossover(a, b, rate=0.9):
+    <span class="k">if</span> random.random() &gt; rate: <span class="k">return</span> a[:]
+    cut = random.randint(1, GENES - 1)       <span class="c"># single-point crossover</span>
+    <span class="k">return</span> a[:cut] + b[cut:]
+
+<span class="k">def</span> mutate(g, rate=0.04):
+    <span class="k">return</span> [1 - x <span class="k">if</span> random.random() &lt; rate <span class="k">else</span> x <span class="k">for</span> x <span class="k">in</span> g]
+
+pop = [[random.randint(0, 1) <span class="k">for</span> _ <span class="k">in</span> range(GENES)] <span class="k">for</span> _ <span class="k">in</span> range(POP)]
+<span class="k">for</span> gen <span class="k">in</span> range(100):
+    best = max(pop, key=fitness)
+    <span class="k">if</span> fitness(best) == GENES: <span class="k">break</span>
+    pop = [best] + [                         <span class="c"># elitism: keep the best as is</span>
+        mutate(crossover(tournament(pop), tournament(pop)))
+        <span class="k">for</span> _ <span class="k">in</span> range(POP - 1)
+    ]</pre>
+</section>
+
+<section>
+  <h2>5. Knobs that matter</h2>
+  <table class="ops">
+    <thead><tr><th>Knob</th><th>Too low</th><th>Too high</th></tr></thead>
+    <tbody>
+      <tr><td>Population size</td><td>Little diversity, gets stuck</td><td>Slow, many evaluations per generation</td></tr>
+      <tr><td>Mutation rate</td><td>Population converges and stalls</td><td>Becomes random search</td></tr>
+      <tr><td>Crossover rate</td><td>Little mixing of good parts</td><td>Good individuals get broken up</td></tr>
+      <tr><td>Selection pressure</td><td>Drifts without improving</td><td>Premature convergence</td></tr>
+    </tbody>
+  </table>
+  <p>Try it on the bench: set mutation to 0% and the population often freezes below a perfect score. Set it to 20% and the best score jitters instead of climbing.</p>
+</section>
+
+<section>
+  <h2>6. Cost</h2>
+  <div class="cards">
+    <div class="stat"><div class="eyebrow">Per generation</div><div class="big">O(P · F)</div><p>P individuals, each scored once by a fitness function costing F.</p></div>
+    <div class="stat focal"><div class="eyebrow">Total</div><div class="big">G · P · F</div><p>G generations. The fitness function usually dominates.</p></div>
+    <div class="stat"><div class="eyebrow">Guarantee</div><div class="big">None</div><p>A good answer, not a proven optimum.</p></div>
+  </div>
+</section>
+
+<section>
+  <h2>7. When to use it</h2>
+  <ul class="tight">
+    <li>Use it when you can score an answer but cannot solve for one: scheduling, layout, tuning parameters, routing.</li>
+    <li>Skip it when a direct algorithm exists. Shortest paths and sorting do not need evolution.</li>
+    <li><b>Design the fitness function first.</b> The algorithm optimizes exactly what you score, including loopholes.</li>
+    <li>Watch for <b>premature convergence</b>: if every row looks the same, only mutation can still explore. Raise it or add fresh random individuals.</li>
+    <li>Results are random. Run several seeds before trusting one run.</li>
+  </ul>
+</section>
+
+</main>
+<script>
+(() => {
+  // ---------- model (the one source of truth) ----------
+  const G = 12, POP = 6, TOUR = 2, MAXGEN = 80;
+  const TARGET = [1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 1];
+  const mulberry32 = a => () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  const fit = bits => bits.reduce((s, b, i) => s + (b === TARGET[i] ? 1 : 0), 0);
+
+  let rand, pop, gen, hist, log;
+  const st = { pm: .04, pc: .9 };
+
+  function reset() {
+    rand = mulberry32(11);
+    pop = [];
+    for (let i = 0; i < POP; i++) pop.push({ bits: Array.from({ length: G }, () => rand() < .5 ? 1 : 0), org: Array(G).fill('i'), note: 'random' });
+    gen = 0; hist = []; log = ['Random starting population.'];
+    record();
+  }
+  function record() {
+    const f = pop.map(p => fit(p.bits));
+    hist.push({ best: Math.max(...f), avg: f.reduce((a, b) => a + b, 0) / POP });
+  }
+  const solved = () => hist[hist.length - 1].best === G;
+
+  function tournament(f) {
+    let best = -1;
+    for (let k = 0; k < TOUR; k++) { const i = Math.floor(rand() * POP); if (best < 0 || f[i] > f[best]) best = i; }
+    return best;
+  }
+  function nextGeneration() {
+    if (solved()) return;
+    const f = pop.map(p => fit(p.bits));
+    const e = f.indexOf(Math.max(...f));
+    const next = [{ bits: pop[e].bits.slice(), org: Array(G).fill('E'), note: 'elite #' + (e + 1) }];
+    log = ['Elite: #' + (e + 1) + ' kept unchanged (fitness ' + f[e] + ').'];
+    while (next.length < POP) {
+      const a = tournament(f), b = tournament(f), A = pop[a].bits, B = pop[b].bits;
+      let bits, org, cut = 0, note;
+      if (rand() < st.pc) {
+        cut = 1 + Math.floor(rand() * (G - 1));
+        bits = A.slice(0, cut).concat(B.slice(cut));
+        org = Array.from({ length: G }, (_, i) => i < cut ? 'A' : 'B');
+        note = '#' + (a + 1) + '×#' + (b + 1) + ' cut ' + cut;
+      } else {
+        bits = A.slice(); org = Array(G).fill('A');
+        note = 'copy #' + (a + 1);
+      }
+      const flips = [];
+      for (let i = 0; i < G; i++) if (rand() < st.pm) { bits[i] ^= 1; org[i] = 'm'; flips.push(i); }
+      if (flips.length) note += ' · m' + flips.length;
+      next.push({ bits, org, note });
+      log.push('#' + next.length + ' ← ' + (cut ? 'parent A #' + (a + 1) + ' (' + f[a] + ') × parent B #' + (b + 1) + ' (' + f[b] + '), cut ' + cut : 'copy of #' + (a + 1) + ' (' + f[a] + ')') +
+        (flips.length ? ', mutated gene' + (flips.length > 1 ? 's ' : ' ') + flips.join(', ') : ''));
+    }
+    pop = next; gen++; record();
+    if (solved()) log.push('Target reached in ' + gen + ' generation' + (gen > 1 ? 's' : '') + '.');
+  }
+
+  // ---------- world ----------
+  const PHI = 22 * Math.PI / 180, VC = Math.cos(PHI), VS = Math.sin(PHI);
+  const EX = [VC, VS * 0.5], EY = [-VS, VC * 0.5];
+  const PX = 34, CS = 30, CH = 10, ST = 8, ROWP = 44, LIFTH = 8;
+  const SX0 = -112, SX1 = 600, SY0 = -14, SY1 = (POP + 1) * ROWP + 2;
+  const BAR0 = G * PX + 10, BARK = 10;
+  const pj = (x, y, z) => [x * EX[0] + y * EY[0], x * EX[1] + y * EY[1] - z];
+  const f1 = n => n.toFixed(1);
+  const poly = (pts, fill, stroke, sw) =>
+    `<polygon points="${pts.map(p => f1(p[0]) + ',' + f1(p[1])).join(' ')}" fill="${fill}" stroke="${stroke}" stroke-width="${sw || .7}" stroke-linejoin="round"/>`;
+  function box(x, y, z, w, d, h, c, sw) {
+    const top = [pj(x, y, z + h), pj(x + w, y, z + h), pj(x + w, y + d, z + h), pj(x, y + d, z + h)];
+    const right = [pj(x + w, y, z), pj(x + w, y + d, z), pj(x + w, y + d, z + h), pj(x + w, y, z + h)];
+    const left = [pj(x, y + d, z), pj(x + w, y + d, z), pj(x + w, y + d, z + h), pj(x, y + d, z + h)];
+    return poly(left, c.left, c.stroke, sw) + poly(right, c.right, c.stroke, sw) + poly(top, c.top, c.stroke, sw);
+  }
+  function flatText(str, x, y, z, size, fill, anchor, weight, mono) {
+    return `<text transform="matrix(${EX[0].toFixed(4)},${EX[1].toFixed(4)},${EY[0].toFixed(4)},${EY[1].toFixed(4)},0,${f1(-z)})" x="${x}" y="${y}" font-size="${size}" font-weight="${weight || 600}" fill="${fill}" text-anchor="${anchor || 'middle'}" font-family="${mono ? "'Geist Mono',ui-monospace,monospace" : "'Geist',system-ui,sans-serif"}">${str}</text>`;
+  }
+  const dot = (x, y, z, r) => { const p = pj(x, y, z); return `<circle cx="${f1(p[0])}" cy="${f1(p[1])}" r="${r}" fill="#2d3142" opacity=".55"/>`; };
+
+  const SLAB = { top: '#eceef2', right: '#d3d7df', left: '#bdc3cf', stroke: '#4f5d75' };
+  const BASE = { top: '#dfe3ea', right: '#c6cbd6', left: '#b2b9c7', stroke: '#4f5d75' };
+  const FOOT = { top: '#9aa3b5', right: '#7d8699', left: '#6b7488', stroke: '#2d3142' };
+  const BAR = { top: '#fbe6dd', right: '#e9b7a3', left: '#d99d84', stroke: '#7a2a10' };
+  const PAL = {
+    i: { top: '#ffffff', right: '#e3e6ec', left: '#cdd2dc', stroke: '#4f5d75', text: '#2d3142' },
+    E: { top: '#ffffff', right: '#e3e6ec', left: '#cdd2dc', stroke: '#4f5d75', text: '#2d3142' },
+    A: { top: '#8db3ec', right: '#4f7fc4', left: '#3f6bb0', stroke: '#1f3f7a', text: '#0f2347' },
+    B: { top: '#f09a78', right: '#cf6a45', left: '#b95533', stroke: '#7a2a10', text: '#3d1405' },
+    m: { top: '#2d3142', right: '#1f2230', left: '#171a26', stroke: '#111111', text: '#f5f5f5' },
+    T: { top: '#2d3142', right: '#1f2230', left: '#171a26', stroke: '#111111', text: '#f5f5f5' }
+  };
+
+  // ---------- state ----------
+  const lifts = {};
+  const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const $ = id => document.getElementById(id);
+  const scene = $('scene'), rack = $('rack');
+
+  // ---------- fit the viewBox to the scene ----------
+  let mnX = 1e9, mxX = -1e9, mnY = 1e9, mxY = -1e9;
+  [[SX0 - 18, SY0 - 20], [SX1 + 20, SY0 - 20], [SX0 - 18, SY1 + 20], [SX1 + 20, SY1 + 20]].forEach(([x, y]) => [-18, ST + CH + LIFTH + 12].forEach(z => {
+    const p = pj(x, y, z);
+    mnX = Math.min(mnX, p[0]); mxX = Math.max(mxX, p[0]); mnY = Math.min(mnY, p[1]); mxY = Math.max(mxY, p[1]);
+  }));
+  const PAD = 16;
+  scene.setAttribute('transform', `translate(${f1(-mnX + PAD)},${f1(-mnY + PAD)})`);
+  rack.setAttribute('viewBox', `0 0 ${Math.ceil(mxX - mnX + 2 * PAD)} ${Math.ceil(mxY - mnY + 2 * PAD)}`);
+
+  // ---------- drawing ----------
+  function drawRow(r) {
+    const y = r * ROWP + 4, zt = ST;
+    const isT = r === 0, p = isT ? null : pop[r - 1];
+    let s = '';
+    s += flatText(isT ? 'TARGET' : '#' + r, SX0 + 8, y + 14, zt, isT ? 11 : 13, isT ? '#bf4520' : '#2d3142', 'start', 600, true);
+    s += flatText(isT ? 'unknown' : p.note, SX0 + 8, y + 26, zt, 7, '#5a6580', 'start', 400, true);
+    for (let c = 0; c < G; c++) {
+      const x = c * PX;
+      const bit = isT ? TARGET[c] : p.bits[c];
+      const role = isT ? 'T' : p.org[c];
+      const match = !isT && bit === TARGET[c];
+      const h = CH + (isT ? 0 : (lifts[r + ',' + c] || 0));
+      const pal = PAL[role];
+      s += `<g><title>${isT ? 'target' : 'individual #' + r} gene ${c} = ${bit}${isT ? '' : (match ? ' (match)' : ' (miss)')}</title>` +
+        box(x, y, zt, CS, CS, h, pal, .8) +
+        flatText(bit, x + CS / 2, y + 21, zt + h, 16, pal.text, 'middle', 600, false) + '</g>';
+    }
+    if (!isT) {
+      const f = fit(p.bits);
+      s += box(BAR0, y + 6, zt, Math.max(f, .2) * BARK, 18, 6, BAR, .8);
+      s += flatText(f + '/' + G, BAR0 + G * BARK + 10, y + 20, zt, 12, '#bf4520', 'start', 600, true);
+    }
+    return s;
+  }
+
+  function render() {
+    let out = '';
+    [[SX0 - 14, SY0 - 14], [SX1 + 2, SY0 - 14], [SX0 - 14, SY1 + 2], [SX1 + 2, SY1 + 2]].forEach(f => { out += box(f[0], f[1], -18, 12, 12, 6, FOOT, .7); });
+    out += box(SX0 - 18, SY0 - 20, -12, SX1 - SX0 + 36, SY1 - SY0 + 40, 12, BASE, .8);
+    out += box(SX0, SY0, 0, SX1 - SX0, SY1 - SY0, ST, SLAB, .8);
+    [[SX0 + 5, SY0 + 5], [SX1 - 5, SY0 + 5], [SX0 + 5, SY1 - 5], [SX1 - 5, SY1 - 5]].forEach(c => { out += dot(c[0], c[1], ST, 1.3); });
+    out += flatText('FITNESS', BAR0, SY0 + 10, ST, 8, '#5a6580', 'start', 600, true);
+    for (let r = 0; r <= POP; r++) out += drawRow(r);
+    scene.innerHTML = out;
+  }
+
+  // ---------- animation ----------
+  let raf = 0, last = 0, curTg = {};
+  function targets() {
+    const tg = {};
+    for (let r = 1; r <= POP; r++) for (let c = 0; c < G; c++) tg[r + ',' + c] = pop[r - 1].bits[c] === TARGET[c] ? LIFTH : 0;
+    return tg;
+  }
+  function step(t) {
+    const dt = Math.min(.05, (t - last) / 1000 || .016); last = t;
+    const f = 1 - Math.exp(-dt * 10);
+    let moving = false;
+    for (const key in curTg) {
+      const cur = lifts[key] || 0, tg = curTg[key], nv = cur + (tg - cur) * f;
+      if (Math.abs(tg - nv) < .05) lifts[key] = tg; else { lifts[key] = nv; moving = true; }
+    }
+    render();
+    raf = moving ? requestAnimationFrame(step) : 0;
+  }
+
+  // ---------- chart ----------
+  function drawChart() {
+    const svg = $('chart');
+    let g = svg.querySelector('g'); if (!g) { g = document.createElementNS('http://www.w3.org/2000/svg', 'g'); svg.appendChild(g); }
+    const X0 = 30, X1 = 292, Y0 = 12, Y1 = 100, n = Math.max(20, hist.length - 1);
+    const px = i => X0 + (X1 - X0) * i / n, py = v => Y1 - (Y1 - Y0) * v / G;
+    let s = '';
+    [0, G / 2, G].forEach(v => { s += `<line x1="${X0}" x2="${X1}" y1="${py(v)}" y2="${py(v)}" stroke="rgba(45,49,66,.15)"/><text x="${X0 - 6}" y="${py(v) + 3}" text-anchor="end" font-family="'Geist Mono',monospace" font-size="8" fill="#5a6580">${v}</text>`; });
+    const line = (key, col, dash) => `<polyline fill="none" stroke="${col}" stroke-width="1.6" ${dash ? 'stroke-dasharray="4 3"' : ''} points="${hist.map((h, i) => px(i).toFixed(1) + ',' + py(h[key]).toFixed(1)).join(' ')}"/>`;
+    s += line('avg', '#2e5aa8', true) + line('best', '#bf4520', false);
+    const L = hist.length - 1;
+    s += `<circle cx="${px(L)}" cy="${py(hist[L].best)}" r="3" fill="#bf4520"/>`;
+    s += `<text x="${X0}" y="${Y1 + 14}" font-family="'Geist Mono',monospace" font-size="8" fill="#5a6580">gen 0</text><text x="${X1}" y="${Y1 + 14}" text-anchor="end" font-family="'Geist Mono',monospace" font-size="8" fill="#5a6580">gen ${n}</text>`;
+    s += `<text x="${X1}" y="8" text-anchor="end" font-family="'Geist Mono',monospace" font-size="8" fill="#bf4520">— best</text><text x="${X1 - 44}" y="8" text-anchor="end" font-family="'Geist Mono',monospace" font-size="8" fill="#2e5aa8">- - avg</text>`;
+    g.innerHTML = s;
+  }
+
+  // ---------- readout + controls ----------
+  function update() {
+    const h = hist[hist.length - 1];
+    $('live').textContent = `gen ${gen} · best ${h.best}/${G} · avg ${h.avg.toFixed(1)}`;
+    $('readout').innerHTML = `<b>generation ${gen}</b>${solved() ? '  <span class="c-b">solved</span>' : ''}\n` +
+      log.map(l => l.replace(/^#(\d)/, '<span class="c-a">#$1</span>')).join('\n');
+    $('stepBtn').disabled = solved();
+    $('stepBtn').style.opacity = solved() ? .45 : 1;
+    $('outPm').textContent = Math.round(st.pm * 100) + '%';
+    $('outPc').textContent = Math.round(st.pc * 100) + '%';
+    drawChart();
+    curTg = targets();
+    if (reduce) {
+      for (const key in curTg) lifts[key] = curTg[key];
+      render();
+    } else if (!raf) { last = performance.now(); raf = requestAnimationFrame(step); }
+  }
+
+  let timer = 0;
+  function stopAuto() { clearInterval(timer); timer = 0; $('autoBtn').setAttribute('aria-pressed', 'false'); $('autoBtn').textContent = 'Auto run'; }
+  function startAuto() {
+    $('autoBtn').setAttribute('aria-pressed', 'true'); $('autoBtn').textContent = 'Pause';
+    timer = setInterval(() => { nextGeneration(); update(); if (solved() || gen >= MAXGEN) stopAuto(); }, 800);
+  }
+
+  $('stepBtn').onclick = () => { nextGeneration(); update(); };
+  $('autoBtn').onclick = () => { if (timer) stopAuto(); else if (!solved()) startAuto(); };
+  $('resetBtn').onclick = () => { stopAuto(); reset(); for (const k in lifts) delete lifts[k]; update(); };
+  $('inPm').oninput = e => { st.pm = +e.target.value / 100; $('outPm').textContent = e.target.value + '%'; };
+  $('inPc').oninput = e => { st.pc = +e.target.value / 100; $('outPc').textContent = e.target.value + '%'; };
+
+  reset();
+  update();
+})();
+
+</script>
+</body>
+</html>

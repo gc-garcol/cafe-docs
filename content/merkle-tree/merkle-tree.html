@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Merkle Tree: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+
+.card{margin:24px 0 0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.scroll{overflow-x:auto;padding:0 8px}
+.scroll svg{display:block;height:auto}
+#tree .leaf{cursor:pointer}
+#tree .leaf:focus-visible{outline:none}
+#tree .leaf:focus-visible rect{stroke:var(--accent);stroke-width:3}
+
+.controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;margin-top:16px;align-items:start}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.row{display:grid;grid-template-columns:64px 1fr 28px;gap:12px;align-items:center;margin:0 0 12px}
+.row label{font-family:var(--mono);font-size:13px;font-weight:600}
+.row output{font-family:var(--mono);font-size:13px;text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);min-height:28px}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.btn[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+#readout{margin:0;padding:14px 16px;background:var(--paper);border:1px solid var(--rule);border-radius:6px;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink)}
+.good{color:#1d6b3a;font-weight:600}.bad{color:var(--accent);font-weight:600}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:2px;border:1px solid var(--ink);display:inline-block}
+
+pre{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .t{color:var(--link)} .c{color:var(--soft);font-style:italic}
+
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:36px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+
+table.ops{border-collapse:collapse;width:100%;max-width:720px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule)}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
+
+@media (max-width:860px){.controls{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" href="../../index.html">&larr; Back to home</a>
+
+<header>
+  <div class="eyebrow">Data structures · Hash trees</div>
+  <h1>Merkle Tree</h1>
+  <p class="lede">Hash every item, then hash the hashes in pairs until one value is left. That single root fingerprints the whole set, and any one item can be proved with only log n hashes.</p>
+</header>
+
+<section>
+  <h2>Try the machine first</h2>
+  <p>The tree below holds eight items. Pick a leaf to see its <b>proof path</b>: the sibling hashes you need to rebuild the root. Then tamper with the item and watch the change climb to the root.</p>
+  <p>The hash here is a small non-cryptographic one (FNV-1a, 32 bit) so the page can run offline. Real systems use SHA-256 or similar.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">A Merkle tree over eight items</span></div>
+    <div class="scroll">
+      <svg id="tree" width="880" height="400" viewBox="0 0 880 400" style="min-width:880px" role="img" aria-labelledby="tree-title tree-desc">
+        <title id="tree-title">Merkle tree with eight leaves</title>
+        <desc id="tree-desc">Each leaf holds the hash of an item. Each parent holds the hash of its two children, up to a single root. The selected leaf, its path to the root and its sibling hashes are highlighted.</desc>
+        <g id="edges"></g>
+        <g id="nodes"></g>
+      </svg>
+    </div>
+    <div class="card-bottom"><span class="hint">Click a leaf, or use the controls</span><span class="live" id="live"></span></div>
+  </figure>
+
+  <div class="controls">
+    <div class="panel">
+      <div class="row"><label for="inLeaf">Leaf</label><input type="range" id="inLeaf" min="0" max="7" value="2"><output id="outLeaf" for="inLeaf">2</output></div>
+      <button type="button" class="btn" id="tamper" aria-pressed="false">Tamper with this item</button>
+      <div class="legend" aria-label="Legend">
+        <span><i class="sw" style="background:rgba(191,69,32,.18);border-color:#bf4520"></i>proof path</span>
+        <span><i class="sw" style="background:rgba(46,90,168,.18);border-color:#2e5aa8"></i>sibling in proof</span>
+        <span><i class="sw" style="background:#fff;border-color:#bf4520;border-style:dashed"></i>changed hash</span>
+      </div>
+    </div>
+    <div class="panel"><pre id="readout" aria-live="polite" style="border:0;padding:0;background:none;margin:0"></pre></div>
+  </div>
+</section>
+
+<section>
+  <h2>1. The idea</h2>
+  <p>Hashing a big set in one go gives you a fingerprint, but proving that one item belongs to the set means sending the whole set. A Merkle tree fixes that by hashing in a tree shape.</p>
+  <p>Leaves are the hashes of the items. Each inner node is the hash of its two children put side by side. The top node is the <b>Merkle root</b>.</p>
+  <pre><span class="t">leaf[i]</span>   = H( item[i] )
+<span class="t">parent</span>    = H( left || right )
+<span class="t">root</span>      = the one node left at the top</pre>
+  <p class="callout">Change one item and every hash on its path to the root changes. Nothing else does.</p>
+</section>
+
+<section>
+  <h2>2. Build: pair up, hash, repeat</h2>
+  <p>Hash each item, then hash neighbours in pairs. Each round halves the count. When a level has an odd number of nodes, a common choice is to pair the last node with a copy of itself. Another is to promote it unchanged.</p>
+  <pre><span class="k">function</span> build(items) {
+  <span class="k">let</span> level = items.map(H);
+  <span class="k">const</span> levels = [level];
+  <span class="k">while</span> (level.length &gt; 1) {
+    <span class="k">const</span> next = [];
+    <span class="k">for</span> (<span class="k">let</span> i = 0; i &lt; level.length; i += 2) {
+      <span class="k">const</span> right = level[i + 1] ?? level[i];   <span class="c">// duplicate the odd one out</span>
+      next.push(H(level[i] + right));
+    }
+    levels.push(level = next);
+  }
+  <span class="k">return</span> levels;                                  <span class="c">// last level holds the root</span>
+}</pre>
+  <p>Building touches every node once, so it costs <code>O(n)</code> hashes. The tree holds about <code>2n</code> nodes.</p>
+</section>
+
+<section>
+  <h2>3. Prove: send only the siblings</h2>
+  <p>To prove that item <code>i</code> is in the set, send the item plus one sibling hash per level. The verifier hashes the item, then folds in each sibling, putting it on the left or the right depending on the bit of <code>i</code> at that level. If the result equals the trusted root, the item is in the set.</p>
+  <pre><span class="k">function</span> verify(item, index, proof, root) {
+  <span class="k">let</span> h = H(item);
+  <span class="k">for</span> (<span class="k">const</span> sib <span class="k">of</span> proof) {
+    h = (index &amp; 1) === 0 ? H(h + sib) : H(sib + h);
+    index &gt;&gt;= 1;
+  }
+  <span class="k">return</span> h === root;
+}</pre>
+  <p>For eight items the proof has three hashes. For a million items it has about twenty. Try Fig 1 with <b>Tamper</b> on: the proof was made for the original set, so the rebuilt root no longer matches.</p>
+</section>
+
+<section>
+  <h2>4. Cost</h2>
+  <div class="cards">
+    <div class="stat focal"><div class="eyebrow">Proof size</div><div class="big">O(log n)</div><p>One sibling hash per level.</p></div>
+    <div class="stat"><div class="eyebrow">Build</div><div class="big">O(n)</div><p>About 2n hashes in total.</p></div>
+    <div class="stat"><div class="eyebrow">Update one leaf</div><div class="big">O(log n)</div><p>Rehash the path up to the root.</p></div>
+  </div>
+  <table class="ops">
+    <thead><tr><th>Operation</th><th>Time</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>Build</td><td><code>O(n)</code></td><td>Bottom-up, one hash per node</td></tr>
+      <tr><td>Update an item</td><td><code>O(log n)</code></td><td>Only the path changes</td></tr>
+      <tr><td>Prove membership</td><td><code>O(log n)</code></td><td>Collect one sibling per level</td></tr>
+      <tr><td>Verify a proof</td><td><code>O(log n)</code></td><td>Needs only the trusted root</td></tr>
+      <tr><td>Insert in the middle</td><td><code>O(n)</code></td><td>Positions shift, so many paths change</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>5. Where it shows up</h2>
+  <ul class="tight">
+    <li><b>Git</b> and other content-addressed stores link objects by hash, which forms a Merkle DAG.</li>
+    <li><b>Blockchains</b> put a Merkle root of the transactions in each block header, so light clients can check one transaction without the whole block.</li>
+    <li><b>Distributed databases</b> such as Cassandra and Dynamo-style stores compare Merkle trees between replicas to find which key ranges differ.</li>
+    <li><b>Certificate Transparency</b> logs use Merkle trees so anyone can verify that a certificate is in the log and that the log is append-only.</li>
+  </ul>
+  <p>Security note: if leaf and inner hashes use the same input format, an attacker can pass an inner node off as a leaf. Prefix leaves and inner nodes with different tags, for example <code>0x00</code> and <code>0x01</code>.</p>
+</section>
+
+</main>
+
+<script>
+(function () {
+  var N = 8, DEPTH = 3, W = 96, GAP = 8, X0 = 20, NH = 48;
+  var YS = [330, 230, 130, 30]; // y by level, leaf level first
+  var NS = 'http://www.w3.org/2000/svg';
+  var base = []; for (var i = 0; i < N; i++) base.push('tx' + i);
+  var sel = 2, tampered = false;
+
+  // Toy 32-bit FNV-1a, 8 hex chars. Not secure; for illustration only.
+  function H(s) {
+    var h = 0x811c9dc5;
+    for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }
+    return ('00000000' + h.toString(16)).slice(-8);
+  }
+  function build(items) {
+    var level = items.map(H), levels = [level];
+    while (level.length > 1) {
+      var next = [];
+      for (var i = 0; i < level.length; i += 2) next.push(H(level[i] + level[i + 1]));
+      levels.push(level = next);
+    }
+    return levels;
+  }
+  function cx(l, i) { var span = Math.pow(2, l); return X0 + (i * span + (span - 1) / 2) * (W + GAP) + W / 2; }
+  function el(name, attrs, text) {
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (text != null) e.textContent = text;
+    return e;
+  }
+
+  function render() {
+    var orig = build(base);
+    var items = base.slice();
+    if (tampered) items[sel] = base[sel] + '*';
+    var cur = build(items);
+
+    var edges = document.getElementById('edges'), nodes = document.getElementById('nodes');
+    edges.textContent = ''; nodes.textContent = '';
+
+    var onPath = function (l, i) { return (sel >> l) === i; };
+    var isSib = function (l, i) { return l < DEPTH && (sel >> l) === (i ^ 1); };
+
+    for (var l = DEPTH; l > 0; l--) {
+      for (var i = 0; i < cur[l].length; i++) {
+        [2 * i, 2 * i + 1].forEach(function (c) {
+          var hot = onPath(l - 1, c) && onPath(l, i);
+          edges.appendChild(el('line', {
+            x1: cx(l, i), y1: YS[l] + NH, x2: cx(l - 1, c), y2: YS[l - 1],
+            stroke: hot ? '#bf4520' : 'rgba(45,49,66,.3)', 'stroke-width': hot ? 2 : 1
+          }));
+        });
+      }
+    }
+
+    for (var lv = 0; lv <= DEPTH; lv++) {
+      for (var j = 0; j < cur[lv].length; j++) {
+        var path = onPath(lv, j), sib = isSib(lv, j), changed = cur[lv][j] !== orig[lv][j];
+        var g = el('g', {});
+        if (lv === 0) {
+          g.setAttribute('class', 'leaf'); g.setAttribute('tabindex', '0'); g.setAttribute('role', 'button');
+          g.setAttribute('aria-label', 'Select leaf ' + j);
+          (function (idx) {
+            g.addEventListener('click', function () { setLeaf(idx); });
+            g.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setLeaf(idx); } });
+          })(j);
+        }
+        var x = cx(lv, j) - W / 2;
+        g.appendChild(el('rect', {
+          x: x, y: YS[lv], width: W, height: NH, rx: 6,
+          fill: path ? 'rgba(191,69,32,.14)' : sib ? 'rgba(46,90,168,.14)' : '#fff',
+          stroke: changed ? '#bf4520' : path ? '#bf4520' : sib ? '#2e5aa8' : 'rgba(45,49,66,.35)',
+          'stroke-width': path || sib || changed ? 1.6 : 1,
+          'stroke-dasharray': changed ? '4 3' : 'none'
+        }));
+        var label = lv === 0 ? items[j] : lv === DEPTH ? 'root' : 'H(' + (2 * j) + ',' + (2 * j + 1) + ')';
+        if (lv > 0 && lv < DEPTH) label = 'node ' + lv + '.' + j;
+        g.appendChild(el('text', { x: cx(lv, j), y: YS[lv] + 19, 'text-anchor': 'middle', 'font-family': "'Geist',sans-serif", 'font-size': 12, 'font-weight': 600, fill: '#2d3142' }, label));
+        g.appendChild(el('text', { x: cx(lv, j), y: YS[lv] + 36, 'text-anchor': 'middle', 'font-family': "'Geist Mono',monospace", 'font-size': 11, fill: changed ? '#bf4520' : '#5a6580', 'font-weight': changed ? 600 : 400 }, cur[lv][j]));
+        nodes.appendChild(g);
+      }
+    }
+
+    // Proof made from the ORIGINAL tree, checked against the ORIGINAL root.
+    var proof = [], idx = sel, h = H(items[sel]);
+    var steps = ['H(' + items[sel] + ') = ' + h];
+    for (var k = 0; k < DEPTH; k++) {
+      var s = orig[k][idx ^ 1];
+      proof.push(s);
+      var left = (idx & 1) === 0;
+      var nh = left ? H(h + s) : H(s + h);
+      steps.push('H(' + (left ? short(h) + ' + ' + short(s) : short(s) + ' + ' + short(h)) + ') = ' + nh);
+      h = nh; idx >>= 1;
+    }
+    var ok = h === orig[DEPTH][0];
+    document.getElementById('readout').innerHTML =
+      'item   ' + esc(items[sel]) + '\n' +
+      'proof  ' + proof.map(short).join('  ') + '\n\n' +
+      steps.map(esc).join('\n') + '\n\n' +
+      'root   ' + orig[DEPTH][0] + '  (trusted)\n' +
+      'got    ' + h + '  ' + (ok ? '<span class="good">match</span>' : '<span class="bad">mismatch</span>');
+    document.getElementById('live').textContent = ok ? 'proof valid' : 'proof rejected';
+    document.getElementById('outLeaf').textContent = sel;
+  }
+  function short(s) { return s.slice(0, 4) + '…'; }
+  function esc(s) { return String(s).replace(/[&<>]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]; }); }
+  function setLeaf(i) { sel = i; document.getElementById('inLeaf').value = i; render(); }
+
+  document.getElementById('inLeaf').addEventListener('input', function (e) { sel = +e.target.value; render(); });
+  document.getElementById('tamper').addEventListener('click', function (e) {
+    tampered = !tampered;
+    e.currentTarget.setAttribute('aria-pressed', tampered);
+    render();
+  });
+  render();
+})();
+</script>
+</body>
+</html>
