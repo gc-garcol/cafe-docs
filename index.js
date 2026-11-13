@@ -153,16 +153,6 @@ const DOCS = [
     related: ['AVL Tree', 'Skip List'],
   },
   {
-    title: 'Trie',
-    path: 'content/trie/trie.html',
-    category: 'Data structures',
-    topic: 'Prefix trees',
-    level: 'Beginner',
-    tags: ['prefix', 'autocomplete', 'string', 'dictionary', 'radix tree', 'search', 'O(L)'],
-    summary: 'A tree where each edge is a letter, so words that share a start share nodes. Lookup and prefix search cost O(L) in the word length.',
-    related: ['Bloom Filter', 'AVL Tree'],
-  },
-  {
     title: 'Genetic Algorithm',
     path: 'content/genetic-algorithm/genetic-algorithm.html',
     category: 'Algorithms',
