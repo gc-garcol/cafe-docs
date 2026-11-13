@@ -72,6 +72,36 @@ const DOCS = [
     summary: 'Search by evolution: select the fittest candidates, cross them over, mutate a little, and repeat until a good answer appears.',
     related: [],
   },
+  {
+    title: 'Limits',
+    path: 'content/math/limits/limits.html',
+    category: 'Mathematics',
+    topic: 'Calculus',
+    level: 'Beginner',
+    tags: ['limit', 'continuity', 'epsilon-delta', 'one-sided', 'calculus'],
+    summary: 'What value does a function head toward as x approaches a point? Slide x toward a and watch f(x) settle, or fail to agree between sides.',
+    related: ['Derivatives', 'Integrals'],
+  },
+  {
+    title: 'Derivatives',
+    path: 'content/math/derivatives/derivatives.html',
+    category: 'Mathematics',
+    topic: 'Calculus',
+    level: 'Beginner',
+    tags: ['derivative', 'slope', 'tangent', 'secant', 'chain rule', 'calculus'],
+    summary: 'The slope of a curve at one point. Shrink the gap h and a secant line turns into the tangent, giving the instant rate of change.',
+    related: ['Limits', 'Integrals'],
+  },
+  {
+    title: 'Integrals',
+    path: 'content/math/integrals/integrals.html',
+    category: 'Mathematics',
+    topic: 'Calculus',
+    level: 'Beginner',
+    tags: ['integral', 'area', 'riemann sum', 'antiderivative', 'calculus'],
+    summary: 'Add up infinitely many thin slices. Riemann sums close in on the area under a curve, and the Fundamental Theorem gives the shortcut.',
+    related: ['Limits', 'Derivatives'],
+  },
 ];
 
 // ---------- helpers ----------
@@ -80,7 +110,7 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;',
 const NS = 'http://www.w3.org/2000/svg';
 const norm = s => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
-const state = { q: '', cat: 'All', tag: '', level: 'All', sort: 'title' };
+const state = { tagq: '', q: '', cat: 'All', tag: '', level: 'All', sort: 'title' };
 
 function haystack(d) {
   return norm([d.title, d.summary, d.category, d.topic, d.level, ...d.tags].join(' '));
@@ -147,13 +177,31 @@ function renderControls() {
   $('#level').innerHTML = levels.map(l => `<option ${state.level === l ? 'selected' : ''}>${esc(l)}</option>`).join('');
   $('#sort').value = state.sort;
 
+  renderTags();
+}
+
+function renderTags() {
   const tagCount = {};
   DOCS.forEach(d => d.tags.forEach(t => { tagCount[t] = (tagCount[t] || 0) + 1; }));
-  $('#tags').innerHTML = Object.keys(tagCount).sort().map(t =>
-    `<button type="button" class="tag" data-tag="${esc(t)}" aria-pressed="${state.tag === t}">#${esc(t)}</button>`).join('');
+  const all = Object.keys(tagCount).sort((a, b) => tagCount[b] - tagCount[a] || a.localeCompare(b));
+  const q = norm(state.tagq.trim());
+  const shown = all.filter(t => !q || norm(t).includes(q));
+  $('#tagTotal').textContent = q ? `${shown.length}/${all.length}` : `(${all.length})`;
+  $('#clearTag').hidden = !state.tag;
+  $('#tags').innerHTML = shown.map(t =>
+    `<button type="button" class="tag" data-tag="${esc(t)}" aria-pressed="${state.tag === t}">#${esc(t)}<span class="n">${tagCount[t]}</span></button>`).join('')
+    || '<span class="tag-none">No tag matches.</span>';
 }
 
 // ---------- list ----------
+const CARD_TAGS = 3;
+function cardTags(d) {
+  // show the first few tags (plus the active one) so cards stay compact however many tags exist
+  const keep = d.tags.filter((t, i) => i < CARD_TAGS || t === state.tag);
+  const rest = d.tags.length - keep.length;
+  return keep.map(t => `<button type="button" class="tag sm" data-tag="${esc(t)}" aria-pressed="${state.tag === t}">#${esc(t)}</button>`).join('')
+    + (rest > 0 ? `<span class="tag sm more" title="${esc(d.tags.filter(t => !keep.includes(t)).join(', '))}">+${rest}</span>` : '');
+}
 function renderList() {
   const docs = visibleDocs();
   $('#count').textContent = `${docs.length} of ${DOCS.length} docs`;
@@ -167,7 +215,7 @@ function renderList() {
       </a>
       <div class="meta">
         <span class="lvl">${esc(d.level)}</span>
-        ${d.tags.map(t => `<button type="button" class="tag sm" data-tag="${esc(t)}" aria-pressed="${state.tag === t}">#${esc(t)}</button>`).join('')}
+        ${cardTags(d)}
       </div>
       ${d.related && d.related.length ? `<div class="rel">Related: ${d.related.map(r => {
         const x = DOCS.find(z => z.title === r);
@@ -248,7 +296,7 @@ function render(full) {
   if (full) renderControls();
   else {
     document.querySelectorAll('[data-cat].chip').forEach(b => b.setAttribute('aria-pressed', b.dataset.cat === state.cat));
-    document.querySelectorAll('[data-tag]').forEach(b => b.setAttribute('aria-pressed', b.dataset.tag === state.tag));
+    renderTags();
   }
   $('#clear').hidden = !(state.q || state.tag || state.cat !== 'All' || state.level !== 'All');
   renderList();
@@ -271,6 +319,8 @@ function init() {
   setView(sessionStorage.getItem('view') || 'list');
 
   $('#q').addEventListener('input', e => { state.q = e.target.value; render(false); });
+  $('#tagq').addEventListener('input', e => { state.tagq = e.target.value; renderTags(); });
+  $('#clearTag').addEventListener('click', () => { state.tag = ''; render(false); });
   $('#level').addEventListener('change', e => { state.level = e.target.value; render(false); });
   $('#sort').addEventListener('change', e => { state.sort = e.target.value; render(false); });
   $('#clear').addEventListener('click', () => {
