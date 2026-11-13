@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A* search: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+a{color:var(--link)}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+
+.card{margin:24px 0 0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.scroll{overflow-x:auto;padding:8px 16px 16px}
+
+/* grid */
+#grid{display:grid;grid-template-columns:repeat(15,44px);gap:2px;width:max-content;margin:0 auto}
+.cell{position:relative;width:44px;height:44px;padding:0;border:1px solid rgba(45,49,66,.25);border-radius:4px;background:#fff;color:var(--ink);font:500 10px var(--mono);cursor:pointer;display:flex;align-items:center;justify-content:center}
+.cell:hover{border-color:var(--ink)}
+.cell:focus-visible{outline:2px solid var(--accent);outline-offset:1px;z-index:2}
+.cell.wall{background:var(--ink);border-color:var(--ink)}
+.cell.closed{background:#dfe4ee;border-color:#9aa6bf}
+.cell.open{background:#fbe9d9;border-color:#d9a06f}
+.cell.current{box-shadow:inset 0 0 0 2px var(--accent)}
+.cell.path{background:var(--accent);border-color:var(--accent);color:#fff}
+.cell.start,.cell.goal{font:700 16px var(--sans);color:#fff}
+.cell.start{background:#2e5aa8;border-color:#2e5aa8}
+.cell.goal{background:#1f7a4d;border-color:#1f7a4d}
+
+.controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;margin-top:16px;align-items:start}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:0 0 12px}
+.row label,.row .lbl{font-family:var(--mono);font-size:13px;font-weight:600}
+select{min-height:40px;padding:0 10px;border:1px solid var(--rule-solid);border-radius:6px;font:500 14px var(--mono);color:var(--ink);background:#fff}
+button:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.btn[aria-pressed=true]{background:var(--ink);color:var(--paper)}
+.btn:disabled{opacity:.4;cursor:not-allowed;background:transparent;color:var(--ink)}
+#readout{margin:0;padding:0;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink);border:0;background:none}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:3px;border:1px solid var(--ink);display:inline-block}
+
+pre{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .t{color:var(--link)} .c{color:var(--soft);font-style:italic}
+
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:36px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+
+table.ops{border-collapse:collapse;width:100%;max-width:720px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule)}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
+
+@media (max-width:860px){.controls{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" href="../../index.html">&larr; Back to home</a>
+
+<header>
+  <div class="eyebrow">Algorithms · Pathfinding</div>
+  <h1>A* search</h1>
+  <p class="lede">Find the shortest path by always expanding the node with the lowest <code>g + h</code>: the cost so far plus a guess of the cost left. A good guess lets it skip most of the map.</p>
+</header>
+
+<section>
+  <h2>Try the machine first</h2>
+  <p>Blue is the start, green is the goal. Pick a tool, then click cells to draw walls or move the endpoints. Press <b>Step</b> to expand one node, or <b>Run</b> to watch the search. Each explored cell shows its <code>f = g + h</code>.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">A* on a 15 × 9 grid</span></div>
+    <div class="scroll">
+      <div id="grid" role="group" aria-label="Search grid. Use Tab to move between cells and Enter or Space to apply the selected tool."></div>
+    </div>
+    <div class="card-bottom"><span class="hint">4-way moves, each step costs 1</span><span class="live" id="live"></span></div>
+  </figure>
+
+  <div class="controls">
+    <div class="panel">
+      <div class="row" role="group" aria-label="Edit tool">
+        <span class="lbl">Tool</span>
+        <button type="button" class="btn" data-tool="wall" aria-pressed="true">Wall</button>
+        <button type="button" class="btn" data-tool="start" aria-pressed="false">Start</button>
+        <button type="button" class="btn" data-tool="goal" aria-pressed="false">Goal</button>
+      </div>
+      <div class="row">
+        <label for="heur">Heuristic</label>
+        <select id="heur">
+          <option value="manhattan">Manhattan</option>
+          <option value="zero">None (Dijkstra)</option>
+          <option value="weighted">Manhattan × 3 (not admissible)</option>
+        </select>
+      </div>
+      <div class="row">
+        <button type="button" class="btn" id="step">Step</button>
+        <button type="button" class="btn" id="run">Run</button>
+        <button type="button" class="btn" id="clear">Clear search</button>
+        <button type="button" class="btn" id="reset">Reset map</button>
+      </div>
+      <div class="legend" aria-label="Legend">
+        <span><i class="sw" style="background:#fbe9d9;border-color:#d9a06f"></i>open</span>
+        <span><i class="sw" style="background:#dfe4ee;border-color:#9aa6bf"></i>closed</span>
+        <span><i class="sw" style="background:#bf4520;border-color:#bf4520"></i>path</span>
+        <span><i class="sw" style="background:#2d3142"></i>wall</span>
+      </div>
+    </div>
+    <div class="panel"><pre id="readout" aria-live="polite"></pre></div>
+  </div>
+</section>
+
+<section>
+  <h2>1. The idea</h2>
+  <p>Dijkstra expands the node closest to the start, so it spreads out in every direction. Greedy search expands the node closest to the goal, so it rushes ahead but can walk into a dead end and return a long path. A* combines both.</p>
+  <pre><span class="t">g(n)</span> = cost of the best known path from start to n
+<span class="t">h(n)</span> = estimated cost from n to the goal
+<span class="t">f(n)</span> = g(n) + h(n)   <span class="c">// estimated total cost through n</span></pre>
+  <p class="callout">Always expand the node that looks cheapest overall, not the one that is cheapest so far.</p>
+  <p>Switch the heuristic to <b>None</b> in the demo. With <code>h = 0</code> the search becomes Dijkstra and floods a large area. With Manhattan it narrows toward the goal.</p>
+</section>
+
+<section>
+  <h2>2. The algorithm</h2>
+  <p>Keep an <b>open</b> set of nodes waiting to be expanded, ordered by <code>f</code>, and a <b>closed</b> set of nodes already expanded.</p>
+  <pre><span class="k">function</span> aStar(start, goal) {
+  <span class="k">const</span> g = <span class="k">new</span> Map([[start, 0]]), parent = <span class="k">new</span> Map();
+  <span class="k">const</span> open = <span class="k">new</span> MinHeap();         <span class="c">// ordered by f = g + h</span>
+  <span class="k">const</span> closed = <span class="k">new</span> Set();
+  open.push(start, h(start));
+
+  <span class="k">while</span> (open.size) {
+    <span class="k">const</span> n = open.pop();
+    <span class="k">if</span> (closed.has(n)) <span class="k">continue</span>;     <span class="c">// stale heap entry</span>
+    <span class="k">if</span> (n === goal) <span class="k">return</span> pathTo(n, parent);
+    closed.add(n);
+
+    <span class="k">for</span> (<span class="k">const</span> m <span class="k">of</span> neighbors(n)) {
+      <span class="k">const</span> ng = g.get(n) + cost(n, m);
+      <span class="k">if</span> (ng &lt; (g.get(m) ?? Infinity)) {
+        g.set(m, ng);
+        parent.set(m, n);
+        open.push(m, ng + h(m));
+      }
+    }
+  }
+  <span class="k">return</span> <span class="k">null</span>;                       <span class="c">// no path</span>
+}</pre>
+  <p>The goal is checked when it is <b>popped</b>, not when it is first seen. Only then is its <code>g</code> guaranteed to be optimal. The demo uses a plain scan of the open list to stay short. Real code uses a <a href="../heap/heap.html">heap</a> so each pop costs <code>O(log n)</code>.</p>
+</section>
+
+<section>
+  <h2>3. Choosing the heuristic</h2>
+  <p>The heuristic decides everything. Two properties matter.</p>
+  <ul class="tight">
+    <li><b>Admissible:</b> <code>h</code> never overestimates the true remaining cost. With an admissible <code>h</code>, the path A* returns is optimal.</li>
+    <li><b>Consistent:</b> <code>h(n) &le; cost(n, m) + h(m)</code> for every edge. Then each node is expanded at most once, which is why a closed set is safe.</li>
+  </ul>
+  <table class="ops">
+    <thead><tr><th>Map</th><th>Heuristic</th><th>Formula</th></tr></thead>
+    <tbody>
+      <tr><td>4-way grid</td><td>Manhattan</td><td><code>|dx| + |dy|</code></td></tr>
+      <tr><td>8-way grid</td><td>Octile</td><td><code>max(|dx|,|dy|) + (&radic;2 &minus; 1) &middot; min(|dx|,|dy|)</code></td></tr>
+      <tr><td>Free movement</td><td>Euclidean</td><td><code>&radic;(dx&sup2; + dy&sup2;)</code></td></tr>
+      <tr><td>Anything</td><td>Zero</td><td><code>0</code> (Dijkstra)</td></tr>
+    </tbody>
+  </table>
+  <p>Try <b>Manhattan × 3</b>. It overestimates, so the search runs very few steps, but it can return a path that is longer than the best one. That is the usual trade: a bigger <code>h</code> is faster and less exact.</p>
+</section>
+
+<section>
+  <h2>4. Cost</h2>
+  <div class="cards">
+    <div class="stat focal"><div class="eyebrow">Best case</div><div class="big">O(d)</div><p>A perfect heuristic walks straight down the path.</p></div>
+    <div class="stat"><div class="eyebrow">Worst case</div><div class="big">O(b<sup>d</sup>)</div><p>A weak heuristic degrades to Dijkstra.</p></div>
+    <div class="stat"><div class="eyebrow">Memory</div><div class="big">O(b<sup>d</sup>)</div><p>It stores every open and closed node.</p></div>
+  </div>
+  <p><code>b</code> is the branching factor and <code>d</code> is the depth of the solution. Memory is usually the limit before time is. IDA* trades repeated work for a much smaller footprint.</p>
+</section>
+
+<section>
+  <h2>5. Where it shows up</h2>
+  <ul class="tight">
+    <li><b>Games:</b> NPC navigation on grids and navigation meshes.</li>
+    <li><b>Maps and routing:</b> road networks, often with landmark heuristics.</li>
+    <li><b>Robotics:</b> motion planning over a discretized space.</li>
+    <li><b>Puzzles:</b> the 8-puzzle with misplaced-tile or Manhattan heuristics.</li>
+    <li><b>Parsing and planning:</b> any search with a state graph and a cost estimate.</li>
+  </ul>
+</section>
+
+</main>
+
+<script>
+(function () {
+  var R = 9, C = 15;
+  var DEFAULT_WALLS = ['3,4','4,4','5,4','6,4','2,4','7,4','2,8','3,8','4,8','5,8','6,8','8,8'];
+  var DEFAULT_START = [4, 1], DEFAULT_GOAL = [4, 13];
+
+  var walls, start, goal, tool = 'wall';
+  var S; // search state
+  var timer = null;
+  var gridEl = document.getElementById('grid');
+  var cells = [];
+
+  function key(r, c) { return r + ',' + c; }
+  function reduced() { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; }
+
+  function heuristic(r, c) {
+    var kind = document.getElementById('heur').value;
+    var d = Math.abs(r - goal[0]) + Math.abs(c - goal[1]);
+    return kind === 'zero' ? 0 : kind === 'weighted' ? d * 3 : d;
+  }
+
+  function resetSearch(msg) {
+    stop();
+    S = { open: [], g: {}, parent: {}, closed: {}, cur: null, done: false, found: false, path: {}, expanded: 0 };
+    S.g[key(start[0], start[1])] = 0;
+    S.open.push(start.slice());
+    S.log = msg || 'Ready. Press Step or Run.';
+    render();
+  }
+
+  function f(n) { return S.g[key(n[0], n[1])] + heuristic(n[0], n[1]); }
+
+  function step() {
+    if (S.done) return;
+    if (!S.open.length) {
+      S.done = true; S.cur = null; S.log = 'Open list is empty. No path exists.'; return render();
+    }
+    // pick the lowest f, break ties by lower h (closer to the goal)
+    var bi = 0;
+    for (var i = 1; i < S.open.length; i++) {
+      var a = S.open[i], b = S.open[bi], fa = f(a), fb = f(b);
+      if (fa < fb || (fa === fb && heuristic(a[0], a[1]) < heuristic(b[0], b[1]))) bi = i;
+    }
+    var n = S.open.splice(bi, 1)[0], k = key(n[0], n[1]);
+    S.cur = k; S.expanded++;
+    var lines = ['expand (' + n[0] + ',' + n[1] + ')  g=' + S.g[k] + ' h=' + heuristic(n[0], n[1]) + ' f=' + f(n)];
+
+    if (n[0] === goal[0] && n[1] === goal[1]) {
+      var p = k; S.path = {}; var len = 0;
+      while (p) { S.path[p] = true; p = S.parent[p]; len++; }
+      S.done = true; S.found = true;
+      lines.push('goal reached. Path cost ' + (len - 1) + ', ' + S.expanded + ' nodes expanded.');
+      S.log = lines.join('\n'); return render();
+    }
+    S.closed[k] = true;
+    [[-1,0],[1,0],[0,-1],[0,1]].forEach(function (d) {
+      var r = n[0] + d[0], c = n[1] + d[1], m = key(r, c);
+      if (r < 0 || c < 0 || r >= R || c >= C || walls[m] || S.closed[m]) return;
+      var ng = S.g[k] + 1;
+      if (S.g[m] === undefined || ng < S.g[m]) {
+        var isNew = S.g[m] === undefined;
+        S.g[m] = ng; S.parent[m] = k;
+        if (isNew) S.open.push([r, c]);
+        lines.push((isNew ? 'open' : 'improve') + ' (' + r + ',' + c + ')  g=' + ng);
+      }
+    });
+    S.log = lines.join('\n');
+    render();
+  }
+
+  function stop() {
+    if (timer) { clearInterval(timer); timer = null; }
+    var b = document.getElementById('run');
+    if (b) b.textContent = 'Run';
+  }
+  function run() {
+    if (timer) return stop();
+    if (S.done) resetSearch();
+    if (reduced()) { while (!S.done) step(); return; }
+    document.getElementById('run').textContent = 'Pause';
+    timer = setInterval(function () { if (S.done) stop(); else step(); }, 90);
+  }
+
+  function build() {
+    gridEl.textContent = '';
+    cells = [];
+    for (var r = 0; r < R; r++) for (var c = 0; c < C; c++) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'cell'; b.dataset.r = r; b.dataset.c = c;
+      gridEl.appendChild(b); cells.push(b);
+    }
+  }
+
+  function render() {
+    var live = document.getElementById('live');
+    cells.forEach(function (b) {
+      var r = +b.dataset.r, c = +b.dataset.c, k = key(r, c), cls = 'cell', txt = '', label;
+      var isStart = r === start[0] && c === start[1], isGoal = r === goal[0] && c === goal[1];
+      if (walls[k]) { cls += ' wall'; label = 'wall'; }
+      else {
+        label = 'empty';
+        if (S.closed[k]) { cls += ' closed'; label = 'closed'; }
+        else if (S.g[k] !== undefined) { cls += ' open'; label = 'open'; }
+        if (S.g[k] !== undefined) txt = String(S.g[k] + heuristic(r, c));
+        if (S.path[k]) { cls += ' path'; label = 'on path'; }
+        if (S.cur === k) cls += ' current';
+      }
+      if (isStart) { cls += ' start'; txt = 'S'; label = 'start'; }
+      if (isGoal) { cls += ' goal'; txt = 'G'; label = 'goal'; }
+      b.className = cls; b.textContent = txt;
+      b.setAttribute('aria-label', 'Row ' + (r + 1) + ', column ' + (c + 1) + ': ' + label);
+    });
+    document.getElementById('readout').textContent = S.log;
+    document.getElementById('step').disabled = S.done;
+    live.textContent = S.done
+      ? (S.found ? 'path found · cost ' + (Object.keys(S.path).length - 1) + ' · ' + S.expanded + ' expanded' : 'no path')
+      : 'open ' + S.open.length + ' · expanded ' + S.expanded;
+  }
+
+  gridEl.addEventListener('click', function (e) {
+    var b = e.target.closest('.cell'); if (!b) return;
+    var r = +b.dataset.r, c = +b.dataset.c, k = key(r, c);
+    var isStart = r === start[0] && c === start[1], isGoal = r === goal[0] && c === goal[1];
+    if (tool === 'wall') {
+      if (isStart || isGoal) return;
+      if (walls[k]) delete walls[k]; else walls[k] = true;
+    } else if (tool === 'start') {
+      if (isGoal || walls[k]) return; start = [r, c];
+    } else {
+      if (isStart || walls[k]) return; goal = [r, c];
+    }
+    resetSearch('Map changed. Search reset.');
+  });
+
+  document.querySelectorAll('[data-tool]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      tool = b.dataset.tool;
+      document.querySelectorAll('[data-tool]').forEach(function (x) { x.setAttribute('aria-pressed', x === b); });
+    });
+  });
+  document.getElementById('step').addEventListener('click', function () { stop(); step(); });
+  document.getElementById('run').addEventListener('click', run);
+  document.getElementById('clear').addEventListener('click', function () { resetSearch('Search cleared.'); });
+  document.getElementById('heur').addEventListener('change', function () { resetSearch('Heuristic changed. Search reset.'); });
+  document.getElementById('reset').addEventListener('click', function () { init(); });
+
+  function init() {
+    walls = {}; DEFAULT_WALLS.forEach(function (k) { walls[k] = true; });
+    start = DEFAULT_START.slice(); goal = DEFAULT_GOAL.slice();
+    // leave gaps so the default map has a route
+    delete walls['2,4']; delete walls['8,8'];
+    resetSearch('Map reset. Press Step or Run.');
+  }
+
+  build();
+  init();
+})();
+</script>
+</body>
+</html>

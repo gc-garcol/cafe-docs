@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Minimax: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+
+.card{margin:24px 0 0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.scroll{overflow-x:auto;padding:0 8px}
+.scroll svg{display:block;height:auto}
+
+.controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;margin-top:16px;align-items:start}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:0 0 12px}
+.row label{font-family:var(--mono);font-size:13px;font-weight:600}
+.leaves{display:grid;grid-template-columns:repeat(4,1fr);gap:8px 10px;margin:0 0 12px}
+.leaves label{display:flex;flex-direction:column;gap:2px;font-family:var(--mono);font-size:11px;color:var(--soft)}
+input[type=number]{width:100%;min-height:40px;padding:0 10px;border:1px solid var(--rule-solid);border-radius:6px;font:500 14px var(--mono);color:var(--ink);background:#fff}
+.check{display:inline-flex;align-items:center;gap:8px;font:500 14px var(--sans);min-height:40px}
+.check input{width:18px;height:18px;accent-color:var(--accent)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.btn:disabled{opacity:.4;cursor:not-allowed;background:transparent;color:var(--ink)}
+#readout{margin:0;padding:0;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink);border:0;background:none;overflow:visible}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:3px;border:1px solid var(--ink);display:inline-block}
+
+pre{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .t{color:var(--link)} .c{color:var(--soft);font-style:italic}
+
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:36px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+
+table.ops{border-collapse:collapse;width:100%;max-width:720px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule)}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
+
+@media (max-width:860px){.controls{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" href="../../index.html">&larr; Back to home</a>
+
+<header>
+  <div class="eyebrow">Algorithms · Game search</div>
+  <h1>Minimax</h1>
+  <p class="lede">How a program picks a move in a two-player game. Assume your opponent plays their best, look ahead through the game tree, and choose the move whose worst case is the best you can get.</p>
+</header>
+
+<section>
+  <h2>Try the machine first</h2>
+  <p>This game tree has three levels of moves. <b>MAX</b> nodes (triangles pointing up) are your turn and take the larger child. <b>MIN</b> nodes (triangles pointing down) are the opponent's turn and take the smaller child. Squares at the bottom are final scores. Step through and watch values flow up to the root. Turn on alpha-beta pruning to see branches that never need to be looked at.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">Minimax on a small game tree</span></div>
+    <div class="scroll">
+      <svg id="tree" width="880" height="380" viewBox="0 0 880 380" style="min-width:880px" role="img" aria-labelledby="tree-title tree-desc">
+        <title id="tree-title">Game tree evaluated by minimax</title>
+        <desc id="tree-desc">A binary game tree with a MAX root, a MIN level, a MAX level and eight leaf scores. Values move from the leaves up to the root. The node being evaluated is highlighted, and pruned branches are drawn dashed and faded.</desc>
+        <g id="edges"></g>
+        <g id="nodes"></g>
+      </svg>
+    </div>
+    <div class="card-bottom"><span class="hint">MAX picks the largest child, MIN picks the smallest</span><span class="live" id="live"></span></div>
+  </figure>
+
+  <div class="controls">
+    <div class="panel">
+      <div class="leaves" id="leaves" role="group" aria-label="Leaf scores"></div>
+      <div class="row">
+        <label class="check"><input type="checkbox" id="prune"> Alpha-beta pruning</label>
+      </div>
+      <div class="row">
+        <button type="button" class="btn" id="back">Back</button>
+        <button type="button" class="btn" id="step">Step</button>
+        <button type="button" class="btn" id="end">Run to end</button>
+        <button type="button" class="btn" id="reset">Reset</button>
+      </div>
+      <div class="legend" aria-label="Legend">
+        <span><i class="sw" style="background:rgba(191,69,32,.18);border-color:#bf4520"></i>being evaluated</span>
+        <span><i class="sw" style="background:#fff"></i>final value</span>
+        <span><i class="sw" style="background:#ececec;border-style:dashed"></i>best so far / pruned</span>
+      </div>
+    </div>
+    <div class="panel"><pre id="readout" aria-live="polite"></pre></div>
+  </div>
+</section>
+
+<section>
+  <h2>1. The idea</h2>
+  <p>In a turn-based game with perfect information, such as tic-tac-toe or chess, you can draw every future as a tree. Each node is a position. Each edge is a move. The leaves are finished games, or positions you score with a heuristic when you stop looking ahead.</p>
+  <p>Minimax assumes both players play perfectly. You pick the child with the highest score. The opponent picks the child with the lowest score. Scores are from your point of view, so a big number is good for you and bad for them.</p>
+  <p class="callout">Pick the move that leaves you best off after the opponent has done their worst.</p>
+</section>
+
+<section>
+  <h2>2. The algorithm</h2>
+  <p>It is a depth-first recursion. A leaf returns its score. A MAX node returns the largest child value. A MIN node returns the smallest. The root's best child is your move.</p>
+  <pre><span class="k">function</span> minimax(node, depth, isMax) {
+  <span class="k">if</span> (depth === 0 || isTerminal(node)) <span class="k">return</span> score(node);
+
+  <span class="k">if</span> (isMax) {
+    <span class="k">let</span> best = -Infinity;
+    <span class="k">for</span> (<span class="k">const</span> child <span class="k">of</span> moves(node))
+      best = Math.max(best, minimax(child, depth - 1, <span class="k">false</span>));
+    <span class="k">return</span> best;
+  } <span class="k">else</span> {
+    <span class="k">let</span> best = Infinity;
+    <span class="k">for</span> (<span class="k">const</span> child <span class="k">of</span> moves(node))
+      best = Math.min(best, minimax(child, depth - 1, <span class="k">true</span>));
+    <span class="k">return</span> best;
+  }
+}</pre>
+  <p>In Fig 1 with its starting scores, the left MIN node sees <code>5</code> and <code>9</code> and takes <code>5</code>. The right MIN node sees <code>2</code> and <code>0</code> and takes <code>0</code>. The root takes the larger, so it plays left and is guaranteed at least <code>5</code>.</p>
+</section>
+
+<section>
+  <h2>3. Alpha-beta pruning</h2>
+  <p>Minimax looks at every leaf, and the tree grows fast. Alpha-beta keeps the same answer but skips branches that cannot change it. It carries two numbers down the recursion:</p>
+  <ul class="tight">
+    <li><b>alpha</b>: the best score MAX is already sure to get on the path so far.</li>
+    <li><b>beta</b>: the best score MIN is already sure to get on the path so far.</li>
+  </ul>
+  <p>When <code>beta &lt;= alpha</code>, the two sides disagree about how good this branch is. The player above would never allow it, so the remaining siblings are cut off. In Fig 1 the left side already guarantees MAX a <code>5</code>. The right MIN node finds a <code>2</code> in its first branch, so it can only end up at <code>2</code> or less. MAX will not choose it, and the second branch is never looked at.</p>
+  <pre><span class="k">function</span> alphaBeta(node, depth, alpha, beta, isMax) {
+  <span class="k">if</span> (depth === 0 || isTerminal(node)) <span class="k">return</span> score(node);
+
+  <span class="k">if</span> (isMax) {
+    <span class="k">let</span> best = -Infinity;
+    <span class="k">for</span> (<span class="k">const</span> child <span class="k">of</span> moves(node)) {
+      best = Math.max(best, alphaBeta(child, depth - 1, alpha, beta, <span class="k">false</span>));
+      alpha = Math.max(alpha, best);
+      <span class="k">if</span> (beta &lt;= alpha) <span class="k">break</span>; <span class="c">// MIN above will avoid this branch</span>
+    }
+    <span class="k">return</span> best;
+  } <span class="k">else</span> {
+    <span class="k">let</span> best = Infinity;
+    <span class="k">for</span> (<span class="k">const</span> child <span class="k">of</span> moves(node)) {
+      best = Math.min(best, alphaBeta(child, depth - 1, alpha, beta, <span class="k">true</span>));
+      beta = Math.min(beta, best);
+      <span class="k">if</span> (beta &lt;= alpha) <span class="k">break</span>; <span class="c">// MAX above will avoid this branch</span>
+    }
+    <span class="k">return</span> best;
+  }
+}
+
+alphaBeta(root, depth, -Infinity, Infinity, <span class="k">true</span>);</pre>
+  <p>Move order matters. If the best moves are tried first, pruning cuts the most. Try captures or the previous best move before the rest.</p>
+</section>
+
+<section>
+  <h2>4. Cost</h2>
+  <p>With branching factor <code>b</code> and search depth <code>d</code>, plain minimax visits about <code>b<sup>d</sup></code> leaves. Alpha-beta with ideal move order visits about <code>b<sup>d/2</sup></code>, so it can search twice as deep in the same time. With random order it lands in between.</p>
+  <div class="cards">
+    <div class="stat focal"><div class="eyebrow">Minimax</div><div class="big">O(b<sup>d</sup>)</div><p>Every leaf is scored.</p></div>
+    <div class="stat"><div class="eyebrow">Alpha-beta, best case</div><div class="big">O(b<sup>d/2</sup>)</div><p>Same answer, with perfect ordering.</p></div>
+    <div class="stat"><div class="eyebrow">Space</div><div class="big">O(d)</div><p>Depth-first, one path at a time.</p></div>
+  </div>
+  <table class="ops">
+    <thead><tr><th>Game</th><th>Rough branching b</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>Tic-tac-toe</td><td><code>~4</code></td><td>Small enough to search to the end</td></tr>
+      <tr><td>Checkers</td><td><code>~10</code></td><td>Needs pruning and a good evaluation</td></tr>
+      <tr><td>Chess</td><td><code>~35</code></td><td>Depth limit plus a heuristic score</td></tr>
+      <tr><td>Go</td><td><code>~250</code></td><td>Too wide for plain minimax</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>5. Making it practical</h2>
+  <ul class="tight">
+    <li><b>Depth limit and evaluation function</b>: stop at depth <code>d</code> and score the position with a heuristic, such as material count in chess.</li>
+    <li><b>Move ordering</b>: search likely-best moves first so alpha-beta prunes more.</li>
+    <li><b>Iterative deepening</b>: search depth 1, then 2, then 3, until time runs out, and reuse the best move to order the next pass.</li>
+    <li><b>Transposition table</b>: cache positions reached by different move orders.</li>
+    <li><b>Negamax</b>: the same algorithm written once, using <code>score = -negamax(child)</code>, which removes the MAX and MIN branches.</li>
+  </ul>
+  <p>Minimax is for zero-sum games with two players and full information. For games with chance or hidden information, look at expectimax or Monte Carlo tree search.</p>
+</section>
+
+</main>
+
+<script>
+(function () {
+  var NS = 'http://www.w3.org/2000/svg';
+  var INITIAL = [3, 5, 6, 9, 1, 2, 0, -1];
+  var NAMES = ['R', 'A', 'B', 'C', 'D', 'E', 'F'];
+  var leaves = INITIAL.slice(), steps = [], idx = 0;
+
+  function el(name, attrs, text) {
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (text != null) e.textContent = text;
+    return e;
+  }
+  function depth(i) { return Math.floor(Math.log2(i + 1)); }
+  function isMax(i) { return depth(i) % 2 === 0; }
+  function nm(i) { return i < 7 ? NAMES[i] : 'L' + (i - 6); }
+  function pos(i) {
+    var l = depth(i), p = i + 1 - Math.pow(2, l);
+    return { x: 20 + (p + 0.5) / Math.pow(2, l) * 840, y: 50 + l * 95 };
+  }
+  function fmt(v) { return v === Infinity ? '∞' : v === -Infinity ? '-∞' : String(v); }
+  function copy(o) { var r = {}; for (var k in o) r[k] = o[k]; return r; }
+
+  // Run the algorithm once and record a snapshot after every event.
+  function build(prune) {
+    var out = [], val = {}, done = {}, pruned = {}, path = [], cur = -1;
+    function snap(msg, a, b) {
+      out.push({ val: copy(val), done: copy(done), pruned: copy(pruned), cur: cur, msg: msg, a: a, b: b });
+    }
+    function mark(i) { pruned[i] = true; if (i < 7) { mark(2 * i + 1); mark(2 * i + 2); } }
+    function mm(i, a, b) {
+      path.push(i); cur = i;
+      if (i >= 7) {
+        val[i] = leaves[i - 7]; done[i] = true;
+        snap('Leaf ' + nm(i) + ' returns its score ' + val[i] + '.', a, b);
+        path.pop(); cur = path.length ? path[path.length - 1] : -1;
+        return val[i];
+      }
+      var max = isMax(i), best = max ? -Infinity : Infinity, kids = [2 * i + 1, 2 * i + 2];
+      snap('Visit ' + nm(i) + ' (' + (max ? 'MAX' : 'MIN') + '). Start with best = ' + fmt(best) + '.', a, b);
+      for (var n = 0; n < 2; n++) {
+        var c = kids[n], v = mm(c, a, b);
+        cur = i;
+        var note;
+        if (max) { if (v > best) best = v; if (best > a) a = best; note = 'MAX ' + nm(i) + ' takes max: best = ' + fmt(best) + ', alpha = ' + fmt(a) + '.'; }
+        else { if (v < best) best = v; if (best < b) b = best; note = 'MIN ' + nm(i) + ' takes min: best = ' + fmt(best) + ', beta = ' + fmt(b) + '.'; }
+        val[i] = best;
+        snap(note, a, b);
+        if (prune && b <= a && n === 0) {
+          mark(kids[1]);
+          snap('Prune: beta ' + fmt(b) + ' <= alpha ' + fmt(a) + '. The branch ' + nm(kids[1]) + ' cannot change the result, so skip it.', a, b);
+          break;
+        }
+      }
+      done[i] = true; val[i] = best;
+      snap(nm(i) + ' is final: ' + fmt(best) + '.', a, b);
+      path.pop(); cur = path.length ? path[path.length - 1] : -1;
+      return best;
+    }
+    snap('Ready. Press Step to evaluate the tree depth-first.', -Infinity, Infinity);
+    var r = mm(0, -Infinity, Infinity);
+    cur = -1;
+    var skipped = Object.keys(pruned).filter(function (k) { return +k >= 7; }).length;
+    var move = val[1] >= val[2] ? 'left (A)' : 'right (B)';
+    snap('Done. The root value is ' + r + ', so MAX plays ' + move + '.' + (prune ? '\n' + skipped + ' of 8 leaves were skipped.' : '\n8 of 8 leaves were evaluated.'), -Infinity, Infinity);
+    return out;
+  }
+
+  function rebuild(keepIdx) {
+    steps = build(document.getElementById('prune').checked);
+    idx = keepIdx ? Math.min(idx, steps.length - 1) : 0;
+  }
+
+  function render() {
+    var s = steps[idx], edges = document.getElementById('edges'), nodes = document.getElementById('nodes');
+    edges.textContent = ''; nodes.textContent = '';
+
+    for (var i = 1; i < 15; i++) {
+      var p = (i - 1) >> 1, a = pos(p), b = pos(i), cut = s.pruned[i];
+      edges.appendChild(el('line', {
+        x1: a.x, y1: a.y, x2: b.x, y2: b.y,
+        stroke: cut ? 'rgba(45,49,66,.25)' : (s.cur === i || (s.cur === p && s.done[i])) ? '#bf4520' : 'rgba(45,49,66,.35)',
+        'stroke-width': 1.4, 'stroke-dasharray': cut ? '4 4' : 'none'
+      }));
+    }
+
+    for (var j = 0; j < 15; j++) {
+      var q = pos(j), cut2 = !!s.pruned[j], active = s.cur === j, has = s.val[j] !== undefined, fin = !!s.done[j];
+      var fill = cut2 ? '#f0f0f0' : active ? 'rgba(191,69,32,.18)' : fin ? '#fff' : has ? '#ececec' : '#fff';
+      var stroke = active ? '#bf4520' : cut2 ? 'rgba(45,49,66,.3)' : 'rgba(45,49,66,.6)';
+      var shape;
+      var common = { fill: fill, stroke: stroke, 'stroke-width': active ? 2 : 1.3, 'stroke-dasharray': (cut2 || (has && !fin)) ? '4 3' : 'none' };
+      if (j >= 7) {
+        common.x = q.x - 22; common.y = q.y - 16; common.width = 44; common.height = 32; common.rx = 4;
+        shape = el('rect', common);
+      } else if (isMax(j)) {
+        common.points = [q.x, q.y - 26, q.x - 30, q.y + 20, q.x + 30, q.y + 20].join(' ');
+        shape = el('polygon', common);
+      } else {
+        common.points = [q.x - 30, q.y - 20, q.x + 30, q.y - 20, q.x, q.y + 26].join(' ');
+        shape = el('polygon', common);
+      }
+      nodes.appendChild(shape);
+
+      var ty = j >= 7 ? q.y + 5 : isMax(j) ? q.y + 10 : q.y - 4;
+      if (has && !cut2) nodes.appendChild(el('text', { x: q.x, y: ty, 'text-anchor': 'middle', 'font-family': "'Geist',sans-serif", 'font-size': 15, 'font-weight': 600, fill: fin ? '#2d3142' : '#5a6580' }, s.val[j]));
+      if (cut2) nodes.appendChild(el('text', { x: q.x, y: ty, 'text-anchor': 'middle', 'font-family': "'Geist Mono',monospace", 'font-size': 14, fill: '#5a6580' }, '✕'));
+      var lab = j >= 7 ? q.y + 32 : isMax(j) ? q.y - 32 : q.y - 28;
+      nodes.appendChild(el('text', { x: q.x + (j >= 7 ? 0 : 38), y: j >= 7 ? lab + 8 : q.y + 4, 'text-anchor': j >= 7 ? 'middle' : 'start', 'font-family': "'Geist Mono',monospace", 'font-size': 10, fill: '#5a6580' }, nm(j) + (j < 7 ? (isMax(j) ? ' MAX' : ' MIN') : '')));
+    }
+
+    var tail = (idx > 0 && idx < steps.length - 1) ? '\nalpha = ' + fmt(s.a) + '  beta = ' + fmt(s.b) : '';
+    document.getElementById('readout').textContent = 'Step ' + idx + ' of ' + (steps.length - 1) + '\n' + s.msg + tail;
+    document.getElementById('live').textContent = s.done[0] ? 'root = ' + s.val[0] : 'root = ?';
+    document.getElementById('back').disabled = idx === 0;
+    document.getElementById('step').disabled = idx >= steps.length - 1;
+    document.getElementById('end').disabled = idx >= steps.length - 1;
+  }
+
+  // leaf inputs
+  var box = document.getElementById('leaves');
+  leaves.forEach(function (v, k) {
+    var label = document.createElement('label'), input = document.createElement('input');
+    label.textContent = 'L' + (k + 1);
+    input.type = 'number'; input.min = -99; input.max = 99; input.step = 1; input.value = v;
+    input.setAttribute('inputmode', 'numeric');
+    input.setAttribute('aria-label', 'Score of leaf L' + (k + 1));
+    input.addEventListener('change', function () {
+      var x = parseInt(input.value, 10);
+      if (isNaN(x) || x < -99 || x > 99) { input.value = leaves[k]; return; }
+      leaves[k] = x; rebuild(false); render();
+    });
+    label.appendChild(input); box.appendChild(label);
+  });
+
+  document.getElementById('prune').addEventListener('change', function () { rebuild(false); render(); });
+  document.getElementById('step').addEventListener('click', function () { if (idx < steps.length - 1) { idx++; render(); } });
+  document.getElementById('back').addEventListener('click', function () { if (idx > 0) { idx--; render(); } });
+  document.getElementById('end').addEventListener('click', function () { idx = steps.length - 1; render(); });
+  document.getElementById('reset').addEventListener('click', function () {
+    leaves = INITIAL.slice();
+    Array.prototype.forEach.call(box.querySelectorAll('input'), function (inp, k) { inp.value = leaves[k]; });
+    rebuild(false); render();
+  });
+
+  rebuild(false); render();
+})();
+</script>
+</body>
+</html>
