@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quad Tree: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+
+.card{margin:24px 0 0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.scroll{overflow-x:auto;padding:0 8px;text-align:center}
+.scroll svg{display:inline-block;max-width:100%;height:auto}
+#plane{cursor:crosshair;touch-action:manipulation}
+
+.controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;margin-top:16px;align-items:start}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:0 0 12px}
+.row label{font-family:var(--mono);font-size:13px;font-weight:600}
+input[type=number]{width:80px;min-height:40px;padding:0 10px;border:1px solid var(--rule-solid);border-radius:6px;font:500 14px var(--mono);color:var(--ink);background:#fff}
+input[type=range]{width:150px;accent-color:#bf4520}
+button:focus-visible,input:focus-visible,svg:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--paper)}
+#readout{margin:0;padding:0;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink);border:0;background:none}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:50%;border:1px solid var(--ink);display:inline-block}
+
+pre{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .t{color:var(--link)} .c{color:var(--soft);font-style:italic}
+
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:36px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+
+table.ops{border-collapse:collapse;width:100%;max-width:720px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule)}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
+
+@media (max-width:860px){.controls{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" href="../../index.html">&larr; Back to home</a>
+
+<header>
+  <div class="eyebrow">Data structures · Spatial indexes</div>
+  <h1>Quad Tree</h1>
+  <p class="lede">Split a square into four quarters whenever it gets crowded. Dense areas get small cells, empty areas stay as one big cell, and a search only visits the cells that touch the area you ask about.</p>
+</header>
+
+<section>
+  <h2>Try the machine first</h2>
+  <p>Click the plane to drop a point. Any cell that holds more than 4 points splits into four. The orange box is a <b>range query</b>: move it with the sliders and see which points it finds, and how few cells the tree had to open to find them.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">Points in a quad tree</span></div>
+    <div class="scroll">
+      <svg id="plane" width="480" height="480" viewBox="0 0 480 480" tabindex="0" role="img" aria-labelledby="plane-title plane-desc">
+        <title id="plane-title">Quad tree over a square plane of points</title>
+        <desc id="plane-desc">Thin lines show the cells of the tree. Crowded areas have smaller cells. An orange rectangle is the query region, and points inside it are highlighted. Use the controls below to add points and move the query box without a mouse.</desc>
+        <rect x="0" y="0" width="480" height="480" fill="#fff"/>
+        <g id="cells"></g>
+        <rect id="query" fill="rgba(191,69,32,.08)" stroke="#bf4520" stroke-width="2"/>
+        <g id="pts"></g>
+      </svg>
+    </div>
+    <div class="card-bottom"><span class="hint">Capacity 4 per cell · max depth 8</span><span class="live" id="live"></span></div>
+  </figure>
+
+  <div class="controls">
+    <div class="panel">
+      <form id="form" class="row" novalidate>
+        <label for="px">x</label><input type="number" id="px" min="0" max="99" step="1" value="30">
+        <label for="py">y</label><input type="number" id="py" min="0" max="99" step="1" value="60">
+        <button type="submit" class="btn">Add point</button>
+      </form>
+      <div class="row">
+        <button type="button" class="btn" id="b-rand">+ 20 random</button>
+        <button type="button" class="btn" id="b-clump">+ 20 clustered</button>
+        <button type="button" class="btn" id="reset">Clear</button>
+      </div>
+      <div class="row"><label for="qx">Query x</label><input type="range" id="qx" min="0" max="100" value="55"></div>
+      <div class="row"><label for="qy">Query y</label><input type="range" id="qy" min="0" max="100" value="15"></div>
+      <div class="row"><label for="qs">Query size</label><input type="range" id="qs" min="5" max="60" value="30"></div>
+      <div class="legend" aria-label="Legend">
+        <span><i class="sw" style="background:#fff"></i>point</span>
+        <span><i class="sw" style="background:#bf4520;border-color:#bf4520"></i>found by query</span>
+        <span><i class="sw" style="background:rgba(46,90,168,.25);border-color:#2e5aa8"></i>cell visited</span>
+      </div>
+    </div>
+    <div class="panel"><pre id="readout" aria-live="polite"></pre></div>
+  </div>
+</section>
+
+<section>
+  <h2>1. The idea</h2>
+  <p>A grid has one size for every cell. That is wasteful: a city center needs tiny cells, and an ocean needs one huge cell. A quad tree adapts. It starts with a single square that covers everything, and splits a square into four equal quadrants only when it holds too many points.</p>
+  <p>The quadrants are named by compass: <code>NW</code>, <code>NE</code>, <code>SW</code>, <code>SE</code>. Every split is at the exact middle, so a point's quadrant is decided by two comparisons.</p>
+  <p class="callout">Split where the data is. Leave the rest alone.</p>
+</section>
+
+<section>
+  <h2>2. Insert</h2>
+  <p>Walk down from the root. Pick the quadrant that holds the point, until you reach a leaf. Add the point there. If the leaf now has more than the capacity, split it into four children and push its points down.</p>
+  <pre><span class="k">function</span> insert(node, p) {
+  <span class="k">if</span> (node.children) <span class="k">return</span> insert(node.children[quad(node, p)], p);
+  node.points.push(p);
+  <span class="k">if</span> (node.points.length &gt; CAP &amp;&amp; node.depth &lt; MAX_DEPTH) {
+    split(node);                <span class="c">// make 4 children</span>
+    <span class="k">for</span> (<span class="k">const</span> q <span class="k">of</span> node.points) insert(node, q);
+    node.points = [];
+  }
+}
+
+<span class="k">function</span> quad(n, p) {
+  <span class="k">const</span> mx = n.x + n.size / 2, my = n.y + n.size / 2;
+  <span class="k">return</span> (p.x &lt; mx ? 0 : 1) + (p.y &lt; my ? 0 : 2);
+}</pre>
+  <p>The depth limit matters. Many points at the exact same spot would otherwise split forever.</p>
+</section>
+
+<section>
+  <h2>3. Range query</h2>
+  <p>To find all points in a rectangle, start at the root. If a cell does not overlap the rectangle, skip it and everything below it. If it does, check its points or recurse into its children.</p>
+  <pre><span class="k">function</span> query(node, rect, out) {
+  <span class="k">if</span> (!overlaps(node, rect)) <span class="k">return</span>;     <span class="c">// prune this whole subtree</span>
+  <span class="k">if</span> (node.children) {
+    <span class="k">for</span> (<span class="k">const</span> c <span class="k">of</span> node.children) query(c, rect, out);
+  } <span class="k">else</span> {
+    <span class="k">for</span> (<span class="k">const</span> p <span class="k">of</span> node.points) <span class="k">if</span> (inside(rect, p)) out.push(p);
+  }
+}</pre>
+  <p>Shrink the query box in the demo and watch the visited count fall. A small box touches only a few cells, however many points exist elsewhere.</p>
+</section>
+
+<section>
+  <h2>4. Nearest neighbor</h2>
+  <p>Descend into the cell that contains the target first, which gives a good guess fast. Then visit other cells only if their closest edge is nearer than the best distance so far. Cells that are farther away than the current best are pruned, the same trick as in k-d trees.</p>
+</section>
+
+<section>
+  <h2>5. Cost</h2>
+  <div class="cards">
+    <div class="stat focal"><div class="eyebrow">Insert</div><div class="big">O(depth)</div><p>One quadrant choice per level.</p></div>
+    <div class="stat"><div class="eyebrow">Range query</div><div class="big">O(√n + k)</div><p>Typical for spread-out data, plus k results.</p></div>
+    <div class="stat"><div class="eyebrow">Worst depth</div><div class="big">skewed</div><p>Tightly clustered points make a deep, lopsided tree.</p></div>
+  </div>
+  <table class="ops">
+    <thead><tr><th>Variant</th><th>What it splits</th><th>Typical use</th></tr></thead>
+    <tbody>
+      <tr><td>Point quad tree</td><td>Space, at the middle</td><td>Points, game objects</td></tr>
+      <tr><td>Region quad tree</td><td>A grid until cells are uniform</td><td>Images, maps</td></tr>
+      <tr><td>Octree</td><td>3D space into 8 cells</td><td>3D rendering, voxels</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>6. Where it shows up</h2>
+  <ul class="tight">
+    <li><b>Games</b>: collision checks only against objects in nearby cells.</li>
+    <li><b>Maps and geo</b>: map tiles are quad tree cells, and so are geohash-like indexes.</li>
+    <li><b>Images</b>: compression and region merging for flat areas.</li>
+    <li><b>Simulation</b>: the Barnes-Hut method groups far-away bodies to speed up n-body physics.</li>
+  </ul>
+  <p>If points move a lot, rebuilding or reinserting each frame can cost more than it saves. For uniformly spread data, a plain grid is often simpler and just as fast.</p>
+</section>
+
+</main>
+
+<script>
+(function () {
+  var NS = 'http://www.w3.org/2000/svg', SIZE = 480, WORLD = 100, S = SIZE / WORLD;
+  var CAP = 4, MAXD = 8;
+  var root, count;
+
+  function el(name, attrs) {
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+  function node(x, y, size, depth) { return { x: x, y: y, size: size, depth: depth, points: [], children: null }; }
+  function quad(n, p) {
+    var h = n.size / 2;
+    return (p.x < n.x + h ? 0 : 1) + (p.y < n.y + h ? 0 : 2);
+  }
+  function split(n) {
+    var h = n.size / 2, d = n.depth + 1;
+    n.children = [node(n.x, n.y, h, d), node(n.x + h, n.y, h, d), node(n.x, n.y + h, h, d), node(n.x + h, n.y + h, h, d)];
+  }
+  function insert(n, p) {
+    if (n.children) return insert(n.children[quad(n, p)], p);
+    n.points.push(p);
+    if (n.points.length > CAP && n.depth < MAXD) {
+      split(n);
+      var pts = n.points; n.points = [];
+      pts.forEach(function (q) { insert(n, q); });
+    }
+  }
+  function reset() { root = node(0, 0, WORLD, 0); count = 0; }
+  function add(x, y) {
+    x = Math.max(0, Math.min(WORLD - 0.001, x)); y = Math.max(0, Math.min(WORLD - 0.001, y));
+    insert(root, { x: x, y: y }); count++;
+  }
+
+  function rect() {
+    var s = +document.getElementById('qs').value;
+    var x = +document.getElementById('qx').value * (WORLD - s) / 100;
+    var y = +document.getElementById('qy').value * (WORLD - s) / 100;
+    return { x: x, y: y, w: s, h: s };
+  }
+  function overlaps(n, r) { return n.x < r.x + r.w && n.x + n.size > r.x && n.y < r.y + r.h && n.y + n.size > r.y; }
+  function inside(r, p) { return p.x >= r.x && p.x < r.x + r.w && p.y >= r.y && p.y < r.y + r.h; }
+
+  function query(n, r, out, seen) {
+    if (!overlaps(n, r)) return;
+    seen.push(n);
+    if (n.children) n.children.forEach(function (c) { query(c, r, out, seen); });
+    else n.points.forEach(function (p) { if (inside(r, p)) out.push(p); });
+  }
+
+  function render() {
+    var cells = document.getElementById('cells'), pts = document.getElementById('pts');
+    cells.textContent = ''; pts.textContent = '';
+    var r = rect(), found = [], seen = [];
+    query(root, r, found, seen);
+
+    var leaves = 0, maxDepth = 0, total = 0;
+    (function walk(n) {
+      total++;
+      if (n.depth > maxDepth) maxDepth = n.depth;
+      if (n.children) { n.children.forEach(walk); return; }
+      leaves++;
+      var vis = seen.indexOf(n) >= 0;
+      cells.appendChild(el('rect', {
+        x: n.x * S, y: n.y * S, width: n.size * S, height: n.size * S,
+        fill: vis ? 'rgba(46,90,168,.12)' : 'none', stroke: 'rgba(45,49,66,.35)', 'stroke-width': 1
+      }));
+    })(root);
+
+    var q = document.getElementById('query');
+    q.setAttribute('x', r.x * S); q.setAttribute('y', r.y * S);
+    q.setAttribute('width', r.w * S); q.setAttribute('height', r.h * S);
+
+    (function drawPts(n) {
+      if (n.children) { n.children.forEach(drawPts); return; }
+      n.points.forEach(function (p) {
+        var hit = inside(r, p);
+        pts.appendChild(el('circle', {
+          cx: p.x * S, cy: p.y * S, r: hit ? 5 : 3.5,
+          fill: hit ? '#bf4520' : '#fff', stroke: hit ? '#bf4520' : '#2d3142', 'stroke-width': 1.3
+        }));
+      });
+    })(root);
+
+    document.getElementById('live').textContent = count + ' points · ' + leaves + ' leaves · depth ' + maxDepth;
+    document.getElementById('readout').textContent =
+      (window.__msg ? window.__msg + '\n\n' : '') +
+      'query box: x ' + r.x.toFixed(0) + '..' + (r.x + r.w).toFixed(0) + ', y ' + r.y.toFixed(0) + '..' + (r.y + r.h).toFixed(0) +
+      '\nfound ' + found.length + ' of ' + count + ' points' +
+      '\nnodes visited ' + seen.length + ' of ' + total +
+      '\n' + (count ? 'cells skipped: ' + (total - seen.length) : '');
+  }
+  function msg(m) { window.__msg = m; render(); }
+
+  function fromEvent(ev) {
+    var svg = document.getElementById('plane'), b = svg.getBoundingClientRect();
+    return { x: (ev.clientX - b.left) / b.width * WORLD, y: (ev.clientY - b.top) / b.height * WORLD };
+  }
+  document.getElementById('plane').addEventListener('click', function (ev) {
+    var p = fromEvent(ev); add(p.x, p.y);
+    msg('added point (' + p.x.toFixed(0) + ', ' + p.y.toFixed(0) + ')');
+  });
+  document.getElementById('form').addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    var x = Number(document.getElementById('px').value), y = Number(document.getElementById('py').value);
+    if (!isFinite(x) || !isFinite(y) || x < 0 || x > 99 || y < 0 || y > 99) { msg('Enter x and y from 0 to 99.'); return; }
+    add(x, y); msg('added point (' + x + ', ' + y + ')');
+  });
+  document.getElementById('b-rand').addEventListener('click', function () {
+    for (var i = 0; i < 20; i++) add(Math.random() * WORLD, Math.random() * WORLD);
+    msg('added 20 uniform random points');
+  });
+  document.getElementById('b-clump').addEventListener('click', function () {
+    var cx = 15 + Math.random() * 70, cy = 15 + Math.random() * 70;
+    for (var i = 0; i < 20; i++) add(cx + (Math.random() - 0.5) * 12, cy + (Math.random() - 0.5) * 12);
+    msg('added 20 points near (' + cx.toFixed(0) + ', ' + cy.toFixed(0) + ')\nthe tree splits deeper only around the cluster');
+  });
+  document.getElementById('reset').addEventListener('click', function () { reset(); msg('cleared'); });
+  ['qx', 'qy', 'qs'].forEach(function (id) {
+    document.getElementById(id).addEventListener('input', function () { window.__msg = ''; render(); });
+  });
+
+  reset();
+  [[12, 14], [30, 22], [44, 8], [58, 30], [72, 18], [85, 40], [20, 55], [35, 70], [52, 62], [66, 78], [80, 66], [90, 90], [10, 88], [48, 48], [62, 40]]
+    .forEach(function (p) { add(p[0], p[1]); });
+  window.__msg = 'Starting with 15 points. Click the plane to add more.';
+  render();
+})();
+</script>
+</body>
+</html>

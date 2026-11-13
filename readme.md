@@ -13,6 +13,7 @@ Home page: https://gc-garcol.github.io/cafe-docs
 - Count-Min Sketch: `content/count-min-sketch/count-min-sketch.html`
 - Segment Tree: `content/segment-tree/segment-tree.html`
 - Roaring Bitmap: `content/roaring-bitmap/roaring-bitmap.html`
+- Quad Tree: `content/quad-tree/quad-tree.html`
 - Bloom Filter: `content/bloom-filter/bloom-filter.html`
 - HyperLogLog: `content/hyperloglog/hyperloglog.html`
 - LSM Tree: `content/lsm-tree/lsm-tree.html`

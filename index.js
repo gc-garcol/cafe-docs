@@ -113,6 +113,16 @@ const DOCS = [
     related: ['Skip List', 'Bloom Filter'],
   },
   {
+    title: 'Quad Tree',
+    path: 'content/quad-tree/quad-tree.html',
+    category: 'Data structures',
+    topic: 'Spatial indexes',
+    level: 'Intermediate',
+    tags: ['spatial', 'geometry', 'range query', 'nearest neighbor', 'collision', '2d', 'recursion'],
+    summary: 'Split a square into four quarters whenever it gets crowded. Range queries skip every cell that misses the search box.',
+    related: ['Segment Tree', 'Skip List'],
+  },
+  {
     title: 'Genetic Algorithm',
     path: 'content/genetic-algorithm/genetic-algorithm.html',
     category: 'Algorithms',
