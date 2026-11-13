@@ -123,6 +123,16 @@ const DOCS = [
     related: ['Segment Tree', 'Skip List'],
   },
   {
+    title: 'Octree',
+    path: 'content/oct-tree/oct-tree.html',
+    category: 'Data structures',
+    topic: 'Spatial indexes',
+    level: 'Intermediate',
+    tags: ['spatial', 'geometry', 'range query', 'nearest neighbor', 'collision', '3d', 'recursion'],
+    summary: 'Split a cube into eight octants whenever it gets crowded. Range queries skip every cell that misses the search box.',
+    related: ['Quad Tree', 'Segment Tree'],
+  },
+  {
     title: 'Genetic Algorithm',
     path: 'content/genetic-algorithm/genetic-algorithm.html',
     category: 'Algorithms',
