@@ -502,6 +502,16 @@ const DOCS = [
     summary: 'Turn a linear score into a probability with the sigmoid. Fit the curve by gradient descent and move the threshold to trade false alarms for misses.',
     related: ['Linear Regression', 'Perceptron Learning Algorithm', 'Gradient Descent', "Bayes' Theorem"],
   },
+  {
+    title: 'Deep Learning Overview',
+    path: 'content/deep-learning/deep-learning-overview/deep-learning-overview.html',
+    category: 'Deep learning',
+    topic: 'Overview',
+    level: 'Beginner',
+    tags: ['deep learning', 'neural network', 'layers', 'activation', 'backpropagation', 'gradient descent', 'architectures', 'overview'],
+    summary: 'From one neuron to modern architectures. Train a tiny network on four datasets, add hidden layers, and watch the decision boundary bend where a single neuron only draws a line.',
+    related: ['Machine Learning Algorithm Groups', 'Gradient Descent', 'Logistic Regression', 'Perceptron Learning Algorithm', 'Matrices', 'Derivatives'],
+  },
 ];
 
 // ---------- helpers ----------
