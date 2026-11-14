@@ -312,6 +312,16 @@ const DOCS = [
     summary: 'Near one point, a smooth function looks like a polynomial. Add one derivative-matched term at a time and watch the polynomial hug the curve.',
     related: ['Derivatives', 'Limits', 'Fourier Transform'],
   },
+  {
+    title: "Euler's Formula",
+    path: 'content/math/euler-formula/euler-formula.html',
+    category: 'Mathematics',
+    topic: 'Complex numbers',
+    level: 'Intermediate',
+    tags: ['euler', 'complex', 'exponential', 'unit circle', 'sine', 'cosine', 'series', 'identity'],
+    summary: 'Raise e to an imaginary power and you walk around a circle. See cosine and sine as shadows of one spinning point, and build it from the exponential series.',
+    related: ['Complex Analysis', 'Taylor Series', 'Fourier Transform', 'Laplace Transform'],
+  },
 ];
 
 // ---------- helpers ----------

@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Euler's Formula: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;font-family:var(--serif);font-size:24px;text-align:center;overflow-x:auto}
+
+.lab{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:24px;align-items:start;margin-top:24px}
+.card{margin:0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.planes{display:grid;grid-template-columns:1fr 1.2fr}
+.planes svg{display:block;width:100%;height:auto}
+.planes svg+svg{border-left:1px solid var(--rule)}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.seg{display:flex;border:1px solid var(--rule-solid);border-radius:6px;overflow:hidden;margin-bottom:16px}
+.seg button{flex:1;min-height:40px;border:0;background:transparent;font:500 13px var(--sans);color:var(--muted);cursor:pointer;padding:0 8px}
+.seg button+button{border-left:1px solid var(--rule-solid)}
+.seg button:hover{background:var(--paper-2)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.row{display:grid;grid-template-columns:44px 1fr 64px;gap:12px;align-items:center;margin:12px 0}
+.row label{font-family:var(--mono);font-size:13px;font-weight:600}
+.row output{font-family:var(--mono);font-size:12px;text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);min-height:28px}
+#readout{margin:16px 0 0;padding:14px 16px;background:var(--paper);border:1px solid var(--rule);border-radius:6px;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;min-height:150px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:2px;border:1px solid var(--ink);display:inline-block}
+
+.fig{margin:20px 0 8px}
+.scroll{overflow-x:auto;border:1px solid var(--rule);border-radius:8px;background:#fff;padding:8px}
+.scroll svg{display:block;height:auto}
+.cap{font-family:var(--mono);font-size:11px;color:var(--soft);margin:8px 0 0}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:30px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+table.ops{border-collapse:collapse;width:100%;max-width:760px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);border-radius:6px;font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule)}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
+a{color:var(--link)}
+@media (max-width:860px){.lab{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (max-width:520px){.planes{grid-template-columns:1fr}.planes svg+svg{border-left:0;border-top:1px solid var(--rule)}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" href="../../../index.html">&larr; Back to home</a>
+
+<header>
+  <div class="eyebrow">Mathematics · Complex numbers</div>
+  <h1>Euler's Formula</h1>
+  <p class="lede">Raise <code>e</code> to an imaginary power and you walk around a circle. One line ties exponentials to sine and cosine, and it hides the famous identity <code>e<sup>iπ</sup> + 1 = 0</code>.</p>
+</header>
+
+<section>
+  <h2>Try it first</h2>
+  <p>Drag the angle <code>θ</code>. The point <code>e<sup>iθ</sup></code> rides the unit circle. Its horizontal shadow is <code>cos θ</code> and its vertical shadow is <code>sin θ</code>, drawn as waves on the right. The dashed point is a polynomial guess from the first few terms of the series for <code>e<sup>x</sup></code>. Add terms and watch it lock onto the circle.</p>
+
+  <div class="lab">
+    <figure class="card">
+      <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">e<sup>iθ</sup> = cos θ + i sin θ</span></div>
+      <div class="planes">
+        <svg id="circle" viewBox="0 0 300 300" role="img" aria-labelledby="c-title c-desc">
+          <title id="c-title">The unit circle in the complex plane</title>
+          <desc id="c-desc">A circle of radius one. A solid point at angle theta marks e to the i theta. A dashed point marks the series approximation with the chosen number of terms, which approaches the solid point as terms are added.</desc>
+        </svg>
+        <svg id="waves" viewBox="0 0 360 300" role="img" aria-labelledby="w-title w-desc">
+          <title id="w-title">Cosine and sine waves against theta</title>
+          <desc id="w-desc">Two curves over the angle axis. The blue curve is cosine and the orange curve is sine. A vertical marker follows the current angle and dots show the matching values.</desc>
+        </svg>
+      </div>
+      <div class="card-bottom"><span class="hint">Solid = exact · Dashed = series</span><span class="live" id="live"></span></div>
+    </figure>
+
+    <div>
+      <div class="panel">
+        <div class="seg" role="group" aria-label="Presets">
+          <button type="button" data-th="0.5235987755982988">π/6</button>
+          <button type="button" data-th="1.5707963267948966">π/2</button>
+          <button type="button" data-th="3.141592653589793">π</button>
+          <button type="button" data-th="6.283185307179586">2π</button>
+        </div>
+        <div class="row"><label for="inT">θ</label><input type="range" id="inT" min="0" max="6.283185307179586" step="0.01" value="1"><output id="outT"></output></div>
+        <div class="row"><label for="inN">terms</label><input type="range" id="inN" min="1" max="16" step="1" value="4"><output id="outN"></output></div>
+        <div id="readout" aria-live="polite"></div>
+      </div>
+      <div class="legend" aria-label="Legend">
+        <span><i class="sw" style="background:#2d3142"></i>e<sup>iθ</sup></span>
+        <span><i class="sw" style="background:#2e5aa8"></i>cos θ</span>
+        <span><i class="sw" style="background:#bf4520"></i>sin θ</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>1. The formula</h2>
+  <div class="formula">e<sup>iθ</sup> = cos θ + i sin θ</div>
+  <p>The input <code>θ</code> is an angle in radians. The output is a complex number with length exactly <code>1</code>, since <code>cos²θ + sin²θ = 1</code>. As <code>θ</code> grows, the point moves counterclockwise at constant speed. After <code>2π</code> it is back where it started.</p>
+  <p>A general complex number in polar form becomes compact: <code>z = r·e<sup>iθ</sup></code>, with <code>r</code> the length and <code>θ</code> the angle.</p>
+</section>
+
+<section>
+  <h2>2. Why it is true</h2>
+  <p>The series for the exponential works for any number, including an imaginary one.</p>
+  <div class="formula">e<sup>x</sup> = 1 + x + x²/2! + x³/3! + x⁴/4! + …</div>
+  <p>Put <code>x = iθ</code> and use <code>i² = −1</code>, <code>i³ = −i</code>, <code>i⁴ = 1</code>, then repeat. The powers of <code>i</code> sort the terms into two groups.</p>
+  <div class="formula">e<sup>iθ</sup> = (1 − θ²/2! + θ⁴/4! − …) + i(θ − θ³/3! + θ⁵/5! − …)</div>
+  <p>The first bracket is the series for <code>cos θ</code>. The second is the series for <code>sin θ</code>. The lab shows the same thing: with few terms the dashed point misses, and with about ten it is hidden under the solid one. See the <a href="../taylor-series/taylor-series.html">Taylor series</a> guide for how these polynomials are built.</p>
+  <div class="callout">Exponential growth with an imaginary rate is rotation.</div>
+</section>
+
+<section>
+  <h2>3. The famous identity</h2>
+  <p>Set <code>θ = π</code>. Half a turn lands on the point <code>−1</code>.</p>
+  <div class="formula">e<sup>iπ</sup> = −1 &nbsp;⇒&nbsp; e<sup>iπ</sup> + 1 = 0</div>
+  <p>Press <code>π</code> in the lab. The readout shows the real part near <code>−1</code> and the imaginary part near <code>0</code>. The identity links five basic constants: <code>e</code>, <code>i</code>, <code>π</code>, <code>1</code> and <code>0</code>.</p>
+
+  <div class="fig">
+    <div class="scroll">
+<svg width="760" height="230" viewBox="0 0 760 230" style="min-width:760px" role="img" aria-labelledby="pts-title pts-desc">
+<title id="pts-title">Four special angles on the unit circle</title>
+<desc id="pts-desc">The unit circle with four marked points. Angle zero gives one, angle pi over two gives i, angle pi gives minus one, and angle three pi over two gives minus i.</desc>
+<circle cx="380" cy="115" r="90" fill="rgba(46,90,168,.05)" stroke="#2d3142" stroke-width="1.4"/>
+<g stroke="rgba(45,49,66,.3)"><path d="M260 115 L500 115"/><path d="M380 5 L380 225"/></g>
+<g fill="#bf4520"><circle cx="470" cy="115" r="5"/><circle cx="380" cy="25" r="5"/><circle cx="290" cy="115" r="5"/><circle cx="380" cy="205" r="5"/></g>
+<g font-family="'Instrument Serif',serif" font-size="20" fill="#2d3142">
+<text x="484" y="121">1 = e<tspan font-size="14" dy="-8">0</tspan></text>
+<text x="392" y="22">i = e<tspan font-size="14" dy="-8">iπ/2</tspan></text>
+<text x="168" y="121">−1 = e<tspan font-size="14" dy="-8">iπ</tspan></text>
+<text x="392" y="216">−i = e<tspan font-size="14" dy="-8">i3π/2</tspan></text>
+</g>
+</svg>
+    </div>
+    <p class="cap">Fig 2 · Multiplying by <code>e<sup>iπ/2</sup> = i</code> turns a point a quarter turn counterclockwise.</p>
+  </div>
+</section>
+
+<section>
+  <h2>4. Trig from exponentials</h2>
+  <p>Add and subtract <code>e<sup>iθ</sup></code> and <code>e<sup>−iθ</sup></code> and the imaginary or real part cancels.</p>
+  <div class="formula">cos θ = (e<sup>iθ</sup> + e<sup>−iθ</sup>) / 2 &nbsp;&nbsp; sin θ = (e<sup>iθ</sup> − e<sup>−iθ</sup>) / 2i</div>
+  <p>Trig identities turn into exponent rules. For example <code>e<sup>i(a+b)</sup> = e<sup>ia</sup>·e<sup>ib</sup></code> expands to the angle-sum formulas for sine and cosine in two lines, by matching real and imaginary parts.</p>
+  <table class="ops">
+    <thead><tr><th>Exponent rule</th><th>What it says in trig</th></tr></thead>
+    <tbody>
+      <tr><td><code>e<sup>ia</sup>·e<sup>ib</sup> = e<sup>i(a+b)</sup></code></td><td>Angles add when you multiply rotations</td></tr>
+      <tr><td><code>(e<sup>iθ</sup>)<sup>n</sup> = e<sup>inθ</sup></code></td><td>De Moivre: <code>(cos θ + i sin θ)ⁿ = cos nθ + i sin nθ</code></td></tr>
+      <tr><td><code>|e<sup>iθ</sup>| = 1</code></td><td><code>cos²θ + sin²θ = 1</code></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>5. Where it shows up</h2>
+  <div class="cards">
+    <div class="stat focal"><div class="eyebrow">Signals</div><div class="big">spin</div><p>A wave is the shadow of something spinning. The Fourier transform sums such spinning terms.</p></div>
+    <div class="stat"><div class="eyebrow">Circuits</div><div class="big">phasors</div><p>AC voltages become single complex numbers, so derivatives turn into multiplication by <code>iω</code>.</p></div>
+    <div class="stat"><div class="eyebrow">Graphics</div><div class="big">rotate</div><p>Multiplying by <code>e<sup>iθ</sup></code> rotates a 2D point with one complex multiply.</p></div>
+  </div>
+  <p style="margin-top:20px">Allowing the exponent to have a real part too, <code>e<sup>(a+ib)t</sup> = e<sup>at</sup>(cos bt + i sin bt)</code>, gives a spiral: rotation plus growth or decay. That spiral is the heart of the <a href="../laplace-transform/laplace-transform.html">Laplace transform</a>. For the wider picture of functions of a complex variable, see <a href="../complex-analysis/complex-analysis.html">Complex Analysis</a>.</p>
+</section>
+
+</main>
+
+<script>
+(function () {
+  var NSV = 'http://www.w3.org/2000/svg';
+  var $ = function (s) { return document.querySelector(s); };
+  var TAU = 2 * Math.PI;
+
+  function el(n, attrs, parent) {
+    var e = document.createElementNS(NSV, n);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function txt(parent, x, y, s, anchor) {
+    var t = el('text', { x: x, y: y, 'text-anchor': anchor || 'middle', 'font-size': 10, fill: '#5a6580', 'font-family': 'Geist Mono, monospace' }, parent);
+    t.textContent = s;
+  }
+  function clear(svg) {
+    Array.prototype.slice.call(svg.querySelectorAll('.dyn')).forEach(function (e) { e.remove(); });
+    return el('g', { 'class': 'dyn' }, svg);
+  }
+  // partial sum of the series for e^(i*theta) using n terms
+  function partial(theta, n) {
+    var re = 0, im = 0, term = [1, 0];
+    for (var k = 0; k < n; k++) {
+      re += term[0]; im += term[1];
+      // term *= (i*theta)/(k+1)
+      var a = term[0], b = term[1], f = theta / (k + 1);
+      term = [-b * f, a * f];
+    }
+    return [re, im];
+  }
+  function fmt(c) { return c[0].toFixed(4) + ' ' + (c[1] < 0 ? '−' : '+') + ' ' + Math.abs(c[1]).toFixed(4) + 'i'; }
+
+  function drawCircle(theta, n) {
+    var svg = $('#circle'), g = clear(svg);
+    var C = 150, R = 105;
+    var X = function (v) { return C + v * R; }, Y = function (v) { return C - v * R; };
+    el('line', { x1: 20, x2: 280, y1: C, y2: C, stroke: 'rgba(45,49,66,.35)' }, g);
+    el('line', { x1: C, x2: C, y1: 20, y2: 280, stroke: 'rgba(45,49,66,.35)' }, g);
+    el('circle', { cx: C, cy: C, r: R, fill: 'rgba(46,90,168,.05)', stroke: '#2d3142', 'stroke-width': 1.4 }, g);
+    txt(g, X(1) + 2, C + 14, '1'); txt(g, X(-1) - 2, C + 14, '−1'); txt(g, C + 10, Y(1) + 4, 'i', 'start'); txt(g, C + 12, Y(-1) + 4, '−i', 'start');
+
+    // swept arc
+    var arc = '', steps = Math.max(2, Math.ceil(theta * 30));
+    for (var i = 0; i <= steps; i++) {
+      var t = theta * i / steps;
+      arc += (i ? ' L' : 'M') + X(Math.cos(t)).toFixed(1) + ' ' + Y(Math.sin(t)).toFixed(1);
+    }
+    el('path', { d: arc, fill: 'none', stroke: '#2d3142', 'stroke-width': 3 }, g);
+
+    var cx = Math.cos(theta), sy = Math.sin(theta);
+    // shadows
+    el('line', { x1: X(cx), x2: X(cx), y1: Y(sy), y2: C, stroke: '#bf4520', 'stroke-width': 2 }, g);
+    el('line', { x1: C, x2: X(cx), y1: C, y2: C, stroke: '#2e5aa8', 'stroke-width': 2.4 }, g);
+    el('line', { x1: C, x2: X(cx), y1: C, y2: Y(sy), stroke: '#2d3142', 'stroke-width': 1.2 }, g);
+
+    // series approximation
+    var p = partial(theta, n);
+    var inb = Math.abs(p[0]) < 2.6 && Math.abs(p[1]) < 2.6;
+    if (inb) el('circle', { cx: X(p[0]), cy: Y(p[1]), r: 8, fill: 'none', stroke: '#bf4520', 'stroke-width': 1.6, 'stroke-dasharray': '3 3' }, g);
+    el('circle', { cx: X(cx), cy: Y(sy), r: 5, fill: '#2d3142', stroke: '#fff', 'stroke-width': 1.5 }, g);
+    return p;
+  }
+
+  function drawWaves(theta) {
+    var svg = $('#waves'), g = clear(svg);
+    var L = 28, Rr = 340, T = 30, B = 270;
+    var X = function (t) { return L + t / TAU * (Rr - L); };
+    var Y = function (v) { return (T + B) / 2 - v * (B - T) / 2 * 0.9; };
+    el('line', { x1: L, x2: Rr, y1: Y(0), y2: Y(0), stroke: 'rgba(45,49,66,.45)' }, g);
+    el('line', { x1: L, x2: L, y1: T, y2: B, stroke: 'rgba(45,49,66,.45)' }, g);
+    [[0.5, 'π/2'], [1, 'π'], [1.5, '3π/2'], [2, '2π']].forEach(function (m) {
+      var x = X(m[0] * Math.PI);
+      el('line', { x1: x, x2: x, y1: Y(0) - 3, y2: Y(0) + 3, stroke: '#2d3142' }, g);
+      txt(g, x, Y(0) + 16, m[1]);
+    });
+    txt(g, L - 6, Y(1) + 3, '1', 'end'); txt(g, L - 6, Y(-1) + 3, '−1', 'end');
+    var dc = '', ds = '';
+    for (var i = 0; i <= 200; i++) {
+      var t = TAU * i / 200;
+      dc += (i ? ' L' : 'M') + X(t).toFixed(1) + ' ' + Y(Math.cos(t)).toFixed(1);
+      ds += (i ? ' L' : 'M') + X(t).toFixed(1) + ' ' + Y(Math.sin(t)).toFixed(1);
+    }
+    el('path', { d: dc, fill: 'none', stroke: '#2e5aa8', 'stroke-width': 2 }, g);
+    el('path', { d: ds, fill: 'none', stroke: '#bf4520', 'stroke-width': 2 }, g);
+    el('line', { x1: X(theta), x2: X(theta), y1: T, y2: B, stroke: '#2d3142', 'stroke-dasharray': '4 4' }, g);
+    el('circle', { cx: X(theta), cy: Y(Math.cos(theta)), r: 4.5, fill: '#2e5aa8', stroke: '#fff', 'stroke-width': 1.2 }, g);
+    el('circle', { cx: X(theta), cy: Y(Math.sin(theta)), r: 4.5, fill: '#bf4520', stroke: '#fff', 'stroke-width': 1.2 }, g);
+    txt(g, Rr, B + 16, 'θ', 'end');
+  }
+
+  function render() {
+    var theta = +$('#inT').value, n = +$('#inN').value;
+    var p = drawCircle(theta, n);
+    drawWaves(theta);
+    var ex = [Math.cos(theta), Math.sin(theta)];
+    var err = Math.hypot(p[0] - ex[0], p[1] - ex[1]);
+    $('#outT').textContent = theta.toFixed(2);
+    $('#outN').textContent = n;
+    $('#live').textContent = 'θ = ' + (theta / Math.PI).toFixed(2) + 'π';
+    $('#readout').textContent =
+      'θ       = ' + theta.toFixed(3) + ' rad  (' + (theta * 180 / Math.PI).toFixed(1) + '°)\n' +
+      'cos θ   = ' + ex[0].toFixed(4) + '\n' +
+      'sin θ   = ' + ex[1].toFixed(4) + '\n' +
+      'e^iθ    = ' + fmt(ex) + '\n' +
+      'series  = ' + fmt(p) + '  (' + n + ' terms)\n' +
+      'gap     = ' + (err < 5e-5 ? '< 0.0001' : err.toFixed(4));
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll('[data-th]'), function (b) {
+    b.addEventListener('click', function () { $('#inT').value = b.dataset.th; render(); });
+  });
+  $('#inT').addEventListener('input', render);
+  $('#inN').addEventListener('input', render);
+  render();
+})();
+</script>
+</body>
+</html>
