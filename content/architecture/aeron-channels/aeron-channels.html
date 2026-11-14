@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aeron Channels and Streams: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible,a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+a{color:var(--link)}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+
+.card{margin:24px 0 0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.scroll{overflow-x:auto;padding:0 8px}
+.scroll svg{display:block;height:auto}
+
+.controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;margin-top:16px;align-items:start}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:0 0 12px}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.btn:disabled{opacity:.4;cursor:not-allowed;background:transparent;color:var(--ink)}
+#readout{margin:0;padding:0;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink);border:0;background:none}
+
+.nodes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;padding:16px}
+.node{border:1px solid var(--rule-solid);border-radius:8px;padding:14px;background:#fff}
+.node.leader{border-color:var(--accent);background:var(--accent-tint)}
+.node.down{opacity:.45;border-style:dashed}
+.node h3{margin:0 0 2px;font-family:var(--serif);font-weight:400;font-size:22px}
+.role{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft)}
+.log{display:flex;flex-wrap:wrap;gap:4px;margin:12px 0;min-height:30px}
+.ent{font-family:var(--mono);font-size:11px;min-width:34px;padding:3px 5px;border:1px solid var(--ink);border-radius:4px;text-align:center;background:#fff}
+.ent.c{background:var(--ink);color:var(--paper)}
+.ent.u{border-style:dashed;color:var(--muted)}
+.state{font-family:var(--mono);font-size:12px;font-weight:600}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:8px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+
+pre{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .c2{color:var(--soft);font-style:italic}
+
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat p{font-size:14px;color:var(--muted);margin:6px 0 0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+
+table.ops{border-collapse:collapse;width:100%;max-width:860px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+table.ops td:first-child{white-space:nowrap}
+ul.tight,ol.toc{padding-left:22px;max-width:68ch}ul.tight li,ol.toc li{margin:6px 0}
+.src{font-size:14px;color:var(--muted)}
+
+@media (max-width:860px){.controls,.cards,.nodes{grid-template-columns:1fr}.page{padding:32px 16px 72px}table.ops td:first-child{white-space:normal}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+
+.cell{display:inline-block;width:26px;height:26px;margin:2px;border:1px solid var(--rule-solid);border-radius:4px;background:#fff;font:600 10px var(--mono);text-align:center;line-height:24px}
+.cell.w{background:var(--paper-2);border-color:var(--ink)}
+.cell.s{background:rgba(46,90,168,.18);border-color:var(--link)}
+.cell.r{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.cell.lost{background:#fff;border:1px dashed var(--accent);color:var(--accent)}
+.cell.pad{background:var(--paper-2);border:1px dotted var(--soft);color:var(--soft)}
+.cell.nak{background:var(--accent-tint);border-color:var(--accent)}
+.cell.cur{outline:2px solid var(--accent)}
+button.cell{cursor:pointer;padding:0}
+.term{display:flex;align-items:center;gap:8px;margin:6px 0;flex-wrap:wrap}
+.term .lbl{font-family:var(--mono);font-size:11px;color:var(--soft);width:96px}
+.bar{position:relative;height:30px;margin:14px 16px;background:var(--paper-2);border-radius:4px}
+.bar i{position:absolute;top:0;bottom:0;left:0;border-radius:4px}
+.lane{margin:6px 16px 0;font-family:var(--mono);font-size:11px;color:var(--muted)}
+label.f{display:flex;flex-direction:column;gap:4px;font-family:var(--mono);font-size:12px;font-weight:600;margin:0 0 12px}
+select,input[type=text]{min-height:40px;padding:0 10px;border:1px solid var(--rule-solid);border-radius:6px;font:500 14px var(--mono);color:var(--ink);background:#fff;max-width:100%}
+select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.uri{font-family:var(--mono);font-size:14px;word-break:break-all;padding:14px 16px;background:var(--ink);color:var(--paper);border-radius:6px;margin:0 0 12px}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" href="../../../index.html">&larr; Back to home</a>
+
+<header>
+  <div class="eyebrow">Architecture · Messaging</div>
+  <h1>Aeron Channels and Streams</h1>
+  <p class="lede">How a publisher and a subscriber find each other. A channel URI says where data travels, a stream id separates flows, and a session id tells publishers apart.</p>
+</header>
+
+
+<section>
+  <h2>Build a channel first</h2>
+  <p>A publisher and a subscriber find each other with a <b>channel URI</b> and a <b>stream id</b>. Pick a media type and set a few options. The URI and a plain reading of it update as you go.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">Channel URI builder</span></div>
+    <div style="padding:16px">
+      <div class="uri" id="uri" aria-live="polite"></div>
+      <div class="live" id="stream" style="margin-bottom:6px"></div>
+    </div>
+    <div class="card-bottom"><span class="hint">channel + stream id = one stream</span><span class="live" id="live"></span></div>
+  </figure>
+
+  <div class="controls">
+    <div class="panel">
+      <label class="f">Media
+        <select id="media">
+          <option value="uni">UDP unicast</option>
+          <option value="multi">UDP multicast</option>
+          <option value="mdcpub">MDC publication (dynamic)</option>
+          <option value="mdcsub">MDC subscription (dynamic)</option>
+          <option value="ipc">IPC (same machine)</option>
+        </select>
+      </label>
+      <label class="f">Endpoint <input type="text" id="ep" value="localhost:40123" autocomplete="off" spellcheck="false"></label>
+      <label class="f">Control <input type="text" id="ctl" value="localhost:40456" autocomplete="off" spellcheck="false"></label>
+      <label class="f">Stream id <input type="text" id="sid" value="1001" autocomplete="off" inputmode="numeric"></label>
+      <label class="f">Reliable
+        <select id="rel"><option value="">default (true)</option><option value="false">false</option></select>
+      </label>
+      <label class="f">Term length (publication)
+        <select id="tl"><option value="">default</option><option value="64k">64k</option><option value="16m">16m</option><option value="64m">64m</option></select>
+      </label>
+      <label class="f">MTU
+        <select id="mtu"><option value="">default</option><option value="1408">1408</option><option value="8192">8192</option></select>
+      </label>
+    </div>
+    <div class="panel"><pre id="readout" aria-live="polite"></pre></div>
+  </div>
+</section>
+
+<section>
+  <h2>Contents</h2>
+  <ol class="toc">
+    <li><a href="#triple">Channel, stream and session</a></li>
+    <li><a href="#uri">The channel URI</a></li>
+    <li><a href="#media">Media types</a></li>
+    <li><a href="#mdc">Multi-destination-cast</a></li>
+    <li><a href="#options">Common options</a></li>
+    <li><a href="#spy">Spy subscriptions</a></li>
+    <li><a href="#sources">Sources</a></li>
+  </ol>
+</section>
+
+<section id="triple">
+  <h2>1. Channel, stream and session</h2>
+  <ul class="tight">
+    <li><b>Channel:</b> where data travels. A URI such as an endpoint and a media type.</li>
+    <li><b>Stream:</b> an integer id that separates independent flows on one channel. Think of it as a port inside the channel.</li>
+    <li><b>Session:</b> one publisher on one stream. Each publication gets a session id, so a subscriber can tell two publishers apart on the same channel and stream.</li>
+  </ul>
+  <p>A subscription to a channel and stream receives an <b>image</b> for each session that publishes there. Streams are independent. Flow control and loss on one do not affect another.</p>
+</section>
+
+<section id="uri">
+  <h2>2. The channel URI</h2>
+  <p>The shape is a scheme, a media, then a query of <code>key=value</code> pairs joined by a pipe.</p>
+  <pre>aeron:udp?endpoint=localhost:40123|mtu=1408
+aeron:ipc</pre>
+  <p>Aeron strips some parameters when it matches a publication with a subscription, so the two sides do not need identical strings. They need the same endpoint and stream id.</p>
+</section>
+
+<section id="media">
+  <h2>3. Media types</h2>
+  <table class="ops">
+    <thead><tr><th>Media</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td>UDP unicast</td><td>One sender to one receiver. The subscription sets the endpoint it listens on, and the publication sends to it.</td></tr>
+      <tr><td>UDP multicast</td><td>One sender to many receivers through a multicast group address. Needs network support, and an interface to bind.</td></tr>
+      <tr><td>MDC</td><td>Many receivers without multicast. The publisher sends a unicast stream to each one.</td></tr>
+      <tr><td>IPC</td><td>Shared memory on one machine. No network, always reliable.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="mdc">
+  <h2>4. Multi-destination-cast</h2>
+  <p>MDC acts like multicast for flow control. Each destination is treated as a multicast receiver, but the data goes out as separate unicast streams. It runs in one of two modes.</p>
+  <ul class="tight">
+    <li><b>Dynamic:</b> the publication sets a <code>control</code> address. Subscribers name that address plus their own endpoint, and join or leave by themselves. Silent subscribers time out.</li>
+    <li><b>Manual:</b> the application adds and removes destinations by calling <code>addDestination</code> and <code>removeDestination</code>.</li>
+  </ul>
+  <p>A subscription can also start without an endpoint and add destinations later. That lets one subscription mix unicast, multicast and MDC sources.</p>
+</section>
+
+<section id="options">
+  <h2>5. Common options</h2>
+  <table class="ops">
+    <thead><tr><th>Option</th><th>Effect</th></tr></thead>
+    <tbody>
+      <tr><td><code>reliable=false</code></td><td>The subscriber accepts loss. The driver fills gaps with padding instead of waiting for retransmission.</td></tr>
+      <tr><td><code>term-length</code></td><td>Size of each term in the publication's log buffer. A power of two.</td></tr>
+      <tr><td><code>mtu</code></td><td>Largest frame sent. Messages bigger than this are fragmented.</td></tr>
+      <tr><td><code>session-id</code></td><td>Pin the session id, or restrict a subscription to one session.</td></tr>
+      <tr><td><code>interface</code></td><td>The network interface to use, mostly for multicast.</td></tr>
+      <tr><td><code>endpoint</code> with port 0</td><td>A wildcard port. The driver picks a free one.</td></tr>
+    </tbody>
+  </table>
+  <p>Durations take units, such as <code>5s</code> or <code>200ms</code>, and sizes accept <code>k</code>, <code>m</code> and <code>g</code>.</p>
+</section>
+
+<section id="spy">
+  <h2>6. Spy subscriptions</h2>
+  <p>Prefix a UDP channel with <code>aeron-spy:</code> to read an outgoing publication on the same machine. The spy reads the publication buffer directly, like an IPC subscriber, beside the Sender. This is how Archive records a stream at the sending end without a network hop.</p>
+  <pre>aeron-spy:aeron:udp?endpoint=localhost:40123</pre>
+</section>
+
+
+<section id="sources">
+  <h2>Sources</h2>
+  <p class="src">Written from the Aeron project documentation on the <a href="https://github.com/aeron-io/aeron/wiki">Aeron GitHub wiki</a> and <a href="https://aeron.io/docs/">aeron.io</a>. The text and the demo are original summaries. Aeron is open source, and its trademark belongs to its owner.</p>
+</section>
+
+</main>
+
+<script>
+
+(function () {
+  function $(id) { return document.getElementById(id); }
+  var ids = ['media', 'ep', 'ctl', 'sid', 'rel', 'tl', 'mtu'];
+  function build() {
+    var m = $('media').value, ep = $('ep').value.trim(), ctl = $('ctl').value.trim(), sid = $('sid').value.trim();
+    var q = [], note = '', who = '';
+    if (m === 'ipc') {
+      who = 'Publisher and subscriber on one machine share the log buffer. No Sender or Receiver is involved.';
+    } else if (m === 'uni') {
+      q.push('endpoint=' + ep);
+      who = 'A subscriber listens on ' + ep + '. The publisher sends UDP unicast to it.';
+    } else if (m === 'multi') {
+      q.push('endpoint=224.20.30.39:40456', 'interface=' + (ep.split(':')[0] || 'localhost'));
+      who = 'Every subscriber that joins group 224.20.30.39:40456 receives the same stream. The endpoint box sets the interface.';
+    } else if (m === 'mdcpub') {
+      q.push('control=' + ctl, 'control-mode=dynamic');
+      who = 'The publication listens on ' + ctl + ' for status messages and NAKs. Subscribers join dynamically and each gets its own unicast stream.';
+    } else {
+      q.push('endpoint=' + ep, 'control=' + ctl, 'control-mode=dynamic');
+      who = 'The subscription listens on ' + ep + ' and joins the publication at ' + ctl + '.';
+    }
+    if (m !== 'ipc') {
+      if ($('rel').value) q.push('reliable=' + $('rel').value);
+      if ($('mtu').value) q.push('mtu=' + $('mtu').value);
+    }
+    if ($('tl').value) q.push('term-length=' + $('tl').value);
+    var uri = m === 'ipc' ? 'aeron:ipc' : 'aeron:udp?' + q.join('|');
+    if (m === 'ipc' && q.length) uri += '?' + q.join('|');
+    var ok = /^[0-9]+$/.test(sid);
+    $('uri').textContent = uri;
+    $('stream').textContent = ok ? 'stream id ' + sid : 'stream id must be a whole number';
+    $('live').textContent = (m === 'ipc' ? 'ipc' : m) + ' · ' + q.length + ' option(s)';
+    var r = who + '\n\n';
+    r += 'Publisher and subscriber match on the channel endpoint and the stream id' + (ok ? ' (' + sid + ')' : '') + '.\n';
+    if ($('rel').value === 'false' && m !== 'ipc') r += 'reliable=false: gaps are filled with padding, no NAK wait.\n';
+    if ($('tl').value) r += 'term-length is read from the publication. Log buffer is 3 x ' + $('tl').value + '.\n';
+    if (m === 'multi') r += 'Multicast needs network support. Not every cloud network allows it.\n';
+    $('readout').textContent = r;
+    $('ep').disabled = (m === 'ipc' || m === 'mdcpub');
+    $('ctl').disabled = !(m === 'mdcpub' || m === 'mdcsub');
+    $('rel').disabled = $('mtu').disabled = (m === 'ipc');
+  }
+  ids.forEach(function (i) { $(i).addEventListener('input', build); $(i).addEventListener('change', build); });
+  build();
+})();
+
+</script>
+</body>
+</html>

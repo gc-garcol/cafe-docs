@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aeron Archive: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible,a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+a{color:var(--link)}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+
+.card{margin:24px 0 0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.scroll{overflow-x:auto;padding:0 8px}
+.scroll svg{display:block;height:auto}
+
+.controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;margin-top:16px;align-items:start}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:0 0 12px}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.btn:disabled{opacity:.4;cursor:not-allowed;background:transparent;color:var(--ink)}
+#readout{margin:0;padding:0;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink);border:0;background:none}
+
+.nodes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;padding:16px}
+.node{border:1px solid var(--rule-solid);border-radius:8px;padding:14px;background:#fff}
+.node.leader{border-color:var(--accent);background:var(--accent-tint)}
+.node.down{opacity:.45;border-style:dashed}
+.node h3{margin:0 0 2px;font-family:var(--serif);font-weight:400;font-size:22px}
+.role{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft)}
+.log{display:flex;flex-wrap:wrap;gap:4px;margin:12px 0;min-height:30px}
+.ent{font-family:var(--mono);font-size:11px;min-width:34px;padding:3px 5px;border:1px solid var(--ink);border-radius:4px;text-align:center;background:#fff}
+.ent.c{background:var(--ink);color:var(--paper)}
+.ent.u{border-style:dashed;color:var(--muted)}
+.state{font-family:var(--mono);font-size:12px;font-weight:600}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:8px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+
+pre{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .c2{color:var(--soft);font-style:italic}
+
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat p{font-size:14px;color:var(--muted);margin:6px 0 0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+
+table.ops{border-collapse:collapse;width:100%;max-width:860px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+table.ops td:first-child{white-space:nowrap}
+ul.tight,ol.toc{padding-left:22px;max-width:68ch}ul.tight li,ol.toc li{margin:6px 0}
+.src{font-size:14px;color:var(--muted)}
+
+@media (max-width:860px){.controls,.cards,.nodes{grid-template-columns:1fr}.page{padding:32px 16px 72px}table.ops td:first-child{white-space:normal}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+
+.cell{display:inline-block;width:26px;height:26px;margin:2px;border:1px solid var(--rule-solid);border-radius:4px;background:#fff;font:600 10px var(--mono);text-align:center;line-height:24px}
+.cell.w{background:var(--paper-2);border-color:var(--ink)}
+.cell.s{background:rgba(46,90,168,.18);border-color:var(--link)}
+.cell.r{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.cell.lost{background:#fff;border:1px dashed var(--accent);color:var(--accent)}
+.cell.pad{background:var(--paper-2);border:1px dotted var(--soft);color:var(--soft)}
+.cell.nak{background:var(--accent-tint);border-color:var(--accent)}
+.cell.cur{outline:2px solid var(--accent)}
+button.cell{cursor:pointer;padding:0}
+.term{display:flex;align-items:center;gap:8px;margin:6px 0;flex-wrap:wrap}
+.term .lbl{font-family:var(--mono);font-size:11px;color:var(--soft);width:96px}
+.bar{position:relative;height:30px;margin:14px 16px;background:var(--paper-2);border-radius:4px}
+.bar i{position:absolute;top:0;bottom:0;left:0;border-radius:4px}
+.lane{margin:6px 16px 0;font-family:var(--mono);font-size:11px;color:var(--muted)}
+label.f{display:flex;flex-direction:column;gap:4px;font-family:var(--mono);font-size:12px;font-weight:600;margin:0 0 12px}
+select,input[type=text]{min-height:40px;padding:0 10px;border:1px solid var(--rule-solid);border-radius:6px;font:500 14px var(--mono);color:var(--ink);background:#fff;max-width:100%}
+select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.uri{font-family:var(--mono);font-size:14px;word-break:break-all;padding:14px 16px;background:var(--ink);color:var(--paper);border-radius:6px;margin:0 0 12px}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" href="../../../index.html">&larr; Back to home</a>
+
+<header>
+  <div class="eyebrow">Architecture · Messaging</div>
+  <h1>Aeron Archive</h1>
+  <p class="lede">Record a stream to disk and replay it later or while it is still live. A late subscriber can replay history, catch up, and merge into the live stream without a gap.</p>
+</header>
+
+
+<section>
+  <h2>Try record and replay first</h2>
+  <p>A live stream keeps moving. <b>Start recording</b> to have the Archive save it. A late subscriber can then <b>Replay</b> from the start of the recording. Turn on <b>merge</b> and the replay runs faster than live, catches up, and cuts over to the live stream. Press <b>Tick</b> to let time pass.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">Live stream, recording and replay</span></div>
+    <div class="lane">live stream position</div>
+    <div class="bar" id="b1" role="img" aria-label="Live stream position"><i style="background:rgba(46,90,168,.5)"></i></div>
+    <div class="lane">recording (rec-pos)</div>
+    <div class="bar" id="b2" role="img" aria-label="Recorded range"><i style="background:rgba(191,69,32,.55)"></i></div>
+    <div class="lane">replay position</div>
+    <div class="bar" id="b3" role="img" aria-label="Replay position"><i style="background:rgba(45,49,66,.7)"></i></div>
+    <div class="card-bottom"><span class="hint">replay moves faster than live, so it can catch up</span><span class="live" id="live"></span></div>
+  </figure>
+
+  <div class="controls">
+    <div class="panel">
+      <div class="row">
+        <button type="button" class="btn" id="tick">Tick</button>
+        <button type="button" class="btn" id="rec">Start recording</button>
+        <button type="button" class="btn" id="rep">Start replay</button>
+        <button type="button" class="btn" id="merge" aria-pressed="true">Merge: on</button>
+        <button type="button" class="btn" id="reset">Reset</button>
+      </div>
+    </div>
+    <div class="panel"><pre id="readout" aria-live="polite"></pre></div>
+  </div>
+</section>
+
+<section>
+  <h2>Contents</h2>
+  <ol class="toc">
+    <li><a href="#what">What Archive is</a></li>
+    <li><a href="#record">Recording</a></li>
+    <li><a href="#replay">Replaying</a></li>
+    <li><a href="#merge">Replay merge</a></li>
+    <li><a href="#catalog">The catalog</a></li>
+    <li><a href="#durable">Durability and checksums</a></li>
+    <li><a href="#manage">Managing recordings</a></li>
+    <li><a href="#threads">Threading</a></li>
+    <li><a href="#sources">Sources</a></li>
+  </ol>
+</section>
+
+<section id="what">
+  <h2>1. What Archive is</h2>
+  <p>Aeron Archive records message streams to storage and replays them later, or while they are still being recorded. It is a normal Aeron application. It listens on a control channel for requests, and records by subscribing to a stream like any other subscriber. Its limit is the speed of the disk, and with fast storage it can record or replay at 10 Gb line rate.</p>
+  <p class="callout">Recording turns a live stream into history you can read again.</p>
+  <p>Why record? To let a restarted service catch up on what it missed, to reproduce an incident in a test environment, and to run a new version against the same input as the live one.</p>
+</section>
+
+<section id="record">
+  <h2>2. Recording</h2>
+  <p>You ask Archive to record a channel and stream pair. Each image that arrives is stored as its own <b>recording</b> with a <code>recordingId</code>.</p>
+  <ul class="tight">
+    <li><b>Receiving end:</b> record an IPC publication, or the image of a network publication, with a normal subscription.</li>
+    <li><b>Sending end:</b> record a network publication using a spy subscription. It reads the publication buffer beside the Sender, so there is no network hop.</li>
+    <li><b>Extend:</b> add to an existing recording by appending.</li>
+  </ul>
+  <p>A spy has no real receiver to connect. To record with no subscribers connected, set the property that lets spies simulate a connection. IPC channels connect as soon as the Archive starts recording.</p>
+</section>
+
+<section id="replay">
+  <h2>3. Replaying</h2>
+  <p>A replay request names a <code>recordingId</code>, a start position and a length. An open-ended length keeps going. Archive reads the recording and publishes it on a new replay publication. The consumer subscribes to the replay channel and stream, not the live one.</p>
+  <ul class="tight">
+    <li>A replay can read a finished recording or one still in progress.</li>
+    <li>If the replay reaches the end of a live recording, it tracks the live edge.</li>
+    <li>Send replays to a different channel and stream pair from the live one to avoid congestion.</li>
+    <li>A slow replay does not slow the live stream, because it is its own stream with its own flow control.</li>
+  </ul>
+</section>
+
+<section id="merge">
+  <h2>4. Replay merge</h2>
+  <p>A late joiner needs history and then the live stream, with no gap and no repeat. Replay merge does this in stages.</p>
+  <ol class="toc">
+    <li>Replay the recording from the wanted position.</li>
+    <li>Once the replay is close to the live position, also add the live stream as a destination.</li>
+    <li>When the replay reaches the point where live data begins, drop the replay. The subscriber is now on the live stream.</li>
+  </ol>
+  <p>It works only if the consumer is fast enough to keep up. If it is slower than the live rate, it never catches up. That is why the demo replay runs faster than the live tick.</p>
+</section>
+
+<section id="catalog">
+  <h2>5. The catalog</h2>
+  <p>The catalog lists what the Archive holds as <b>recording descriptors</b>. You can page through all of them or filter by channel and stream. A descriptor holds the recording id, start and stop timestamps, start and stop positions, stream and session ids, term and segment sizes, and the channel.</p>
+  <table class="ops">
+    <thead><tr><th>Field</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td>startPosition</td><td>Where in the stream the recording begins.</td></tr>
+      <tr><td>stopPosition</td><td>Where it ended. A value of -1 means it is still being recorded.</td></tr>
+      <tr><td>termBufferLength</td><td>The stream's term size, used to map positions to files.</td></tr>
+      <tr><td>segmentFileLength</td><td>Size of each file on disk. A multiple of the term size.</td></tr>
+    </tbody>
+  </table>
+  <p>The <code>rec-pos</code> counter shows the progress of each active recording, and tools such as AeronStat can read it.</p>
+</section>
+
+<section id="durable">
+  <h2>6. Durability and checksums</h2>
+  <p>The file sync level sets how hard Archive pushes data to disk.</p>
+  <table class="ops">
+    <thead><tr><th>Level</th><th>Behavior</th></tr></thead>
+    <tbody>
+      <tr><td>0</td><td>Write to the OS page cache and let it flush later.</td></tr>
+      <tr><td>1</td><td>Force dirty data pages to disk.</td></tr>
+      <tr><td>2</td><td>Force data pages and file metadata to disk.</td></tr>
+    </tbody>
+  </table>
+  <p>If you raise the level, raise the catalog sync level to match. Higher levels cost latency and throughput.</p>
+  <p>Archive can compute a checksum while it records and check it on replay. CRC32 is always available and CRC32C is faster on newer JDKs. Use the same checksum for both, or replay fails. Checksums have a real performance cost.</p>
+</section>
+
+<section id="manage">
+  <h2>7. Managing recordings</h2>
+  <ul class="tight">
+    <li><b>Truncate:</b> cut a stopped recording shorter. Truncating to the start deletes it.</li>
+    <li><b>Replicate:</b> copy a recording from one Archive to another, and optionally merge with a live stream to keep recording.</li>
+    <li><b>Purge and restore:</b> detach the oldest segments of a long recording to save disk, and attach them back later.</li>
+    <li><b>Query:</b> list descriptors and read the recorded position of an active recording.</li>
+  </ul>
+</section>
+
+<section id="threads">
+  <h2>8. Threading</h2>
+  <table class="ops">
+    <thead><tr><th>Mode</th><th>Threads</th></tr></thead>
+    <tbody>
+      <tr><td>DEDICATED</td><td>Three: one for control and queries, one for recording, one for replay.</td></tr>
+      <tr><td>SHARED</td><td>One thread does all of it.</td></tr>
+      <tr><td>INVOKER</td><td>None. Your code drives the duty cycle.</td></tr>
+    </tbody>
+  </table>
+  <p>The Archive embeds a media driver, so the total thread count is the Archive mode plus the driver mode.</p>
+</section>
+
+
+<section id="sources">
+  <h2>Sources</h2>
+  <p class="src">Written from the Aeron project documentation on the <a href="https://github.com/aeron-io/aeron/wiki">Aeron GitHub wiki</a> and <a href="https://aeron.io/docs/">aeron.io</a>. The text and the demo are original summaries. Aeron is open source, and its trademark belongs to its owner.</p>
+</section>
+
+</main>
+
+<script>
+
+(function () {
+  var S, merged;
+  function $(id) { return document.getElementById(id); }
+  function fresh() { S = { live: 0, recOn: false, recStart: null, rec: 0, replay: null, merge: true, done: false }; S.log = 'The stream is live but nothing is recorded yet.\nPress Tick, then Start recording.'; }
+  function tick() {
+    S.live += 10;
+    var l = ['live position -> ' + S.live];
+    if (S.recOn) { S.rec = S.live; l.push('recording position -> ' + S.rec); }
+    var r = S.replay;
+    if (r && !r.merged) {
+      r.pos = Math.min(r.pos + 25, S.rec);
+      l.push('replay position -> ' + r.pos);
+      if (r.pos >= S.rec) {
+        if (S.merge && S.recOn) { r.merged = true; l.push('Replay caught up with live.\nMerge complete: the subscriber now reads the live stream and the replay is dropped.'); }
+        else if (S.recOn) l.push('Replay is at the live edge and tracks the recording.');
+        else { l.push('Replay reached the end of the recording and stops.'); S.replay = null; }
+      }
+    }
+    S.log = l.join('\n');
+  }
+  function bar(id, lo, hi, max) {
+    var i = $(id).firstChild; while (i && i.tagName !== 'I') i = i.nextSibling;
+    i.style.left = (lo / max * 100) + '%'; i.style.width = Math.max(0, (hi - lo) / max * 100) + '%';
+  }
+  function render() {
+    var max = Math.max(200, S.live + 20);
+    bar('b1', 0, S.live, max);
+    bar('b2', S.recStart == null ? 0 : S.recStart, S.recStart == null ? 0 : S.rec, max);
+    bar('b3', 0, S.replay ? S.replay.pos : 0, max);
+    $('rec').textContent = S.recOn ? 'Stop recording' : 'Start recording';
+    $('rep').textContent = S.replay && !S.replay.merged ? 'Stop replay' : 'Start replay';
+    $('merge').textContent = 'Merge: ' + (S.merge ? 'on' : 'off');
+    $('merge').setAttribute('aria-pressed', S.merge ? 'true' : 'false');
+    $('readout').textContent = S.log + '\n\nlive ' + S.live + ' · rec-pos ' + (S.recStart == null ? '-' : S.rec) + ' · replay ' + (S.replay ? S.replay.pos + (S.replay.merged ? ' (merged)' : '') : '-');
+    $('live').textContent = S.replay && S.replay.merged ? 'on live stream' : (S.recOn ? 'recording' : 'not recording');
+  }
+  $('tick').addEventListener('click', function () { tick(); render(); });
+  $('rec').addEventListener('click', function () {
+    if (S.recOn) { S.recOn = false; S.log = 'Recording stopped. stopPosition = ' + S.rec + '.'; }
+    else { S.recOn = true; S.recStart = S.live; S.rec = S.live; S.replay = null; S.log = 'Recording started at position ' + S.live + '.\nA new recordingId is added to the catalog. stopPosition is -1 while active.'; }
+    render();
+  });
+  $('rep').addEventListener('click', function () {
+    if (S.replay && !S.replay.merged) { S.replay = null; S.log = 'Replay stopped.'; }
+    else if (S.recStart == null) S.log = 'There is no recording to replay. Start recording first.';
+    else { S.replay = { pos: S.recStart, merged: false }; S.log = 'Replay requested from position ' + S.recStart + '.\nArchive publishes it on a separate replay channel and stream.'; }
+    render();
+  });
+  $('merge').addEventListener('click', function () { S.merge = !S.merge; render(); });
+  $('reset').addEventListener('click', function () { fresh(); render(); });
+  fresh(); render();
+})();
+
+</script>
+</body>
+</html>
