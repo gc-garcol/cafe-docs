@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Polynomial Interpolation: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;text-align:center;overflow-x:auto}
+.formula .katex{font-size:1.25em}
+.katex{color:var(--ink)}
+p .katex,td .katex,li .katex{font-size:1.05em}
+
+.lab{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:24px;align-items:start;margin-top:24px}
+.card{margin:0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.stage{padding:0 8px}
+.stage svg{display:block;width:100%;height:auto}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.seg{display:flex;border:1px solid var(--rule-solid);border-radius:6px;overflow:hidden;margin-bottom:16px}
+.seg button{flex:1;min-height:40px;border:0;background:transparent;font:500 13px var(--sans);color:var(--muted);cursor:pointer;padding:0 8px}
+.seg button+button{border-left:1px solid var(--rule-solid)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.row{display:grid;grid-template-columns:56px 1fr 40px;gap:12px;align-items:center;margin:12px 0}
+.row label{font-family:var(--mono);font-size:13px;font-weight:600}
+.row output{font-family:var(--mono);font-size:12px;text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);min-height:28px}
+#readout{margin:16px 0 0;padding:14px 16px;background:var(--paper);border:1px solid var(--rule);border-radius:6px;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;min-height:120px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:2px;border:1px solid var(--ink);display:inline-block}
+
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:30px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+table.ops{border-collapse:collapse;width:100%;max-width:760px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);border-radius:6px;font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule)}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
+@media (max-width:860px){.lab{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" href="../../../index.html">&larr; Back to home</a>
+
+<header>
+  <div class="eyebrow">Mathematics · Numerical analysis</div>
+  <h1>Polynomial Interpolation</h1>
+  <p class="lede">Given a handful of points, find the one polynomial that passes through all of them. It is the simplest way to turn scattered data into a smooth formula you can evaluate anywhere.</p>
+</header>
+
+<section>
+  <h2>Try it first</h2>
+  <p>The dark curve is the true function. The blue dots are sample points on it, and the orange curve is the polynomial that passes through every dot. Add points and the fit should improve. Then pick the Runge function with equal spacing and keep adding. Something unexpected happens near the ends.</p>
+
+  <div class="lab">
+    <figure class="card">
+      <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title" id="fnTitle">Runge function</span></div>
+      <div class="stage">
+        <svg id="plot" viewBox="0 0 560 400" role="img" aria-labelledby="plot-title plot-desc">
+          <title id="plot-title">A function and the polynomial through sample points on it</title>
+          <desc id="plot-desc">A dark curve shows the chosen function on the interval from minus one to one. Blue dots mark sample points. An orange curve is the polynomial that passes through every dot. With many equally spaced points on the Runge function the orange curve swings wildly near both ends, while Chebyshev spacing keeps it close to the dark curve.</desc>
+        </svg>
+      </div>
+      <div class="card-bottom"><span class="hint">Add points, switch spacing</span><span class="live" id="live"></span></div>
+    </figure>
+
+    <div>
+      <div class="panel">
+        <div class="seg" role="group" aria-label="Function">
+          <button type="button" data-fn="0" aria-pressed="true">Runge</button>
+          <button type="button" data-fn="1" aria-pressed="false">sin πx</button>
+          <button type="button" data-fn="2" aria-pressed="false">|x|</button>
+        </div>
+        <div class="seg" role="group" aria-label="Point spacing">
+          <button type="button" data-nd="0" aria-pressed="true">Equal spacing</button>
+          <button type="button" data-nd="1" aria-pressed="false">Chebyshev</button>
+        </div>
+        <div class="row"><label for="inN">points</label><input type="range" id="inN" min="2" max="21" value="9"><output id="outN"></output></div>
+        <div id="readout" aria-live="polite"></div>
+      </div>
+      <div class="legend" aria-label="Legend">
+        <span><i class="sw" style="background:#2d3142"></i>true function</span>
+        <span><i class="sw" style="background:#bf4520;border-color:#bf4520"></i>interpolating polynomial</span>
+        <span><i class="sw" style="background:#2e5aa8;border-color:#2e5aa8"></i>sample points</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>1. The problem</h2>
+  <p>You measured a quantity at a few inputs: $(x_0, y_0), (x_1, y_1), \dots, (x_n, y_n)$. You want a function $p$ with $p(x_i) = y_i$ for every $i$, so you can estimate values between the measurements.</p>
+  <div class="callout">Connect the dots with a smooth curve that can be written as a formula.</div>
+</section>
+
+<section>
+  <h2>2. One and only one</h2>
+  <p>Through $n+1$ points with distinct $x$ values there is exactly one polynomial of degree at most $n$. Two points give a line, three give a parabola, four give a cubic.</p>
+  <p>Why only one? Suppose two such polynomials existed. Their difference has degree at most $n$ but is zero at $n+1$ points. A nonzero polynomial of degree $n$ has at most $n$ roots, so the difference must be zero everywhere.</p>
+  <p>The direct way to find it is to solve for the coefficients. Plugging each point into $p(x) = c_0 + c_1 x + \dots + c_n x^n$ gives a linear system with the Vandermonde matrix:</p>
+  <div class="formula">$$\begin{bmatrix} 1 & x_0 & \cdots & x_0^n \\ 1 & x_1 & \cdots & x_1^n \\ \vdots & \vdots & & \vdots \\ 1 & x_n & \cdots & x_n^n \end{bmatrix} \begin{bmatrix} c_0 \\ c_1 \\ \vdots \\ c_n \end{bmatrix} = \begin{bmatrix} y_0 \\ y_1 \\ \vdots \\ y_n \end{bmatrix}$$</div>
+  <p>This works but is slow, $O(n^3)$, and the matrix becomes badly conditioned as $n$ grows. The next two forms avoid it.</p>
+</section>
+
+<section>
+  <h2>3. Lagrange form</h2>
+  <p>Build one basis polynomial per point. Each one equals 1 at its own point and 0 at every other point.</p>
+  <div class="formula">$$\ell_j(x) = \prod_{k \ne j} \frac{x - x_k}{x_j - x_k}$$</div>
+  <p>Then weight each basis polynomial by the measured value and add them up. At $x = x_i$ only $\ell_i$ survives, so the sum returns $y_i$.</p>
+  <div class="formula">$$p(x) = \sum_{j=0}^{n} y_j\,\ell_j(x)$$</div>
+  <p>Worked example with points $(0,1)$, $(1,3)$, $(2,2)$:</p>
+  <div class="formula">$$p(x) = 1\cdot\frac{(x-1)(x-2)}{2} + 3\cdot\frac{x(x-2)}{-1} + 2\cdot\frac{x(x-1)}{2} = -\frac{3}{2}x^2 + \frac{7}{2}x + 1$$</div>
+  <p>Check: $p(0) = 1$, $p(1) = -1.5 + 3.5 + 1 = 3$, and $p(2) = -6 + 7 + 1 = 2$.</p>
+</section>
+
+<section>
+  <h2>4. Newton form</h2>
+  <p>Lagrange is clean but adding a point means starting over. Newton's form builds the polynomial one term at a time, so a new point only adds a new term.</p>
+  <div class="formula">$$p(x) = a_0 + a_1(x-x_0) + a_2(x-x_0)(x-x_1) + \cdots$$</div>
+  <p>The coefficients are divided differences, computed from a small table in $O(n^2)$ steps. Evaluating the result with nested multiplication costs $O(n)$ per point.</p>
+  <div class="formula">$$a_k = f[x_0, \dots, x_k], \qquad f[x_i, x_j] = \frac{f(x_j) - f(x_i)}{x_j - x_i}$$</div>
+  <p>The first divided difference is just the slope between two points, which links this idea back to derivatives.</p>
+</section>
+
+<section>
+  <h2>5. How big is the error?</h2>
+  <p>If the points sample a smooth function $f$, the gap between $f$ and the interpolating polynomial has a precise form. It looks like the Taylor remainder, with the factor $(x-a)^{n+1}$ replaced by a product over all nodes.</p>
+  <div class="formula">$$f(x) - p(x) = \frac{f^{(n+1)}(\xi)}{(n+1)!}\prod_{i=0}^{n}(x - x_i)$$</div>
+  <p>Here $\xi$ is some unknown point in the interval. Two things control the error. One is how fast the derivatives of $f$ grow. The other is the node product $\prod (x - x_i)$, which you can shape by choosing where to place the points.</p>
+</section>
+
+<section>
+  <h2>6. Runge's phenomenon</h2>
+  <p>More points do not always mean a better fit. For $f(x) = \frac{1}{1 + 25x^2}$ on $[-1, 1]$ with equally spaced nodes, the error near the ends grows without bound as $n$ increases. The node product is largest near the edges when points are evenly spread, and this function has large high-order derivatives.</p>
+  <p>The fix is to bunch the nodes toward the ends. Chebyshev nodes do this and minimize the largest value of the node product:</p>
+  <div class="formula">$$x_i = \cos\!\left(\frac{(2i+1)\pi}{2(n+1)}\right), \quad i = 0, \dots, n$$</div>
+  <p>Switch to Chebyshev in the lab and compare the max error. It drops steadily as points are added.</p>
+  <div class="cards">
+    <div class="stat focal"><div class="eyebrow">Equal spacing</div><div class="big">unstable</div><p>Fine for a few points, wild near the ends for many.</p></div>
+    <div class="stat"><div class="eyebrow">Chebyshev</div><div class="big">stable</div><p>Error shrinks as $n$ grows for smooth functions.</p></div>
+    <div class="stat"><div class="eyebrow">Kinks like |x|</div><div class="big">slow</div><p>Any polynomial converges slowly where the function is not smooth.</p></div>
+  </div>
+</section>
+
+<section>
+  <h2>7. What people do in practice</h2>
+  <ul class="tight">
+    <li><b>Keep the degree low.</b> Stitch many low-degree pieces instead of one high-degree polynomial. Piecewise linear and cubic splines are the usual choice for data.</li>
+    <li><b>Use stable evaluation.</b> The barycentric form of the Lagrange formula evaluates in $O(n)$ per point and avoids the Vandermonde trouble. This page uses it.</li>
+    <li><b>Do not extrapolate.</b> Outside the range of the points, a polynomial diverges fast.</li>
+    <li><b>Where it appears.</b> Numerical integration rules such as Simpson's rule, root finding, Shamir's secret sharing, and error-correcting codes are all built on interpolation.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>8. Next</h2>
+  <p>Taylor series match a function using derivatives at one point. Interpolation matches it using values at many points. See the Taylor Series guide for the other side, and the Integrals guide for how interpolating polynomials give quadrature rules.</p>
+</section>
+
+</main>
+
+<script>
+(function () {
+  var NSV = 'http://www.w3.org/2000/svg';
+  var W = 560, H = 400, M = 36;
+  var VIEW = [-1.2, 1.2, -1.5, 1.5];
+  var $ = function (s) { return document.querySelector(s); };
+
+  var FNS = [
+    { name: 'Runge function', f: function (x) { return 1 / (1 + 25 * x * x); } },
+    { name: 'sin πx', f: function (x) { return Math.sin(Math.PI * x); } },
+    { name: '|x|', f: function (x) { return Math.abs(x); } }
+  ];
+  var cur = 0, nodeType = 0;
+
+  function el(n, attrs, parent) {
+    var e = document.createElementNS(NSV, n);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function nodes(n) {
+    var xs = [];
+    for (var i = 0; i < n; i++) {
+      xs.push(nodeType === 0 ? -1 + 2 * i / (n - 1) : Math.cos((2 * i + 1) * Math.PI / (2 * n)));
+    }
+    return xs.sort(function (a, b) { return a - b; });
+  }
+  // barycentric Lagrange: stable and O(n) per evaluation
+  function weights(xs) {
+    return xs.map(function (xj, j) {
+      var p = 1;
+      for (var k = 0; k < xs.length; k++) if (k !== j) p *= (xj - xs[k]);
+      return 1 / p;
+    });
+  }
+  function evalBary(xs, ys, w, x) {
+    var num = 0, den = 0;
+    for (var j = 0; j < xs.length; j++) {
+      var d = x - xs[j];
+      if (d === 0) return ys[j];
+      var t = w[j] / d;
+      num += t * ys[j]; den += t;
+    }
+    return num / den;
+  }
+  function f3(v) { return (Math.abs(v) >= 1e4 ? v.toExponential(2) : v.toFixed(3)); }
+
+  function render() {
+    var F = FNS[cur], v = VIEW, n = +$('#inN').value;
+    var xs = nodes(n), ys = xs.map(F.f), w = weights(xs);
+    var svg = $('#plot');
+    Array.prototype.slice.call(svg.querySelectorAll('.dyn,defs')).forEach(function (x) { x.remove(); });
+    var defs = el('defs', {}, svg);
+    var cp = el('clipPath', { id: 'clip' }, defs);
+    el('rect', { x: M, y: M, width: W - 2 * M, height: H - 2 * M }, cp);
+    var g = el('g', { 'class': 'dyn' }, svg);
+    var X = function (x) { return M + (x - v[0]) / (v[1] - v[0]) * (W - 2 * M); };
+    var Y = function (y) { return H - M - (y - v[2]) / (v[3] - v[2]) * (H - 2 * M); };
+    var lab = function (x, y, anchor, txt) {
+      var t = el('text', { x: x, y: y, 'text-anchor': anchor, 'font-size': 10, fill: '#5a6580', 'font-family': 'Geist Mono, monospace' }, g);
+      t.textContent = txt;
+    };
+    [-1, -0.5, 0, 0.5, 1].forEach(function (gx) {
+      el('line', { x1: X(gx), x2: X(gx), y1: Y(v[2]), y2: Y(v[3]), stroke: gx === 0 ? '#2d3142' : 'rgba(45,49,66,.1)' }, g);
+      lab(X(gx), H - M + 16, 'middle', gx);
+    });
+    [-1, -0.5, 0, 0.5, 1, 1.5].forEach(function (gy) {
+      el('line', { x1: X(v[0]), x2: X(v[1]), y1: Y(gy), y2: Y(gy), stroke: gy === 0 ? '#2d3142' : 'rgba(45,49,66,.1)' }, g);
+      lab(M - 6, Y(gy) + 3, 'end', gy);
+    });
+
+    var c = el('g', { 'clip-path': 'url(#clip)' }, g);
+    var trace = function (fn, color, wd) {
+      var d = '', N = 480, pen = false;
+      for (var i = 0; i <= N; i++) {
+        var x = -1 + 2 * i / N, y = fn(x);
+        if (!isFinite(y) || Math.abs(y) > 50) { pen = false; continue; }
+        d += (pen ? ' L' : ' M') + X(x).toFixed(1) + ' ' + Y(y).toFixed(1);
+        pen = true;
+      }
+      el('path', { d: d, fill: 'none', stroke: color, 'stroke-width': wd, 'stroke-linejoin': 'round' }, c);
+    };
+    trace(function (x) { return evalBary(xs, ys, w, x); }, '#bf4520', 2.4);
+    trace(F.f, '#2d3142', 2);
+    xs.forEach(function (x, i) { el('circle', { cx: X(x), cy: Y(ys[i]), r: 4.5, fill: '#2e5aa8', stroke: '#fff', 'stroke-width': 1.2 }, c); });
+
+    // max error over [-1, 1]
+    var maxErr = 0, at = 0, N = 800;
+    for (var i = 0; i <= N; i++) {
+      var x = -1 + 2 * i / N, e = Math.abs(F.f(x) - evalBary(xs, ys, w, x));
+      if (e > maxErr) { maxErr = e; at = x; }
+    }
+    $('#outN').textContent = n;
+    $('#fnTitle').textContent = F.name;
+    $('#live').textContent = 'max error = ' + f3(maxErr);
+    $('#readout').textContent =
+      'points       = ' + n + '\n' +
+      'degree       = ' + (n - 1) + '\n' +
+      'spacing      = ' + (nodeType ? 'Chebyshev' : 'equal') + '\n' +
+      'max error    = ' + f3(maxErr) + '\n' +
+      'worst at x   = ' + at.toFixed(2);
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll('[data-fn]'), function (b) {
+    b.addEventListener('click', function () {
+      cur = +b.dataset.fn;
+      Array.prototype.forEach.call(document.querySelectorAll('[data-fn]'), function (o) { o.setAttribute('aria-pressed', o === b); });
+      render();
+    });
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('[data-nd]'), function (b) {
+    b.addEventListener('click', function () {
+      nodeType = +b.dataset.nd;
+      Array.prototype.forEach.call(document.querySelectorAll('[data-nd]'), function (o) { o.setAttribute('aria-pressed', o === b); });
+      render();
+    });
+  });
+  $('#inN').addEventListener('input', render);
+  render();
+})();
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  renderMathInElement(document.body, {
+    delimiters: [
+      { left: '$$', right: '$$', display: true },
+      { left: '$', right: '$', display: false }
+    ],
+    ignoredTags: ['script', 'style', 'textarea', 'pre', 'code'],
+    throwOnError: false
+  });
+});
+</script>
+</body>
+</html>

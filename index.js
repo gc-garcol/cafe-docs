@@ -332,6 +332,16 @@ const DOCS = [
     summary: 'Update a belief when evidence arrives. Count 1000 people and see why a positive test for a rare condition is usually a false alarm.',
     related: ['Bloom Filter', 'Integrals'],
   },
+  {
+    title: 'Polynomial Interpolation',
+    path: 'content/math/polynomial-interpolation/polynomial-interpolation.html',
+    category: 'Mathematics',
+    topic: 'Numerical analysis',
+    level: 'Intermediate',
+    tags: ['interpolation', 'polynomial', 'lagrange', 'newton', 'runge', 'chebyshev', 'numerical', 'approximation'],
+    summary: 'Find the one polynomial that passes through every data point. Add points, compare equal and Chebyshev spacing, and watch Runge\'s phenomenon appear.',
+    related: ['Taylor Series', 'Derivatives', 'Integrals'],
+  },
 ];
 
 // ---------- helpers ----------
