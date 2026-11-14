@@ -7,6 +7,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
 <style>
 :root{
   --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
@@ -32,7 +35,10 @@ section p{max-width:68ch;margin:0 0 14px}
 code,.mono{font-family:var(--mono);font-size:.88em}
 p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
 .callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
-.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;font-family:var(--serif);font-size:24px;text-align:center;overflow-x:auto}
+.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;text-align:center;overflow-x:auto}
+.formula .katex{font-size:1.25em}
+.katex{color:var(--ink)}
+p .katex,td .katex,li .katex{font-size:1.05em}
 
 .lab{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:24px;align-items:start;margin-top:24px}
 .card{margin:0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
@@ -90,11 +96,11 @@ table.ops tr:last-child td{border-bottom:0}
 
 <section>
   <h2>Try it first</h2>
-  <p>A complex function <code>f</code> sends each point <code>z</code> in the left plane to a point <code>w = f(z)</code> in the right plane. The grid lines on the left bend into curves on the right, yet they still cross at right angles. Move the point and read how <code>f′(z)</code> rotates and scales its neighborhood.</p>
+  <p>A complex function $f$ sends each point $z$ in the left plane to a point $w = f(z)$ in the right plane. The grid lines on the left bend into curves on the right, yet they still cross at right angles. Move the point and read how $f'(z)$ rotates and scales its neighborhood.</p>
 
   <div class="lab">
     <figure class="card">
-      <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title" id="fnTitle">w = z²</span></div>
+      <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title" id="fnTitle">$w = z^2$</span></div>
       <div class="planes">
         <svg id="zPlane" viewBox="0 0 320 320" role="img" aria-labelledby="zp-title zp-desc">
           <title id="zp-title">The z plane</title>
@@ -105,24 +111,24 @@ table.ops tr:last-child td{border-bottom:0}
           <desc id="wp-desc">The image of the grid under the chosen function, drawn as curves that still cross at right angles, with the image point f of z marked.</desc>
         </svg>
       </div>
-      <div class="card-bottom"><span class="hint">Left: z · Right: w = f(z)</span><span class="live" id="live"></span></div>
+      <div class="card-bottom"><span class="hint">Left: $z$ · Right: $w = f(z)$</span><span class="live" id="live"></span></div>
     </figure>
 
     <div>
       <div class="panel">
         <div class="seg" role="group" aria-label="Function">
-          <button type="button" data-fn="0" aria-pressed="true">z²</button>
-          <button type="button" data-fn="1" aria-pressed="false">1/z</button>
-          <button type="button" data-fn="2" aria-pressed="false">eᶻ</button>
-          <button type="button" data-fn="3" aria-pressed="false">sin z</button>
+          <button type="button" data-fn="0" aria-pressed="true">$z^2$</button>
+          <button type="button" data-fn="1" aria-pressed="false">$1/z$</button>
+          <button type="button" data-fn="2" aria-pressed="false">$e^z$</button>
+          <button type="button" data-fn="3" aria-pressed="false">$\sin z$</button>
         </div>
-        <div class="row"><label for="inX">Re z</label><input type="range" id="inX" min="-2" max="2" step="0.05" value="0.8"><output id="outX"></output></div>
-        <div class="row"><label for="inY">Im z</label><input type="range" id="inY" min="-2" max="2" step="0.05" value="0.6"><output id="outY"></output></div>
+        <div class="row"><label for="inX">$\mathrm{Re}\,z$</label><input type="range" id="inX" min="-2" max="2" step="0.05" value="0.8"><output id="outX"></output></div>
+        <div class="row"><label for="inY">$\mathrm{Im}\,z$</label><input type="range" id="inY" min="-2" max="2" step="0.05" value="0.6"><output id="outY"></output></div>
         <div id="readout" aria-live="polite"></div>
       </div>
       <div class="legend" aria-label="Legend">
-        <span><i class="sw" style="background:#2e5aa8"></i>Re z = const</span>
-        <span><i class="sw" style="background:#bf4520"></i>Im z = const</span>
+        <span><i class="sw" style="background:#2e5aa8"></i>$\mathrm{Re}\,z = \text{const}$</span>
+        <span><i class="sw" style="background:#bf4520"></i>$\mathrm{Im}\,z = \text{const}$</span>
         <span><i class="sw" style="background:#2d3142"></i>the point</span>
       </div>
     </div>
@@ -131,47 +137,47 @@ table.ops tr:last-child td{border-bottom:0}
 
 <section>
   <h2>1. Numbers with two parts</h2>
-  <p>A complex number is <code>z = x + iy</code> with <code>i² = −1</code>. It lives at the point <code>(x, y)</code> of a plane. In polar form it has a length and an angle.</p>
-  <div class="formula">z = r·e<sup>iθ</sup> = r(cos θ + i sin θ)</div>
-  <p>Multiplying two complex numbers multiplies their lengths and adds their angles. So multiplication by <code>z</code> is a rotation plus a stretch. That single fact explains most of what follows.</p>
+  <p>A complex number is $z = x + iy$ with $i^2 = -1$. It lives at the point $(x, y)$ of a plane. In polar form it has a length and an angle.</p>
+  <div class="formula">$$z = r\,e^{i\theta} = r(\cos\theta + i\sin\theta)$$</div>
+  <p>Multiplying two complex numbers multiplies their lengths and adds their angles. So multiplication by $z$ is a rotation plus a stretch. That single fact explains most of what follows.</p>
 </section>
 
 <section>
   <h2>2. Functions as maps</h2>
   <p>A real function draws a graph. A complex function needs four dimensions, two in and two out, so we picture it as a map between two planes, as in Fig 1.</p>
   <ul>
-    <li><code>z²</code> squares the length and doubles the angle. It folds the plane around the origin.</li>
-    <li><code>1/z</code> inverts the length and flips the angle. It swaps the inside and outside of the unit circle.</li>
-    <li><code>eᶻ = eˣ(cos y + i sin y)</code> turns horizontal lines into rays and vertical lines into circles.</li>
-    <li><code>sin z</code> repeats along the real axis and grows quickly in the imaginary direction.</li>
+    <li>$z^2$ squares the length and doubles the angle. It folds the plane around the origin.</li>
+    <li>$1/z$ inverts the length and flips the angle. It swaps the inside and outside of the unit circle.</li>
+    <li>$e^z = e^x(\cos y + i\sin y)$ turns horizontal lines into rays and vertical lines into circles.</li>
+    <li>$\sin z$ repeats along the real axis and grows quickly in the imaginary direction.</li>
   </ul>
 </section>
 
 <section>
   <h2>3. The complex derivative</h2>
   <p>The definition looks like the real one.</p>
-  <div class="formula">f′(z) = lim<sub>h→0</sub> [f(z + h) − f(z)] / h</div>
-  <p>The catch is that <code>h</code> is a complex number and may approach zero from any direction in the plane. The limit must agree along every path. That is a strong demand, and it forces the function to behave like multiplication by one complex number, <code>f′(z)</code>, near each point.</p>
-  <div class="callout">Reading <code>f′(z)</code>: its length is the local zoom, its angle is the local turn.</div>
-  <p>Try it in the lab. For <code>z²</code> at <code>z = 0.8 + 0.6i</code> the derivative is <code>2z = 1.6 + 1.2i</code>. Its length is <code>2</code> and the readout reports that scale factor.</p>
+  <div class="formula">$$f'(z) = \lim_{h \to 0} \frac{f(z + h) - f(z)}{h}$$</div>
+  <p>The catch is that $h$ is a complex number and may approach zero from any direction in the plane. The limit must agree along every path. That is a strong demand, and it forces the function to behave like multiplication by one complex number, $f'(z)$, near each point.</p>
+  <div class="callout">Reading $f'(z)$: its length is the local zoom, its angle is the local turn.</div>
+  <p>Try it in the lab. For $z^2$ at $z = 0.8 + 0.6i$ the derivative is $2z = 1.6 + 1.2i$. Its length is $2$ and the readout reports that scale factor.</p>
 </section>
 
 <section>
   <h2>4. Cauchy–Riemann and analytic functions</h2>
-  <p>Write <code>f = u + iv</code>. The limit agrees along the horizontal and vertical directions only when these two equations hold.</p>
-  <div class="formula">∂u/∂x = ∂v/∂y &nbsp;&nbsp; and &nbsp;&nbsp; ∂u/∂y = −∂v/∂x</div>
-  <p>A function that has a complex derivative on an open region is called <b>analytic</b> (or holomorphic). Because the derivative is a rotation and a stretch, analytic maps are <b>conformal</b>: they keep angles. That is why the grid in Fig 1 keeps its right-angle crossings, except at points where <code>f′ = 0</code> or where <code>f</code> blows up.</p>
+  <p>Write $f = u + iv$. The limit agrees along the horizontal and vertical directions only when these two equations hold.</p>
+  <div class="formula">$$\frac{\partial u}{\partial x} = \frac{\partial v}{\partial y} \quad\text{and}\quad \frac{\partial u}{\partial y} = -\frac{\partial v}{\partial x}$$</div>
+  <p>A function that has a complex derivative on an open region is called <b>analytic</b> (or holomorphic). Because the derivative is a rotation and a stretch, analytic maps are <b>conformal</b>: they keep angles. That is why the grid in Fig 1 keeps its right-angle crossings, except at points where $f' = 0$ or where $f$ blows up.</p>
   <p>Analytic functions are also far more rigid than real differentiable ones. Having one derivative means having all of them, and the function is fixed everywhere by its values on a tiny patch.</p>
 </section>
 
 <section>
   <h2>5. Integrating along a path</h2>
-  <p>A contour integral adds up <code>f(z) dz</code> along a curve <code>C</code> in the plane.</p>
-  <div class="formula">∮<sub>C</sub> f(z) dz</div>
-  <p><b>Cauchy's theorem:</b> if <code>f</code> is analytic everywhere inside and on a closed loop <code>C</code>, the integral around the loop is <code>0</code>. The value depends only on the endpoints, so any path between them gives the same answer.</p>
-  <p>The interesting case is a loop that encloses a point where <code>f</code> fails to be analytic.</p>
-  <div class="formula">∮<sub>|z|=1</sub> (1 / z) dz = 2πi</div>
-  <p>The function <code>1/z</code> has a pole at the origin. Walking once counterclockwise around it gives <code>2πi</code>, no matter how large or small the loop is.</p>
+  <p>A contour integral adds up $f(z)\,dz$ along a curve $C$ in the plane.</p>
+  <div class="formula">$$\oint_C f(z)\,dz$$</div>
+  <p><b>Cauchy's theorem:</b> if $f$ is analytic everywhere inside and on a closed loop $C$, the integral around the loop is $0$. The value depends only on the endpoints, so any path between them gives the same answer.</p>
+  <p>The interesting case is a loop that encloses a point where $f$ fails to be analytic.</p>
+  <div class="formula">$$\oint_{|z|=1} \frac{1}{z}\,dz = 2\pi i$$</div>
+  <p>The function $1/z$ has a pole at the origin. Walking once counterclockwise around it gives $2\pi i$, no matter how large or small the loop is.</p>
 
   <div class="fig">
     <div class="scroll">
@@ -200,9 +206,9 @@ table.ops tr:last-child td{border-bottom:0}
 
 <section>
   <h2>6. Residues</h2>
-  <p>Near a pole, <code>f</code> expands as a series with negative powers of <code>(z − a)</code>. The coefficient of <code>(z − a)<sup>−1</sup></code> is the <b>residue</b>. It is the only term that survives a trip around the loop.</p>
-  <div class="formula">∮<sub>C</sub> f(z) dz = 2πi · Σ Res(f, a<sub>k</sub>)</div>
-  <p>For a simple pole at <code>a</code> the residue is <code>lim (z − a)·f(z)</code>. Example: <code>f(z) = 1/(z² + 1)</code> has poles at <code>±i</code>. At <code>z = i</code> the residue is <code>1/(2i)</code>. This is how real integrals such as <code>∫ dx/(x² + 1) = π</code> get solved: close the path in the upper half plane and collect one residue.</p>
+  <p>Near a pole, $f$ expands as a series with negative powers of $(z - a)$. The coefficient of $(z - a)^{-1}$ is the <b>residue</b>. It is the only term that survives a trip around the loop.</p>
+  <div class="formula">$$\oint_C f(z)\,dz = 2\pi i \sum_k \mathrm{Res}(f, a_k)$$</div>
+  <p>For a simple pole at $a$ the residue is $\lim_{z \to a} (z - a)\,f(z)$. Example: $f(z) = 1/(z^2 + 1)$ has poles at $\pm i$. At $z = i$ the residue is $1/(2i)$. This is how real integrals such as $\int_{-\infty}^{\infty} \frac{dx}{x^2 + 1} = \pi$ get solved: close the path in the upper half plane and collect one residue.</p>
 </section>
 
 <section>
@@ -210,19 +216,19 @@ table.ops tr:last-child td{border-bottom:0}
   <div class="cards">
     <div class="stat focal"><div class="eyebrow">Derivative</div><div class="big">turn + zoom</div><p>A complex derivative is one number: a rotation and a scale.</p></div>
     <div class="stat"><div class="eyebrow">Cauchy</div><div class="big">loop = 0</div><p>No trouble spots inside means the closed integral vanishes.</p></div>
-    <div class="stat"><div class="eyebrow">Residues</div><div class="big">2πi · Σ</div><p>Each pole inside the loop adds its residue.</p></div>
+    <div class="stat"><div class="eyebrow">Residues</div><div class="big">$2\pi i \sum$</div><p>Each pole inside the loop adds its residue.</p></div>
   </div>
   <table class="ops">
-    <thead><tr><th>f(z)</th><th>f′(z)</th><th>Where it fails</th></tr></thead>
+    <thead><tr><th>$f(z)$</th><th>$f'(z)$</th><th>Where it fails</th></tr></thead>
     <tbody>
-      <tr><td><code>z²</code></td><td><code>2z</code></td><td>nowhere</td></tr>
-      <tr><td><code>1/z</code></td><td><code>−1/z²</code></td><td><code>z = 0</code> (pole)</td></tr>
-      <tr><td><code>eᶻ</code></td><td><code>eᶻ</code></td><td>nowhere</td></tr>
-      <tr><td><code>sin z</code></td><td><code>cos z</code></td><td>nowhere</td></tr>
-      <tr><td><code>z̄</code> (conjugate)</td><td>does not exist</td><td>everywhere</td></tr>
+      <tr><td>$z^2$</td><td>$2z$</td><td>nowhere</td></tr>
+      <tr><td>$1/z$</td><td>$-1/z^2$</td><td>$z = 0$ (pole)</td></tr>
+      <tr><td>$e^z$</td><td>$e^z$</td><td>nowhere</td></tr>
+      <tr><td>$\sin z$</td><td>$\cos z$</td><td>nowhere</td></tr>
+      <tr><td>$\bar{z}$ (conjugate)</td><td>does not exist</td><td>everywhere</td></tr>
     </tbody>
   </table>
-  <p>Complex analysis also underlies the <a href="../laplace-transform/laplace-transform.html" style="color:var(--link)">Laplace transform</a>, where <code>s</code> is a complex variable and poles of <code>F(s)</code> decide a system's behavior.</p>
+  <p>Complex analysis also underlies the <a href="../laplace-transform/laplace-transform.html" style="color:var(--link)">Laplace transform</a>, where $s$ is a complex variable and poles of $F(s)$ decide a system's behavior.</p>
 </section>
 
 </main>
@@ -338,6 +344,18 @@ table.ops tr:last-child td{border-bottom:0}
   $('#inY').addEventListener('input', render);
   render();
 })();
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  renderMathInElement(document.body, {
+    delimiters: [
+      { left: '$$', right: '$$', display: true },
+      { left: '$', right: '$', display: false }
+    ],
+    ignoredTags: ['script', 'style', 'textarea', 'pre', 'code'],
+    throwOnError: false
+  });
+});
 </script>
 </body>
 </html>

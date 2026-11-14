@@ -7,6 +7,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
 <style>
 :root{
   --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
@@ -32,7 +35,10 @@ section p{max-width:68ch;margin:0 0 14px}
 code,.mono{font-family:var(--mono);font-size:.88em}
 p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
 .callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
-.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;font-family:var(--serif);font-size:24px;text-align:center;overflow-x:auto}
+.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;text-align:center;overflow-x:auto}
+.formula .katex{font-size:1.25em}
+.katex{color:var(--ink)}
+p .katex,td .katex,li .katex{font-size:1.05em}
 
 .lab{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:24px;align-items:start;margin-top:24px}
 .card{margin:0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
@@ -86,16 +92,16 @@ a{color:var(--link)}
 <header>
   <div class="eyebrow">Mathematics · Complex numbers</div>
   <h1>Euler's Formula</h1>
-  <p class="lede">Raise <code>e</code> to an imaginary power and you walk around a circle. One line ties exponentials to sine and cosine, and it hides the famous identity <code>e<sup>iπ</sup> + 1 = 0</code>.</p>
+  <p class="lede">Raise $e$ to an imaginary power and you walk around a circle. One line ties exponentials to sine and cosine, and it hides the famous identity $e^{i\pi} + 1 = 0$.</p>
 </header>
 
 <section>
   <h2>Try it first</h2>
-  <p>Drag the angle <code>θ</code>. The point <code>e<sup>iθ</sup></code> rides the unit circle. Its horizontal shadow is <code>cos θ</code> and its vertical shadow is <code>sin θ</code>, drawn as waves on the right. The dashed point is a polynomial guess from the first few terms of the series for <code>e<sup>x</sup></code>. Add terms and watch it lock onto the circle.</p>
+  <p>Drag the angle $\theta$. The point $e^{i\theta}$ rides the unit circle. Its horizontal shadow is $\cos\theta$ and its vertical shadow is $\sin\theta$, drawn as waves on the right. The dashed point is a polynomial guess from the first few terms of the series for $e^x$. Add terms and watch it lock onto the circle.</p>
 
   <div class="lab">
     <figure class="card">
-      <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">e<sup>iθ</sup> = cos θ + i sin θ</span></div>
+      <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">$e^{i\theta} = \cos\theta + i\sin\theta$</span></div>
       <div class="planes">
         <svg id="circle" viewBox="0 0 300 300" role="img" aria-labelledby="c-title c-desc">
           <title id="c-title">The unit circle in the complex plane</title>
@@ -112,19 +118,19 @@ a{color:var(--link)}
     <div>
       <div class="panel">
         <div class="seg" role="group" aria-label="Presets">
-          <button type="button" data-th="0.5235987755982988">π/6</button>
-          <button type="button" data-th="1.5707963267948966">π/2</button>
-          <button type="button" data-th="3.141592653589793">π</button>
-          <button type="button" data-th="6.283185307179586">2π</button>
+          <button type="button" data-th="0.5235987755982988">$\pi/6$</button>
+          <button type="button" data-th="1.5707963267948966">$\pi/2$</button>
+          <button type="button" data-th="3.141592653589793">$\pi$</button>
+          <button type="button" data-th="6.283185307179586">$2\pi$</button>
         </div>
-        <div class="row"><label for="inT">θ</label><input type="range" id="inT" min="0" max="6.283185307179586" step="0.01" value="1"><output id="outT"></output></div>
+        <div class="row"><label for="inT">$\theta$</label><input type="range" id="inT" min="0" max="6.283185307179586" step="0.01" value="1"><output id="outT"></output></div>
         <div class="row"><label for="inN">terms</label><input type="range" id="inN" min="1" max="16" step="1" value="4"><output id="outN"></output></div>
         <div id="readout" aria-live="polite"></div>
       </div>
       <div class="legend" aria-label="Legend">
-        <span><i class="sw" style="background:#2d3142"></i>e<sup>iθ</sup></span>
-        <span><i class="sw" style="background:#2e5aa8"></i>cos θ</span>
-        <span><i class="sw" style="background:#bf4520"></i>sin θ</span>
+        <span><i class="sw" style="background:#2d3142"></i>$e^{i\theta}$</span>
+        <span><i class="sw" style="background:#2e5aa8"></i>$\cos\theta$</span>
+        <span><i class="sw" style="background:#bf4520"></i>$\sin\theta$</span>
       </div>
     </div>
   </div>
@@ -132,26 +138,26 @@ a{color:var(--link)}
 
 <section>
   <h2>1. The formula</h2>
-  <div class="formula">e<sup>iθ</sup> = cos θ + i sin θ</div>
-  <p>The input <code>θ</code> is an angle in radians. The output is a complex number with length exactly <code>1</code>, since <code>cos²θ + sin²θ = 1</code>. As <code>θ</code> grows, the point moves counterclockwise at constant speed. After <code>2π</code> it is back where it started.</p>
-  <p>A general complex number in polar form becomes compact: <code>z = r·e<sup>iθ</sup></code>, with <code>r</code> the length and <code>θ</code> the angle.</p>
+  <div class="formula">$$e^{i\theta} = \cos\theta + i\sin\theta$$</div>
+  <p>The input $\theta$ is an angle in radians. The output is a complex number with length exactly $1$, since $\cos^2\theta + \sin^2\theta = 1$. As $\theta$ grows, the point moves counterclockwise at constant speed. After $2\pi$ it is back where it started.</p>
+  <p>A general complex number in polar form becomes compact: $z = r\,e^{i\theta}$, with $r$ the length and $\theta$ the angle.</p>
 </section>
 
 <section>
   <h2>2. Why it is true</h2>
   <p>The series for the exponential works for any number, including an imaginary one.</p>
-  <div class="formula">e<sup>x</sup> = 1 + x + x²/2! + x³/3! + x⁴/4! + …</div>
-  <p>Put <code>x = iθ</code> and use <code>i² = −1</code>, <code>i³ = −i</code>, <code>i⁴ = 1</code>, then repeat. The powers of <code>i</code> sort the terms into two groups.</p>
-  <div class="formula">e<sup>iθ</sup> = (1 − θ²/2! + θ⁴/4! − …) + i(θ − θ³/3! + θ⁵/5! − …)</div>
-  <p>The first bracket is the series for <code>cos θ</code>. The second is the series for <code>sin θ</code>. The lab shows the same thing: with few terms the dashed point misses, and with about ten it is hidden under the solid one. See the <a href="../taylor-series/taylor-series.html">Taylor series</a> guide for how these polynomials are built.</p>
+  <div class="formula">$$e^x = 1 + x + \frac{x^2}{2!} + \frac{x^3}{3!} + \frac{x^4}{4!} + \cdots$$</div>
+  <p>Put $x = i\theta$ and use $i^2 = -1$, $i^3 = -i$, $i^4 = 1$, then repeat. The powers of $i$ sort the terms into two groups.</p>
+  <div class="formula">$$e^{i\theta} = \left(1 - \frac{\theta^2}{2!} + \frac{\theta^4}{4!} - \cdots\right) + i\left(\theta - \frac{\theta^3}{3!} + \frac{\theta^5}{5!} - \cdots\right)$$</div>
+  <p>The first bracket is the series for $\cos\theta$. The second is the series for $\sin\theta$. The lab shows the same thing: with few terms the dashed point misses, and with about ten it is hidden under the solid one. See the <a href="../taylor-series/taylor-series.html">Taylor series</a> guide for how these polynomials are built.</p>
   <div class="callout">Exponential growth with an imaginary rate is rotation.</div>
 </section>
 
 <section>
   <h2>3. The famous identity</h2>
-  <p>Set <code>θ = π</code>. Half a turn lands on the point <code>−1</code>.</p>
-  <div class="formula">e<sup>iπ</sup> = −1 &nbsp;⇒&nbsp; e<sup>iπ</sup> + 1 = 0</div>
-  <p>Press <code>π</code> in the lab. The readout shows the real part near <code>−1</code> and the imaginary part near <code>0</code>. The identity links five basic constants: <code>e</code>, <code>i</code>, <code>π</code>, <code>1</code> and <code>0</code>.</p>
+  <p>Set $\theta = \pi$. Half a turn lands on the point $-1$.</p>
+  <div class="formula">$$e^{i\pi} = -1 \;\Rightarrow\; e^{i\pi} + 1 = 0$$</div>
+  <p>Press $\pi$ in the lab. The readout shows the real part near $-1$ and the imaginary part near $0$. The identity links five basic constants: $e$, $i$, $\pi$, $1$ and $0$.</p>
 
   <div class="fig">
     <div class="scroll">
@@ -169,21 +175,21 @@ a{color:var(--link)}
 </g>
 </svg>
     </div>
-    <p class="cap">Fig 2 · Multiplying by <code>e<sup>iπ/2</sup> = i</code> turns a point a quarter turn counterclockwise.</p>
+    <p class="cap">Fig 2 · Multiplying by $e^{i\pi/2} = i$ turns a point a quarter turn counterclockwise.</p>
   </div>
 </section>
 
 <section>
   <h2>4. Trig from exponentials</h2>
-  <p>Add and subtract <code>e<sup>iθ</sup></code> and <code>e<sup>−iθ</sup></code> and the imaginary or real part cancels.</p>
-  <div class="formula">cos θ = (e<sup>iθ</sup> + e<sup>−iθ</sup>) / 2 &nbsp;&nbsp; sin θ = (e<sup>iθ</sup> − e<sup>−iθ</sup>) / 2i</div>
-  <p>Trig identities turn into exponent rules. For example <code>e<sup>i(a+b)</sup> = e<sup>ia</sup>·e<sup>ib</sup></code> expands to the angle-sum formulas for sine and cosine in two lines, by matching real and imaginary parts.</p>
+  <p>Add and subtract $e^{i\theta}$ and $e^{-i\theta}$ and the imaginary or real part cancels.</p>
+  <div class="formula">$$\cos\theta = \frac{e^{i\theta} + e^{-i\theta}}{2} \qquad \sin\theta = \frac{e^{i\theta} - e^{-i\theta}}{2i}$$</div>
+  <p>Trig identities turn into exponent rules. For example $e^{i(a+b)} = e^{ia}\,e^{ib}$ expands to the angle-sum formulas for sine and cosine in two lines, by matching real and imaginary parts.</p>
   <table class="ops">
     <thead><tr><th>Exponent rule</th><th>What it says in trig</th></tr></thead>
     <tbody>
-      <tr><td><code>e<sup>ia</sup>·e<sup>ib</sup> = e<sup>i(a+b)</sup></code></td><td>Angles add when you multiply rotations</td></tr>
-      <tr><td><code>(e<sup>iθ</sup>)<sup>n</sup> = e<sup>inθ</sup></code></td><td>De Moivre: <code>(cos θ + i sin θ)ⁿ = cos nθ + i sin nθ</code></td></tr>
-      <tr><td><code>|e<sup>iθ</sup>| = 1</code></td><td><code>cos²θ + sin²θ = 1</code></td></tr>
+      <tr><td>$e^{ia}\,e^{ib} = e^{i(a+b)}$</td><td>Angles add when you multiply rotations</td></tr>
+      <tr><td>$(e^{i\theta})^n = e^{in\theta}$</td><td>De Moivre: $(\cos\theta + i\sin\theta)^n = \cos n\theta + i\sin n\theta$</td></tr>
+      <tr><td>$|e^{i\theta}| = 1$</td><td>$\cos^2\theta + \sin^2\theta = 1$</td></tr>
     </tbody>
   </table>
 </section>
@@ -192,10 +198,10 @@ a{color:var(--link)}
   <h2>5. Where it shows up</h2>
   <div class="cards">
     <div class="stat focal"><div class="eyebrow">Signals</div><div class="big">spin</div><p>A wave is the shadow of something spinning. The Fourier transform sums such spinning terms.</p></div>
-    <div class="stat"><div class="eyebrow">Circuits</div><div class="big">phasors</div><p>AC voltages become single complex numbers, so derivatives turn into multiplication by <code>iω</code>.</p></div>
-    <div class="stat"><div class="eyebrow">Graphics</div><div class="big">rotate</div><p>Multiplying by <code>e<sup>iθ</sup></code> rotates a 2D point with one complex multiply.</p></div>
+    <div class="stat"><div class="eyebrow">Circuits</div><div class="big">phasors</div><p>AC voltages become single complex numbers, so derivatives turn into multiplication by $i\omega$.</p></div>
+    <div class="stat"><div class="eyebrow">Graphics</div><div class="big">rotate</div><p>Multiplying by $e^{i\theta}$ rotates a 2D point with one complex multiply.</p></div>
   </div>
-  <p style="margin-top:20px">Allowing the exponent to have a real part too, <code>e<sup>(a+ib)t</sup> = e<sup>at</sup>(cos bt + i sin bt)</code>, gives a spiral: rotation plus growth or decay. That spiral is the heart of the <a href="../laplace-transform/laplace-transform.html">Laplace transform</a>. For the wider picture of functions of a complex variable, see <a href="../complex-analysis/complex-analysis.html">Complex Analysis</a>.</p>
+  <p style="margin-top:20px">Allowing the exponent to have a real part too, $e^{(a+ib)t} = e^{at}(\cos bt + i\sin bt)$, gives a spiral: rotation plus growth or decay. That spiral is the heart of the <a href="../laplace-transform/laplace-transform.html">Laplace transform</a>. For the wider picture of functions of a complex variable, see <a href="../complex-analysis/complex-analysis.html">Complex Analysis</a>.</p>
 </section>
 
 </main>
@@ -316,6 +322,18 @@ a{color:var(--link)}
   $('#inN').addEventListener('input', render);
   render();
 })();
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  renderMathInElement(document.body, {
+    delimiters: [
+      { left: '$$', right: '$$', display: true },
+      { left: '$', right: '$', display: false }
+    ],
+    ignoredTags: ['script', 'style', 'textarea', 'pre', 'code'],
+    throwOnError: false
+  });
+});
 </script>
 </body>
 </html>

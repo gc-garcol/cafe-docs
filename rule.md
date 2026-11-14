@@ -8,6 +8,7 @@ Use these skills when creating or editing a doc:
 
 - `anatomy`: isometric, interactive SVG figures that explain an idea as a physical object.
 - `diagram-design`: branded diagrams and charts.
+- `math`: required for any doc that contains math. Render every formula (equations, fractions, sums, integrals, limits, matrices, Greek letters, complexity notation such as O(n log n)) with this skill (LaTeX via KaTeX). Do not use plain text or hand-built HTML sub/sup for formulas.
 
 ## 2. Language
 
