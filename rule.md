@@ -27,7 +27,8 @@ Each doc is a single self-contained HTML file at `content/datastructure-algorith
 The category, index, and search data live in `index.js`, not in the HTML.
 
 - Register every new doc by adding an entry to `DOCS` in `index.js`.
-- Required fields: `title`, `path`, `category`, `topic`, `level`, `tags`, `summary`.
+- Required fields: `title`, `path`, `category`, `topic`, `level`, `order`, `tags`, `summary`.
+- `order` is a number for the reading order inside a category (lower comes first). Put prerequisites before what builds on them, for example Limits, then Derivatives, then Integrals. Cards, the contents list and the mind map all follow it, and topics are ordered by their first doc. When you insert a doc in the middle, shift the `order` of the docs after it.
 - Optional field: `related`, a list of other doc titles.
 - Categories, tags, the mind map, and the contents list are derived from `DOCS`. Do not edit them by hand.
 - Do not list docs in `readme.md`. It has no `## Docs` section, so there is nothing to update there when adding a doc.

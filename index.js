@@ -1,5 +1,6 @@
 // Cafe Docs: content registry + search, filter and mindmap.
 // To add a doc: append an entry to DOCS. Categories and topics are derived from it.
+// `order` is the reading order inside a category (lower first, prerequisites before what builds on them).
 
 const DOCS = [
   {
@@ -7,6 +8,7 @@ const DOCS = [
     path: 'content/datastructure-algorithm/skiplist/skiplist.html',
     category: 'Data structures',
     topic: 'Ordered sets',
+    order: 7,
     level: 'Intermediate',
     tags: ['probabilistic', 'linked list', 'search', 'insert', 'delete', 'balanced'],
     summary: 'A sorted linked list with express lanes on top. Random coin flips decide who gets promoted, and search takes expected O(log n) steps.',
@@ -17,6 +19,7 @@ const DOCS = [
     path: 'content/datastructure-algorithm/sparse-table/sparse-table.html',
     category: 'Data structures',
     topic: 'Range queries',
+    order: 9,
     level: 'Intermediate',
     tags: ['rmq', 'min', 'static', 'precompute', 'idempotent', 'O(1) query'],
     summary: 'Precompute the answer for every block whose length is a power of two. Any range minimum is then two lookups.',
@@ -27,6 +30,7 @@ const DOCS = [
     path: 'content/datastructure-algorithm/merkle-tree/merkle-tree.html',
     category: 'Data structures',
     topic: 'Hash trees',
+    order: 15,
     level: 'Intermediate',
     tags: ['hash', 'proof', 'blockchain', 'integrity', 'verification', 'O(log n) proof'],
     summary: 'Hash items, then hash the hashes in pairs up to a single root. Any item can be proved with only log n sibling hashes.',
@@ -37,6 +41,7 @@ const DOCS = [
     path: 'content/datastructure-algorithm/timer-wheel/timer-wheel.html',
     category: 'Data structures',
     topic: 'Scheduling',
+    order: 18,
     level: 'Intermediate',
     tags: ['timer', 'timeout', 'scheduler', 'hashed wheel', 'hierarchical', 'O(1) insert'],
     summary: 'A clock face for timeouts. Each timer drops into the slot where it will expire, one hand sweeps around, and add or cancel costs O(1).',
@@ -47,6 +52,7 @@ const DOCS = [
     path: 'content/datastructure-algorithm/heap/heap.html',
     category: 'Data structures',
     topic: 'Priority queues',
+    order: 1,
     level: 'Beginner',
     tags: ['priority queue', 'binary tree', 'array', 'sift up', 'sift down', 'heapsort', 'O(log n)'],
     summary: 'A complete binary tree stored in an array where every parent is no larger than its children. The minimum is on top, and push and pop cost O(log n).',
@@ -57,6 +63,7 @@ const DOCS = [
     path: 'content/datastructure-algorithm/count-min-sketch/count-min-sketch.html',
     category: 'Data structures',
     topic: 'Probabilistic',
+    order: 13,
     level: 'Intermediate',
     tags: ['probabilistic', 'frequency', 'streaming', 'hash', 'heavy hitters', 'approximate', 'O(1) update'],
     summary: 'A fixed-size grid of counters that estimates item frequencies in a stream. It may over-count but never under-counts, and the minimum counter is the answer.',
@@ -67,6 +74,7 @@ const DOCS = [
     path: 'content/datastructure-algorithm/segment-tree/segment-tree.html',
     category: 'Data structures',
     topic: 'Range queries',
+    order: 8,
     level: 'Intermediate',
     tags: ['range sum', 'point update', 'divide and conquer', 'O(log n)', 'associative'],
     summary: 'A binary tree where every node stores the answer for one segment. Range queries and point updates both take O(log n).',
@@ -77,6 +85,7 @@ const DOCS = [
     path: 'content/datastructure-algorithm/bloom-filter/bloom-filter.html',
     category: 'Data structures',
     topic: 'Probabilistic sets',
+    order: 12,
     level: 'Intermediate',
     tags: ['probabilistic', 'hash', 'membership', 'false positive', 'bit array', 'O(k)'],
     summary: 'A bit array and a few hashes answer "seen it before?" in tiny memory. It never misses an added item, but it can say yes to one you never added.',
@@ -87,6 +96,7 @@ const DOCS = [
     path: 'content/datastructure-algorithm/hyperloglog/hyperloglog.html',
     category: 'Data structures',
     topic: 'Probabilistic sets',
+    order: 14,
     level: 'Advanced',
     tags: ['probabilistic', 'hash', 'cardinality', 'distinct count', 'sketch', 'O(1) add'],
     summary: 'Count distinct items within a few percent using kilobytes. Each bucket remembers only its rarest hash pattern, and a harmonic mean turns that into a count.',
@@ -97,6 +107,7 @@ const DOCS = [
     path: 'content/datastructure-algorithm/roaring-bitmap/roaring-bitmap.html',
     category: 'Data structures',
     topic: 'Bitmaps',
+    order: 16,
     level: 'Intermediate',
     tags: ['bitmap', 'compression', 'integer set', 'index', 'simd', 'union', 'intersection'],
     summary: 'A compressed set of 32-bit integers. Split values into chunks and store each one as an array, a bitmap, or runs, whichever is smallest.',
@@ -107,6 +118,7 @@ const DOCS = [
     path: 'content/datastructure-algorithm/lsm-tree/lsm-tree.html',
     category: 'Data structures',
     topic: 'Storage engines',
+    order: 17,
     level: 'Advanced',
     tags: ['memtable', 'sstable', 'compaction', 'tombstone', 'write-optimized', 'database', 'O(1) write'],
     summary: 'Buffer writes in memory, flush them as sorted immutable files, and merge in the background. Writes are sequential and fast, and reads check newest data first.',
@@ -117,6 +129,7 @@ const DOCS = [
     path: 'content/datastructure-algorithm/quad-tree/quad-tree.html',
     category: 'Data structures',
     topic: 'Spatial indexes',
+    order: 10,
     level: 'Intermediate',
     tags: ['spatial', 'geometry', 'range query', 'nearest neighbor', 'collision', '2d', 'recursion'],
     summary: 'Split a square into four quarters whenever it gets crowded. Range queries skip every cell that misses the search box.',
@@ -127,6 +140,7 @@ const DOCS = [
     path: 'content/datastructure-algorithm/oct-tree/oct-tree.html',
     category: 'Data structures',
     topic: 'Spatial indexes',
+    order: 11,
     level: 'Intermediate',
     tags: ['spatial', 'geometry', 'range query', 'nearest neighbor', 'collision', '3d', 'recursion'],
     summary: 'Split a cube into eight octants whenever it gets crowded. Range queries skip every cell that misses the search box.',
@@ -137,6 +151,7 @@ const DOCS = [
     path: 'content/datastructure-algorithm/avl-tree/avl-tree.html',
     category: 'Data structures',
     topic: 'Ordered sets',
+    order: 3,
     level: 'Intermediate',
     tags: ['balanced', 'binary search tree', 'rotation', 'self-balancing', 'search', 'insert', 'delete', 'O(log n)'],
     summary: 'A binary search tree that keeps every subtree within one level of its sibling. Rotations after each insert or delete hold the height near log n.',
@@ -147,6 +162,7 @@ const DOCS = [
     path: 'content/datastructure-algorithm/red-black-tree/red-black-tree.html',
     category: 'Data structures',
     topic: 'Ordered sets',
+    order: 4,
     level: 'Advanced',
     tags: ['balanced', 'binary search tree', 'rotation', 'self-balancing', 'recoloring', 'insert', 'O(log n)'],
     summary: 'A search tree that colors nodes red or black. A few color rules cap the longest path at twice the shortest, with very few rotations per update.',
@@ -157,6 +173,7 @@ const DOCS = [
     path: 'content/datastructure-algorithm/b-tree/b-tree.html',
     category: 'Data structures',
     topic: 'Ordered sets',
+    order: 5,
     level: 'Intermediate',
     tags: ['balanced', 'search tree', 'disk', 'database', 'index', 'split', 'file system', 'O(log n)'],
     summary: 'A search tree with wide nodes that hold many sorted keys. It stays very short, so a lookup reads only a handful of disk pages.',
@@ -167,6 +184,7 @@ const DOCS = [
     path: 'content/datastructure-algorithm/b-plus-tree/b-plus-tree.html',
     category: 'Data structures',
     topic: 'Ordered sets',
+    order: 6,
     level: 'Intermediate',
     tags: ['balanced', 'search tree', 'range scan', 'database', 'index', 'linked leaves', 'file system', 'O(log n)'],
     summary: 'A B-Tree that keeps every key in linked leaves and uses upper levels only for routing. Lookups stay shallow, and range scans walk the leaf chain.',
@@ -177,6 +195,7 @@ const DOCS = [
     path: 'content/datastructure-algorithm/genetic-algorithm/genetic-algorithm.html',
     category: 'Algorithms',
     topic: 'Optimization',
+    order: 5,
     level: 'Beginner',
     tags: ['evolution', 'heuristic', 'crossover', 'mutation', 'selection', 'probabilistic'],
     summary: 'Search by evolution: select the fittest candidates, cross them over, mutate a little, and repeat until a good answer appears.',
@@ -187,6 +206,7 @@ const DOCS = [
     path: 'content/datastructure-algorithm/minimax/minimax.html',
     category: 'Algorithms',
     topic: 'Game search',
+    order: 4,
     level: 'Intermediate',
     tags: ['game tree', 'adversarial search', 'alpha-beta', 'pruning', 'zero-sum', 'recursion'],
     summary: 'Pick the move whose worst case is best. Assume the opponent plays perfectly, search the game tree, and prune branches that cannot matter.',
@@ -197,6 +217,7 @@ const DOCS = [
     path: 'content/datastructure-algorithm/a-star/a-star.html',
     category: 'Algorithms',
     topic: 'Pathfinding',
+    order: 3,
     level: 'Intermediate',
     tags: ['shortest path', 'heuristic', 'graph', 'grid', 'priority queue', 'admissible', 'dijkstra'],
     summary: 'Find the shortest path by expanding the node with the lowest cost so far plus a guess of the cost left. A good heuristic skips most of the map.',
@@ -207,6 +228,7 @@ const DOCS = [
     path: 'content/datastructure-algorithm/raft/raft.html',
     category: 'Algorithms',
     topic: 'Distributed systems',
+    order: 6,
     level: 'Advanced',
     tags: ['consensus', 'leader election', 'replication', 'replicated log', 'fault tolerance', 'quorum', 'etcd'],
     summary: 'Servers elect one leader, and the leader replicates an ordered log. An entry is committed once a majority stores it, so the cluster survives crashes.',
@@ -217,6 +239,7 @@ const DOCS = [
     path: 'content/datastructure-algorithm/quicksort/quicksort.html',
     category: 'Algorithms',
     topic: 'Sorting',
+    order: 1,
     level: 'Beginner',
     tags: ['sorting', 'divide and conquer', 'partition', 'pivot', 'in place', 'O(n log n)'],
     summary: 'Pick a pivot, push smaller items left and larger items right, then sort each side. The pivot lands in its final place after every pass.',
@@ -227,6 +250,7 @@ const DOCS = [
     path: 'content/datastructure-algorithm/merge-sort/merge-sort.html',
     category: 'Algorithms',
     topic: 'Sorting',
+    order: 2,
     level: 'Beginner',
     tags: ['sorting', 'divide and conquer', 'merge', 'stable', 'O(n log n)', 'external sort'],
     summary: 'Split the array in half, sort each half, then merge the two sorted halves. It is stable and always runs in O(n log n).',
@@ -237,6 +261,7 @@ const DOCS = [
     path: 'content/datastructure-algorithm/trie/trie.html',
     category: 'Data structures',
     topic: 'Strings',
+    order: 2,
     level: 'Beginner',
     tags: ['prefix tree', 'autocomplete', 'string', 'search', 'insert', 'O(L)'],
     summary: 'A tree where each edge is one character and each path spells a prefix. Words that share a start share nodes, and lookup costs O(L) for a word of length L.',
@@ -247,6 +272,7 @@ const DOCS = [
     path: 'content/math/limits/limits.html',
     category: 'Mathematics',
     topic: 'Calculus',
+    order: 2,
     level: 'Beginner',
     tags: ['limit', 'continuity', 'epsilon-delta', 'one-sided', 'calculus'],
     summary: 'What value does a function head toward as x approaches a point? Slide x toward a and watch f(x) settle, or fail to agree between sides.',
@@ -257,6 +283,7 @@ const DOCS = [
     path: 'content/math/derivatives/derivatives.html',
     category: 'Mathematics',
     topic: 'Calculus',
+    order: 3,
     level: 'Beginner',
     tags: ['derivative', 'slope', 'tangent', 'secant', 'chain rule', 'calculus'],
     summary: 'The slope of a curve at one point. Shrink the gap h and a secant line turns into the tangent, giving the instant rate of change.',
@@ -267,6 +294,7 @@ const DOCS = [
     path: 'content/math/integrals/integrals.html',
     category: 'Mathematics',
     topic: 'Calculus',
+    order: 4,
     level: 'Beginner',
     tags: ['integral', 'area', 'riemann sum', 'antiderivative', 'calculus'],
     summary: 'Add up infinitely many thin slices. Riemann sums close in on the area under a curve, and the Fundamental Theorem gives the shortcut.',
@@ -277,6 +305,7 @@ const DOCS = [
     path: 'content/math/fourier-transform/fourier-transform.html',
     category: 'Mathematics',
     topic: 'Signals',
+    order: 18,
     level: 'Intermediate',
     tags: ['fourier', 'frequency', 'signal', 'fft', 'dft', 'sine waves', 'spectrum'],
     summary: 'Any signal is a stack of simple waves. Chain turning circles tip to tail, watch them draw a waveform, and read off which frequencies it contains.',
@@ -287,6 +316,7 @@ const DOCS = [
     path: 'content/math/laplace-transform/laplace-transform.html',
     category: 'Mathematics',
     topic: 'Signals',
+    order: 19,
     level: 'Intermediate',
     tags: ['laplace', 'transform', 's-domain', 'differential equation', 'transfer function', 'integral'],
     summary: 'Weight a signal by a fading exponential and measure the area. The result turns derivatives into multiplication and differential equations into algebra.',
@@ -297,6 +327,7 @@ const DOCS = [
     path: 'content/math/complex-analysis/complex-analysis.html',
     category: 'Mathematics',
     topic: 'Complex numbers',
+    order: 17,
     level: 'Advanced',
     tags: ['complex', 'analytic', 'conformal', 'cauchy-riemann', 'contour integral', 'residue', 'pole'],
     summary: 'Calculus on the complex plane. Watch a grid bend under z², 1/z, eᶻ and sin z while keeping right angles, then count poles to evaluate loop integrals.',
@@ -307,6 +338,7 @@ const DOCS = [
     path: 'content/math/taylor-series/taylor-series.html',
     category: 'Mathematics',
     topic: 'Calculus',
+    order: 5,
     level: 'Intermediate',
     tags: ['taylor', 'maclaurin', 'series', 'polynomial', 'approximation', 'convergence', 'calculus'],
     summary: 'Near one point, a smooth function looks like a polynomial. Add one derivative-matched term at a time and watch the polynomial hug the curve.',
@@ -317,6 +349,7 @@ const DOCS = [
     path: 'content/math/euler-formula/euler-formula.html',
     category: 'Mathematics',
     topic: 'Complex numbers',
+    order: 16,
     level: 'Intermediate',
     tags: ['euler', 'complex', 'exponential', 'unit circle', 'sine', 'cosine', 'series', 'identity'],
     summary: 'Raise e to an imaginary power and you walk around a circle. See cosine and sine as shadows of one spinning point, and build it from the exponential series.',
@@ -327,6 +360,7 @@ const DOCS = [
     path: 'content/math/bayes-theorem/bayes-theorem.html',
     category: 'Mathematics',
     topic: 'Probability',
+    order: 14,
     level: 'Beginner',
     tags: ['probability', 'bayes', 'prior', 'posterior', 'conditional probability', 'base rate', 'inference'],
     summary: 'Update a belief when evidence arrives. Count 1000 people and see why a positive test for a rare condition is usually a false alarm.',
@@ -337,6 +371,7 @@ const DOCS = [
     path: 'content/math/gaussian-distribution/gaussian-distribution.html',
     category: 'Mathematics',
     topic: 'Probability',
+    order: 15,
     level: 'Beginner',
     tags: ['probability', 'gaussian', 'normal distribution', 'bell curve', 'standard deviation', 'z-score', 'central limit theorem', 'statistics'],
     summary: 'The bell curve from two numbers, center and spread. Slide them, shade a band to see the 68-95-99.7 rule, and draw samples to watch sums of random numbers form a bell.',
@@ -347,6 +382,7 @@ const DOCS = [
     path: 'content/math/polynomial-interpolation/polynomial-interpolation.html',
     category: 'Mathematics',
     topic: 'Numerical analysis',
+    order: 20,
     level: 'Intermediate',
     tags: ['interpolation', 'polynomial', 'lagrange', 'newton', 'runge', 'chebyshev', 'numerical', 'approximation'],
     summary: 'Find the one polynomial that passes through every data point. Add points, compare equal and Chebyshev spacing, and watch Runge\'s phenomenon appear.',
@@ -357,6 +393,7 @@ const DOCS = [
     path: 'content/math/binomial-theorem/binomial-theorem.html',
     category: 'Mathematics',
     topic: 'Algebra',
+    order: 1,
     level: 'Beginner',
     tags: ['binomial', 'newton', 'pascal', 'combinations', 'expansion', 'series', 'counting', 'algebra'],
     summary: 'Expand (a+b)^n without multiplying out brackets. Coefficients come from counting choices and line up in Pascal\'s triangle, and Newton extended the rule to any exponent.',
@@ -367,6 +404,7 @@ const DOCS = [
     path: 'content/math/matrices/matrices.html',
     category: 'Mathematics',
     topic: 'Linear algebra',
+    order: 6,
     level: 'Beginner',
     tags: ['matrix', 'matrices', 'linear algebra', 'matrix multiplication', 'transpose', 'identity', 'inverse', 'vectors'],
     summary: 'A matrix is a grid of numbers that acts on vectors. Edit two small matrices, add, scale, transpose and multiply them, and see why AB and BA differ.',
@@ -377,6 +415,7 @@ const DOCS = [
     path: 'content/math/determinants/determinants.html',
     category: 'Mathematics',
     topic: 'Linear algebra',
+    order: 7,
     level: 'Beginner',
     tags: ['determinant', 'area', 'volume', 'invertible', 'cofactor', 'cramer', 'orientation', 'linear algebra'],
     summary: 'One number that tells how a matrix scales area and whether it flips space. Drag a 2x2 matrix, watch the unit square become a parallelogram, and expand a 3x3 by cofactors.',
@@ -387,6 +426,7 @@ const DOCS = [
     path: 'content/math/matrix-rank/matrix-rank.html',
     category: 'Mathematics',
     topic: 'Linear algebra',
+    order: 8,
     level: 'Intermediate',
     tags: ['rank', 'row reduction', 'gaussian elimination', 'null space', 'rank-nullity', 'column space', 'independence', 'linear algebra'],
     summary: 'Rank counts the independent directions in a matrix. Edit a 3x3 matrix, watch row reduction find the pivots, and see rank plus nullity always add up to the number of columns.',
@@ -397,6 +437,7 @@ const DOCS = [
     path: 'content/math/vector-spaces/vector-spaces.html',
     category: 'Mathematics',
     topic: 'Linear algebra',
+    order: 9,
     level: 'Intermediate',
     tags: ['vector space', 'subspace', 'span', 'basis', 'dimension', 'linear independence', 'coordinates', 'linear algebra'],
     summary: 'The abstract setting where vectors can be added and scaled. Move two vectors, see their span fill a plane or collapse to a line, and read off the coordinates of a third vector in that basis.',
@@ -407,6 +448,7 @@ const DOCS = [
     path: 'content/math/linear-maps/linear-maps.html',
     category: 'Mathematics',
     topic: 'Linear algebra',
+    order: 10,
     level: 'Intermediate',
     tags: ['linear map', 'linear transformation', 'kernel', 'image', 'rank-nullity', 'injective', 'surjective', 'linear algebra'],
     summary: 'Functions that respect addition and scaling. Pick a map, test additivity and homogeneity on two vectors, and see why shifts and squaring fail while rotations, shears and projections pass.',
@@ -417,6 +459,7 @@ const DOCS = [
     path: 'content/math/matrix-of-linear-map/matrix-of-linear-map.html',
     category: 'Mathematics',
     topic: 'Linear algebra',
+    order: 11,
     level: 'Intermediate',
     tags: ['matrix of linear map', 'change of basis', 'coordinates', 'similar matrices', 'basis', 'linear transformation', 'linear algebra'],
     summary: 'Every linear map becomes a matrix once you pick a basis. Change the basis, watch the same map get a different matrix, and see how P inverse A P translates between the two.',
@@ -427,6 +470,7 @@ const DOCS = [
     path: 'content/math/eigenvalues-eigenvectors/eigenvalues-eigenvectors.html',
     category: 'Mathematics',
     topic: 'Linear algebra',
+    order: 12,
     level: 'Intermediate',
     tags: ['eigenvalue', 'eigenvector', 'characteristic polynomial', 'trace', 'determinant', 'spectrum', 'invariant direction', 'linear algebra'],
     summary: 'The special directions a matrix only stretches. Sweep a vector around the circle, spot where A v lines up with v, and find the eigenvalues from the characteristic polynomial.',
@@ -437,6 +481,7 @@ const DOCS = [
     path: 'content/math/matrix-diagonalization/matrix-diagonalization.html',
     category: 'Mathematics',
     topic: 'Linear algebra',
+    order: 13,
     level: 'Advanced',
     tags: ['diagonalization', 'eigenvalue', 'eigenvector', 'matrix power', 'similar matrices', 'spectral theorem', 'defective matrix', 'linear algebra'],
     summary: 'Write a matrix as P D P inverse and powers become easy. Raise a 2x2 matrix to a power both ways, see the ellipse align with the dominant eigenvector, and learn when diagonalization fails.',
@@ -447,6 +492,7 @@ const DOCS = [
     path: 'content/AI/machine-learning/ml-algorithm-groups/ml-algorithm-groups.html',
     category: 'Machine learning',
     topic: 'Overview',
+    order: 1,
     level: 'Beginner',
     tags: ['taxonomy', 'supervised', 'unsupervised', 'reinforcement', 'classification', 'regression', 'clustering', 'overview'],
     summary: 'A map of machine learning. Sort algorithms by the feedback they learn from and the job they do, then explore the tree and jump to a doc.',
@@ -457,6 +503,7 @@ const DOCS = [
     path: 'content/AI/machine-learning/linear-regression/linear-regression.html',
     category: 'Machine learning',
     topic: 'Regression',
+    order: 2,
     level: 'Beginner',
     tags: ['supervised', 'regression', 'least squares', 'mse', 'normal equation', 'residual', 'line fitting'],
     summary: 'Fit the straight line that sits closest to a cloud of points. Drag the line, watch the squared errors, and compare with the exact least squares answer.',
@@ -467,6 +514,7 @@ const DOCS = [
     path: 'content/AI/machine-learning/k-means-clustering/k-means-clustering.html',
     category: 'Machine learning',
     topic: 'Clustering',
+    order: 6,
     level: 'Beginner',
     tags: ['unsupervised', 'clustering', 'centroid', 'inertia', 'lloyd', 'elbow method', 'iterative'],
     summary: 'Find groups without labels. Assign each point to its nearest center, move each center to its group mean, and repeat until nothing changes.',
@@ -477,6 +525,7 @@ const DOCS = [
     path: 'content/AI/machine-learning/gradient-descent/gradient-descent.html',
     category: 'Machine learning',
     topic: 'Optimization',
+    order: 3,
     level: 'Beginner',
     tags: ['optimization', 'gradient', 'learning rate', 'momentum', 'loss', 'sgd', 'convergence'],
     summary: 'Step downhill against the gradient of the loss. See slow, good and diverging learning rates on a contour map, and how momentum helps in a narrow valley.',
@@ -487,6 +536,7 @@ const DOCS = [
     path: 'content/AI/machine-learning/perceptron-learning-algorithm/perceptron-learning-algorithm.html',
     category: 'Machine learning',
     topic: 'Classification',
+    order: 4,
     level: 'Beginner',
     tags: ['supervised', 'classification', 'linear classifier', 'neuron', 'online learning', 'xor', 'separable'],
     summary: 'A line that learns from its mistakes. Each misclassified point tilts the boundary toward it, which converges on separable data and fails on XOR.',
@@ -497,6 +547,7 @@ const DOCS = [
     path: 'content/AI/machine-learning/logistic-regression/logistic-regression.html',
     category: 'Machine learning',
     topic: 'Classification',
+    order: 5,
     level: 'Intermediate',
     tags: ['supervised', 'classification', 'sigmoid', 'log loss', 'probability', 'threshold', 'log-odds'],
     summary: 'Turn a linear score into a probability with the sigmoid. Fit the curve by gradient descent and move the threshold to trade false alarms for misses.',
@@ -507,6 +558,7 @@ const DOCS = [
     path: 'content/AI/deep-learning/deep-learning-overview/deep-learning-overview.html',
     category: 'Deep learning',
     topic: 'Overview',
+    order: 1,
     level: 'Beginner',
     tags: ['deep learning', 'neural network', 'layers', 'activation', 'backpropagation', 'gradient descent', 'architectures', 'overview'],
     summary: 'From one neuron to modern architectures. Train a tiny network on four datasets, add hidden layers, and watch the decision boundary bend where a single neuron only draws a line.',
@@ -520,7 +572,7 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;',
 const NS = 'http://www.w3.org/2000/svg';
 const norm = s => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
-const state = { tagq: '', q: '', cat: 'All', tag: '', level: 'All', sort: 'title' };
+const state = { tagq: '', q: '', cat: 'All', tag: '', level: 'All', sort: 'order' };
 
 function haystack(d) {
   return norm([d.title, d.summary, d.category, d.topic, d.level, ...d.tags].join(' '));
@@ -533,9 +585,19 @@ function matches(d) {
   const h = haystack(d);
   return terms.every(t => h.includes(t));
 }
+// reading order inside a category; docs without `order` go last, then by title
+const ord = d => (typeof d.order === 'number' ? d.order : 1e6);
+const byOrder = (a, b) => ord(a) - ord(b) || a.title.localeCompare(b.title);
+// topics follow the first doc they contain
+const topicRank = (c, t) => Math.min(...DOCS.filter(d => d.category === c && d.topic === t).map(ord));
+const byTopic = c => (a, b) => topicRank(c, a) - topicRank(c, b) || a.localeCompare(b);
 function visibleDocs() {
   const list = DOCS.filter(matches);
-  const by = { title: (a, b) => a.title.localeCompare(b.title), category: (a, b) => a.category.localeCompare(b.category) || a.title.localeCompare(b.title) };
+  const by = {
+    order: (a, b) => a.category.localeCompare(b.category) || byOrder(a, b),
+    title: (a, b) => a.title.localeCompare(b.title),
+    category: (a, b) => a.category.localeCompare(b.category) || a.title.localeCompare(b.title),
+  };
   return list.sort(by[state.sort]);
 }
 function highlight(text) {
@@ -562,7 +624,7 @@ function readHash() {
   state.cat = p.get('cat') || 'All';
   state.tag = p.get('tag') || '';
   state.level = p.get('level') || 'All';
-  state.sort = p.get('sort') || 'title';
+  state.sort = p.get('sort') || 'order';
 }
 function writeHash() {
   const p = new URLSearchParams();
@@ -570,7 +632,7 @@ function writeHash() {
   if (state.cat !== 'All') p.set('cat', state.cat);
   if (state.tag) p.set('tag', state.tag);
   if (state.level !== 'All') p.set('level', state.level);
-  if (state.sort !== 'title') p.set('sort', state.sort);
+  if (state.sort !== 'order') p.set('sort', state.sort);
   const h = p.toString();
   history.replaceState(null, '', h ? '#' + h : location.pathname + location.search);
 }
@@ -638,9 +700,9 @@ function renderList() {
 function renderToc() {
   const docs = visibleDocs();
   const tree = {};
-  docs.forEach(d => { ((tree[d.category] ||= {})[d.topic] ||= []).push(d); });
+  [...docs].sort(byOrder).forEach(d => { ((tree[d.category] ||= {})[d.topic] ||= []).push(d); });
   $('#toc').innerHTML = Object.keys(tree).sort().map(c =>
-    `<li><b>${esc(c)}</b><ul>${Object.keys(tree[c]).sort().map(t =>
+    `<li><b>${esc(c)}</b><ul>${Object.keys(tree[c]).sort(byTopic(c)).map(t =>
       `<li><span class="topic">${esc(t)}</span><ul>${tree[c][t].map(d =>
         `<li><a href="${esc(d.path)}">${esc(d.title)}</a></li>`).join('')}</ul></li>`).join('')}</ul></li>`).join('')
     || '<li class="na">Nothing to list</li>';
@@ -652,9 +714,9 @@ function buildTree() {
   const cats = [...new Set(DOCS.map(d => d.category))].sort();
   cats.forEach(c => {
     const cn = { label: c, kind: 'cat', cat: c, children: [] };
-    [...new Set(DOCS.filter(d => d.category === c).map(d => d.topic))].sort().forEach(t => {
+    [...new Set(DOCS.filter(d => d.category === c).map(d => d.topic))].sort(byTopic(c)).forEach(t => {
       const tn = { label: t, kind: 'topic', cat: c, children: [] };
-      DOCS.filter(d => d.category === c && d.topic === t).sort((a, b) => a.title.localeCompare(b.title))
+      DOCS.filter(d => d.category === c && d.topic === t).sort(byOrder)
         .forEach(d => tn.children.push({ label: d.title, kind: 'doc', doc: d, cat: c, children: [] }));
       cn.children.push(tn);
     });
