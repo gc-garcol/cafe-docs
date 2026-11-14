@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fourier Transform: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;font-family:var(--serif);font-size:24px;text-align:center;overflow-x:auto}
+
+.lab{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:24px;align-items:start;margin-top:24px}
+.card{margin:0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.stage{padding:0 8px}
+.stage svg{display:block;width:100%;height:auto}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.seg{display:flex;border:1px solid var(--rule-solid);border-radius:6px;overflow:hidden;margin-bottom:16px}
+.seg button{flex:1;min-height:40px;border:0;background:transparent;font:500 13px var(--sans);color:var(--muted);cursor:pointer;padding:0 8px}
+.seg button+button{border-left:1px solid var(--rule-solid)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 13px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--paper)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.row{display:grid;grid-template-columns:56px 1fr 40px;gap:12px;align-items:center;margin:12px 0}
+.row label{font-family:var(--mono);font-size:13px;font-weight:600}
+.row output{font-family:var(--mono);font-size:12px;text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);min-height:28px}
+#readout{margin:16px 0 0;padding:14px 16px;background:var(--paper);border:1px solid var(--rule);border-radius:6px;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;min-height:96px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:2px;border:1px solid var(--ink);display:inline-block}
+
+.fig{margin:20px 0 8px}
+.scroll{overflow-x:auto;border:1px solid var(--rule);border-radius:8px;background:#fff;padding:8px}
+.scroll svg{display:block;height:auto}
+.cap{font-family:var(--mono);font-size:11px;color:var(--soft);margin:8px 0 0}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:30px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+table.ops{border-collapse:collapse;width:100%;max-width:760px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);border-radius:6px;font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule)}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
+@media (max-width:860px){.lab{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" href="../../../index.html">&larr; Back to home</a>
+
+<header>
+  <div class="eyebrow">Mathematics · Signals</div>
+  <h1>Fourier Transform</h1>
+  <p class="lede">Any signal is a stack of simple waves. The Fourier transform tells you which frequencies are in the stack and how strong each one is.</p>
+</header>
+
+<section>
+  <h2>Try it first</h2>
+  <p>Each turning circle is one sine wave. Chain them tip to tail and the last tip draws the signal on the right. Add more circles and the shape sharpens toward the target. The bars below show the strength of each frequency.</p>
+
+  <div class="lab">
+    <figure class="card">
+      <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title" id="wvTitle">Square wave</span></div>
+      <div class="stage">
+        <svg id="plot" viewBox="0 0 560 400" role="img" aria-labelledby="plot-title plot-desc">
+          <title id="plot-title">Rotating circles that draw a waveform and its frequency bars</title>
+          <desc id="plot-desc">Several circles are chained tip to tail on the left, each turning at a whole-number multiple of the base speed. A horizontal line carries the height of the last tip to a waveform on the right. A dashed line shows the target wave. Below, a bar chart shows the amplitude of each harmonic.</desc>
+        </svg>
+      </div>
+      <div class="card-bottom"><span class="hint">More circles, closer fit</span><span class="live" id="live"></span></div>
+    </figure>
+
+    <div>
+      <div class="panel">
+        <div class="seg" role="group" aria-label="Target wave">
+          <button type="button" data-wv="0" aria-pressed="true">Square</button>
+          <button type="button" data-wv="1" aria-pressed="false">Sawtooth</button>
+          <button type="button" data-wv="2" aria-pressed="false">Triangle</button>
+        </div>
+        <div class="row"><label for="inN">circles</label><input type="range" id="inN" min="1" max="12" value="3"><output id="outN"></output></div>
+        <button type="button" class="btn" id="play" aria-pressed="true">Pause</button>
+        <div id="readout" aria-live="polite"></div>
+      </div>
+      <div class="legend" aria-label="Legend">
+        <span><i class="sw" style="background:#2e5aa8;border-color:#2e5aa8"></i>sum of circles</span>
+        <span><i class="sw" style="background:#bf4520;border-color:#bf4520"></i>target wave</span>
+        <span><i class="sw" style="background:#2d3142"></i>circles</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>1. Time domain and frequency domain</h2>
+  <p>A recording of a chord is one wiggly line: pressure over time. That is the time domain. The same sound can be described as three notes, each with a pitch and a loudness. That is the frequency domain. Both describe the same data, and the Fourier transform converts between them.</p>
+  <div class="callout">Same signal, two views: when it happens, and what it is made of.</div>
+</section>
+
+<section>
+  <h2>2. Fourier series: building a wave</h2>
+  <p>A repeating wave can be written as a sum of sines whose frequencies are whole multiples of a base frequency. A square wave uses only odd multiples:</p>
+  <div class="formula">square(t) = (4/π) · [ sin t + sin 3t / 3 + sin 5t / 5 + … ]</div>
+  <p>Each term is one circle in Fig 1. Term <code>k</code> turns <code>k</code> times as fast and is <code>1/k</code> as large. Near the jump the sum overshoots by about 9 percent, however many circles you add. This is the Gibbs phenomenon.</p>
+</section>
+
+<section>
+  <h2>3. The transform</h2>
+  <p>For a signal that is not periodic, use all frequencies instead of just multiples. The transform measures how much of each frequency <code>ξ</code> is in <code>f</code>, by wrapping the signal around a circle at that speed and finding where its center of mass lands.</p>
+  <div class="formula">F(ξ) = ∫ f(t) · e<sup>−2πiξt</sup> dt</div>
+  <p>The inverse adds all the waves back together:</p>
+  <div class="formula">f(t) = ∫ F(ξ) · e<sup>2πiξt</sup> dξ</div>
+  <p>The result <code>F(ξ)</code> is a complex number. Its size is the strength of that frequency. Its angle is the phase, the point where that wave starts.</p>
+</section>
+
+<section>
+  <h2>4. Discrete Fourier Transform and FFT</h2>
+  <p>Computers hold <code>N</code> samples, not a continuous curve. The DFT turns <code>N</code> samples into <code>N</code> frequency values.</p>
+  <div class="formula">X[k] = Σ<sub>n=0..N−1</sub> x[n] · e<sup>−2πikn/N</sup></div>
+  <p>Computing this directly costs O(N²). The Fast Fourier Transform splits the sum into even and odd samples, solves each half, and combines them. That brings the cost down to O(N log N), which is why audio, images, and radio can be processed in real time.</p>
+  <table class="ops">
+    <thead><tr><th>Method</th><th>Cost for N samples</th><th>Note</th></tr></thead>
+    <tbody>
+      <tr><td>Direct DFT</td><td><code>O(N²)</code></td><td>Simple, slow for large N</td></tr>
+      <tr><td>FFT (Cooley-Tukey)</td><td><code>O(N log N)</code></td><td>Fastest when N is a power of two</td></tr>
+    </tbody>
+  </table>
+  <p>Two limits to remember. The highest frequency you can see is half the sample rate (Nyquist). Anything faster folds back as a false lower frequency, called aliasing.</p>
+</section>
+
+<section>
+  <h2>5. What it is used for</h2>
+  <div class="cards">
+    <div class="stat focal"><div class="eyebrow">Filter</div><div class="big">remove noise</div><p>Zero the frequencies you do not want, then invert.</p></div>
+    <div class="stat"><div class="eyebrow">Compress</div><div class="big">keep the big bars</div><p>JPEG and MP3 keep strong frequencies and drop weak ones.</p></div>
+    <div class="stat"><div class="eyebrow">Multiply</div><div class="big">fast convolution</div><p>Convolution in time is plain multiplication in frequency.</p></div>
+  </div>
+</section>
+
+<section>
+  <h2>6. Next</h2>
+  <p>The Fourier transform rests on integrals, introduced in the Integrals guide. For the sorting-like divide-and-conquer trick behind the FFT, see Merge Sort.</p>
+</section>
+
+</main>
+
+<script>
+(function () {
+  var NSV = 'http://www.w3.org/2000/svg';
+  var $ = function (s) { return document.querySelector(s); };
+  var TAU = 2 * Math.PI;
+  var MAXN = 12, MAXK = 24;
+  var CX = 110, CY = 120, S = 50;       // epicycle center and pixels per unit
+  var WX0 = 250, WX1 = 540;             // waveform x range
+  var BASE = 372, BH = 70;              // spectrum baseline and bar height for amp 1.3
+
+  // each wave gives the k-th term (signed amplitude of sin kt), or 0 when absent
+  var WAVES = [
+    { name: 'Square wave',
+      coef: function (k) { return k % 2 ? 4 / (Math.PI * k) : 0; },
+      ideal: function (t) { return Math.sin(t) >= 0 ? 1 : -1; } },
+    { name: 'Sawtooth wave',
+      coef: function (k) { return (k % 2 ? 1 : -1) * 2 / (Math.PI * k); },
+      ideal: function (t) { var u = ((t % TAU) + TAU) % TAU; return u === 0 ? 0 : 1 - u / Math.PI; } },
+    { name: 'Triangle wave',
+      coef: function (k) { return k % 2 ? ((k % 4 === 1) ? 1 : -1) * 8 / (Math.PI * Math.PI * k * k) : 0; },
+      ideal: function (t) { return 2 / Math.PI * Math.asin(Math.sin(t)); } }
+  ];
+  var cur = 0, playing = true, t = 0.6, last = null;
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduce) playing = false;
+
+  function el(n, attrs, parent) {
+    var e = document.createElementNS(NSV, n);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function terms(n) {
+    var list = [], W = WAVES[cur];
+    for (var k = 1; k <= MAXK && list.length < n; k++) {
+      var a = W.coef(k);
+      if (a !== 0) list.push({ k: k, a: a });
+    }
+    return list;
+  }
+  function sumAt(list, tt) {
+    var s = 0;
+    for (var i = 0; i < list.length; i++) s += list[i].a * Math.sin(list[i].k * tt);
+    return s;
+  }
+
+  function render() {
+    var n = +$('#inN').value, W = WAVES[cur], list = terms(n);
+    var svg = $('#plot');
+    Array.prototype.slice.call(svg.querySelectorAll('.dyn')).forEach(function (x) { x.remove(); });
+    var g = el('g', { 'class': 'dyn' }, svg);
+
+    // axes
+    el('line', { x1: WX0, x2: WX1, y1: CY, y2: CY, stroke: 'rgba(45,49,66,.25)' }, g);
+    el('line', { x1: 20, x2: 540, y1: BASE, y2: BASE, stroke: '#2d3142' }, g);
+
+    // circles chain
+    var x = CX, y = CY;
+    for (var i = 0; i < list.length; i++) {
+      var r = Math.abs(list[i].a) * S, ang = list[i].k * t;
+      var nx = x + list[i].a * S * Math.cos(ang), ny = y - list[i].a * S * Math.sin(ang);
+      el('circle', { cx: x, cy: y, r: r, fill: 'none', stroke: 'rgba(45,49,66,.35)' }, g);
+      el('line', { x1: x, y1: y, x2: nx, y2: ny, stroke: '#2d3142', 'stroke-width': 1.4 }, g);
+      x = nx; y = ny;
+    }
+    el('circle', { cx: x, cy: y, r: 4, fill: '#2e5aa8' }, g);
+    el('line', { x1: x, y1: y, x2: WX0, y2: y, stroke: '#2e5aa8', 'stroke-dasharray': '3 3' }, g);
+
+    // target and sum traces (newest sample at the left edge)
+    var span = TAU, pts = 240, d1 = '', d2 = '';
+    for (var j = 0; j <= pts; j++) {
+      var s = span * j / pts, tt = t - s;
+      var px = WX0 + (WX1 - WX0) * j / pts;
+      d1 += (j ? ' L' : 'M') + px.toFixed(1) + ' ' + (CY - W.ideal(tt) * S).toFixed(1);
+      d2 += (j ? ' L' : 'M') + px.toFixed(1) + ' ' + (CY - sumAt(list, tt) * S).toFixed(1);
+    }
+    el('path', { d: d1, fill: 'none', stroke: '#bf4520', 'stroke-width': 1.6, 'stroke-dasharray': '5 4' }, g);
+    el('path', { d: d2, fill: 'none', stroke: '#2e5aa8', 'stroke-width': 2.4 }, g);
+
+    // spectrum bars
+    var bw = (520 / MAXK);
+    for (var k = 1; k <= MAXK; k++) {
+      var a = W.coef(k), used = list.some(function (q) { return q.k === k; });
+      var h = Math.abs(a) / 1.3 * BH;
+      if (h > 0) el('rect', { x: 20 + (k - 1) * bw + 3, y: BASE - h, width: bw - 6, height: h, fill: used ? '#bf4520' : '#bfc0c0' }, g);
+      if (k % 2 === 1 || k === MAXK) {
+        var lb = el('text', { x: 20 + (k - 0.5) * bw, y: BASE + 14, 'text-anchor': 'middle', 'font-size': 9, fill: '#5a6580', 'font-family': 'Geist Mono, monospace' }, g);
+        lb.textContent = k;
+      }
+    }
+    var cap = el('text', { x: 20, y: 262, 'font-size': 10, fill: '#5a6580', 'font-family': 'Geist Mono, monospace' }, g);
+    cap.textContent = 'Strength of each frequency (harmonic number k)';
+
+    // error over one period
+    var err = 0, m = 400;
+    for (var q = 0; q < m; q++) {
+      var u = TAU * (q + 0.5) / m;
+      err += Math.abs(sumAt(list, u) - W.ideal(u));
+    }
+    err /= m;
+
+    $('#outN').textContent = n;
+    $('#wvTitle').textContent = W.name;
+    $('#live').textContent = 'avg error = ' + err.toFixed(3);
+    $('#readout').textContent =
+      'circles      = ' + n + '\n' +
+      'frequencies  = ' + list.map(function (q) { return q.k; }).join(', ') + '\n' +
+      'biggest term = ' + Math.abs(list[0].a).toFixed(3) + ' at k = ' + list[0].k + '\n' +
+      'avg error    = ' + err.toFixed(3);
+  }
+
+  function tick(ts) {
+    if (last !== null && playing) t += (ts - last) / 1000 * 1.1;
+    last = ts;
+    if (playing) render();
+    requestAnimationFrame(tick);
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll('[data-wv]'), function (b) {
+    b.addEventListener('click', function () {
+      cur = +b.dataset.wv;
+      Array.prototype.forEach.call(document.querySelectorAll('[data-wv]'), function (o) { o.setAttribute('aria-pressed', o === b); });
+      render();
+    });
+  });
+  $('#inN').addEventListener('input', render);
+  var pb = $('#play');
+  function syncPlay() { pb.textContent = playing ? 'Pause' : 'Play'; pb.setAttribute('aria-pressed', playing); }
+  pb.addEventListener('click', function () { playing = !playing; syncPlay(); });
+  syncPlay();
+  render();
+  requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>
