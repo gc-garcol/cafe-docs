@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Laplace Transform: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;font-family:var(--serif);font-size:24px;text-align:center;overflow-x:auto}
+
+.lab{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:24px;align-items:start;margin-top:24px}
+.card{margin:0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.stage{padding:0 8px}
+.stage svg{display:block;width:100%;height:auto}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.seg{display:flex;border:1px solid var(--rule-solid);border-radius:6px;overflow:hidden;margin-bottom:16px}
+.seg button{flex:1;min-height:40px;border:0;background:transparent;font:500 13px var(--sans);color:var(--muted);cursor:pointer;padding:0 8px}
+.seg button+button{border-left:1px solid var(--rule-solid)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.row{display:grid;grid-template-columns:36px 1fr 64px;gap:12px;align-items:center;margin:12px 0}
+.row label{font-family:var(--mono);font-size:13px;font-weight:600}
+.row output{font-family:var(--mono);font-size:12px;text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);min-height:28px}
+#readout{margin:16px 0 0;padding:14px 16px;background:var(--paper);border:1px solid var(--rule);border-radius:6px;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;min-height:140px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:2px;border:1px solid var(--ink);display:inline-block}
+
+.fig{margin:20px 0 8px}
+.scroll{overflow-x:auto;border:1px solid var(--rule);border-radius:8px;background:#fff;padding:8px}
+.scroll svg{display:block;height:auto}
+.cap{font-family:var(--mono);font-size:11px;color:var(--soft);margin:8px 0 0}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:30px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+table.ops{border-collapse:collapse;width:100%;max-width:760px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);border-radius:6px;font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule)}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
+@media (max-width:860px){.lab{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" href="../../../index.html">&larr; Back to home</a>
+
+<header>
+  <div class="eyebrow">Mathematics · Signals</div>
+  <h1>Laplace Transform</h1>
+  <p class="lede">The Laplace transform turns a function of time into a function of a new variable <code>s</code>. Calculus becomes algebra, which makes differential equations far easier to solve.</p>
+</header>
+
+<section>
+  <h2>Try it first</h2>
+  <p>Pick a signal <code>f(t)</code>. The transform multiplies it by a fading weight <code>e<sup>−st</sup></code> and measures the area under the product. Slide <code>s</code> and watch that area change. It always matches the closed-form answer <code>F(s)</code>.</p>
+
+  <div class="lab">
+    <figure class="card">
+      <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title" id="fnTitle">f(t) = 1</span></div>
+      <div class="stage">
+        <svg id="plot" viewBox="0 0 560 360" role="img" aria-labelledby="plot-title plot-desc">
+          <title id="plot-title">Area under f(t) times e to the minus s t</title>
+          <desc id="plot-desc">A dashed curve shows the signal f of t. A faint curve shows the decaying weight e to the minus s t. The shaded region under their product is the value of the Laplace transform at s.</desc>
+        </svg>
+      </div>
+      <div class="card-bottom"><span class="hint">Shaded area = F(s)</span><span class="live" id="live"></span></div>
+    </figure>
+
+    <div>
+      <div class="panel">
+        <div class="seg" role="group" aria-label="Signal">
+          <button type="button" data-fn="0" aria-pressed="true">1</button>
+          <button type="button" data-fn="1" aria-pressed="false">t</button>
+          <button type="button" data-fn="2" aria-pressed="false">e<sup>−kt</sup></button>
+          <button type="button" data-fn="3" aria-pressed="false">sin kt</button>
+        </div>
+        <div class="row"><label for="inS">s</label><input type="range" id="inS" min="0.3" max="4" step="0.05" value="1"><output id="outS"></output></div>
+        <div class="row"><label for="inK">k</label><input type="range" id="inK" min="0.5" max="3" step="0.1" value="1"><output id="outK"></output></div>
+        <div id="readout" aria-live="polite"></div>
+      </div>
+      <div class="legend" aria-label="Legend">
+        <span><i class="sw" style="background:rgba(191,69,32,.25);border-color:#bf4520"></i>f(t)·e<sup>−st</sup></span>
+        <span><i class="sw" style="background:#2d3142"></i>f(t)</span>
+        <span><i class="sw" style="background:#2e5aa8"></i>e<sup>−st</sup></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>1. The definition</h2>
+  <p>For a function <code>f(t)</code> defined for <code>t ≥ 0</code>, the Laplace transform is an integral from zero to infinity.</p>
+  <div class="formula">F(s) = ℒ{f(t)} = ∫<sub>0</sub><sup>∞</sup> f(t) · e<sup>−st</sup> dt</div>
+  <p>The factor <code>e<sup>−st</sup></code> shrinks the far future toward zero, so many signals that grow over time still give a finite area. Larger <code>s</code> means a faster fade. The integral only exists when <code>s</code> is large enough, and that range is called the region of convergence.</p>
+  <div class="callout">It is an integral, so everything from the integrals guide still applies.</div>
+</section>
+
+<section>
+  <h2>2. A worked example</h2>
+  <p>Take <code>f(t) = e<sup>−kt</sup></code>. Combine the exponents and integrate.</p>
+  <div class="formula">∫<sub>0</sub><sup>∞</sup> e<sup>−(s+k)t</sup> dt = 1 / (s + k)</div>
+  <p>The upper limit vanishes because <code>s + k &gt; 0</code>, and the lower limit leaves <code>1/(s + k)</code>. Choose <code>e<sup>−kt</sup></code> in the lab with <code>s = 1</code> and <code>k = 1</code>. The area should read <code>0.5</code>.</p>
+</section>
+
+<section>
+  <h2>3. Common transforms</h2>
+  <table class="ops">
+    <thead><tr><th>f(t)</th><th>F(s)</th><th>Needs</th></tr></thead>
+    <tbody>
+      <tr><td><code>1</code></td><td><code>1 / s</code></td><td><code>s &gt; 0</code></td></tr>
+      <tr><td><code>t</code></td><td><code>1 / s²</code></td><td><code>s &gt; 0</code></td></tr>
+      <tr><td><code>tⁿ</code></td><td><code>n! / sⁿ⁺¹</code></td><td><code>s &gt; 0</code></td></tr>
+      <tr><td><code>e<sup>−kt</sup></code></td><td><code>1 / (s + k)</code></td><td><code>s &gt; −k</code></td></tr>
+      <tr><td><code>sin kt</code></td><td><code>k / (s² + k²)</code></td><td><code>s &gt; 0</code></td></tr>
+      <tr><td><code>cos kt</code></td><td><code>s / (s² + k²)</code></td><td><code>s &gt; 0</code></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>4. Why it helps: derivatives become multiplication</h2>
+  <p>Integrating by parts once shows how the transform treats a derivative.</p>
+  <div class="formula">ℒ{f′(t)} = s·F(s) − f(0)</div>
+  <p>Differentiating in time turns into multiplying by <code>s</code>, with the starting value folded in. A differential equation in <code>t</code> becomes an algebraic equation in <code>s</code>. Solve it, then transform back.</p>
+
+  <div class="fig">
+    <div class="scroll">
+<svg width="760" height="230" viewBox="0 0 760 230" style="min-width:760px" role="img" aria-labelledby="flow-title flow-desc">
+<title id="flow-title">Solving a differential equation with the Laplace transform</title>
+<desc id="flow-desc">A hard path goes straight from the differential equation to its solution in the time domain. The easy path transforms the equation to an algebra problem in s, solves it, and transforms the answer back.</desc>
+<defs><marker id="flow-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#4f5d75" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+<rect x="40" y="30" width="200" height="64" rx="8" fill="#fff" stroke="#2e5aa8" stroke-width="1.4"/>
+<rect x="520" y="30" width="200" height="64" rx="8" fill="#fff" stroke="#2e5aa8" stroke-width="1.4"/>
+<rect x="40" y="140" width="200" height="64" rx="8" fill="rgba(191,69,32,.08)" stroke="#bf4520" stroke-width="1.4"/>
+<rect x="520" y="140" width="200" height="64" rx="8" fill="rgba(191,69,32,.08)" stroke="#bf4520" stroke-width="1.4"/>
+<g font-family="'Instrument Serif',serif" font-size="20" fill="#2d3142" text-anchor="middle"><text x="140" y="68">y′ + 2y = 0</text><text x="620" y="68">y(t)</text><text x="140" y="178">sY − y(0) + 2Y = 0</text><text x="620" y="178">Y(s)</text></g>
+<g stroke="#4f5d75" fill="none" marker-end="url(#flow-arrow)"><path d="M244 62 L516 62" stroke-dasharray="4 4"/><path d="M140 98 L140 136"/><path d="M244 172 L516 172"/><path d="M620 136 L620 98"/></g>
+<g font-family="'Geist Mono',monospace" font-size="11" fill="#4f5d75" text-anchor="middle"><text x="380" y="54">hard: solve directly</text><text x="380" y="164">easy: algebra in s</text><text x="140" y="122" dx="42">ℒ</text><text x="620" y="122" dx="42">ℒ⁻¹</text></g>
+</svg>
+    </div>
+    <p class="cap">Fig 2 · Detour through the s-domain. Transform, solve the algebra, transform back.</p>
+  </div>
+</section>
+
+<section>
+  <h2>5. Solving one by hand</h2>
+  <p>Solve <code>y′ + 2y = 0</code> with <code>y(0) = 3</code>. Transform both sides.</p>
+  <div class="formula">sY − 3 + 2Y = 0 &nbsp;⇒&nbsp; Y(s) = 3 / (s + 2)</div>
+  <p>From the table, <code>1/(s + k)</code> is the transform of <code>e<sup>−kt</sup></code>. With <code>k = 2</code> the answer is <code>y(t) = 3e<sup>−2t</sup></code>. No guessing a trial solution was needed.</p>
+</section>
+
+<section>
+  <h2>6. Properties</h2>
+  <div class="cards">
+    <div class="stat focal"><div class="eyebrow">Linear</div><div class="big">split</div><p><code>ℒ{a·f + b·g} = a·F + b·G</code></p></div>
+    <div class="stat"><div class="eyebrow">Shift in s</div><div class="big">damp</div><p><code>ℒ{e<sup>−at</sup>f(t)} = F(s + a)</code></p></div>
+    <div class="stat"><div class="eyebrow">Delay in t</div><div class="big">wait</div><p><code>ℒ{f(t − c)·u(t − c)} = e<sup>−cs</sup>·F(s)</code></p></div>
+  </div>
+  <p style="margin-top:20px">Another useful rule is the convolution theorem. A convolution in time, which is how a system responds to an input, becomes a plain product <code>F(s)·G(s)</code> in the s-domain. This is why engineers describe circuits, filters and control systems by their transfer functions.</p>
+</section>
+
+<section>
+  <h2>7. Where it shows up</h2>
+  <p>Electrical circuits with resistors, capacitors and inductors. Mechanical springs and dampers. Control systems, where poles of <code>F(s)</code> reveal stability. Anywhere a linear system with a starting state responds to an input over time.</p>
+</section>
+
+</main>
+
+<script>
+(function () {
+  var NSV = 'http://www.w3.org/2000/svg';
+  var W = 560, H = 360, M = 36;
+  var TMAX = 8, YMIN = -1.2, YMAX = 3;
+  var TINF = 80, STEPS = 16000;
+  var $ = function (s) { return document.querySelector(s); };
+
+  var FNS = [
+    { name: 'f(t) = 1', f: function () { return 1; }, F: function (s) { return 1 / s; }, form: '1/s', usesK: false },
+    { name: 'f(t) = t', f: function (t) { return t; }, F: function (s) { return 1 / (s * s); }, form: '1/s²', usesK: false },
+    { name: 'f(t) = e^(−kt)', f: function (t, k) { return Math.exp(-k * t); }, F: function (s, k) { return 1 / (s + k); }, form: '1/(s+k)', usesK: true },
+    { name: 'f(t) = sin(kt)', f: function (t, k) { return Math.sin(k * t); }, F: function (s, k) { return k / (s * s + k * k); }, form: 'k/(s²+k²)', usesK: true }
+  ];
+  var cur = 0;
+
+  function el(n, attrs, parent) {
+    var e = document.createElementNS(NSV, n);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function f5(v) { return v.toFixed(5); }
+
+  function render() {
+    var F = FNS[cur];
+    var s = +$('#inS').value, k = +$('#inK').value;
+    var svg = $('#plot');
+    Array.prototype.slice.call(svg.querySelectorAll('.dyn')).forEach(function (e) { e.remove(); });
+    var g = el('g', { 'class': 'dyn' }, svg);
+    var X = function (t) { return M + t / TMAX * (W - 2 * M); };
+    var Y = function (y) { return H - M - (y - YMIN) / (YMAX - YMIN) * (H - 2 * M); };
+
+    var clip = el('clipPath', { id: 'plotClip' }, g);
+    el('rect', { x: X(0), y: Y(YMAX), width: X(TMAX) - X(0), height: Y(YMIN) - Y(YMAX) }, clip);
+
+    for (var gx = 0; gx <= TMAX; gx++) {
+      el('line', { x1: X(gx), x2: X(gx), y1: Y(YMIN), y2: Y(YMAX), stroke: gx === 0 ? '#2d3142' : 'rgba(45,49,66,.1)' }, g);
+      var tx = el('text', { x: X(gx), y: H - M + 16, 'text-anchor': 'middle', 'font-size': 10, fill: '#5a6580', 'font-family': 'Geist Mono, monospace' }, g); tx.textContent = gx;
+    }
+    for (var gy = Math.ceil(YMIN); gy <= YMAX; gy++) {
+      el('line', { x1: X(0), x2: X(TMAX), y1: Y(gy), y2: Y(gy), stroke: gy === 0 ? '#2d3142' : 'rgba(45,49,66,.1)' }, g);
+      var ty = el('text', { x: M - 6, y: Y(gy) + 3, 'text-anchor': 'end', 'font-size': 10, fill: '#5a6580', 'font-family': 'Geist Mono, monospace' }, g); ty.textContent = gy;
+    }
+    var tl = el('text', { x: W - M, y: H - 6, 'text-anchor': 'end', 'font-size': 10, fill: '#5a6580', 'font-family': 'Geist Mono, monospace' }, g); tl.textContent = 't';
+
+    // numeric integral of f(t)e^(-st) on [0, TINF] (trapezoid); the tail beyond is negligible for s >= 0.3
+    var h = TINF / STEPS, area = 0, prev = F.f(0, k);
+    for (var i = 1; i <= STEPS; i++) {
+      var t = i * h, cu = F.f(t, k) * Math.exp(-s * t);
+      area += (prev + cu) * h / 2;
+      prev = cu;
+    }
+
+    var shaded = el('g', { 'clip-path': 'url(#plotClip)' }, g);
+    var P = 400, dFill = 'M' + X(0) + ' ' + Y(0), dW = '', dF = '', dI = '';
+    for (var j = 0; j <= P; j++) {
+      var tt = TMAX * j / P, ft = F.f(tt, k), wt = Math.exp(-s * tt), it = ft * wt;
+      dFill += ' L' + X(tt).toFixed(1) + ' ' + Y(it).toFixed(1);
+      dW += (j ? ' L' : 'M') + X(tt).toFixed(1) + ' ' + Y(wt).toFixed(1);
+      dF += (j ? ' L' : 'M') + X(tt).toFixed(1) + ' ' + Y(ft).toFixed(1);
+      dI += (j ? ' L' : 'M') + X(tt).toFixed(1) + ' ' + Y(it).toFixed(1);
+    }
+    dFill += ' L' + X(TMAX) + ' ' + Y(0) + ' Z';
+    el('path', { d: dFill, fill: 'rgba(191,69,32,.22)', stroke: 'none' }, shaded);
+    el('path', { d: dW, fill: 'none', stroke: '#2e5aa8', 'stroke-width': 1.6, opacity: .7 }, shaded);
+    el('path', { d: dF, fill: 'none', stroke: '#2d3142', 'stroke-width': 1.6, 'stroke-dasharray': '5 4' }, shaded);
+    el('path', { d: dI, fill: 'none', stroke: '#bf4520', 'stroke-width': 2.4 }, shaded);
+
+    var exact = F.F(s, k), err = area - exact;
+    $('#outS').textContent = s.toFixed(2);
+    $('#outK').textContent = k.toFixed(1);
+    $('#inK').disabled = !F.usesK;
+    $('#fnTitle').textContent = F.name;
+    $('#live').textContent = 'F(' + s.toFixed(2) + ') = ' + area.toFixed(4);
+    $('#readout').textContent =
+      'signal  = ' + F.name + '\n' +
+      's       = ' + s.toFixed(2) + (F.usesK ? '\nk       = ' + k.toFixed(1) : '') + '\n' +
+      'area    = ' + f5(area) + '  (numeric)\n' +
+      'F(s)    = ' + f5(exact) + '  (' + F.form + ')\n' +
+      'error   = ' + (err >= 0 ? '+' : '') + f5(err);
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll('[data-fn]'), function (b) {
+    b.addEventListener('click', function () {
+      cur = +b.dataset.fn;
+      Array.prototype.forEach.call(document.querySelectorAll('[data-fn]'), function (o) { o.setAttribute('aria-pressed', o === b); });
+      render();
+    });
+  });
+  $('#inS').addEventListener('input', render);
+  $('#inK').addEventListener('input', render);
+  render();
+})();
+</script>
+</body>
+</html>

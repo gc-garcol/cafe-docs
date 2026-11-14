@@ -282,6 +282,16 @@ const DOCS = [
     summary: 'Any signal is a stack of simple waves. Chain turning circles tip to tail, watch them draw a waveform, and read off which frequencies it contains.',
     related: ['Integrals', 'Merge Sort'],
   },
+  {
+    title: 'Laplace Transform',
+    path: 'content/math/laplace-transform/laplace-transform.html',
+    category: 'Mathematics',
+    topic: 'Signals',
+    level: 'Intermediate',
+    tags: ['laplace', 'transform', 's-domain', 'differential equation', 'transfer function', 'integral'],
+    summary: 'Weight a signal by a fading exponential and measure the area. The result turns derivatives into multiplication and differential equations into algebra.',
+    related: ['Fourier Transform', 'Integrals', 'Derivatives'],
+  },
 ];
 
 // ---------- helpers ----------
