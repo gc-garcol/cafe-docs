@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Matrix Rank: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+a{color:var(--link)}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+
+.card{margin:24px 0 0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.scroll{overflow-x:auto;padding:0 8px;text-align:center}
+.scroll svg{display:inline-block;width:100%;max-width:720px;height:auto}
+.planes{display:grid;grid-template-columns:1fr 1fr}
+.planes svg{display:block;width:100%;height:auto}
+.planes svg+svg{border-left:1px solid var(--rule)}
+.single{max-width:420px;margin:0 auto}
+.single svg{display:block;width:100%;height:auto}
+
+.controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;margin-top:16px;align-items:start}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.row{display:grid;grid-template-columns:56px 1fr 52px;gap:12px;align-items:center;margin:0 0 10px}
+.row label{font-family:var(--mono);font-size:13px;font-weight:600}
+.row output{font-family:var(--mono);font-size:12px;text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);min-height:28px}
+.group-label{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);margin:16px 0 6px}
+.seg{display:flex;flex-wrap:wrap;border:1px solid var(--rule-solid);border-radius:6px;overflow:hidden}
+.seg button{flex:1;min-height:40px;border:0;background:transparent;font:500 13px var(--sans);color:var(--muted);cursor:pointer;padding:0 10px}
+.seg button+button{border-left:1px solid var(--rule-solid)}
+.seg button:hover{background:var(--paper-2)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.big-answer{font-family:var(--serif);font-size:44px;line-height:1.1;margin:4px 0 8px;color:var(--accent)}
+.readout{margin:0;padding:0;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink);border:0;background:none}
+.calc{overflow-x:auto;margin-top:8px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:3px;border:1px solid var(--ink);display:inline-block}
+
+.mx{display:inline-grid;gap:6px;padding:6px 14px;border-left:2px solid var(--ink);border-right:2px solid var(--ink);border-radius:8px;vertical-align:middle;margin:4px 6px}
+.mx input{width:64px;min-height:36px;padding:0 6px;border:1px solid var(--rule-solid);border-radius:6px;font:500 14px var(--mono);color:var(--ink);background:#fff;text-align:center}
+.mx .cell{min-width:48px;min-height:36px;display:flex;align-items:center;justify-content:center;font:500 14px var(--mono);padding:0 4px}
+.mxrow{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px}
+.mxrow .lab{font-family:var(--serif);font-size:24px}
+input[type=number]{-moz-appearance:textfield}
+
+pre.code{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .t{color:var(--link)} .c{color:var(--soft);font-style:italic}
+
+.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;text-align:center;overflow-x:auto}
+.formula .katex{font-size:1.25em}
+.katex{color:var(--ink)}
+p .katex,td .katex,li .katex{font-size:1.05em}
+
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:30px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+table.ops{border-collapse:collapse;width:100%;max-width:760px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
+
+@media (max-width:860px){.controls{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (max-width:520px){.planes{grid-template-columns:1fr}.planes svg+svg{border-left:0;border-top:1px solid var(--rule)}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+
+.chips{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 14px}
+.chip{min-width:92px;padding:8px 12px;border-radius:6px;border:1px solid var(--rule-solid);font-family:var(--mono);font-size:12px;background:#fff}
+.chip.piv{border-color:#2e5aa8;background:rgba(46,90,168,.1)}
+.chip.free{border-color:#bf4520;background:var(--accent-tint)}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" href="../../../index.html">&larr; Back to home</a>
+
+<header>
+  <div class="eyebrow">Mathematics · Linear algebra</div>
+  <h1>Matrix Rank</h1>
+  <p class="lede">The number of independent rows or columns in a matrix. Rank says how much information a matrix keeps, how many equations are really different, and how many solutions a system has.</p>
+</header>
+
+<section>
+  <h2>Try it first</h2>
+  <p>Edit the $3 \times 3$ matrix, or use a preset. Row reduction clears each column with a pivot where it can. The number of pivots is the rank. Blue columns hold a pivot, so they are independent. Orange columns are combinations of the earlier ones.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">Row reduction</span></div>
+    <div style="padding:8px 16px 16px">
+      <div class="mxrow"><span class="lab">A</span><div class="mx" style="grid-template-columns:repeat(3,64px)"><input type="number" step="any" id="r00" value="1" aria-label="R row 1 column 1"><input type="number" step="any" id="r01" value="2" aria-label="R row 1 column 2"><input type="number" step="any" id="r02" value="3" aria-label="R row 1 column 3"><input type="number" step="any" id="r10" value="2" aria-label="R row 2 column 1"><input type="number" step="any" id="r11" value="4" aria-label="R row 2 column 2"><input type="number" step="any" id="r12" value="6" aria-label="R row 2 column 3"><input type="number" step="any" id="r20" value="1" aria-label="R row 3 column 1"><input type="number" step="any" id="r21" value="0" aria-label="R row 3 column 2"><input type="number" step="any" id="r22" value="1" aria-label="R row 3 column 3"></div><span class="lab">→</span><div id="rref"></div></div>
+      <div class="chips" id="chips" aria-label="Pivot columns"></div>
+    </div>
+    <div class="card-bottom"><span class="hint">rank = number of pivots</span><span class="live" id="live"></span></div>
+  </figure>
+
+  <div class="controls">
+    <div class="panel">
+      <div class="group-label" id="pre-label">Presets</div>
+      <div class="seg" role="group" aria-labelledby="pre-label">
+        <button type="button" data-p="1,0,2;0,1,1;1,1,0">Full rank</button>
+        <button type="button" data-p="1,2,3;0,1,1;1,3,4">Rank 2</button>
+        <button type="button" data-p="1,2,3;2,4,6;3,6,9">Rank 1</button>
+        <button type="button" data-p="0,0,0;0,0,0;0,0,0">Zero</button>
+      </div>
+      <div class="eyebrow" style="margin-top:18px">Steps</div>
+      <pre class="readout" id="steps" aria-live="polite"></pre>
+    </div>
+    <div class="panel">
+      <div class="eyebrow">rank A</div>
+      <div class="big-answer" id="answer"></div>
+      <pre class="readout" id="readout" aria-live="polite"></pre>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>1. What rank measures</h2>
+  <p>The columns of a matrix are vectors. Some of them may be redundant, because they can be built from the others. The <b>rank</b> is the number of independent columns, which is the dimension of the space they span. That space is the <b>column space</b>, or the image of the matrix when you see it as a <a href="../linear-maps/linear-maps.html">linear map</a>.</p>
+  <p>A surprising fact: the number of independent rows is the same. So $\operatorname{rank} A = \operatorname{rank} A^{\mathsf T}$, and for an $m \times n$ matrix the rank is at most $\min(m, n)$.</p>
+  <div class="callout">Rank is how many directions the matrix really uses.</div>
+</section>
+
+<section>
+  <h2>2. Finding it by row reduction</h2>
+  <p>Gaussian elimination only uses three row operations: swap two rows, scale a row, and add a multiple of one row to another. None of them changes the rank. Reduce until each pivot is the only nonzero entry in its column. The count of pivots is the rank.</p>
+  <p>Take the default matrix. Row 2 is twice row 1, so one row becomes zero and only two pivots remain. The orange column, $(3,6,1)^{\mathsf T}$, is just the first column plus the second.</p>
+  <div class="formula">$$\begin{bmatrix} 1 & 2 & 3 \\ 2 & 4 & 6 \\ 1 & 0 & 1 \end{bmatrix} \longrightarrow \begin{bmatrix} 1 & 0 & 1 \\ 0 & 1 & 1 \\ 0 & 0 & 0 \end{bmatrix} \quad \Rightarrow \quad \operatorname{rank} = 2$$</div>
+  <p>Floating point makes "exactly zero" fuzzy, so software uses the singular values instead and counts the ones above a tolerance.</p>
+</section>
+
+<section>
+  <h2>3. Rank plus nullity</h2>
+  <p>The <b>null space</b> is the set of vectors $\mathbf{x}$ with $A\mathbf{x} = \mathbf{0}$. Each column without a pivot gives one free direction in it. Its dimension is the <b>nullity</b>.</p>
+  <div class="formula">$$\operatorname{rank} A + \operatorname{nullity} A = n \quad (\text{the number of columns})$$</div>
+  <p>This is the rank-nullity theorem. The directions the matrix keeps and the directions it crushes to zero use up all $n$ dimensions of the input. The lab lists a basis of the null space under the readout.</p>
+</section>
+
+<section>
+  <h2>4. Rank and solutions</h2>
+  <p>For the system $A\mathbf{x} = \mathbf{b}$, compare the rank of $A$ with the rank of the augmented matrix $[A \mid \mathbf{b}]$.</p>
+  <table class="ops">
+    <thead><tr><th>Condition</th><th>Solutions</th></tr></thead>
+    <tbody>
+      <tr><td>$\operatorname{rank} A < \operatorname{rank}[A \mid \mathbf{b}]$</td><td>None. The equations contradict each other.</td></tr>
+      <tr><td>$\operatorname{rank} A = \operatorname{rank}[A \mid \mathbf{b}] = n$</td><td>Exactly one.</td></tr>
+      <tr><td>$\operatorname{rank} A = \operatorname{rank}[A \mid \mathbf{b}] < n$</td><td>Infinitely many, with $n - \operatorname{rank}$ free parameters.</td></tr>
+    </tbody>
+  </table>
+  <p>A square matrix has full rank exactly when its <a href="../determinants/determinants.html">determinant</a> is not zero.</p>
+</section>
+
+<section>
+  <h2>5. Useful facts</h2>
+  <ul class="tight">
+    <li>$\operatorname{rank}(AB) \le \min(\operatorname{rank} A, \operatorname{rank} B)$. Multiplying never adds information.</li>
+    <li>A rank 1 matrix is an outer product $\mathbf{u}\mathbf{v}^{\mathsf T}$, one column times one row.</li>
+    <li>Low rank means compressible. Keeping the top $k$ singular values gives the best rank $k$ approximation of an image.</li>
+    <li>Adding a row or column cannot lower the rank.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>6. The same thing in code</h2>
+  <pre class="code"><span class="k">function</span> rank(M, eps = <span class="t">1e-9</span>) {
+  <span class="k">const</span> A = M.map(r =&gt; r.slice());
+  <span class="k">let</span> r = <span class="t">0</span>;
+  <span class="k">for</span> (<span class="k">let</span> c = <span class="t">0</span>; c &lt; A[<span class="t">0</span>].length &amp;&amp; r &lt; A.length; c++) {
+    <span class="k">let</span> p = r;
+    <span class="k">for</span> (<span class="k">let</span> i = r + <span class="t">1</span>; i &lt; A.length; i++) <span class="k">if</span> (Math.abs(A[i][c]) &gt; Math.abs(A[p][c])) p = i;
+    <span class="k">if</span> (Math.abs(A[p][c]) &lt; eps) <span class="k">continue</span>;
+    [A[r], A[p]] = [A[p], A[r]];
+    <span class="k">for</span> (<span class="k">let</span> i = r + <span class="t">1</span>; i &lt; A.length; i++) {
+      <span class="k">const</span> m = A[i][c] / A[r][c];
+      A[i] = A[i].map((x, k) =&gt; x - m * A[r][k]);
+    }
+    r++;
+  }
+  <span class="k">return</span> r;
+}</pre>
+</section>
+
+<section>
+  <h2>7. Where it shows up</h2>
+  <div class="cards">
+    <div class="stat focal"><div class="eyebrow">Data</div><div class="big">compression</div><p>Low rank approximations store a big matrix with far fewer numbers.</p></div>
+    <div class="stat"><div class="eyebrow">Statistics</div><div class="big">redundancy</div><p>Rank deficient data means some features are copies of others, and regression breaks.</p></div>
+    <div class="stat"><div class="eyebrow">Control</div><div class="big">reachability</div><p>A system is controllable when a certain matrix has full rank.</p></div>
+  </div>
+</section>
+
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var NS = 'http://www.w3.org/2000/svg';
+  var $ = function (id) { return document.getElementById(id); };
+  function el(name, attrs, parent) {
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function num(id) { var v = parseFloat($(id).value); return isFinite(v) ? v : 0; }
+  // short number: no trailing zeros, no "-0"
+  function f(x, d) {
+    d = d === undefined ? 2 : d;
+    if (!isFinite(x)) return String(x);
+    var s = (Math.abs(x) < 0.5 * Math.pow(10, -d) ? 0 : x).toFixed(d);
+    if (s.indexOf('.') >= 0) s = s.replace(/0+$/, '').replace(/\.$/, '');
+    return s;
+  }
+  function pad(s, n) { s = String(s); while (s.length < n) s = ' ' + s; return s; }
+  function tex(id, s) {
+    var n = $(id);
+    if (window.katex) window.katex.render(s, n, { throwOnError: false, displayMode: false });
+    else n.textContent = s;
+  }
+  function mxHtml(M) {
+    var r = M.length, c = M[0].length, h = '<div class="mx" style="grid-template-columns:repeat(' + c + ',auto)">';
+    for (var i = 0; i < r; i++) for (var j = 0; j < c; j++) h += '<span class="cell">' + f(M[i][j]) + '</span>';
+    return h + '</div>';
+  }
+  function reset(svg) {
+    Array.prototype.slice.call(svg.childNodes).forEach(function (n) {
+      var nm = (n.localName || '').toLowerCase();
+      if (nm !== 'title' && nm !== 'desc') svg.removeChild(n);
+    });
+    return el('g', {}, svg);
+  }
+  // square plane, viewBox 0 0 360 360, data range [-R, R]
+  function plane(id, R, step) {
+    var svg = $(id), S = 360, M = 14, g = reset(svg);
+    var X = function (v) { return M + (v + R) / (2 * R) * (S - 2 * M); };
+    var Y = function (v) { return S - M - (v + R) / (2 * R) * (S - 2 * M); };
+    el('rect', { x: M, y: M, width: S - 2 * M, height: S - 2 * M, fill: '#fff', stroke: 'rgba(45,49,66,.25)' }, g);
+    step = step || 1;
+    for (var t = -R; t <= R + 1e-9; t += step) {
+      if (Math.abs(t) < 1e-9) continue;
+      el('line', { x1: X(t), x2: X(t), y1: M, y2: S - M, stroke: 'rgba(45,49,66,.07)' }, g);
+      el('line', { x1: M, x2: S - M, y1: Y(t), y2: Y(t), stroke: 'rgba(45,49,66,.07)' }, g);
+    }
+    el('line', { x1: X(0), x2: X(0), y1: M, y2: S - M, stroke: '#2d3142', 'stroke-width': 0.8 }, g);
+    el('line', { x1: M, x2: S - M, y1: Y(0), y2: Y(0), stroke: '#2d3142', 'stroke-width': 0.8 }, g);
+    var cid = id + 'Clip';
+    var cp = el('clipPath', { id: cid }, g);
+    el('rect', { x: M, y: M, width: S - 2 * M, height: S - 2 * M }, cp);
+    var c = el('g', { 'clip-path': 'url(#' + cid + ')' }, g);
+    return { g: g, c: c, X: X, Y: Y, R: R };
+  }
+  function line(P, x1, y1, x2, y2, color, w, dash) {
+    var a = { x1: P.X(x1), y1: P.Y(y1), x2: P.X(x2), y2: P.Y(y2), stroke: color, 'stroke-width': w || 1.5, 'stroke-linecap': 'round' };
+    if (dash) a['stroke-dasharray'] = dash;
+    return el('line', a, P.c);
+  }
+  function arrow(P, x, y, color, w, x0, y0) {
+    x0 = x0 || 0; y0 = y0 || 0;
+    var ax = P.X(x0), ay = P.Y(y0), bx = P.X(x), by = P.Y(y);
+    var dx = bx - ax, dy = by - ay, L = Math.hypot(dx, dy);
+    if (L < 1) return;
+    var ux = dx / L, uy = dy / L, h = 9;
+    el('line', { x1: ax, y1: ay, x2: bx - ux * 6, y2: by - uy * 6, stroke: color, 'stroke-width': w || 2.4, 'stroke-linecap': 'round' }, P.c);
+    el('polygon', { points: bx + ',' + by + ' ' + (bx - ux * h - uy * 4.5) + ',' + (by - uy * h + ux * 4.5) + ' ' + (bx - ux * h + uy * 4.5) + ',' + (by - uy * h - ux * 4.5), fill: color }, P.c);
+  }
+  function dot(P, x, y, r, fill, stroke) {
+    return el('circle', { cx: P.X(x), cy: P.Y(y), r: r, fill: fill, stroke: stroke || '#fff', 'stroke-width': 1.4 }, P.c);
+  }
+  function label(P, x, y, s, color, dx, dy) {
+    var t = el('text', { x: P.X(x) + (dx || 6), y: P.Y(y) + (dy || -6), 'font-size': 12, fill: color || '#2d3142', 'font-family': 'Geist Mono, monospace', 'font-weight': 600 }, P.c);
+    t.textContent = s;
+  }
+  function poly(P, pts, fill, stroke, w) {
+    var s = pts.map(function (p) { return P.X(p[0]).toFixed(1) + ',' + P.Y(p[1]).toFixed(1); }).join(' ');
+    return el('polygon', { points: s, fill: fill, stroke: stroke || 'none', 'stroke-width': w || 1.5, 'stroke-linejoin': 'round' }, P.c);
+  }
+  function path(P, pts, color, w, dash) {
+    var d = '', pen = false;
+    pts.forEach(function (p) {
+      if (!isFinite(p[0]) || !isFinite(p[1])) { pen = false; return; }
+      d += (pen ? ' L' : ' M') + P.X(p[0]).toFixed(1) + ' ' + P.Y(p[1]).toFixed(1); pen = true;
+    });
+    var a = { d: d, fill: 'none', stroke: color, 'stroke-width': w || 1.5, 'stroke-linejoin': 'round' };
+    if (dash) a['stroke-dasharray'] = dash;
+    if (d) el('path', a, P.c);
+  }
+  function mul2(a, b) {
+    return [[a[0][0] * b[0][0] + a[0][1] * b[1][0], a[0][0] * b[0][1] + a[0][1] * b[1][1]],
+            [a[1][0] * b[0][0] + a[1][1] * b[1][0], a[1][0] * b[0][1] + a[1][1] * b[1][1]]];
+  }
+  function app(a, v) { return [a[0][0] * v[0] + a[0][1] * v[1], a[1][0] * v[0] + a[1][1] * v[1]]; }
+  function det2(a) { return a[0][0] * a[1][1] - a[0][1] * a[1][0]; }
+  function inv2(a) {
+    var d = det2(a);
+    return [[a[1][1] / d, -a[0][1] / d], [-a[1][0] / d, a[0][0] / d]];
+  }
+  function pick(selector, attr, value) {
+    Array.prototype.forEach.call(document.querySelectorAll(selector), function (b) {
+      b.setAttribute('aria-pressed', String(b.getAttribute(attr) === String(value)));
+    });
+  }
+  function listen(selector, ev, fn) {
+    Array.prototype.forEach.call(document.querySelectorAll(selector), function (n) { n.addEventListener(ev, fn); });
+  }
+
+
+  function readM() { return [0, 1, 2].map(function (i) { return [0, 1, 2].map(function (j) { return num('r' + i + j); }); }); }
+  function rref(M) {
+    var A = M.map(function (r) { return r.slice(); }), rows = A.length, cols = A[0].length, r = 0, piv = [], log = [];
+    for (var c = 0; c < cols && r < rows; c++) {
+      var p = r, i;
+      for (i = r + 1; i < rows; i++) if (Math.abs(A[i][c]) > Math.abs(A[p][c])) p = i;
+      if (Math.abs(A[p][c]) < 1e-9) continue;
+      if (p !== r) { var tmp = A[p]; A[p] = A[r]; A[r] = tmp; log.push('swap R' + (r + 1) + ' and R' + (p + 1)); }
+      var d = A[r][c];
+      if (Math.abs(d - 1) > 1e-9) { A[r] = A[r].map(function (x) { return x / d; }); log.push('R' + (r + 1) + ' ← R' + (r + 1) + ' / ' + f(d)); }
+      for (i = 0; i < rows; i++) {
+        if (i === r || Math.abs(A[i][c]) < 1e-9) continue;
+        var m = A[i][c];
+        A[i] = A[i].map(function (x, k) { return x - m * A[r][k]; });
+        log.push('R' + (i + 1) + ' ← R' + (i + 1) + ' − ' + f(m) + '·R' + (r + 1));
+      }
+      piv.push(c); r++;
+    }
+    return { A: A, piv: piv, log: log };
+  }
+  function render() {
+    var M = readM(), R = rref(M), rank = R.piv.length, n = 3;
+    $('rref').innerHTML = mxHtml(R.A);
+    $('answer').textContent = rank;
+    $('live').textContent = rank === n ? 'full rank' : 'rank deficient';
+    $('chips').innerHTML = [0, 1, 2].map(function (j) {
+      var isP = R.piv.indexOf(j) >= 0;
+      return '<span class="chip ' + (isP ? 'piv' : 'free') + '">column ' + (j + 1) + ': ' + (isP ? 'pivot' : 'free') + '</span>';
+    }).join('');
+    $('steps').textContent = R.log.length ? R.log.slice(0, 14).join('\n') + (R.log.length > 14 ? '\n…' : '') : 'nothing to do';
+
+    // null space basis from RREF
+    var basis = [];
+    for (var j = 0; j < n; j++) {
+      if (R.piv.indexOf(j) >= 0) continue;
+      var v = [0, 0, 0]; v[j] = 1;
+      R.piv.forEach(function (pc, row) { v[pc] = -R.A[row][j]; });
+      basis.push('(' + v.map(function (x) { return f(x); }).join(', ') + ')');
+    }
+    $('readout').textContent =
+      'pivots in columns: ' + (R.piv.length ? R.piv.map(function (x) { return x + 1; }).join(', ') : 'none') + '\n' +
+      'rank    = ' + rank + '\n' +
+      'nullity = ' + (n - rank) + '   (rank + nullity = ' + n + ')\n' +
+      'null space basis: ' + (basis.length ? basis.join('  ') : '{0} only') + '\n' +
+      'a solution to A x = b is ' + (rank === n ? 'unique when it exists' : 'never unique');
+  }
+  listen('.mx input', 'input', render);
+  listen('[data-p]', 'click', function () {
+    var rows = this.getAttribute('data-p').split(';');
+    rows.forEach(function (r, i) { r.split(',').forEach(function (v, j) { $('r' + i + j).value = v; }); });
+    render();
+  });
+  render();
+
+
+  if (window.renderMathInElement) {
+    window.renderMathInElement(document.body, {
+      delimiters: [{ left: '$$', right: '$$', display: true }, { left: '$', right: '$', display: false }],
+      ignoredTags: ['script', 'style', 'textarea', 'pre', 'code'],
+      throwOnError: false
+    });
+  }
+});
+</script>
+</body>
+</html>

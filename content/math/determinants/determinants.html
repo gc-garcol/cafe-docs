@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Determinants: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+a{color:var(--link)}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+
+.card{margin:24px 0 0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.scroll{overflow-x:auto;padding:0 8px;text-align:center}
+.scroll svg{display:inline-block;width:100%;max-width:720px;height:auto}
+.planes{display:grid;grid-template-columns:1fr 1fr}
+.planes svg{display:block;width:100%;height:auto}
+.planes svg+svg{border-left:1px solid var(--rule)}
+.single{max-width:420px;margin:0 auto}
+.single svg{display:block;width:100%;height:auto}
+
+.controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;margin-top:16px;align-items:start}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.row{display:grid;grid-template-columns:56px 1fr 52px;gap:12px;align-items:center;margin:0 0 10px}
+.row label{font-family:var(--mono);font-size:13px;font-weight:600}
+.row output{font-family:var(--mono);font-size:12px;text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);min-height:28px}
+.group-label{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);margin:16px 0 6px}
+.seg{display:flex;flex-wrap:wrap;border:1px solid var(--rule-solid);border-radius:6px;overflow:hidden}
+.seg button{flex:1;min-height:40px;border:0;background:transparent;font:500 13px var(--sans);color:var(--muted);cursor:pointer;padding:0 10px}
+.seg button+button{border-left:1px solid var(--rule-solid)}
+.seg button:hover{background:var(--paper-2)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.big-answer{font-family:var(--serif);font-size:44px;line-height:1.1;margin:4px 0 8px;color:var(--accent)}
+.readout{margin:0;padding:0;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink);border:0;background:none}
+.calc{overflow-x:auto;margin-top:8px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:3px;border:1px solid var(--ink);display:inline-block}
+
+.mx{display:inline-grid;gap:6px;padding:6px 14px;border-left:2px solid var(--ink);border-right:2px solid var(--ink);border-radius:8px;vertical-align:middle;margin:4px 6px}
+.mx input{width:64px;min-height:36px;padding:0 6px;border:1px solid var(--rule-solid);border-radius:6px;font:500 14px var(--mono);color:var(--ink);background:#fff;text-align:center}
+.mx .cell{min-width:48px;min-height:36px;display:flex;align-items:center;justify-content:center;font:500 14px var(--mono);padding:0 4px}
+.mxrow{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px}
+.mxrow .lab{font-family:var(--serif);font-size:24px}
+input[type=number]{-moz-appearance:textfield}
+
+pre.code{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .t{color:var(--link)} .c{color:var(--soft);font-style:italic}
+
+.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;text-align:center;overflow-x:auto}
+.formula .katex{font-size:1.25em}
+.katex{color:var(--ink)}
+p .katex,td .katex,li .katex{font-size:1.05em}
+
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:30px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+table.ops{border-collapse:collapse;width:100%;max-width:760px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
+
+@media (max-width:860px){.controls{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (max-width:520px){.planes{grid-template-columns:1fr}.planes svg+svg{border-left:0;border-top:1px solid var(--rule)}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" href="../../../index.html">&larr; Back to home</a>
+
+<header>
+  <div class="eyebrow">Mathematics · Linear algebra</div>
+  <h1>Determinants</h1>
+  <p class="lede">A single number attached to a square matrix. It says how much the matrix scales area or volume, whether it flips orientation, and whether it can be undone at all.</p>
+</header>
+
+<section>
+  <h2>Try it first</h2>
+  <p>The columns of the matrix are where the two unit vectors $e_1$ and $e_2$ land. The unit square becomes a parallelogram. Its area is $|\det A|$. Blue means orientation is kept. Orange means it is flipped. When the parallelogram collapses to a line, the determinant is zero.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">Unit square and its image</span></div>
+    <div class="single">
+      <svg id="pl" viewBox="0 0 360 360" role="img" aria-labelledby="pl-title pl-desc">
+        <title id="pl-title">Unit square and the parallelogram it becomes</title>
+        <desc id="pl-desc">A grid with the unit square outlined in grey. A filled parallelogram shows the image of that square under the matrix. Its sides are the two columns of the matrix, drawn as arrows. The fill is blue when the determinant is positive and orange when it is negative. The determinant and area are listed in the readout beside the figure.</desc>
+      </svg>
+    </div>
+    <div class="card-bottom"><span class="hint">Sides = columns of the matrix</span><span class="live" id="live"></span></div>
+  </figure>
+
+  <div class="controls">
+    <div class="panel">
+      <div class="row"><label for="a">$a$</label><input type="range" id="a" min="-3" max="3" step="0.1" value="1"><output id="o-a" for="a"></output></div><div class="row"><label for="b">$b$</label><input type="range" id="b" min="-3" max="3" step="0.1" value="0.5"><output id="o-b" for="b"></output></div><div class="row"><label for="c">$c$</label><input type="range" id="c" min="-3" max="3" step="0.1" value="0"><output id="o-c" for="c"></output></div><div class="row"><label for="d">$d$</label><input type="range" id="d" min="-3" max="3" step="0.1" value="1"><output id="o-d" for="d"></output></div>
+      <div class="group-label" id="pre-label">Presets</div>
+      <div class="seg" role="group" aria-labelledby="pre-label">
+        <button type="button" data-p="1,0,0,1">Identity</button>
+        <button type="button" data-p="0.71,-0.71,0.71,0.71">Rotate 45°</button>
+        <button type="button" data-p="1,1,0,1">Shear</button>
+        <button type="button" data-p="0,1,1,0">Flip</button>
+        <button type="button" data-p="1,2,0.5,1">Singular</button>
+      </div>
+      <div class="legend" aria-label="Legend">
+        <span><i class="sw" style="background:#2e5aa8"></i>first column</span>
+        <span><i class="sw" style="background:#bf4520"></i>second column</span>
+        <span><i class="sw" style="background:rgba(46,90,168,.3)"></i>det &gt; 0</span>
+        <span><i class="sw" style="background:rgba(191,69,32,.3)"></i>det &lt; 0</span>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="eyebrow">det A</div>
+      <div class="big-answer" id="answer"></div>
+      <pre class="readout" id="readout" aria-live="polite"></pre>
+      <div class="calc" id="calc"></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>1. Area scaling</h2>
+  <p>Every linear map scales all areas by the same factor. That factor is the absolute value of the determinant. The sign records whether the plane was reflected: negative means a mirror image. In three dimensions the same number scales volume.</p>
+  <div class="callout">$\det A$ is the signed factor by which $A$ stretches area or volume.</div>
+</section>
+
+<section>
+  <h2>2. The $2 \times 2$ formula</h2>
+  <div class="formula">$$\det\begin{bmatrix} a & b \\ c & d \end{bmatrix} = ad - bc$$</div>
+  <p>This is the signed area of the parallelogram spanned by the columns $(a, c)$ and $(b, d)$. If you drag the sliders until the two columns point along one line, the area is zero. A zero determinant means the matrix squashes the plane onto a line or a point. Information is lost, so no inverse exists.</p>
+  <p>When $\det A \neq 0$ the inverse is $A^{-1} = \frac{1}{ad - bc}\begin{bmatrix} d & -b \\ -c & a \end{bmatrix}$, and its determinant is $1/\det A$.</p>
+</section>
+
+<section>
+  <h2>3. Larger matrices: cofactor expansion</h2>
+  <p>For bigger matrices, expand along a row. Each entry multiplies the determinant of the smaller matrix left after deleting its row and column, with alternating signs:</p>
+  <div class="formula">$$\det A = \sum_{j=1}^{n} (-1)^{1+j}\, a_{1j}\, \det M_{1j}$$</div>
+  <p>Here $M_{1j}$ is $A$ without row 1 and column $j$. Try your own $3 \times 3$ matrix. The readout lists the three terms.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 2</span><span class="card-title">$3 \times 3$ by the first row</span></div>
+    <div style="padding:8px 16px 16px">
+      <div class="mxrow"><span class="lab">M</span><div class="mx" style="grid-template-columns:repeat(3,64px)"><input type="number" step="any" id="m00" value="2" aria-label="M row 1 column 1"><input type="number" step="any" id="m01" value="0" aria-label="M row 1 column 2"><input type="number" step="any" id="m02" value="1" aria-label="M row 1 column 3"><input type="number" step="any" id="m10" value="1" aria-label="M row 2 column 1"><input type="number" step="any" id="m11" value="3" aria-label="M row 2 column 2"><input type="number" step="any" id="m12" value="2" aria-label="M row 2 column 3"><input type="number" step="any" id="m20" value="1" aria-label="M row 3 column 1"><input type="number" step="any" id="m21" value="1" aria-label="M row 3 column 2"><input type="number" step="any" id="m22" value="1" aria-label="M row 3 column 3"></div><span class="lab">$\det$ =</span><span class="big-answer" style="margin:0" id="det3"></span></div>
+      <pre class="readout" id="expand" aria-live="polite" style="margin-top:12px"></pre>
+    </div>
+  </figure>
+</section>
+
+<section>
+  <h2>4. Rules that save work</h2>
+  <table class="ops">
+    <thead><tr><th>Rule</th><th>Effect on the determinant</th></tr></thead>
+    <tbody>
+      <tr><td>Swap two rows</td><td>Changes the sign</td></tr>
+      <tr><td>Multiply one row by $c$</td><td>Multiplies the determinant by $c$</td></tr>
+      <tr><td>Add a multiple of one row to another</td><td>No change</td></tr>
+      <tr><td>Two equal or proportional rows</td><td>Determinant is $0$</td></tr>
+      <tr><td>Product</td><td>$\det(AB) = \det A \cdot \det B$</td></tr>
+      <tr><td>Transpose</td><td>$\det A^{\mathsf T} = \det A$</td></tr>
+      <tr><td>Triangular matrix</td><td>Product of the diagonal entries</td></tr>
+    </tbody>
+  </table>
+  <p>The third rule is how computers do it. Row reduce to a triangular matrix, track the sign changes, and multiply the diagonal. That takes about $n^3$ steps, while cofactor expansion takes about $n!$.</p>
+</section>
+
+<section>
+  <h2>5. What a zero means</h2>
+  <p>For an $n \times n$ matrix these statements are all equivalent. If one holds, they all do.</p>
+  <ul class="tight">
+    <li>$\det A \neq 0$</li>
+    <li>$A$ has an inverse</li>
+    <li>The columns are independent, so the <a href="../matrix-rank/matrix-rank.html">rank</a> is $n$</li>
+    <li>$A\mathbf{x} = \mathbf{0}$ has only the solution $\mathbf{x} = \mathbf{0}$</li>
+    <li>Zero is not an <a href="../eigenvalues-eigenvectors/eigenvalues-eigenvectors.html">eigenvalue</a> of $A$</li>
+  </ul>
+  <p>Cramer's rule uses determinants to solve $A\mathbf{x} = \mathbf{b}$: $x_i = \det A_i / \det A$, where $A_i$ has column $i$ replaced by $\mathbf{b}$. It is neat for small systems and slow for large ones.</p>
+</section>
+
+<section>
+  <h2>6. Where it shows up</h2>
+  <div class="cards">
+    <div class="stat focal"><div class="eyebrow">Calculus</div><div class="big">Jacobian</div><p>Changing variables in an integral scales by the determinant of the Jacobian.</p></div>
+    <div class="stat"><div class="eyebrow">Geometry</div><div class="big">volume</div><p>The volume of a parallelepiped is the determinant of its edge vectors.</p></div>
+    <div class="stat"><div class="eyebrow">Eigenvalues</div><div class="big">$\det(A - \lambda I)$</div><p>The characteristic polynomial finds the eigenvalues of a matrix.</p></div>
+  </div>
+</section>
+
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var NS = 'http://www.w3.org/2000/svg';
+  var $ = function (id) { return document.getElementById(id); };
+  function el(name, attrs, parent) {
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function num(id) { var v = parseFloat($(id).value); return isFinite(v) ? v : 0; }
+  // short number: no trailing zeros, no "-0"
+  function f(x, d) {
+    d = d === undefined ? 2 : d;
+    if (!isFinite(x)) return String(x);
+    var s = (Math.abs(x) < 0.5 * Math.pow(10, -d) ? 0 : x).toFixed(d);
+    if (s.indexOf('.') >= 0) s = s.replace(/0+$/, '').replace(/\.$/, '');
+    return s;
+  }
+  function pad(s, n) { s = String(s); while (s.length < n) s = ' ' + s; return s; }
+  function tex(id, s) {
+    var n = $(id);
+    if (window.katex) window.katex.render(s, n, { throwOnError: false, displayMode: false });
+    else n.textContent = s;
+  }
+  function mxHtml(M) {
+    var r = M.length, c = M[0].length, h = '<div class="mx" style="grid-template-columns:repeat(' + c + ',auto)">';
+    for (var i = 0; i < r; i++) for (var j = 0; j < c; j++) h += '<span class="cell">' + f(M[i][j]) + '</span>';
+    return h + '</div>';
+  }
+  function reset(svg) {
+    Array.prototype.slice.call(svg.childNodes).forEach(function (n) {
+      var nm = (n.localName || '').toLowerCase();
+      if (nm !== 'title' && nm !== 'desc') svg.removeChild(n);
+    });
+    return el('g', {}, svg);
+  }
+  // square plane, viewBox 0 0 360 360, data range [-R, R]
+  function plane(id, R, step) {
+    var svg = $(id), S = 360, M = 14, g = reset(svg);
+    var X = function (v) { return M + (v + R) / (2 * R) * (S - 2 * M); };
+    var Y = function (v) { return S - M - (v + R) / (2 * R) * (S - 2 * M); };
+    el('rect', { x: M, y: M, width: S - 2 * M, height: S - 2 * M, fill: '#fff', stroke: 'rgba(45,49,66,.25)' }, g);
+    step = step || 1;
+    for (var t = -R; t <= R + 1e-9; t += step) {
+      if (Math.abs(t) < 1e-9) continue;
+      el('line', { x1: X(t), x2: X(t), y1: M, y2: S - M, stroke: 'rgba(45,49,66,.07)' }, g);
+      el('line', { x1: M, x2: S - M, y1: Y(t), y2: Y(t), stroke: 'rgba(45,49,66,.07)' }, g);
+    }
+    el('line', { x1: X(0), x2: X(0), y1: M, y2: S - M, stroke: '#2d3142', 'stroke-width': 0.8 }, g);
+    el('line', { x1: M, x2: S - M, y1: Y(0), y2: Y(0), stroke: '#2d3142', 'stroke-width': 0.8 }, g);
+    var cid = id + 'Clip';
+    var cp = el('clipPath', { id: cid }, g);
+    el('rect', { x: M, y: M, width: S - 2 * M, height: S - 2 * M }, cp);
+    var c = el('g', { 'clip-path': 'url(#' + cid + ')' }, g);
+    return { g: g, c: c, X: X, Y: Y, R: R };
+  }
+  function line(P, x1, y1, x2, y2, color, w, dash) {
+    var a = { x1: P.X(x1), y1: P.Y(y1), x2: P.X(x2), y2: P.Y(y2), stroke: color, 'stroke-width': w || 1.5, 'stroke-linecap': 'round' };
+    if (dash) a['stroke-dasharray'] = dash;
+    return el('line', a, P.c);
+  }
+  function arrow(P, x, y, color, w, x0, y0) {
+    x0 = x0 || 0; y0 = y0 || 0;
+    var ax = P.X(x0), ay = P.Y(y0), bx = P.X(x), by = P.Y(y);
+    var dx = bx - ax, dy = by - ay, L = Math.hypot(dx, dy);
+    if (L < 1) return;
+    var ux = dx / L, uy = dy / L, h = 9;
+    el('line', { x1: ax, y1: ay, x2: bx - ux * 6, y2: by - uy * 6, stroke: color, 'stroke-width': w || 2.4, 'stroke-linecap': 'round' }, P.c);
+    el('polygon', { points: bx + ',' + by + ' ' + (bx - ux * h - uy * 4.5) + ',' + (by - uy * h + ux * 4.5) + ' ' + (bx - ux * h + uy * 4.5) + ',' + (by - uy * h - ux * 4.5), fill: color }, P.c);
+  }
+  function dot(P, x, y, r, fill, stroke) {
+    return el('circle', { cx: P.X(x), cy: P.Y(y), r: r, fill: fill, stroke: stroke || '#fff', 'stroke-width': 1.4 }, P.c);
+  }
+  function label(P, x, y, s, color, dx, dy) {
+    var t = el('text', { x: P.X(x) + (dx || 6), y: P.Y(y) + (dy || -6), 'font-size': 12, fill: color || '#2d3142', 'font-family': 'Geist Mono, monospace', 'font-weight': 600 }, P.c);
+    t.textContent = s;
+  }
+  function poly(P, pts, fill, stroke, w) {
+    var s = pts.map(function (p) { return P.X(p[0]).toFixed(1) + ',' + P.Y(p[1]).toFixed(1); }).join(' ');
+    return el('polygon', { points: s, fill: fill, stroke: stroke || 'none', 'stroke-width': w || 1.5, 'stroke-linejoin': 'round' }, P.c);
+  }
+  function path(P, pts, color, w, dash) {
+    var d = '', pen = false;
+    pts.forEach(function (p) {
+      if (!isFinite(p[0]) || !isFinite(p[1])) { pen = false; return; }
+      d += (pen ? ' L' : ' M') + P.X(p[0]).toFixed(1) + ' ' + P.Y(p[1]).toFixed(1); pen = true;
+    });
+    var a = { d: d, fill: 'none', stroke: color, 'stroke-width': w || 1.5, 'stroke-linejoin': 'round' };
+    if (dash) a['stroke-dasharray'] = dash;
+    if (d) el('path', a, P.c);
+  }
+  function mul2(a, b) {
+    return [[a[0][0] * b[0][0] + a[0][1] * b[1][0], a[0][0] * b[0][1] + a[0][1] * b[1][1]],
+            [a[1][0] * b[0][0] + a[1][1] * b[1][0], a[1][0] * b[0][1] + a[1][1] * b[1][1]]];
+  }
+  function app(a, v) { return [a[0][0] * v[0] + a[0][1] * v[1], a[1][0] * v[0] + a[1][1] * v[1]]; }
+  function det2(a) { return a[0][0] * a[1][1] - a[0][1] * a[1][0]; }
+  function inv2(a) {
+    var d = det2(a);
+    return [[a[1][1] / d, -a[0][1] / d], [-a[1][0] / d, a[0][0] / d]];
+  }
+  function pick(selector, attr, value) {
+    Array.prototype.forEach.call(document.querySelectorAll(selector), function (b) {
+      b.setAttribute('aria-pressed', String(b.getAttribute(attr) === String(value)));
+    });
+  }
+  function listen(selector, ev, fn) {
+    Array.prototype.forEach.call(document.querySelectorAll(selector), function (n) { n.addEventListener(ev, fn); });
+  }
+
+
+  function A() { return [[+$('a').value, +$('b').value], [+$('c').value, +$('d').value]]; }
+  function render() {
+    var a = A(), d = det2(a);
+    ['a', 'b', 'c', 'd'].forEach(function (k) { $('o-' + k).textContent = f(+$(k).value, 1); });
+    var P = plane('pl', 4);
+    var c1 = [a[0][0], a[1][0]], c2 = [a[0][1], a[1][1]];
+    poly(P, [[0, 0], [1, 0], [1, 1], [0, 1]], 'rgba(45,49,66,.06)', '#9aa0ae', 1.2);
+    var col = d >= 0 ? 'rgba(46,90,168,.28)' : 'rgba(191,69,32,.28)';
+    poly(P, [[0, 0], c1, [c1[0] + c2[0], c1[1] + c2[1]], c2], col, d >= 0 ? '#2e5aa8' : '#bf4520', 1.4);
+    arrow(P, c1[0], c1[1], '#2e5aa8', 2.6);
+    arrow(P, c2[0], c2[1], '#bf4520', 2.6);
+    $('answer').textContent = f(d, 2);
+    $('live').textContent = Math.abs(d) < 0.005 ? 'collapsed: no inverse' : (d > 0 ? 'orientation kept' : 'orientation flipped');
+    $('readout').textContent =
+      'a·d − b·c = ' + f(a[0][0]) + '·' + f(a[1][1]) + ' − ' + f(a[0][1]) + '·' + f(a[1][0]) + ' = ' + f(d, 2) + '\n' +
+      'area of image = ' + f(Math.abs(d), 2) + '  (unit square has area 1)\n' +
+      (Math.abs(d) < 0.005 ? 'invertible: no' : 'invertible: yes, det of inverse = ' + f(1 / d, 2));
+    tex('calc', '\\det\\begin{bmatrix}' + f(a[0][0]) + '&' + f(a[0][1]) + '\\\\' + f(a[1][0]) + '&' + f(a[1][1]) + '\\end{bmatrix}=' + f(d, 2));
+
+    // 3x3 cofactor expansion
+    var m = [[0, 1, 2].map(function (j) { return num('m0' + j); }), [0, 1, 2].map(function (j) { return num('m1' + j); }), [0, 1, 2].map(function (j) { return num('m2' + j); })];
+    var terms = [], total = 0;
+    for (var j = 0; j < 3; j++) {
+      var cols = [0, 1, 2].filter(function (x) { return x !== j; });
+      var minor = [[m[1][cols[0]], m[1][cols[1]]], [m[2][cols[0]], m[2][cols[1]]]];
+      var dm = det2(minor), sg = j % 2 ? -1 : 1, t = sg * m[0][j] * dm;
+      total += t;
+      terms.push((sg > 0 ? '+' : '−') + ' ' + f(m[0][j]) + ' · det[[' + f(minor[0][0]) + ',' + f(minor[0][1]) + '],[' + f(minor[1][0]) + ',' + f(minor[1][1]) + ']] = ' + (sg > 0 ? '+' : '−') + ' ' + f(m[0][j]) + ' · ' + f(dm) + ' = ' + f(t));
+    }
+    $('det3').textContent = f(total, 2);
+    $('expand').textContent = terms.join('\n') + '\n' + 'sum = ' + f(total, 2);
+  }
+  listen('input', 'input', render);
+  listen('[data-p]', 'click', function () {
+    var v = this.getAttribute('data-p').split(',');
+    ['a', 'b', 'c', 'd'].forEach(function (k, i) { $(k).value = v[i]; });
+    render();
+  });
+  render();
+
+
+  if (window.renderMathInElement) {
+    window.renderMathInElement(document.body, {
+      delimiters: [{ left: '$$', right: '$$', display: true }, { left: '$', right: '$', display: false }],
+      ignoredTags: ['script', 'style', 'textarea', 'pre', 'code'],
+      throwOnError: false
+    });
+  }
+});
+</script>
+</body>
+</html>

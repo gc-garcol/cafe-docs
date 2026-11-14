@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vector Spaces: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+a{color:var(--link)}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+
+.card{margin:24px 0 0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.scroll{overflow-x:auto;padding:0 8px;text-align:center}
+.scroll svg{display:inline-block;width:100%;max-width:720px;height:auto}
+.planes{display:grid;grid-template-columns:1fr 1fr}
+.planes svg{display:block;width:100%;height:auto}
+.planes svg+svg{border-left:1px solid var(--rule)}
+.single{max-width:420px;margin:0 auto}
+.single svg{display:block;width:100%;height:auto}
+
+.controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;margin-top:16px;align-items:start}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.row{display:grid;grid-template-columns:56px 1fr 52px;gap:12px;align-items:center;margin:0 0 10px}
+.row label{font-family:var(--mono);font-size:13px;font-weight:600}
+.row output{font-family:var(--mono);font-size:12px;text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);min-height:28px}
+.group-label{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);margin:16px 0 6px}
+.seg{display:flex;flex-wrap:wrap;border:1px solid var(--rule-solid);border-radius:6px;overflow:hidden}
+.seg button{flex:1;min-height:40px;border:0;background:transparent;font:500 13px var(--sans);color:var(--muted);cursor:pointer;padding:0 10px}
+.seg button+button{border-left:1px solid var(--rule-solid)}
+.seg button:hover{background:var(--paper-2)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.big-answer{font-family:var(--serif);font-size:44px;line-height:1.1;margin:4px 0 8px;color:var(--accent)}
+.readout{margin:0;padding:0;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink);border:0;background:none}
+.calc{overflow-x:auto;margin-top:8px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:3px;border:1px solid var(--ink);display:inline-block}
+
+.mx{display:inline-grid;gap:6px;padding:6px 14px;border-left:2px solid var(--ink);border-right:2px solid var(--ink);border-radius:8px;vertical-align:middle;margin:4px 6px}
+.mx input{width:64px;min-height:36px;padding:0 6px;border:1px solid var(--rule-solid);border-radius:6px;font:500 14px var(--mono);color:var(--ink);background:#fff;text-align:center}
+.mx .cell{min-width:48px;min-height:36px;display:flex;align-items:center;justify-content:center;font:500 14px var(--mono);padding:0 4px}
+.mxrow{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px}
+.mxrow .lab{font-family:var(--serif);font-size:24px}
+input[type=number]{-moz-appearance:textfield}
+
+pre.code{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .t{color:var(--link)} .c{color:var(--soft);font-style:italic}
+
+.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;text-align:center;overflow-x:auto}
+.formula .katex{font-size:1.25em}
+.katex{color:var(--ink)}
+p .katex,td .katex,li .katex{font-size:1.05em}
+
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:30px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+table.ops{border-collapse:collapse;width:100%;max-width:760px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
+
+@media (max-width:860px){.controls{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (max-width:520px){.planes{grid-template-columns:1fr}.planes svg+svg{border-left:0;border-top:1px solid var(--rule)}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" href="../../../index.html">&larr; Back to home</a>
+
+<header>
+  <div class="eyebrow">Mathematics · Linear algebra</div>
+  <h1>Vector Spaces</h1>
+  <p class="lede">A set where you can add things and stretch them by numbers, with the usual rules holding. Arrows, polynomials, matrices and functions all fit, so one theory covers them all.</p>
+</header>
+
+<section>
+  <h2>Try it first</h2>
+  <p>Two vectors $\mathbf{u}$ and $\mathbf{v}$ span every combination $\alpha\mathbf{u} + \beta\mathbf{v}$. The grey dots are a sample of those combinations. If $\mathbf{u}$ and $\mathbf{v}$ point in different directions, the dots fill the plane, they form a <b>basis</b>, and the target $\mathbf{w}$ gets exact coordinates $(\alpha, \beta)$. Make them line up and the span collapses to a line.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">Span and coordinates</span></div>
+    <div class="single">
+      <svg id="pl" viewBox="0 0 360 360" role="img" aria-labelledby="pl-title pl-desc">
+        <title id="pl-title">Span of two vectors in the plane</title>
+        <desc id="pl-desc">A grid with three arrows from the origin: u in blue, v in orange and a target w in dark grey. Grey dots show integer combinations of u and v. When u and v point in different directions the dots form a lattice that fills the plane, and a dashed path shows w as alpha times u plus beta times v. When they point along one line, the dots fall on that line. The coordinates are given in the readout beside the figure.</desc>
+      </svg>
+    </div>
+    <div class="card-bottom"><span class="hint">Dots = integer combinations of u and v</span><span class="live" id="live"></span></div>
+  </figure>
+
+  <div class="controls">
+    <div class="panel">
+      <div class="row"><label for="u1">$u_1$</label><input type="range" id="u1" min="-5" max="5" step="0.5" value="2"><output id="o-u1" for="u1"></output></div><div class="row"><label for="u2">$u_2$</label><input type="range" id="u2" min="-5" max="5" step="0.5" value="1"><output id="o-u2" for="u2"></output></div><div class="row"><label for="v1">$v_1$</label><input type="range" id="v1" min="-5" max="5" step="0.5" value="-1"><output id="o-v1" for="v1"></output></div><div class="row"><label for="v2">$v_2$</label><input type="range" id="v2" min="-5" max="5" step="0.5" value="2"><output id="o-v2" for="v2"></output></div><div class="row"><label for="w1">$w_1$</label><input type="range" id="w1" min="-5" max="5" step="0.5" value="3"><output id="o-w1" for="w1"></output></div><div class="row"><label for="w2">$w_2$</label><input type="range" id="w2" min="-5" max="5" step="0.5" value="4"><output id="o-w2" for="w2"></output></div>
+      <div class="group-label" id="pre-label">Presets</div>
+      <div class="seg" role="group" aria-labelledby="pre-label">
+        <button type="button" data-p="2,1,-1,2,3,4">Basis</button>
+        <button type="button" data-p="2,1,4,2,3,4">Dependent</button>
+        <button type="button" data-p="2,1,4,2,2,1">w on the line</button>
+        <button type="button" data-p="1,0,0,1,3,4">Standard</button>
+      </div>
+      <div class="legend" aria-label="Legend">
+        <span><i class="sw" style="background:#2e5aa8"></i>u</span>
+        <span><i class="sw" style="background:#bf4520"></i>v</span>
+        <span><i class="sw" style="background:#2d3142"></i>w</span>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="eyebrow">dim span(u, v)</div>
+      <div class="big-answer" id="answer"></div>
+      <pre class="readout" id="readout" aria-live="polite"></pre>
+      <div class="calc" id="calc"></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>1. The idea</h2>
+  <p>A <b>vector space</b> over the real numbers is a set $V$ with two operations: add two elements, and multiply an element by a number. They must obey eight rules, so that ordinary algebra works.</p>
+  <table class="ops">
+    <thead><tr><th>Group</th><th>Rules</th></tr></thead>
+    <tbody>
+      <tr><td>Addition</td><td>$\mathbf{u} + \mathbf{v} = \mathbf{v} + \mathbf{u}$. $(\mathbf{u} + \mathbf{v}) + \mathbf{w} = \mathbf{u} + (\mathbf{v} + \mathbf{w})$. A zero vector $\mathbf{0}$ with $\mathbf{v} + \mathbf{0} = \mathbf{v}$. Every $\mathbf{v}$ has an opposite $-\mathbf{v}$.</td></tr>
+      <tr><td>Scaling</td><td>$1\mathbf{v} = \mathbf{v}$ and $a(b\mathbf{v}) = (ab)\mathbf{v}$.</td></tr>
+      <tr><td>Together</td><td>$a(\mathbf{u} + \mathbf{v}) = a\mathbf{u} + a\mathbf{v}$ and $(a + b)\mathbf{v} = a\mathbf{v} + b\mathbf{v}$.</td></tr>
+    </tbody>
+  </table>
+  <p>The elements do not have to look like arrows. Anything that follows the rules is a vector.</p>
+  <table class="ops">
+    <thead><tr><th>Space</th><th>Vectors</th><th>Dimension</th></tr></thead>
+    <tbody>
+      <tr><td>$\mathbb{R}^n$</td><td>Lists of $n$ numbers</td><td>$n$</td></tr>
+      <tr><td>$\mathcal{P}_n$</td><td>Polynomials of degree at most $n$</td><td>$n + 1$</td></tr>
+      <tr><td>$M_{m \times n}$</td><td>$m \times n$ <a href="../matrices/matrices.html">matrices</a></td><td>$mn$</td></tr>
+      <tr><td>$C[0, 1]$</td><td>Continuous functions on $[0, 1]$</td><td>infinite</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>2. Subspaces</h2>
+  <p>A subset $W \subseteq V$ is a <b>subspace</b> if it is itself a vector space. Three checks are enough:</p>
+  <ul class="tight">
+    <li>$\mathbf{0}$ is in $W$.</li>
+    <li>If $\mathbf{u}$ and $\mathbf{v}$ are in $W$, so is $\mathbf{u} + \mathbf{v}$.</li>
+    <li>If $\mathbf{v}$ is in $W$ and $c$ is a number, so is $c\mathbf{v}$.</li>
+  </ul>
+  <p>In the plane, the subspaces are the origin alone, any line through the origin, and the whole plane. A line that misses the origin fails the first check. The null space and column space from <a href="../matrix-rank/matrix-rank.html">Matrix Rank</a> are subspaces.</p>
+</section>
+
+<section>
+  <h2>3. Span, independence, basis</h2>
+  <p>The <b>span</b> of some vectors is the set of all their linear combinations. The vectors are <b>linearly independent</b> if none is a combination of the others. Equivalently, the only way to combine them into zero is with every coefficient zero:</p>
+  <div class="formula">$$c_1\mathbf{v}_1 + c_2\mathbf{v}_2 + \cdots + c_k\mathbf{v}_k = \mathbf{0} \;\Longrightarrow\; c_1 = c_2 = \cdots = c_k = 0$$</div>
+  <p>A <b>basis</b> is an independent list that spans the whole space. Every basis of a space has the same number of vectors, and that number is the <b>dimension</b>. In the lab, two vectors in the plane form a basis exactly when $u_1 v_2 - u_2 v_1 \neq 0$. That quantity is the $2 \times 2$ <a href="../determinants/determinants.html">determinant</a>.</p>
+  <div class="callout">A basis is a coordinate system: no wasted vectors, and nothing left out.</div>
+</section>
+
+<section>
+  <h2>4. Coordinates</h2>
+  <p>Fix a basis $\mathcal{B} = (\mathbf{b}_1, \dots, \mathbf{b}_n)$. Every vector can be written in exactly one way as a combination of it, and those coefficients are its coordinates.</p>
+  <div class="formula">$$\mathbf{w} = \alpha_1\mathbf{b}_1 + \cdots + \alpha_n\mathbf{b}_n \;\Longleftrightarrow\; [\mathbf{w}]_{\mathcal{B}} = \begin{bmatrix} \alpha_1 \\ \vdots \\ \alpha_n \end{bmatrix}$$</div>
+  <p>The same vector has different coordinates in different bases. Choosing a good basis is half of linear algebra, and it is the idea behind <a href="../matrix-of-linear-map/matrix-of-linear-map.html">the matrix of a linear map</a> and <a href="../matrix-diagonalization/matrix-diagonalization.html">diagonalization</a>.</p>
+</section>
+
+<section>
+  <h2>5. Where it shows up</h2>
+  <div class="cards">
+    <div class="stat focal"><div class="eyebrow">Signals</div><div class="big">Fourier basis</div><p>Sines and cosines are a basis for periodic functions. The coordinates are the Fourier coefficients.</p></div>
+    <div class="stat"><div class="eyebrow">Data</div><div class="big">features</div><p>A data point is a vector. Principal components pick a better basis for the data.</p></div>
+    <div class="stat"><div class="eyebrow">Differential equations</div><div class="big">solution space</div><p>Solutions of a linear equation form a vector space. A basis of it generates every solution.</p></div>
+  </div>
+</section>
+
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var NS = 'http://www.w3.org/2000/svg';
+  var $ = function (id) { return document.getElementById(id); };
+  function el(name, attrs, parent) {
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function num(id) { var v = parseFloat($(id).value); return isFinite(v) ? v : 0; }
+  // short number: no trailing zeros, no "-0"
+  function f(x, d) {
+    d = d === undefined ? 2 : d;
+    if (!isFinite(x)) return String(x);
+    var s = (Math.abs(x) < 0.5 * Math.pow(10, -d) ? 0 : x).toFixed(d);
+    if (s.indexOf('.') >= 0) s = s.replace(/0+$/, '').replace(/\.$/, '');
+    return s;
+  }
+  function pad(s, n) { s = String(s); while (s.length < n) s = ' ' + s; return s; }
+  function tex(id, s) {
+    var n = $(id);
+    if (window.katex) window.katex.render(s, n, { throwOnError: false, displayMode: false });
+    else n.textContent = s;
+  }
+  function mxHtml(M) {
+    var r = M.length, c = M[0].length, h = '<div class="mx" style="grid-template-columns:repeat(' + c + ',auto)">';
+    for (var i = 0; i < r; i++) for (var j = 0; j < c; j++) h += '<span class="cell">' + f(M[i][j]) + '</span>';
+    return h + '</div>';
+  }
+  function reset(svg) {
+    Array.prototype.slice.call(svg.childNodes).forEach(function (n) {
+      var nm = (n.localName || '').toLowerCase();
+      if (nm !== 'title' && nm !== 'desc') svg.removeChild(n);
+    });
+    return el('g', {}, svg);
+  }
+  // square plane, viewBox 0 0 360 360, data range [-R, R]
+  function plane(id, R, step) {
+    var svg = $(id), S = 360, M = 14, g = reset(svg);
+    var X = function (v) { return M + (v + R) / (2 * R) * (S - 2 * M); };
+    var Y = function (v) { return S - M - (v + R) / (2 * R) * (S - 2 * M); };
+    el('rect', { x: M, y: M, width: S - 2 * M, height: S - 2 * M, fill: '#fff', stroke: 'rgba(45,49,66,.25)' }, g);
+    step = step || 1;
+    for (var t = -R; t <= R + 1e-9; t += step) {
+      if (Math.abs(t) < 1e-9) continue;
+      el('line', { x1: X(t), x2: X(t), y1: M, y2: S - M, stroke: 'rgba(45,49,66,.07)' }, g);
+      el('line', { x1: M, x2: S - M, y1: Y(t), y2: Y(t), stroke: 'rgba(45,49,66,.07)' }, g);
+    }
+    el('line', { x1: X(0), x2: X(0), y1: M, y2: S - M, stroke: '#2d3142', 'stroke-width': 0.8 }, g);
+    el('line', { x1: M, x2: S - M, y1: Y(0), y2: Y(0), stroke: '#2d3142', 'stroke-width': 0.8 }, g);
+    var cid = id + 'Clip';
+    var cp = el('clipPath', { id: cid }, g);
+    el('rect', { x: M, y: M, width: S - 2 * M, height: S - 2 * M }, cp);
+    var c = el('g', { 'clip-path': 'url(#' + cid + ')' }, g);
+    return { g: g, c: c, X: X, Y: Y, R: R };
+  }
+  function line(P, x1, y1, x2, y2, color, w, dash) {
+    var a = { x1: P.X(x1), y1: P.Y(y1), x2: P.X(x2), y2: P.Y(y2), stroke: color, 'stroke-width': w || 1.5, 'stroke-linecap': 'round' };
+    if (dash) a['stroke-dasharray'] = dash;
+    return el('line', a, P.c);
+  }
+  function arrow(P, x, y, color, w, x0, y0) {
+    x0 = x0 || 0; y0 = y0 || 0;
+    var ax = P.X(x0), ay = P.Y(y0), bx = P.X(x), by = P.Y(y);
+    var dx = bx - ax, dy = by - ay, L = Math.hypot(dx, dy);
+    if (L < 1) return;
+    var ux = dx / L, uy = dy / L, h = 9;
+    el('line', { x1: ax, y1: ay, x2: bx - ux * 6, y2: by - uy * 6, stroke: color, 'stroke-width': w || 2.4, 'stroke-linecap': 'round' }, P.c);
+    el('polygon', { points: bx + ',' + by + ' ' + (bx - ux * h - uy * 4.5) + ',' + (by - uy * h + ux * 4.5) + ' ' + (bx - ux * h + uy * 4.5) + ',' + (by - uy * h - ux * 4.5), fill: color }, P.c);
+  }
+  function dot(P, x, y, r, fill, stroke) {
+    return el('circle', { cx: P.X(x), cy: P.Y(y), r: r, fill: fill, stroke: stroke || '#fff', 'stroke-width': 1.4 }, P.c);
+  }
+  function label(P, x, y, s, color, dx, dy) {
+    var t = el('text', { x: P.X(x) + (dx || 6), y: P.Y(y) + (dy || -6), 'font-size': 12, fill: color || '#2d3142', 'font-family': 'Geist Mono, monospace', 'font-weight': 600 }, P.c);
+    t.textContent = s;
+  }
+  function poly(P, pts, fill, stroke, w) {
+    var s = pts.map(function (p) { return P.X(p[0]).toFixed(1) + ',' + P.Y(p[1]).toFixed(1); }).join(' ');
+    return el('polygon', { points: s, fill: fill, stroke: stroke || 'none', 'stroke-width': w || 1.5, 'stroke-linejoin': 'round' }, P.c);
+  }
+  function path(P, pts, color, w, dash) {
+    var d = '', pen = false;
+    pts.forEach(function (p) {
+      if (!isFinite(p[0]) || !isFinite(p[1])) { pen = false; return; }
+      d += (pen ? ' L' : ' M') + P.X(p[0]).toFixed(1) + ' ' + P.Y(p[1]).toFixed(1); pen = true;
+    });
+    var a = { d: d, fill: 'none', stroke: color, 'stroke-width': w || 1.5, 'stroke-linejoin': 'round' };
+    if (dash) a['stroke-dasharray'] = dash;
+    if (d) el('path', a, P.c);
+  }
+  function mul2(a, b) {
+    return [[a[0][0] * b[0][0] + a[0][1] * b[1][0], a[0][0] * b[0][1] + a[0][1] * b[1][1]],
+            [a[1][0] * b[0][0] + a[1][1] * b[1][0], a[1][0] * b[0][1] + a[1][1] * b[1][1]]];
+  }
+  function app(a, v) { return [a[0][0] * v[0] + a[0][1] * v[1], a[1][0] * v[0] + a[1][1] * v[1]]; }
+  function det2(a) { return a[0][0] * a[1][1] - a[0][1] * a[1][0]; }
+  function inv2(a) {
+    var d = det2(a);
+    return [[a[1][1] / d, -a[0][1] / d], [-a[1][0] / d, a[0][0] / d]];
+  }
+  function pick(selector, attr, value) {
+    Array.prototype.forEach.call(document.querySelectorAll(selector), function (b) {
+      b.setAttribute('aria-pressed', String(b.getAttribute(attr) === String(value)));
+    });
+  }
+  function listen(selector, ev, fn) {
+    Array.prototype.forEach.call(document.querySelectorAll(selector), function (n) { n.addEventListener(ev, fn); });
+  }
+
+
+  function render() {
+    ['u1', 'u2', 'v1', 'v2', 'w1', 'w2'].forEach(function (k) { $('o-' + k).textContent = f(+$(k).value, 1); });
+    var u = [+$('u1').value, +$('u2').value], v = [+$('v1').value, +$('v2').value], w = [+$('w1').value, +$('w2').value];
+    var P = plane('pl', 8, 2);
+    var d = u[0] * v[1] - u[1] * v[0];
+    var nu = Math.hypot(u[0], u[1]), nv = Math.hypot(v[0], v[1]);
+    var indep = Math.abs(d) > 1e-9, dim, txt, alpha = null, beta = null, inSpan;
+
+    for (var i = -6; i <= 6; i++) for (var j = -6; j <= 6; j++) {
+      var x = i * u[0] + j * v[0], y = i * u[1] + j * v[1];
+      dot(P, x, y, 2.2, 'rgba(90,101,128,.55)', 'none');
+    }
+    if (indep) {
+      dim = 2; alpha = (w[0] * v[1] - w[1] * v[0]) / d; beta = (u[0] * w[1] - u[1] * w[0]) / d; inSpan = true;
+      path(P, [[0, 0], [alpha * u[0], alpha * u[1]], [w[0], w[1]]], '#2d3142', 1.4, '5 4');
+    } else if (nu < 1e-9 && nv < 1e-9) {
+      dim = 0; inSpan = Math.hypot(w[0], w[1]) < 1e-9;
+    } else {
+      dim = 1;
+      var b = nu >= nv ? u : v, nb = Math.max(nu, nv);
+      line(P, -8 * b[0] / nb, -8 * b[1] / nb, 8 * b[0] / nb, 8 * b[1] / nb, 'rgba(45,49,66,.35)', 1.2, '4 4');
+      inSpan = Math.abs(b[0] * w[1] - b[1] * w[0]) < 1e-9;
+    }
+    arrow(P, u[0], u[1], '#2e5aa8', 2.6); arrow(P, v[0], v[1], '#bf4520', 2.6); arrow(P, w[0], w[1], '#2d3142', 2.6);
+    label(P, u[0], u[1], 'u', '#2e5aa8'); label(P, v[0], v[1], 'v', '#bf4520'); label(P, w[0], w[1], 'w', '#2d3142');
+
+    $('answer').textContent = dim;
+    $('live').textContent = indep ? 'u, v independent: a basis' : 'u, v dependent';
+    txt = 'det[u v] = ' + f(u[0]) + '·' + f(v[1]) + ' − ' + f(u[1]) + '·' + f(v[0]) + ' = ' + f(d) + '\n' +
+      'u, v are ' + (indep ? 'independent' : 'dependent') + '\n' +
+      'span(u, v) is ' + (dim === 2 ? 'the whole plane' : dim === 1 ? 'a line' : 'just the origin') + '\n' +
+      'w is ' + (inSpan ? '' : 'not ') + 'in the span' + '\n';
+    if (indep) txt += 'w = ' + f(alpha, 3) + '·u + ' + f(beta, 3) + '·v';
+    $('readout').textContent = txt;
+    if (indep) tex('calc', '[\\mathbf{w}]_{\\mathcal{B}}=\\begin{bmatrix}' + f(alpha, 3) + '\\\\' + f(beta, 3) + '\\end{bmatrix}');
+    else $('calc').textContent = '';
+  }
+  listen('input', 'input', render);
+  listen('[data-p]', 'click', function () {
+    var v = this.getAttribute('data-p').split(',');
+    ['u1', 'u2', 'v1', 'v2', 'w1', 'w2'].forEach(function (k, i) { $(k).value = v[i]; });
+    render();
+  });
+  render();
+
+
+  if (window.renderMathInElement) {
+    window.renderMathInElement(document.body, {
+      delimiters: [{ left: '$$', right: '$$', display: true }, { left: '$', right: '$', display: false }],
+      ignoredTags: ['script', 'style', 'textarea', 'pre', 'code'],
+      throwOnError: false
+    });
+  }
+});
+</script>
+</body>
+</html>
