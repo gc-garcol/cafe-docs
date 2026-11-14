@@ -490,7 +490,7 @@ const DOCS = [
   {
     title: 'Machine Learning Algorithm Groups',
     path: 'content/AI/machine-learning/ml-algorithm-groups/ml-algorithm-groups.html',
-    category: 'Machine learning',
+    category: 'AI',
     topic: 'Overview',
     order: 1,
     level: 'Beginner',
@@ -501,7 +501,7 @@ const DOCS = [
   {
     title: 'Linear Regression',
     path: 'content/AI/machine-learning/linear-regression/linear-regression.html',
-    category: 'Machine learning',
+    category: 'AI',
     topic: 'Regression',
     order: 2,
     level: 'Beginner',
@@ -512,7 +512,7 @@ const DOCS = [
   {
     title: 'K-means Clustering',
     path: 'content/AI/machine-learning/k-means-clustering/k-means-clustering.html',
-    category: 'Machine learning',
+    category: 'AI',
     topic: 'Clustering',
     order: 6,
     level: 'Beginner',
@@ -523,7 +523,7 @@ const DOCS = [
   {
     title: 'Gradient Descent',
     path: 'content/AI/machine-learning/gradient-descent/gradient-descent.html',
-    category: 'Machine learning',
+    category: 'AI',
     topic: 'Optimization',
     order: 3,
     level: 'Beginner',
@@ -534,7 +534,7 @@ const DOCS = [
   {
     title: 'Perceptron Learning Algorithm',
     path: 'content/AI/machine-learning/perceptron-learning-algorithm/perceptron-learning-algorithm.html',
-    category: 'Machine learning',
+    category: 'AI',
     topic: 'Classification',
     order: 4,
     level: 'Beginner',
@@ -545,7 +545,7 @@ const DOCS = [
   {
     title: 'Logistic Regression',
     path: 'content/AI/machine-learning/logistic-regression/logistic-regression.html',
-    category: 'Machine learning',
+    category: 'AI',
     topic: 'Classification',
     order: 5,
     level: 'Intermediate',
@@ -556,9 +556,9 @@ const DOCS = [
   {
     title: 'Deep Learning Overview',
     path: 'content/AI/deep-learning/deep-learning-overview/deep-learning-overview.html',
-    category: 'Deep learning',
-    topic: 'Overview',
-    order: 1,
+    category: 'AI',
+    topic: 'Deep learning',
+    order: 7,
     level: 'Beginner',
     tags: ['deep learning', 'neural network', 'layers', 'activation', 'backpropagation', 'gradient descent', 'architectures', 'overview'],
     summary: 'From one neuron to modern architectures. Train a tiny network on four datasets, add hidden layers, and watch the decision boundary bend where a single neuron only draws a line.',
