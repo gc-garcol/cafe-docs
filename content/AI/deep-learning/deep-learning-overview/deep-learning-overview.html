@@ -100,7 +100,7 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
 <body>
 <main class="page">
 
-<a class="back" href="../../../index.html">&larr; Back to home</a>
+<a class="back" href="../../../../index.html">&larr; Back to home</a>
 
 <header>
   <div class="eyebrow">Deep Learning · Overview</div>
@@ -171,7 +171,7 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
   <h2>2. The neuron and the layer</h2>
   <p>A single artificial neuron takes a list of numbers, weighs each one, adds a bias, and passes the total through a nonlinear <b>activation</b> function $\sigma$:</p>
   <div class="formula">$$a = \sigma\!\left(\mathbf{w}\cdot\mathbf{x} + b\right) = \sigma\!\left(\sum_{i} w_i x_i + b\right)$$</div>
-  <p>A <b>layer</b> is many neurons that read the same input. Stacking their weights into rows gives a <a href="../../math/matrices/matrices.html">matrix</a> $W$, so a whole layer is one matrix product followed by $\sigma$ applied entry by entry. A network is a chain of such layers:</p>
+  <p>A <b>layer</b> is many neurons that read the same input. Stacking their weights into rows gives a <a href="../../../math/matrices/matrices.html">matrix</a> $W$, so a whole layer is one matrix product followed by $\sigma$ applied entry by entry. A network is a chain of such layers:</p>
   <div class="formula">$$\mathbf{h}_1 = \sigma(W_1\mathbf{x} + \mathbf{b}_1), \quad \mathbf{h}_2 = \sigma(W_2\mathbf{h}_1 + \mathbf{b}_2), \quad \hat{y} = \sigma_{\text{out}}(W_3\mathbf{h}_2 + \mathbf{b}_3)$$</div>
   <p>The weights $W_i$ and biases $\mathbf{b}_i$ are the <b>parameters</b>. The lab's readout counts them. Real models have millions to trillions.</p>
   <table class="ops">
@@ -183,7 +183,7 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
       <tr><td>Softmax</td><td>$\dfrac{e^{z_i}}{\sum_j e^{z_j}}$</td><td>Output probabilities for many classes</td></tr>
     </tbody>
   </table>
-  <p>The nonlinearity is essential. Without it, stacking layers collapses: the product of two <a href="../../math/linear-maps/linear-maps.html">linear maps</a> is just another linear map, so a hundred layers would be no stronger than one. In the lab, a single neuron (0 hidden layers) is a straight line, like <a href="../../machine-learning/logistic-regression/logistic-regression.html">logistic regression</a> and the <a href="../../machine-learning/perceptron-learning-algorithm/perceptron-learning-algorithm.html">perceptron</a>. The circle and XOR need the bend that a hidden layer adds.</p>
+  <p>The nonlinearity is essential. Without it, stacking layers collapses: the product of two <a href="../../../math/linear-maps/linear-maps.html">linear maps</a> is just another linear map, so a hundred layers would be no stronger than one. In the lab, a single neuron (0 hidden layers) is a straight line, like <a href="../../machine-learning/logistic-regression/logistic-regression.html">logistic regression</a> and the <a href="../../machine-learning/perceptron-learning-algorithm/perceptron-learning-algorithm.html">perceptron</a>. The circle and XOR need the bend that a hidden layer adds.</p>
 </section>
 
 <section>
@@ -195,7 +195,7 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
     <li><b>Gradient descent.</b> Nudge every parameter a small step against its gradient, with step size $\eta$, the learning rate.</li>
   </ul>
   <div class="formula">$$\theta \leftarrow \theta - \eta\,\frac{\partial L}{\partial \theta} \qquad\text{with}\qquad \boldsymbol{\delta}^{(l)} = \big(W^{(l+1)}\big)^{\mathsf T}\boldsymbol{\delta}^{(l+1)} \odot \sigma'\!\big(\mathbf{z}^{(l)}\big)$$</div>
-  <p>The right-hand formula is the backward recursion. The error signal $\boldsymbol{\delta}$ at one layer comes from the layer after it, scaled by the <a href="../../math/derivatives/derivatives.html">derivative</a> of the activation. For a sigmoid output with cross-entropy loss, the last signal is simply $\hat{y} - y$. This is what the page runs when you press <b>Train</b>: the full dataset is used for each step, and the loss falls as the boundary improves. See <a href="../../machine-learning/gradient-descent/gradient-descent.html">Gradient Descent</a> for why the rate matters. A rate that is too large makes the loss bounce, and too small makes training crawl.</p>
+  <p>The right-hand formula is the backward recursion. The error signal $\boldsymbol{\delta}$ at one layer comes from the layer after it, scaled by the <a href="../../../math/derivatives/derivatives.html">derivative</a> of the activation. For a sigmoid output with cross-entropy loss, the last signal is simply $\hat{y} - y$. This is what the page runs when you press <b>Train</b>: the full dataset is used for each step, and the loss falls as the boundary improves. See <a href="../../machine-learning/gradient-descent/gradient-descent.html">Gradient Descent</a> for why the rate matters. A rate that is too large makes the loss bounce, and too small makes training crawl.</p>
 </section>
 
 <section>

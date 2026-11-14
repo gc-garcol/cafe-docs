@@ -444,7 +444,7 @@ const DOCS = [
   },
   {
     title: 'Machine Learning Algorithm Groups',
-    path: 'content/machine-learning/ml-algorithm-groups/ml-algorithm-groups.html',
+    path: 'content/AI/machine-learning/ml-algorithm-groups/ml-algorithm-groups.html',
     category: 'Machine learning',
     topic: 'Overview',
     level: 'Beginner',
@@ -454,7 +454,7 @@ const DOCS = [
   },
   {
     title: 'Linear Regression',
-    path: 'content/machine-learning/linear-regression/linear-regression.html',
+    path: 'content/AI/machine-learning/linear-regression/linear-regression.html',
     category: 'Machine learning',
     topic: 'Regression',
     level: 'Beginner',
@@ -464,7 +464,7 @@ const DOCS = [
   },
   {
     title: 'K-means Clustering',
-    path: 'content/machine-learning/k-means-clustering/k-means-clustering.html',
+    path: 'content/AI/machine-learning/k-means-clustering/k-means-clustering.html',
     category: 'Machine learning',
     topic: 'Clustering',
     level: 'Beginner',
@@ -474,7 +474,7 @@ const DOCS = [
   },
   {
     title: 'Gradient Descent',
-    path: 'content/machine-learning/gradient-descent/gradient-descent.html',
+    path: 'content/AI/machine-learning/gradient-descent/gradient-descent.html',
     category: 'Machine learning',
     topic: 'Optimization',
     level: 'Beginner',
@@ -484,7 +484,7 @@ const DOCS = [
   },
   {
     title: 'Perceptron Learning Algorithm',
-    path: 'content/machine-learning/perceptron-learning-algorithm/perceptron-learning-algorithm.html',
+    path: 'content/AI/machine-learning/perceptron-learning-algorithm/perceptron-learning-algorithm.html',
     category: 'Machine learning',
     topic: 'Classification',
     level: 'Beginner',
@@ -494,7 +494,7 @@ const DOCS = [
   },
   {
     title: 'Logistic Regression',
-    path: 'content/machine-learning/logistic-regression/logistic-regression.html',
+    path: 'content/AI/machine-learning/logistic-regression/logistic-regression.html',
     category: 'Machine learning',
     topic: 'Classification',
     level: 'Intermediate',
@@ -504,7 +504,7 @@ const DOCS = [
   },
   {
     title: 'Deep Learning Overview',
-    path: 'content/deep-learning/deep-learning-overview/deep-learning-overview.html',
+    path: 'content/AI/deep-learning/deep-learning-overview/deep-learning-overview.html',
     category: 'Deep learning',
     topic: 'Overview',
     level: 'Beginner',

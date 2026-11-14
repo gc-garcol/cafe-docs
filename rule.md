@@ -16,9 +16,9 @@ All content is written in English. This covers page text, code comments, and the
 
 ## 3. Content pages
 
-Each doc is a single self-contained HTML file at `content/datastructure-algorithm/<name>/<name>.html` (math docs live in `content/math/<name>/<name>.html`, at the same depth).
+Each doc is a single self-contained HTML file at `content/datastructure-algorithm/<name>/<name>.html` (math docs live in `content/math/<name>/<name>.html`, at the same depth). AI docs sit one level deeper, under a topic folder: `content/AI/machine-learning/<name>/<name>.html` and `content/AI/deep-learning/<name>/<name>.html`.
 
-- **Navigation:** every page must start with a "Back to home" link that points to `../../../index.html`, placed at the top of `<main>`, before the header.
+- **Navigation:** every page must start with a "Back to home" link that points to `../../../index.html` (use `../../../../index.html` for docs under `content/AI/`), placed at the top of `<main>`, before the header.
 - **Styling:** reuse the shared design tokens and fonts from the existing pages (Instrument Serif, Geist, Geist Mono).
 - **Accessibility:** give every SVG a `<title>` and `<desc>`, keep controls keyboard reachable with a visible focus state, and respect `prefers-reduced-motion`.
 
