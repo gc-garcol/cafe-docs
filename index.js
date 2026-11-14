@@ -302,6 +302,16 @@ const DOCS = [
     summary: 'Calculus on the complex plane. Watch a grid bend under z², 1/z, eᶻ and sin z while keeping right angles, then count poles to evaluate loop integrals.',
     related: ['Derivatives', 'Integrals', 'Laplace Transform', 'Fourier Transform'],
   },
+  {
+    title: 'Taylor Series',
+    path: 'content/math/taylor-series/taylor-series.html',
+    category: 'Mathematics',
+    topic: 'Calculus',
+    level: 'Intermediate',
+    tags: ['taylor', 'maclaurin', 'series', 'polynomial', 'approximation', 'convergence', 'calculus'],
+    summary: 'Near one point, a smooth function looks like a polynomial. Add one derivative-matched term at a time and watch the polynomial hug the curve.',
+    related: ['Derivatives', 'Limits', 'Fourier Transform'],
+  },
 ];
 
 // ---------- helpers ----------
