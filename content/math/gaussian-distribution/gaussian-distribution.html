@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gaussian Distribution: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+a{color:var(--link)}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+
+.card{margin:24px 0 0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.scroll{overflow-x:auto;padding:0 8px;text-align:center}
+.scroll svg{display:inline-block;width:100%;max-width:720px;height:auto}
+
+.controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;margin-top:16px;align-items:start}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.row{display:grid;grid-template-columns:44px 1fr 56px;gap:12px;align-items:center;margin:0 0 12px}
+.row label{font-family:var(--mono);font-size:13px;font-weight:600}
+.row output{font-family:var(--mono);font-size:12px;text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);min-height:28px}
+.group-label{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);margin:16px 0 6px}
+.seg{display:flex;border:1px solid var(--rule-solid);border-radius:6px;overflow:hidden}
+.seg button{flex:1;min-height:40px;border:0;background:transparent;font:500 13px var(--sans);color:var(--muted);cursor:pointer;padding:0 8px}
+.seg button+button{border-left:1px solid var(--rule-solid)}
+.seg button:hover{background:var(--paper-2)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.big-answer{font-family:var(--serif);font-size:44px;line-height:1.1;margin:4px 0 8px;color:var(--accent)}
+#readout{margin:0;padding:0;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink);border:0;background:none}
+#calc{overflow-x:auto;margin-top:8px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:3px;border:1px solid var(--ink);display:inline-block}
+
+pre.code{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .t{color:var(--link)} .c{color:var(--soft);font-style:italic}
+
+.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;text-align:center;overflow-x:auto}
+.formula .katex{font-size:1.25em}
+.katex{color:var(--ink)}
+p .katex,td .katex,li .katex{font-size:1.05em}
+
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:30px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+table.ops{border-collapse:collapse;width:100%;max-width:720px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule)}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
+
+@media (max-width:860px){.controls{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" href="../../../index.html">&larr; Back to home</a>
+
+<header>
+  <div class="eyebrow">Mathematics · Probability</div>
+  <h1>Gaussian Distribution</h1>
+  <p class="lede">The bell curve. Heights, measurement errors and noise in a signal all pile up around an average and thin out on both sides. Two numbers, the center and the spread, describe the whole shape.</p>
+</header>
+
+<section>
+  <h2>Try it first</h2>
+  <p>Move the center $\mu$ and the spread $\sigma$ and watch the curve slide and stretch. The shaded band covers the values within $k$ standard deviations of the center, and the readout gives the probability of landing inside it. Then draw random samples and see the histogram settle onto the curve.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">Normal curve and samples</span></div>
+    <div class="scroll">
+      <svg id="plot" viewBox="0 0 720 330" role="img" aria-labelledby="plot-title plot-desc">
+        <title id="plot-title">A Gaussian bell curve with a shaded band and a sample histogram</title>
+        <desc id="plot-desc">A bell shaped curve centered at the chosen mean. A shaded band marks the values within the chosen number of standard deviations of the mean. Grey bars show a histogram of random samples that you can add, and they approach the shape of the curve as more samples are drawn. The probability inside the band is also given in the readout beside the figure.</desc>
+        <rect width="720" height="330" fill="#fff"/>
+        <g id="layer"></g>
+      </svg>
+    </div>
+    <div class="card-bottom"><span class="hint">Area under the whole curve = 1</span><span class="live" id="live"></span></div>
+  </figure>
+
+  <div class="controls">
+    <div class="panel">
+      <div class="row"><label for="mu">$\mu$</label><input type="range" id="mu" min="-3" max="3" step="0.1" value="0"><output id="o-mu"></output></div>
+      <div class="row"><label for="sigma">$\sigma$</label><input type="range" id="sigma" min="0.5" max="3" step="0.1" value="1"><output id="o-sigma"></output></div>
+      <div class="group-label" id="k-label">Band width</div>
+      <div class="seg" role="group" aria-labelledby="k-label">
+        <button type="button" data-k="1" aria-pressed="true">±1σ</button>
+        <button type="button" data-k="2" aria-pressed="false">±2σ</button>
+        <button type="button" data-k="3" aria-pressed="false">±3σ</button>
+      </div>
+      <div class="group-label" id="src-label">Sample source</div>
+      <div class="seg" role="group" aria-labelledby="src-label">
+        <button type="button" data-src="normal" aria-pressed="true">Gaussian</button>
+        <button type="button" data-src="sum" aria-pressed="false">Sum of 12</button>
+        <button type="button" data-src="uniform" aria-pressed="false">One uniform</button>
+      </div>
+      <div class="btns">
+        <button type="button" class="btn" id="draw">Draw 500 samples</button>
+        <button type="button" class="btn" id="clear">Clear</button>
+      </div>
+      <div class="legend" aria-label="Legend">
+        <span><i class="sw" style="background:rgba(191,69,32,.25);border-color:#bf4520"></i>band</span>
+        <span><i class="sw" style="background:#2d3142"></i>density</span>
+        <span><i class="sw" style="background:#c9ccd4;border-color:#9aa0ae"></i>samples</span>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="eyebrow">Probability inside the band</div>
+      <div class="big-answer" id="answer"></div>
+      <pre id="readout" aria-live="polite"></pre>
+      <div id="calc"></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>1. The shape</h2>
+  <p>A Gaussian, also called a normal distribution, is symmetric. Most values sit near the center, and the chance of a value falls off quickly as you move away from it. The center $\mu$ is the mean. The spread $\sigma$ is the standard deviation. A small $\sigma$ gives a tall, narrow bell. A large $\sigma$ gives a low, wide one. The area under the curve is always 1, so a taller peak means a narrower curve.</p>
+  <p class="callout">Two numbers fix the whole curve: where it is centered and how wide it is.</p>
+</section>
+
+<section>
+  <h2>2. The formula</h2>
+  <p>The height of the curve at $x$ is the probability density.</p>
+  <div class="formula">$$f(x) = \frac{1}{\sigma\sqrt{2\pi}}\, \exp\!\left(-\frac{(x-\mu)^2}{2\sigma^2}\right)$$</div>
+  <p>Read it from the inside out. The term $(x-\mu)^2$ is the squared distance from the center. Dividing by $2\sigma^2$ measures that distance in units of spread. The exponential turns a growing distance into a fast shrinking height. The factor in front, $1/(\sigma\sqrt{2\pi})$, is exactly what makes the total area equal to 1. The constant $\sqrt{2\pi}$ comes from the integral $\int_{-\infty}^{\infty} e^{-x^2/2}\,dx = \sqrt{2\pi}$, which you can compute with a clever switch to polar coordinates.</p>
+  <p>A density is not a probability. The chance of landing in an interval is the area under the curve over that interval:</p>
+  <div class="formula">$$P(a \le X \le b) = \int_a^b f(x)\,dx$$</div>
+  <p>This integral has no closed form in elementary functions. It is written with the error function, $\operatorname{erf}$, and computed numerically. See <a href="../integrals/integrals.html">Integrals</a> for the idea of area as a sum.</p>
+</section>
+
+<section>
+  <h2>3. The standard normal and z-scores</h2>
+  <p>Any Gaussian can be turned into the standard one, with mean 0 and spread 1, by measuring how many standard deviations a value is from the mean:</p>
+  <div class="formula">$$z = \frac{x-\mu}{\sigma}$$</div>
+  <p>That is why one table, or one function, is enough for every normal curve. A score of $z = 2$ always means "two standard deviations above the mean", whatever the units. In terms of the standard normal, the probability that $X$ is within $k$ standard deviations of the mean is:</p>
+  <div class="formula">$$P(\mu - k\sigma \le X \le \mu + k\sigma) = \operatorname{erf}\!\left(\frac{k}{\sqrt{2}}\right)$$</div>
+</section>
+
+<section>
+  <h2>4. The 68–95–99.7 rule</h2>
+  <p>Press the band buttons in the lab. The shaded share barely depends on $\mu$ or $\sigma$, only on $k$.</p>
+  <table class="ops">
+    <thead><tr><th>Band</th><th>Inside</th><th>Outside</th></tr></thead>
+    <tbody>
+      <tr><td>$\mu \pm 1\sigma$</td><td>68.27%</td><td>about 1 in 3</td></tr>
+      <tr><td>$\mu \pm 2\sigma$</td><td>95.45%</td><td>about 1 in 22</td></tr>
+      <tr><td>$\mu \pm 3\sigma$</td><td>99.73%</td><td>about 1 in 370</td></tr>
+    </tbody>
+  </table>
+  <p>So a value more than three standard deviations from the mean is rare enough to be worth a second look. Many "six sigma" and anomaly detection rules start from this table.</p>
+</section>
+
+<section>
+  <h2>5. Why it appears everywhere</h2>
+  <p>The <b>central limit theorem</b> says that the sum of many small independent effects is close to Gaussian, even if each effect is not. The lab shows it. Switch the source to <b>One uniform</b> and draw samples: the histogram is flat. Switch to <b>Sum of 12</b> and the same kind of random number, added up, forms a bell.</p>
+  <div class="formula">$$\frac{S_n - n\mu}{\sigma\sqrt{n}} \;\longrightarrow\; \mathcal{N}(0, 1) \quad \text{as } n \to \infty$$</div>
+  <p>Here $S_n$ is the sum of $n$ independent draws with mean $\mu$ and spread $\sigma$. A person's height, the error in a measurement, and the noise on a wire are all made of many small pushes, so they look Gaussian. The sum of 12 uniforms in the lab is already close, since 12 uniform values on $[0,1]$ add to a mean of 6 and a variance of exactly 1.</p>
+</section>
+
+<section>
+  <h2>6. The same thing in code</h2>
+  <pre class="code"><span class="k">function</span> pdf(x, mu, sigma) {
+  <span class="k">const</span> z = (x - mu) / sigma;
+  <span class="k">return</span> Math.exp(<span class="t">-0.5</span> * z * z) / (sigma * Math.sqrt(<span class="t">2</span> * Math.PI));
+}
+
+<span class="c">// Box-Muller: two uniform numbers make one Gaussian sample</span>
+<span class="k">function</span> sample(mu, sigma) {
+  <span class="k">const</span> u = <span class="t">1</span> - Math.random(), v = Math.random();
+  <span class="k">return</span> mu + sigma * Math.sqrt(<span class="t">-2</span> * Math.log(u)) * Math.cos(<span class="t">2</span> * Math.PI * v);
+}</pre>
+</section>
+
+<section>
+  <h2>7. Where it shows up</h2>
+  <div class="cards">
+    <div class="stat focal"><div class="eyebrow">Statistics</div><div class="big">errors</div><p>Measurement noise, confidence intervals and many hypothesis tests assume a bell curve.</p></div>
+    <div class="stat"><div class="eyebrow">Machine learning</div><div class="big">noise</div><p>Weight initialization, Gaussian processes, and diffusion models all start from Gaussian noise.</p></div>
+    <div class="stat"><div class="eyebrow">Signals</div><div class="big">blur</div><p>A Gaussian filter smooths an image. Its Fourier transform is another Gaussian.</p></div>
+  </div>
+  <p style="margin-top:20px">The Gaussian is also a common prior and likelihood in <a href="../bayes-theorem/bayes-theorem.html">Bayes' Theorem</a>, and its own Fourier transform keeps the same shape, see <a href="../fourier-transform/fourier-transform.html">Fourier Transform</a>. The bell is only as good as the data: heavy tailed things such as incomes or earthquake sizes are not Gaussian, and the 68–95–99.7 rule will under-count their extremes.</p>
+</section>
+
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var NS = 'http://www.w3.org/2000/svg';
+  var L = 50, R = 700, T = 20, B = 290, XMIN = -8, XMAX = 8, YMAX = 0.85;
+  var BIN = 0.4;
+  var $ = function (id) { return document.getElementById(id); };
+  var state = { k: 1, src: 'normal', samples: [] };
+
+  var X = function (v) { return L + (v - XMIN) / (XMAX - XMIN) * (R - L); };
+  var Y = function (d) { return B - Math.min(d, YMAX) / YMAX * (B - T); };
+
+  function el(name, attrs, parent) {
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function pdf(x, mu, s) { var z = (x - mu) / s; return Math.exp(-0.5 * z * z) / (s * Math.sqrt(2 * Math.PI)); }
+  // error function, Abramowitz and Stegun 7.1.26 (max error about 1.5e-7)
+  function erf(x) {
+    var sg = x < 0 ? -1 : 1; x = Math.abs(x);
+    var t = 1 / (1 + 0.3275911 * x);
+    var y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-x * x);
+    return sg * y;
+  }
+  function pct(x, d) { return (x * 100).toFixed(d === undefined ? 2 : d) + '%'; }
+
+  function gauss() {
+    var u = 1 - Math.random(), v = Math.random();
+    return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+  }
+  // each source gives a value with mean 0 and spread 1
+  function unit() {
+    if (state.src === 'normal') return gauss();
+    if (state.src === 'sum') { var s = 0; for (var i = 0; i < 12; i++) s += Math.random(); return s - 6; }
+    return (Math.random() - 0.5) * Math.sqrt(12);
+  }
+
+  function render() {
+    var mu = +$('mu').value, sg = +$('sigma').value, k = state.k;
+    $('o-mu').textContent = mu.toFixed(1);
+    $('o-sigma').textContent = sg.toFixed(1);
+
+    var g = $('layer'); g.textContent = '';
+
+    // grid and axes
+    for (var t = XMIN; t <= XMAX; t += 2) {
+      el('line', { x1: X(t), x2: X(t), y1: T, y2: B, stroke: 'rgba(45,49,66,.08)' }, g);
+      var lab = el('text', { x: X(t), y: B + 18, 'text-anchor': 'middle', 'font-size': 11, fill: '#5a6580', 'font-family': 'Geist Mono, monospace' }, g);
+      lab.textContent = t;
+    }
+    el('line', { x1: L, x2: R, y1: B, y2: B, stroke: '#2d3142' }, g);
+
+    // histogram of samples, as density
+    var n = state.samples.length;
+    if (n) {
+      var bins = {};
+      state.samples.forEach(function (v) {
+        var b = Math.floor((v - XMIN) / BIN);
+        bins[b] = (bins[b] || 0) + 1;
+      });
+      Object.keys(bins).forEach(function (b) {
+        var x0 = XMIN + (+b) * BIN, d = bins[b] / (n * BIN);
+        if (x0 < XMIN || x0 + BIN > XMAX) return;
+        el('rect', { x: X(x0) + 0.5, y: Y(d), width: Math.max(1, X(x0 + BIN) - X(x0) - 1), height: B - Y(d), fill: '#c9ccd4', stroke: '#9aa0ae' }, g);
+      });
+    }
+
+    // shaded band
+    var a = Math.max(XMIN, mu - k * sg), b = Math.min(XMAX, mu + k * sg), d = '', steps = 120;
+    for (var i = 0; i <= steps; i++) {
+      var x = a + (b - a) * i / steps;
+      d += (i ? ' L' : 'M') + X(x).toFixed(1) + ' ' + Y(pdf(x, mu, sg)).toFixed(1);
+    }
+    d += ' L' + X(b).toFixed(1) + ' ' + B + ' L' + X(a).toFixed(1) + ' ' + B + ' Z';
+    el('path', { d: d, fill: 'rgba(191,69,32,.25)', stroke: 'none' }, g);
+    [mu - k * sg, mu + k * sg].forEach(function (e) {
+      if (e < XMIN || e > XMAX) return;
+      el('line', { x1: X(e), x2: X(e), y1: Y(pdf(e, mu, sg)), y2: B, stroke: '#bf4520', 'stroke-width': 1.4, 'stroke-dasharray': '4 3' }, g);
+    });
+
+    // curve
+    var c = '', N = 320;
+    for (var j = 0; j <= N; j++) {
+      var xx = XMIN + (XMAX - XMIN) * j / N;
+      c += (j ? ' L' : 'M') + X(xx).toFixed(1) + ' ' + Y(pdf(xx, mu, sg)).toFixed(1);
+    }
+    el('path', { d: c, fill: 'none', stroke: '#2d3142', 'stroke-width': 2.4, 'stroke-linejoin': 'round' }, g);
+    // mean marker
+    el('line', { x1: X(mu), x2: X(mu), y1: B, y2: B + 6, stroke: '#2d3142', 'stroke-width': 2 }, g);
+
+    // readout
+    var inside = erf(k / Math.SQRT2);
+    $('answer').textContent = pct(inside);
+    $('live').textContent = 'peak f = ' + pdf(mu, mu, sg).toFixed(3) + (n ? ' · n = ' + n : '');
+    var txt =
+      'mean   μ = ' + mu.toFixed(1) + '\n' +
+      'spread σ = ' + sg.toFixed(1) + '\n' +
+      'band     = [' + (mu - k * sg).toFixed(1) + ', ' + (mu + k * sg).toFixed(1) + ']\n' +
+      'outside  = ' + pct(1 - inside) + '\n';
+    if (n) {
+      var m = 0, v = 0;
+      state.samples.forEach(function (s) { m += s; }); m /= n;
+      state.samples.forEach(function (s) { v += (s - m) * (s - m); });
+      var inN = state.samples.filter(function (s) { return Math.abs(s - mu) <= k * sg; }).length;
+      txt += '\nsamples  n = ' + n +
+        '\nsample mean = ' + m.toFixed(2) +
+        '\nsample sd   = ' + Math.sqrt(v / n).toFixed(2) +
+        '\nin band     = ' + pct(inN / n, 1);
+    } else {
+      txt += '\nno samples yet';
+    }
+    $('readout').textContent = txt;
+
+    var tex = 'P(\\mu-' + (k === 1 ? '' : k) + '\\sigma \\le X \\le \\mu+' + (k === 1 ? '' : k) + '\\sigma)=\\operatorname{erf}\\!\\left(\\tfrac{' + k + '}{\\sqrt2}\\right)=' + inside.toFixed(4);
+    if (window.katex) window.katex.render(tex, $('calc'), { throwOnError: false, displayMode: false });
+    else $('calc').textContent = tex;
+  }
+
+  function pick(selector, attr, value) {
+    Array.prototype.forEach.call(document.querySelectorAll(selector), function (b) {
+      b.setAttribute('aria-pressed', String(b.getAttribute(attr) === String(value)));
+    });
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('[data-k]'), function (b) {
+    b.addEventListener('click', function () { state.k = +b.getAttribute('data-k'); pick('[data-k]', 'data-k', state.k); render(); });
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('[data-src]'), function (b) {
+    b.addEventListener('click', function () {
+      state.src = b.getAttribute('data-src'); state.samples = [];
+      pick('[data-src]', 'data-src', state.src); render();
+    });
+  });
+  $('draw').addEventListener('click', function () {
+    var mu = +$('mu').value, sg = +$('sigma').value;
+    for (var i = 0; i < 500; i++) state.samples.push(mu + sg * unit());
+    render();
+  });
+  $('clear').addEventListener('click', function () { state.samples = []; render(); });
+  // moving the curve invalidates the old samples, so start a fresh batch
+  ['mu', 'sigma'].forEach(function (id) {
+    $(id).addEventListener('input', function () { state.samples = []; render(); });
+  });
+
+  render();
+  if (window.renderMathInElement) {
+    window.renderMathInElement(document.body, {
+      delimiters: [{ left: '$$', right: '$$', display: true }, { left: '$', right: '$', display: false }],
+      ignoredTags: ['script', 'style', 'textarea', 'pre', 'code'],
+      throwOnError: false
+    });
+  }
+});
+</script>
+</body>
+</html>

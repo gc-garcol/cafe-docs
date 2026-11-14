@@ -333,6 +333,16 @@ const DOCS = [
     related: ['Bloom Filter', 'Integrals'],
   },
   {
+    title: 'Gaussian Distribution',
+    path: 'content/math/gaussian-distribution/gaussian-distribution.html',
+    category: 'Mathematics',
+    topic: 'Probability',
+    level: 'Beginner',
+    tags: ['probability', 'gaussian', 'normal distribution', 'bell curve', 'standard deviation', 'z-score', 'central limit theorem', 'statistics'],
+    summary: 'The bell curve from two numbers, center and spread. Slide them, shade a band to see the 68-95-99.7 rule, and draw samples to watch sums of random numbers form a bell.',
+    related: ["Bayes' Theorem", 'Integrals', 'Fourier Transform'],
+  },
+  {
     title: 'Polynomial Interpolation',
     path: 'content/math/polynomial-interpolation/polynomial-interpolation.html',
     category: 'Mathematics',
