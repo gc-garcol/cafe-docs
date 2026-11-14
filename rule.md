@@ -29,6 +29,11 @@ The category, index, and search data live in `index.js`, not in the HTML.
 - Register every new doc by adding an entry to `DOCS` in `index.js`.
 - Required fields: `title`, `path`, `category`, `topic`, `level`, `order`, `tags`, `summary`.
 - `order` is a number for the reading order inside a category (lower comes first). Put prerequisites before what builds on them, for example Limits, then Derivatives, then Integrals. Cards, the contents list and the mind map all follow it, and topics are ordered by their first doc. When you insert a doc in the middle, shift the `order` of the docs after it.
+- **Contents ordering in each group:** a group is a `category` (for example Data structures, Algorithms, Mathematics, or an AI category).
+  - Numbering is per group. Start at `1` in every group and do not share or continue numbers across groups.
+  - Within a group, `order` values are unique and contiguous (1, 2, 3, ...) with no gaps or duplicates.
+  - The contents list shows each group's docs sorted by `order`, lowest first. Docs of the same topic stay next to each other, and a topic's position is set by its first doc.
+  - When you add, move, or remove a doc, renumber the affected group so it stays contiguous and in reading order (prerequisites first).
 - Optional field: `related`, a list of other doc titles.
 - Categories, tags, the mind map, and the contents list are derived from `DOCS`. Do not edit them by hand.
 - Do not list docs in `readme.md`. It has no `## Docs` section, so there is nothing to update there when adding a doc.
