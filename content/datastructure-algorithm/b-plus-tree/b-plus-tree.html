@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>B+ Tree: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+
+.card{margin:24px 0 0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.scroll{overflow-x:auto;padding:0 8px;text-align:center}
+.scroll svg{display:inline-block;max-width:none;height:auto}
+
+.controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;margin-top:16px;align-items:start}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:0 0 12px}
+.row label{font-family:var(--mono);font-size:13px;font-weight:600}
+input[type=number]{width:90px;min-height:40px;padding:0 10px;border:1px solid var(--rule-solid);border-radius:6px;font:500 14px var(--mono);color:var(--ink);background:#fff}
+button:focus-visible,input:focus-visible,svg:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--paper)}
+#readout{margin:0;padding:0;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink);border:0;background:none}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:3px;border:1px solid var(--ink);display:inline-block}
+
+pre{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .t{color:var(--link)} .c{color:var(--soft);font-style:italic}
+
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:36px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+
+table.ops{border-collapse:collapse;width:100%;max-width:720px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule)}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
+
+@media (max-width:860px){.controls{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+.sw.leaf{background:var(--paper-2)}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" href="../../../index.html">&larr; Back to home</a>
+
+<header>
+  <div class="eyebrow">Data structures · Search trees</div>
+  <h1>B+ Tree</h1>
+  <p class="lede">A B-Tree that keeps every key in the leaves, and links the leaves into a sorted chain. The upper levels only route searches. Point lookups stay fast, and range scans become a walk along the chain.</p>
+</header>
+
+<section>
+  <h2>Try the machine first</h2>
+  <p>Insert keys and watch leaves split. A leaf split <b>copies</b> the first key of the new leaf up into the parent, so the key stays in the leaves. Then run a <b>range scan</b>: the tree finds the first leaf once, and the arrows between leaves do the rest.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">A B+ Tree with at most 3 keys per node</span></div>
+    <div class="scroll">
+      <svg id="tree" width="640" height="300" viewBox="0 0 640 300" role="img" aria-labelledby="tree-title tree-desc">
+        <title id="tree-title">B+ Tree of integer keys with linked leaves</title>
+        <desc id="tree-desc">White boxes at the top are internal nodes that hold only routing keys. Grey boxes on the bottom row are leaves that hold every key. Arrows between neighboring leaves form a sorted chain. Orange outlines mark nodes read by the latest search or scan, and orange filled keys are the results. A text readout beside the figure describes each step.</desc>
+        <defs>
+          <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#4f5d75"/>
+          </marker>
+          <marker id="arrow-hot" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#bf4520"/>
+          </marker>
+        </defs>
+        <rect width="100%" height="100%" fill="#fff"/>
+        <g id="edges"></g>
+        <g id="nodes"></g>
+      </svg>
+    </div>
+    <div class="card-bottom"><span class="hint">Max 3 keys per node · all values live in the leaves</span><span class="live" id="live"></span></div>
+  </figure>
+
+  <div class="controls">
+    <div class="panel">
+      <form id="form" class="row" novalidate>
+        <label for="key">Key</label><input type="number" id="key" min="0" max="999" step="1" value="42">
+        <button type="submit" class="btn">Insert</button>
+        <button type="button" class="btn" id="b-find">Search</button>
+      </form>
+      <div class="row">
+        <label for="lo">From</label><input type="number" id="lo" min="0" max="999" step="1" value="20">
+        <label for="hi">to</label><input type="number" id="hi" min="0" max="999" step="1" value="60">
+        <button type="button" class="btn" id="b-range">Range scan</button>
+      </div>
+      <div class="row">
+        <button type="button" class="btn" id="b-rand">+ 5 random</button>
+        <button type="button" class="btn" id="b-seq">+ 1..10 in order</button>
+        <button type="button" class="btn" id="reset">Clear</button>
+      </div>
+      <div class="legend" aria-label="Legend">
+        <span><i class="sw" style="background:#fff"></i>internal node</span>
+        <span><i class="sw leaf"></i>leaf</span>
+        <span><i class="sw" style="border-color:#bf4520;border-width:2px"></i>read by search</span>
+        <span><i class="sw" style="background:#bf4520;border-color:#bf4520"></i>result key</span>
+        <span><i class="sw" style="background:rgba(46,90,168,.2);border-color:#2e5aa8"></i>just split</span>
+      </div>
+    </div>
+    <div class="panel"><pre id="readout" aria-live="polite"></pre></div>
+  </div>
+</section>
+
+<section>
+  <h2>1. The idea</h2>
+  <p>In a B-Tree, every node holds keys and values, so internal nodes spend page space on values. A B+ Tree changes two things. Internal nodes hold only keys, used as signposts, so more of them fit in a page and the tree gets even shorter. And every real entry lives in a leaf, at the same depth.</p>
+  <p>The leaves are chained left to right. Once you are in the leaf for the start of a range, you never go back up the tree.</p>
+  <p class="callout">Internal nodes route. Leaves store. The chain scans.</p>
+</section>
+
+<section>
+  <h2>2. Search</h2>
+  <p>Descend like a B-Tree, but never stop early. A key in an internal node is only a signpost, so an equal key means "go right", and the search always ends in a leaf.</p>
+  <pre><span class="k">function</span> find(node, k) {
+  <span class="k">while</span> (!node.isLeaf) {
+    <span class="k">let</span> i = 0;
+    <span class="k">while</span> (i &lt; node.keys.length &amp;&amp; k &gt;= node.keys[i]) i++;   <span class="c">// equal goes right</span>
+    node = node.children[i];
+  }
+  <span class="k">return</span> node.keys.includes(k);
+}</pre>
+</section>
+
+<section>
+  <h2>3. Insert and split</h2>
+  <p>Add the key to its leaf. If the leaf overflows, split it into two leaves and <b>copy</b> the first key of the right leaf into the parent. The key stays in the leaf. If the parent overflows, split it like a B-Tree node: the middle key <b>moves</b> up and does not stay behind.</p>
+  <pre><span class="k">function</span> splitLeaf(leaf) {
+  <span class="k">const</span> right = makeLeaf(leaf.keys.splice(<span class="t">2</span>));
+  right.next = leaf.next;                <span class="c">// keep the chain intact</span>
+  leaf.next = right;
+  <span class="k">return</span> { up: right.keys[<span class="t">0</span>], left: leaf, right };   <span class="c">// copied, not moved</span>
+}</pre>
+</section>
+
+<section>
+  <h2>4. Range scan</h2>
+  <p>Find the leaf that would hold the lower bound, then follow <code>next</code> pointers and collect keys until one passes the upper bound. The cost is one descent plus the leaves that hold the answer.</p>
+  <pre><span class="k">function</span> range(lo, hi) {
+  <span class="k">let</span> leaf = findLeaf(lo), out = [];
+  <span class="k">for</span> (; leaf; leaf = leaf.next) {
+    <span class="k">for</span> (<span class="k">const</span> k <span class="k">of</span> leaf.keys) {
+      <span class="k">if</span> (k &gt; hi) <span class="k">return</span> out;
+      <span class="k">if</span> (k &gt;= lo) out.push(k);
+    }
+  }
+  <span class="k">return</span> out;
+}</pre>
+  <p>A plain B-Tree has to climb back up and down through parents to reach the next key. That is why <code>ORDER BY</code> and <code>BETWEEN</code> queries favor B+ Trees.</p>
+</section>
+
+<section>
+  <h2>5. Cost and comparison</h2>
+  <div class="cards">
+    <div class="stat focal"><div class="eyebrow">Point lookup</div><div class="big">O(log<sub>m</sub> n)</div><p>Always reaches a leaf, so every lookup costs the same.</p></div>
+    <div class="stat"><div class="eyebrow">Range scan</div><div class="big">O(log<sub>m</sub> n + k)</div><p>One descent, then k results along the chain.</p></div>
+    <div class="stat"><div class="eyebrow">Fan-out</div><div class="big">higher</div><p>Internal nodes hold no values, so more keys fit per page.</p></div>
+  </div>
+  <table class="ops">
+    <thead><tr><th></th><th>B-Tree</th><th>B+ Tree</th></tr></thead>
+    <tbody>
+      <tr><td>Values stored in</td><td>Every node</td><td>Leaves only</td></tr>
+      <tr><td>Leaves linked</td><td>No</td><td>Yes</td></tr>
+      <tr><td>Lookup cost</td><td>Varies, can stop early</td><td>Same every time</td></tr>
+      <tr><td>Range scan</td><td>Climbs through parents</td><td>Walks the chain</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>6. Where it shows up</h2>
+  <ul class="tight">
+    <li><b>Relational databases</b>: InnoDB in MySQL, PostgreSQL indexes, SQL Server, and Oracle use B+ Tree indexes.</li>
+    <li><b>File systems</b>: NTFS, XFS, and ReiserFS keep directories and extents in B+ Trees.</li>
+    <li><b>Embedded stores</b>: SQLite stores tables as B+ Trees.</li>
+  </ul>
+  <p>Writes go to random pages, which is costly on disk. If your load is mostly writes, an LSM Tree turns them into sequential appends.</p>
+</section>
+
+</main>
+
+<script>
+(function () {
+  var NS = 'http://www.w3.org/2000/svg', MAXK = 3;
+  var KW = 30, PADX = 8, NH = 34, LEVEL = 84, GAP = 30, TOP = 30;
+  var root, count, hot = [], hits = [], splitSet = [], rootSplit = false;
+
+  function el(name, attrs) {
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+  function leaf(keys) { return { keys: keys, children: [], leaf: true, next: null }; }
+  function inner(keys, children) { return { keys: keys, children: children, leaf: false }; }
+
+  // Child index: number of separator keys that are <= k (equal goes right).
+  function childIndex(n, k) {
+    var i = 0;
+    while (i < n.keys.length && k >= n.keys[i]) i++;
+    return i;
+  }
+
+  // Returns null, 'dup', or { up, left, right } if the node split.
+  function insert(n, k) {
+    if (n.leaf) {
+      var i = 0;
+      while (i < n.keys.length && k > n.keys[i]) i++;
+      if (n.keys[i] === k) return 'dup';
+      n.keys.splice(i, 0, k);
+      if (n.keys.length <= MAXK) return null;
+      var right = leaf(n.keys.splice(Math.ceil(n.keys.length / 2)));
+      right.next = n.next; n.next = right;
+      splitSet.push(n, right);
+      return { up: right.keys[0], left: n, right: right };      // copied up
+    }
+    var ci = childIndex(n, k), r = insert(n.children[ci], k);
+    if (r === 'dup') return 'dup';
+    if (!r) return null;
+    n.keys.splice(ci, 0, r.up);
+    n.children.splice(ci, 1, r.left, r.right);
+    if (n.keys.length <= MAXK) return null;
+    var mid = n.keys.length >> 1, up = n.keys[mid];
+    var rn = inner(n.keys.slice(mid + 1), n.children.slice(mid + 1));
+    n.keys = n.keys.slice(0, mid); n.children = n.children.slice(0, mid + 1);
+    splitSet.push(n, rn);
+    return { up: up, left: n, right: rn };                       // moved up
+  }
+  function add(k) {
+    splitSet = []; rootSplit = false;
+    var r = insert(root, k);
+    if (r === 'dup') return false;
+    if (r) { root = inner([r.up], [r.left, r.right]); splitSet.push(root); rootSplit = true; }
+    count++;
+    return true;
+  }
+  function reset() { root = leaf([]); count = 0; hot = []; hits = []; splitSet = []; }
+
+  function descend(k) {
+    var path = [], n = root;
+    for (;;) {
+      path.push(n);
+      if (n.leaf) return path;
+      n = n.children[childIndex(n, k)];
+    }
+  }
+  function height(n) { return n.leaf ? 1 : 1 + height(n.children[0]); }
+
+  function width(n) { return Math.max(n.keys.length, 1) * KW + PADX * 2; }
+  function layout(n, depth) {
+    n.depth = depth; n.w = width(n);
+    if (n.leaf) { n.span = n.w; return; }
+    n.children.forEach(function (c) { layout(c, depth + 1); });
+    var sum = n.children.reduce(function (s, c) { return s + c.span; }, 0) + GAP * (n.children.length - 1);
+    n.span = Math.max(n.w, sum);
+  }
+  function place(n, left) {
+    if (n.leaf) { n.cx = left + n.span / 2; return; }
+    var sum = n.children.reduce(function (s, c) { return s + c.span; }, 0) + GAP * (n.children.length - 1);
+    var x = left + (n.span - sum) / 2;
+    n.children.forEach(function (c) { place(c, x); x += c.span + GAP; });
+    n.cx = (n.children[0].cx + n.children[n.children.length - 1].cx) / 2;
+  }
+
+  function render() {
+    var edges = document.getElementById('edges'), nodes = document.getElementById('nodes');
+    edges.textContent = ''; nodes.textContent = '';
+    layout(root, 0); place(root, 10);
+    var h = height(root), W = Math.max(root.span + 20, 400), H = TOP + (h - 1) * LEVEL + NH + 24;
+    var svg = document.getElementById('tree');
+    svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+    svg.setAttribute('width', W); svg.setAttribute('height', H);
+
+    (function draw(n) {
+      var y = TOP + n.depth * LEVEL, x0 = n.cx - n.w / 2;
+      if (!n.leaf) {
+        n.children.forEach(function (c, i) {
+          edges.appendChild(el('line', { x1: x0 + PADX + i * KW, y1: y + NH, x2: c.cx, y2: TOP + c.depth * LEVEL, stroke: '#4f5d75', 'stroke-width': 1.2 }));
+        });
+      }
+      if (n.leaf && n.next) {
+        var nx = n.next, on = !!hot.scan && hot.scan.indexOf(n) >= 0 && hot.scan.indexOf(nx) >= 0;
+        var ax = x0 + n.w, bx = nx.cx - nx.w / 2;
+        edges.appendChild(el('line', {
+          x1: ax + 1, y1: y + NH / 2, x2: bx - 2, y2: y + NH / 2,
+          stroke: on ? '#bf4520' : '#4f5d75', 'stroke-width': on ? 2.2 : 1.4, 'marker-end': 'url(#' + (on ? 'arrow-hot' : 'arrow') + ')'
+        }));
+      }
+      var inPath = hot.indexOf(n) >= 0, justSplit = splitSet.indexOf(n) >= 0;
+      var g = el('g', {});
+      g.appendChild(el('rect', {
+        x: x0, y: y, width: n.w, height: NH, rx: 6,
+        fill: justSplit ? 'rgba(46,90,168,.14)' : (n.leaf ? '#ececec' : '#fff'),
+        stroke: inPath ? '#bf4520' : '#2d3142', 'stroke-width': inPath ? 2.6 : 1.4
+      }));
+      n.keys.forEach(function (k, i) {
+        var kx = x0 + PADX + i * KW, hit = n.leaf && inPath && hits.indexOf(k) >= 0;
+        if (hit) g.appendChild(el('rect', { x: kx + 1, y: y + 4, width: KW - 2, height: NH - 8, rx: 4, fill: '#bf4520' }));
+        var t = el('text', { x: kx + KW / 2, y: y + NH / 2 + 4.5, 'text-anchor': 'middle', 'font-family': 'Geist Mono, monospace', 'font-size': 13, 'font-weight': n.leaf ? 600 : 500, fill: hit ? '#fff' : (n.leaf ? '#2d3142' : '#4f5d75') });
+        t.textContent = k;
+        g.appendChild(t);
+        if (i > 0) g.appendChild(el('line', { x1: kx, y1: y + 6, x2: kx, y2: y + NH - 6, stroke: 'rgba(45,49,66,.25)' }));
+      });
+      nodes.appendChild(g);
+      n.children.forEach(draw);
+    })(root);
+
+    document.getElementById('live').textContent = count + ' keys · height ' + h;
+  }
+
+  function out(m) { document.getElementById('readout').textContent = m; }
+  function num(id) {
+    var v = document.getElementById(id).value.trim(), k = Number(v);
+    if (v === '' || !isFinite(k) || k < 0 || k > 999 || Math.floor(k) !== k) return null;
+    return k;
+  }
+  var BAD = 'Enter whole numbers from 0 to 999.';
+
+  document.getElementById('form').addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    var k = num('key'); if (k === null) return out(BAD);
+    hot = []; hits = [];
+    var ok = add(k);
+    render();
+    if (!ok) return out('key ' + k + ' is already in the tree');
+    var m = 'inserted ' + k + ' into a leaf';
+    if (splitSet.length) m += '\nleaf overflow: split in two, first key of the right leaf copied up' + (rootSplit ? '\nthe root split, so a new root was created' : '');
+    out(m);
+  });
+  document.getElementById('b-find').addEventListener('click', function () {
+    var k = num('key'); if (k === null) return out(BAD);
+    var path = descend(k), lf = path[path.length - 1], found = lf.keys.indexOf(k) >= 0;
+    hot = path; hits = found ? [k] : []; splitSet = [];
+    render();
+    out('search ' + k + '\nnode reads: ' + path.length + ' (always down to a leaf)\n' + (found ? 'found in the leaf' : 'not found in the leaf'));
+  });
+  document.getElementById('b-range').addEventListener('click', function () {
+    var lo = num('lo'), hi = num('hi');
+    if (lo === null || hi === null) return out(BAD);
+    if (lo > hi) return out('From must be less than or equal to to.');
+    var path = descend(lo), lf = path[path.length - 1], seen = [], res = [], done = false;
+    for (; lf && !done; lf = lf.next) {
+      seen.push(lf);
+      for (var i = 0; i < lf.keys.length; i++) {
+        var k = lf.keys[i];
+        if (k > hi) { done = true; break; }
+        if (k >= lo) res.push(k);
+      }
+    }
+    hot = path.slice(0, -1).concat(seen); hot.scan = seen; hits = res; splitSet = [];
+    render();
+    out('range ' + lo + '..' + hi + '\nfound ' + res.length + ' key' + (res.length === 1 ? '' : 's') + (res.length ? ': ' + res.join(', ') : '') +
+      '\ndescent: ' + (path.length - 1) + ' internal reads, once' +
+      '\nthen walked ' + seen.length + ' leaf' + (seen.length === 1 ? '' : 'ves') + ' along the chain');
+  });
+  document.getElementById('b-rand').addEventListener('click', function () {
+    var added = [], tries = 0;
+    while (added.length < 5 && tries++ < 200) {
+      var k = Math.floor(Math.random() * 100);
+      if (add(k)) added.push(k);
+    }
+    hot = []; hits = []; render();
+    out('inserted ' + added.join(', '));
+  });
+  document.getElementById('b-seq').addEventListener('click', function () {
+    var added = [];
+    for (var k = 1; k <= 10; k++) if (add(k)) added.push(k);
+    hot = []; hits = []; splitSet = []; render();
+    out('inserted ' + (added.length ? added.join(', ') : 'nothing new') + '\nsorted input still gives a balanced tree');
+  });
+  document.getElementById('reset').addEventListener('click', function () { reset(); render(); out('cleared'); });
+
+  reset();
+  [50, 20, 70, 10, 30, 60, 80, 25, 35, 65, 90, 5].forEach(function (k) { add(k); });
+  splitSet = [];
+  render();
+  out('Starting with 12 keys. Try a range scan from 20 to 60.');
+})();
+</script>
+</body>
+</html>

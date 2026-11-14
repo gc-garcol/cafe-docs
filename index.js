@@ -163,6 +163,16 @@ const DOCS = [
     related: ['B+ Tree', 'AVL Tree', 'LSM Tree'],
   },
   {
+    title: 'B+ Tree',
+    path: 'content/datastructure-algorithm/b-plus-tree/b-plus-tree.html',
+    category: 'Data structures',
+    topic: 'Ordered sets',
+    level: 'Intermediate',
+    tags: ['balanced', 'search tree', 'range scan', 'database', 'index', 'linked leaves', 'file system', 'O(log n)'],
+    summary: 'A B-Tree that keeps every key in linked leaves and uses upper levels only for routing. Lookups stay shallow, and range scans walk the leaf chain.',
+    related: ['B-Tree', 'LSM Tree', 'Skip List'],
+  },
+  {
     title: 'Genetic Algorithm',
     path: 'content/datastructure-algorithm/genetic-algorithm/genetic-algorithm.html',
     category: 'Algorithms',
