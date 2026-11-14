@@ -7,6 +7,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
 <style>
 :root{
   --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
@@ -32,7 +35,10 @@ section p{max-width:68ch;margin:0 0 14px}
 code,.mono{font-family:var(--mono);font-size:.88em}
 p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
 .callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
-.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;font-family:var(--serif);font-size:24px;text-align:center;overflow-x:auto}
+.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;text-align:center;overflow-x:auto}
+.formula .katex{font-size:1.25em}
+.katex{color:var(--ink)}
+p .katex,td .katex,li .katex{font-size:1.05em}
 
 .lab{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:24px;align-items:start;margin-top:24px}
 .card{margin:0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
@@ -133,29 +139,29 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
 <section>
   <h2>2. Fourier series: building a wave</h2>
   <p>A repeating wave can be written as a sum of sines whose frequencies are whole multiples of a base frequency. A square wave uses only odd multiples:</p>
-  <div class="formula">square(t) = (4/π) · [ sin t + sin 3t / 3 + sin 5t / 5 + … ]</div>
-  <p>Each term is one circle in Fig 1. Term <code>k</code> turns <code>k</code> times as fast and is <code>1/k</code> as large. Near the jump the sum overshoots by about 9 percent, however many circles you add. This is the Gibbs phenomenon.</p>
+  <div class="formula">$$\text{square}(t) = \frac{4}{\pi}\left[\sin t + \frac{\sin 3t}{3} + \frac{\sin 5t}{5} + \cdots\right]$$</div>
+  <p>Each term is one circle in Fig 1. Term $k$ turns $k$ times as fast and is $\frac{1}{k}$ as large. Near the jump the sum overshoots by about 9 percent, however many circles you add. This is the Gibbs phenomenon.</p>
 </section>
 
 <section>
   <h2>3. The transform</h2>
-  <p>For a signal that is not periodic, use all frequencies instead of just multiples. The transform measures how much of each frequency <code>ξ</code> is in <code>f</code>, by wrapping the signal around a circle at that speed and finding where its center of mass lands.</p>
-  <div class="formula">F(ξ) = ∫ f(t) · e<sup>−2πiξt</sup> dt</div>
+  <p>For a signal that is not periodic, use all frequencies instead of just multiples. The transform measures how much of each frequency $\xi$ is in $f$, by wrapping the signal around a circle at that speed and finding where its center of mass lands.</p>
+  <div class="formula">$$F(\xi) = \int_{-\infty}^{\infty} f(t)\, e^{-2\pi i \xi t}\,dt$$</div>
   <p>The inverse adds all the waves back together:</p>
-  <div class="formula">f(t) = ∫ F(ξ) · e<sup>2πiξt</sup> dξ</div>
-  <p>The result <code>F(ξ)</code> is a complex number. Its size is the strength of that frequency. Its angle is the phase, the point where that wave starts.</p>
+  <div class="formula">$$f(t) = \int_{-\infty}^{\infty} F(\xi)\, e^{2\pi i \xi t}\,d\xi$$</div>
+  <p>The result $F(\xi)$ is a complex number. Its size is the strength of that frequency. Its angle is the phase, the point where that wave starts.</p>
 </section>
 
 <section>
   <h2>4. Discrete Fourier Transform and FFT</h2>
-  <p>Computers hold <code>N</code> samples, not a continuous curve. The DFT turns <code>N</code> samples into <code>N</code> frequency values.</p>
-  <div class="formula">X[k] = Σ<sub>n=0..N−1</sub> x[n] · e<sup>−2πikn/N</sup></div>
+  <p>Computers hold $N$ samples, not a continuous curve. The DFT turns $N$ samples into $N$ frequency values.</p>
+  <div class="formula">$$X[k] = \sum_{n=0}^{N-1} x[n]\, e^{-2\pi i k n / N}$$</div>
   <p>Computing this directly costs O(N²). The Fast Fourier Transform splits the sum into even and odd samples, solves each half, and combines them. That brings the cost down to O(N log N), which is why audio, images, and radio can be processed in real time.</p>
   <table class="ops">
     <thead><tr><th>Method</th><th>Cost for N samples</th><th>Note</th></tr></thead>
     <tbody>
-      <tr><td>Direct DFT</td><td><code>O(N²)</code></td><td>Simple, slow for large N</td></tr>
-      <tr><td>FFT (Cooley-Tukey)</td><td><code>O(N log N)</code></td><td>Fastest when N is a power of two</td></tr>
+      <tr><td>Direct DFT</td><td>$O(N^2)$</td><td>Simple, slow for large N</td></tr>
+      <tr><td>FFT (Cooley-Tukey)</td><td>$O(N \log N)$</td><td>Fastest when N is a power of two</td></tr>
     </tbody>
   </table>
   <p>Two limits to remember. The highest frequency you can see is half the sample rate (Nyquist). Anything faster folds back as a false lower frequency, called aliasing.</p>
@@ -310,6 +316,18 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
   render();
   requestAnimationFrame(tick);
 })();
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  renderMathInElement(document.body, {
+    delimiters: [
+      { left: '$$', right: '$$', display: true },
+      { left: '$', right: '$', display: false }
+    ],
+    ignoredTags: ['script', 'style', 'textarea', 'pre', 'code'],
+    throwOnError: false
+  });
+});
 </script>
 </body>
 </html>

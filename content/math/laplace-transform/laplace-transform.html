@@ -7,6 +7,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
 <style>
 :root{
   --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
@@ -32,7 +35,10 @@ section p{max-width:68ch;margin:0 0 14px}
 code,.mono{font-family:var(--mono);font-size:.88em}
 p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
 .callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
-.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;font-family:var(--serif);font-size:24px;text-align:center;overflow-x:auto}
+.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;text-align:center;overflow-x:auto}
+.formula .katex{font-size:1.25em}
+.katex{color:var(--ink)}
+p .katex,td .katex,li .katex{font-size:1.05em}
 
 .lab{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:24px;align-items:start;margin-top:24px}
 .card{margin:0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
@@ -83,12 +89,12 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
 <header>
   <div class="eyebrow">Mathematics · Signals</div>
   <h1>Laplace Transform</h1>
-  <p class="lede">The Laplace transform turns a function of time into a function of a new variable <code>s</code>. Calculus becomes algebra, which makes differential equations far easier to solve.</p>
+  <p class="lede">The Laplace transform turns a function of time into a function of a new variable $s$. Calculus becomes algebra, which makes differential equations far easier to solve.</p>
 </header>
 
 <section>
   <h2>Try it first</h2>
-  <p>Pick a signal <code>f(t)</code>. The transform multiplies it by a fading weight <code>e<sup>−st</sup></code> and measures the area under the product. Slide <code>s</code> and watch that area change. It always matches the closed-form answer <code>F(s)</code>.</p>
+  <p>Pick a signal $f(t)$. The transform multiplies it by a fading weight $e^{-st}$ and measures the area under the product. Slide $s$ and watch that area change. It always matches the closed-form answer $F(s)$.</p>
 
   <div class="lab">
     <figure class="card">
@@ -107,7 +113,7 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
         <div class="seg" role="group" aria-label="Signal">
           <button type="button" data-fn="0" aria-pressed="true">1</button>
           <button type="button" data-fn="1" aria-pressed="false">t</button>
-          <button type="button" data-fn="2" aria-pressed="false">e<sup>−kt</sup></button>
+          <button type="button" data-fn="2" aria-pressed="false">$e^{-kt}$</button>
           <button type="button" data-fn="3" aria-pressed="false">sin kt</button>
         </div>
         <div class="row"><label for="inS">s</label><input type="range" id="inS" min="0.3" max="4" step="0.05" value="1"><output id="outS"></output></div>
@@ -115,9 +121,9 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
         <div id="readout" aria-live="polite"></div>
       </div>
       <div class="legend" aria-label="Legend">
-        <span><i class="sw" style="background:rgba(191,69,32,.25);border-color:#bf4520"></i>f(t)·e<sup>−st</sup></span>
+        <span><i class="sw" style="background:rgba(191,69,32,.25);border-color:#bf4520"></i>$f(t)\,e^{-st}$</span>
         <span><i class="sw" style="background:#2d3142"></i>f(t)</span>
-        <span><i class="sw" style="background:#2e5aa8"></i>e<sup>−st</sup></span>
+        <span><i class="sw" style="background:#2e5aa8"></i>$e^{-st}$</span>
       </div>
     </div>
   </div>
@@ -125,30 +131,30 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
 
 <section>
   <h2>1. The definition</h2>
-  <p>For a function <code>f(t)</code> defined for <code>t ≥ 0</code>, the Laplace transform is an integral from zero to infinity.</p>
-  <div class="formula">F(s) = ℒ{f(t)} = ∫<sub>0</sub><sup>∞</sup> f(t) · e<sup>−st</sup> dt</div>
-  <p>The factor <code>e<sup>−st</sup></code> shrinks the far future toward zero, so many signals that grow over time still give a finite area. Larger <code>s</code> means a faster fade. The integral only exists when <code>s</code> is large enough, and that range is called the region of convergence.</p>
+  <p>For a function $f(t)$ defined for $t \ge 0$, the Laplace transform is an integral from zero to infinity.</p>
+  <div class="formula">$$F(s) = \mathcal{L}\{f(t)\} = \int_0^\infty f(t)\, e^{-st}\,dt$$</div>
+  <p>The factor $e^{-st}$ shrinks the far future toward zero, so many signals that grow over time still give a finite area. Larger $s$ means a faster fade. The integral only exists when $s$ is large enough, and that range is called the region of convergence.</p>
   <div class="callout">It is an integral, so everything from the integrals guide still applies.</div>
 </section>
 
 <section>
   <h2>2. A worked example</h2>
-  <p>Take <code>f(t) = e<sup>−kt</sup></code>. Combine the exponents and integrate.</p>
-  <div class="formula">∫<sub>0</sub><sup>∞</sup> e<sup>−(s+k)t</sup> dt = 1 / (s + k)</div>
-  <p>The upper limit vanishes because <code>s + k &gt; 0</code>, and the lower limit leaves <code>1/(s + k)</code>. Choose <code>e<sup>−kt</sup></code> in the lab with <code>s = 1</code> and <code>k = 1</code>. The area should read <code>0.5</code>.</p>
+  <p>Take $f(t) = e^{-kt}$. Combine the exponents and integrate.</p>
+  <div class="formula">$$\int_0^\infty e^{-(s+k)t}\,dt = \frac{1}{s+k}$$</div>
+  <p>The upper limit vanishes because $s + k \gt 0$, and the lower limit leaves $\frac{1}{s+k}$. Choose $e^{-kt}$ in the lab with $s = 1$ and $k = 1$. The area should read $0.5$.</p>
 </section>
 
 <section>
   <h2>3. Common transforms</h2>
   <table class="ops">
-    <thead><tr><th>f(t)</th><th>F(s)</th><th>Needs</th></tr></thead>
+    <thead><tr><th>$f(t)$</th><th>$F(s)$</th><th>Needs</th></tr></thead>
     <tbody>
-      <tr><td><code>1</code></td><td><code>1 / s</code></td><td><code>s &gt; 0</code></td></tr>
-      <tr><td><code>t</code></td><td><code>1 / s²</code></td><td><code>s &gt; 0</code></td></tr>
-      <tr><td><code>tⁿ</code></td><td><code>n! / sⁿ⁺¹</code></td><td><code>s &gt; 0</code></td></tr>
-      <tr><td><code>e<sup>−kt</sup></code></td><td><code>1 / (s + k)</code></td><td><code>s &gt; −k</code></td></tr>
-      <tr><td><code>sin kt</code></td><td><code>k / (s² + k²)</code></td><td><code>s &gt; 0</code></td></tr>
-      <tr><td><code>cos kt</code></td><td><code>s / (s² + k²)</code></td><td><code>s &gt; 0</code></td></tr>
+      <tr><td>$1$</td><td>$\frac{1}{s}$</td><td>$s \gt 0$</td></tr>
+      <tr><td>$t$</td><td>$\frac{1}{s^2}$</td><td>$s \gt 0$</td></tr>
+      <tr><td>$t^n$</td><td>$\frac{n!}{s^{n+1}}$</td><td>$s \gt 0$</td></tr>
+      <tr><td>$e^{-kt}$</td><td>$\frac{1}{s+k}$</td><td>$s \gt -k$</td></tr>
+      <tr><td>$\sin kt$</td><td>$\frac{k}{s^2+k^2}$</td><td>$s \gt 0$</td></tr>
+      <tr><td>$\cos kt$</td><td>$\frac{s}{s^2+k^2}$</td><td>$s \gt 0$</td></tr>
     </tbody>
   </table>
 </section>
@@ -156,8 +162,8 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
 <section>
   <h2>4. Why it helps: derivatives become multiplication</h2>
   <p>Integrating by parts once shows how the transform treats a derivative.</p>
-  <div class="formula">ℒ{f′(t)} = s·F(s) − f(0)</div>
-  <p>Differentiating in time turns into multiplying by <code>s</code>, with the starting value folded in. A differential equation in <code>t</code> becomes an algebraic equation in <code>s</code>. Solve it, then transform back.</p>
+  <div class="formula">$$\mathcal{L}\{f'(t)\} = s F(s) - f(0)$$</div>
+  <p>Differentiating in time turns into multiplying by $s$, with the starting value folded in. A differential equation in $t$ becomes an algebraic equation in $s$. Solve it, then transform back.</p>
 
   <div class="fig">
     <div class="scroll">
@@ -180,24 +186,24 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
 
 <section>
   <h2>5. Solving one by hand</h2>
-  <p>Solve <code>y′ + 2y = 0</code> with <code>y(0) = 3</code>. Transform both sides.</p>
-  <div class="formula">sY − 3 + 2Y = 0 &nbsp;⇒&nbsp; Y(s) = 3 / (s + 2)</div>
-  <p>From the table, <code>1/(s + k)</code> is the transform of <code>e<sup>−kt</sup></code>. With <code>k = 2</code> the answer is <code>y(t) = 3e<sup>−2t</sup></code>. No guessing a trial solution was needed.</p>
+  <p>Solve $y' + 2y = 0$ with $y(0) = 3$. Transform both sides.</p>
+  <div class="formula">$$sY - 3 + 2Y = 0 \;\Rightarrow\; Y(s) = \frac{3}{s+2}$$</div>
+  <p>From the table, $\frac{1}{s+k}$ is the transform of $e^{-kt}$. With $k = 2$ the answer is $y(t) = 3e^{-2t}$. No guessing a trial solution was needed.</p>
 </section>
 
 <section>
   <h2>6. Properties</h2>
   <div class="cards">
-    <div class="stat focal"><div class="eyebrow">Linear</div><div class="big">split</div><p><code>ℒ{a·f + b·g} = a·F + b·G</code></p></div>
-    <div class="stat"><div class="eyebrow">Shift in s</div><div class="big">damp</div><p><code>ℒ{e<sup>−at</sup>f(t)} = F(s + a)</code></p></div>
-    <div class="stat"><div class="eyebrow">Delay in t</div><div class="big">wait</div><p><code>ℒ{f(t − c)·u(t − c)} = e<sup>−cs</sup>·F(s)</code></p></div>
+    <div class="stat focal"><div class="eyebrow">Linear</div><div class="big">split</div><p>$\mathcal{L}\{a f + b g\} = a F + b G$</p></div>
+    <div class="stat"><div class="eyebrow">Shift in s</div><div class="big">damp</div><p>$\mathcal{L}\{e^{-at} f(t)\} = F(s+a)$</p></div>
+    <div class="stat"><div class="eyebrow">Delay in t</div><div class="big">wait</div><p>$\mathcal{L}\{f(t-c)\,u(t-c)\} = e^{-cs} F(s)$</p></div>
   </div>
-  <p style="margin-top:20px">Another useful rule is the convolution theorem. A convolution in time, which is how a system responds to an input, becomes a plain product <code>F(s)·G(s)</code> in the s-domain. This is why engineers describe circuits, filters and control systems by their transfer functions.</p>
+  <p style="margin-top:20px">Another useful rule is the convolution theorem. A convolution in time, which is how a system responds to an input, becomes a plain product $F(s)\,G(s)$ in the s-domain. This is why engineers describe circuits, filters and control systems by their transfer functions.</p>
 </section>
 
 <section>
   <h2>7. Where it shows up</h2>
-  <p>Electrical circuits with resistors, capacitors and inductors. Mechanical springs and dampers. Control systems, where poles of <code>F(s)</code> reveal stability. Anywhere a linear system with a starting state responds to an input over time.</p>
+  <p>Electrical circuits with resistors, capacitors and inductors. Mechanical springs and dampers. Control systems, where poles of $F(s)$ reveal stability. Anywhere a linear system with a starting state responds to an input over time.</p>
 </section>
 
 </main>
@@ -296,6 +302,18 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
   $('#inK').addEventListener('input', render);
   render();
 })();
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  renderMathInElement(document.body, {
+    delimiters: [
+      { left: '$$', right: '$$', display: true },
+      { left: '$', right: '$', display: false }
+    ],
+    ignoredTags: ['script', 'style', 'textarea', 'pre', 'code'],
+    throwOnError: false
+  });
+});
 </script>
 </body>
 </html>
