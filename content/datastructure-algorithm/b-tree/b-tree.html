@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>B-Tree: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+
+.card{margin:24px 0 0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.scroll{overflow-x:auto;padding:0 8px;text-align:center}
+.scroll svg{display:inline-block;max-width:none;height:auto}
+
+.controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;margin-top:16px;align-items:start}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:0 0 12px}
+.row label{font-family:var(--mono);font-size:13px;font-weight:600}
+input[type=number]{width:90px;min-height:40px;padding:0 10px;border:1px solid var(--rule-solid);border-radius:6px;font:500 14px var(--mono);color:var(--ink);background:#fff}
+button:focus-visible,input:focus-visible,svg:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--paper)}
+#readout{margin:0;padding:0;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink);border:0;background:none}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:3px;border:1px solid var(--ink);display:inline-block}
+
+pre{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .t{color:var(--link)} .c{color:var(--soft);font-style:italic}
+
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:36px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+
+table.ops{border-collapse:collapse;width:100%;max-width:720px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule)}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
+
+@media (max-width:860px){.controls{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" href="../../../index.html">&larr; Back to home</a>
+
+<header>
+  <div class="eyebrow">Data structures · Search trees</div>
+  <h1>B-Tree</h1>
+  <p class="lede">A search tree with wide nodes. Each node holds many sorted keys, so the tree stays very short, and one node read from disk answers many comparisons at once. Databases and file systems are built on it.</p>
+</header>
+
+<section>
+  <h2>Try the machine first</h2>
+  <p>Insert keys and watch the tree grow. Each node holds at most 3 keys. When a fourth arrives, the node splits in two and its middle key moves up to the parent. Use <b>Search</b> to see the path of nodes a lookup reads.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">A B-Tree with at most 3 keys per node</span></div>
+    <div class="scroll">
+      <svg id="tree" width="640" height="300" viewBox="0 0 640 300" role="img" aria-labelledby="tree-title tree-desc">
+        <title id="tree-title">B-Tree of integer keys</title>
+        <desc id="tree-desc">Rounded boxes are nodes, and each box holds up to three sorted keys. Lines connect a node to its children. All leaves sit on the same level. Orange outlines mark the nodes read by the latest search, and the found key is filled orange. A text readout beside the figure describes each step.</desc>
+        <rect width="100%" height="100%" fill="#fff"/>
+        <g id="edges"></g>
+        <g id="nodes"></g>
+      </svg>
+    </div>
+    <div class="card-bottom"><span class="hint">Max 3 keys per node · all leaves at the same depth</span><span class="live" id="live"></span></div>
+  </figure>
+
+  <div class="controls">
+    <div class="panel">
+      <form id="form" class="row" novalidate>
+        <label for="key">Key</label><input type="number" id="key" min="0" max="999" step="1" value="42">
+        <button type="submit" class="btn" id="b-ins">Insert</button>
+        <button type="button" class="btn" id="b-find">Search</button>
+      </form>
+      <div class="row">
+        <button type="button" class="btn" id="b-rand">+ 5 random</button>
+        <button type="button" class="btn" id="b-seq">+ 1..10 in order</button>
+        <button type="button" class="btn" id="reset">Clear</button>
+      </div>
+      <div class="legend" aria-label="Legend">
+        <span><i class="sw" style="background:#fff"></i>node</span>
+        <span><i class="sw" style="border-color:#bf4520;border-width:2px"></i>read by search</span>
+        <span><i class="sw" style="background:#bf4520;border-color:#bf4520"></i>found key</span>
+        <span><i class="sw" style="background:rgba(46,90,168,.2);border-color:#2e5aa8"></i>just split</span>
+      </div>
+    </div>
+    <div class="panel"><pre id="readout" aria-live="polite"></pre></div>
+  </div>
+</section>
+
+<section>
+  <h2>1. The idea</h2>
+  <p>A binary search tree reads one key per node. On a disk, reading a node costs one slow trip, and most of that cost is the same for 8 bytes or 8 kilobytes. So pack a whole page of keys into each node. A node with <code>m</code> keys has <code>m + 1</code> children, and the keys tell you which child to follow.</p>
+  <p>With hundreds of keys per node, a tree of a billion keys is only 4 or 5 levels deep. That is 4 or 5 disk reads for any lookup.</p>
+  <p class="callout">Make the tree wide so it can stay short.</p>
+</section>
+
+<section>
+  <h2>2. The rules</h2>
+  <ul class="tight">
+    <li>Keys inside a node are sorted.</li>
+    <li>For a key range between two neighboring keys, there is one child that holds exactly that range.</li>
+    <li>Every node except the root holds at least half its capacity.</li>
+    <li>All leaves are at the same depth.</li>
+  </ul>
+  <p>The last rule is what makes the tree balanced. It is kept by growing the tree at the top, not at the bottom.</p>
+</section>
+
+<section>
+  <h2>3. Search</h2>
+  <p>In each node, find the first key that is greater than or equal to the target. If it is equal, you are done. Otherwise follow the child just to the left of that key, and repeat.</p>
+  <pre><span class="k">function</span> search(node, k) {
+  <span class="k">let</span> i = 0;
+  <span class="k">while</span> (i &lt; node.keys.length &amp;&amp; k &gt; node.keys[i]) i++;
+  <span class="k">if</span> (node.keys[i] === k) <span class="k">return</span> <span class="k">true</span>;
+  <span class="k">if</span> (node.isLeaf) <span class="k">return</span> <span class="k">false</span>;
+  <span class="k">return</span> search(node.children[i], k);
+}</pre>
+  <p>Inside a node, use binary search when keys are many. The comparisons are in memory and cheap. The node reads are the cost to count.</p>
+</section>
+
+<section>
+  <h2>4. Insert and split</h2>
+  <p>Find the leaf where the key belongs and add it there. If the leaf now has too many keys, split it: the middle key moves up into the parent, and the other keys form two nodes. If the parent overflows, it splits the same way. A split that reaches the root creates a new root, and that is the only way the tree gets taller.</p>
+  <pre><span class="k">function</span> split(node) {
+  <span class="k">const</span> mid = node.keys.length &gt;&gt; 1;
+  <span class="k">const</span> up = node.keys[mid];                  <span class="c">// moves to the parent</span>
+  <span class="k">const</span> right = node.keys.splice(mid + 1);       <span class="c">// upper half, new node</span>
+  node.keys.pop();                              <span class="c">// drop the promoted key</span>
+  <span class="c">// children are split the same way at index mid + 1</span>
+  <span class="k">return</span> { up, left: node, right: makeNode(right) };
+}</pre>
+</section>
+
+<section>
+  <h2>5. Delete</h2>
+  <p>Delete is the mirror image. Remove the key, and if a node falls below half full, borrow a key from a sibling through the parent. If the sibling is also at the minimum, merge the two nodes and pull a key down from the parent. A merge can cascade upward and, at the root, shrink the tree by one level.</p>
+</section>
+
+<section>
+  <h2>6. Cost</h2>
+  <div class="cards">
+    <div class="stat focal"><div class="eyebrow">Search</div><div class="big">O(log<sub>m</sub> n)</div><p>Node reads, where m is keys per node.</p></div>
+    <div class="stat"><div class="eyebrow">Insert / delete</div><div class="big">O(log<sub>m</sub> n)</div><p>Splits and merges are rare and amortize out.</p></div>
+    <div class="stat"><div class="eyebrow">Space</div><div class="big">≥ 50%</div><p>Every node except the root is at least half full.</p></div>
+  </div>
+  <table class="ops">
+    <thead><tr><th>Structure</th><th>Keys per node</th><th>Depth for 1 billion keys</th></tr></thead>
+    <tbody>
+      <tr><td>Binary search tree</td><td>1</td><td>about 30</td></tr>
+      <tr><td>B-Tree, 100 keys</td><td>up to 100</td><td>about 5</td></tr>
+      <tr><td>B-Tree, 500 keys</td><td>up to 500</td><td>about 4</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>7. Where it shows up</h2>
+  <ul class="tight">
+    <li><b>File systems</b>: NTFS, ext4 (as an HTree for directories), Btrfs, and APFS keep their metadata in B-Tree variants.</li>
+    <li><b>Databases</b>: the default index in PostgreSQL, MySQL, and SQLite is a B-Tree family structure.</li>
+    <li><b>Key-value stores</b>: LMDB and BoltDB are built on B-Trees.</li>
+  </ul>
+  <p>Most databases use the B+ Tree variant, which keeps all values in the leaves. It scans ranges faster. For write-heavy loads, an LSM Tree trades read speed for sequential writes.</p>
+</section>
+
+</main>
+
+<script>
+(function () {
+  var NS = 'http://www.w3.org/2000/svg', MAXK = 3;
+  var KW = 30, PADX = 8, NH = 34, LEVEL = 78, GAP = 14, TOP = 30;
+  var root, count, hot = {}, foundKey = null, splitSet = [], rootSplit = false;
+
+  function el(name, attrs) {
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+  function mk(keys, children) { return { keys: keys, children: children || [] }; }
+  function isLeaf(n) { return n.children.length === 0; }
+
+  // Insert returns null, or { up, left, right } when the node split.
+  function insert(n, k) {
+    var i = 0;
+    while (i < n.keys.length && k > n.keys[i]) i++;
+    if (n.keys[i] === k) return 'dup';
+    if (isLeaf(n)) n.keys.splice(i, 0, k);
+    else {
+      var r = insert(n.children[i], k);
+      if (r === 'dup') return 'dup';
+      if (r) { n.keys.splice(i, 0, r.up); n.children.splice(i, 1, r.left, r.right); }
+    }
+    if (n.keys.length <= MAXK) return null;
+    var mid = n.keys.length >> 1, up = n.keys[mid];
+    var right = mk(n.keys.slice(mid + 1), isLeaf(n) ? [] : n.children.slice(mid + 1));
+    n.keys = n.keys.slice(0, mid);
+    if (!isLeaf(n)) n.children = n.children.slice(0, mid + 1);
+    splitSet.push(n, right);
+    return { up: up, left: n, right: right };
+  }
+  function add(k) {
+    splitSet = []; rootSplit = false;
+    var r = insert(root, k);
+    if (r === 'dup') return false;
+    if (r) { root = mk([r.up], [r.left, r.right]); splitSet.push(root); rootSplit = true; }
+    count++;
+    return true;
+  }
+  function reset() { root = mk([]); count = 0; hot = {}; foundKey = null; splitSet = []; }
+
+  function search(k) {
+    var path = [], n = root;
+    for (;;) {
+      path.push(n);
+      var i = 0;
+      while (i < n.keys.length && k > n.keys[i]) i++;
+      if (n.keys[i] === k) return { path: path, found: true };
+      if (isLeaf(n)) return { path: path, found: false };
+      n = n.children[i];
+    }
+  }
+
+  function width(n) { return Math.max(n.keys.length, 1) * KW + PADX * 2; }
+  function layout(n, depth) {
+    n.depth = depth; n.w = width(n);
+    if (isLeaf(n)) { n.span = n.w; return; }
+    n.children.forEach(function (c) { layout(c, depth + 1); });
+    var sum = n.children.reduce(function (s, c) { return s + c.span; }, 0) + GAP * (n.children.length - 1);
+    n.span = Math.max(n.w, sum);
+  }
+  function place(n, left) {
+    if (isLeaf(n)) { n.cx = left + n.span / 2; return; }
+    var sum = n.children.reduce(function (s, c) { return s + c.span; }, 0) + GAP * (n.children.length - 1);
+    var x = left + (n.span - sum) / 2;
+    n.children.forEach(function (c) { place(c, x); x += c.span + GAP; });
+    n.cx = (n.children[0].cx + n.children[n.children.length - 1].cx) / 2;
+  }
+  function height(n) { return isLeaf(n) ? 1 : 1 + height(n.children[0]); }
+
+  function render() {
+    var edges = document.getElementById('edges'), nodes = document.getElementById('nodes');
+    edges.textContent = ''; nodes.textContent = '';
+    layout(root, 0); place(root, 10);
+    var h = height(root), W = Math.max(root.span + 20, 400), H = TOP + (h - 1) * LEVEL + NH + 24;
+    var svg = document.getElementById('tree');
+    svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+    svg.setAttribute('width', W); svg.setAttribute('height', H);
+
+    (function draw(n) {
+      var y = TOP + n.depth * LEVEL, x0 = n.cx - n.w / 2;
+      if (!isLeaf(n)) {
+        n.children.forEach(function (c, i) {
+          // child i hangs below the gap left of key i (or the right edge for the last)
+          var px = x0 + PADX + i * KW;
+          edges.appendChild(el('line', { x1: px, y1: y + NH, x2: c.cx, y2: TOP + c.depth * LEVEL, stroke: '#4f5d75', 'stroke-width': 1.2 }));
+        });
+      }
+      var inPath = hot.set && hot.set.indexOf(n) >= 0, justSplit = splitSet.indexOf(n) >= 0;
+      var g = el('g', {});
+      g.appendChild(el('rect', {
+        x: x0, y: y, width: n.w, height: NH, rx: 6,
+        fill: justSplit ? 'rgba(46,90,168,.14)' : '#fff',
+        stroke: inPath ? '#bf4520' : '#2d3142', 'stroke-width': inPath ? 2.6 : 1.4
+      }));
+      n.keys.forEach(function (k, i) {
+        var kx = x0 + PADX + i * KW, hit = inPath && k === foundKey;
+        if (hit) g.appendChild(el('rect', { x: kx + 1, y: y + 4, width: KW - 2, height: NH - 8, rx: 4, fill: '#bf4520' }));
+        var t = el('text', { x: kx + KW / 2, y: y + NH / 2 + 4.5, 'text-anchor': 'middle', 'font-family': 'Geist Mono, monospace', 'font-size': 13, 'font-weight': 600, fill: hit ? '#fff' : '#2d3142' });
+        t.textContent = k;
+        g.appendChild(t);
+        if (i > 0) g.appendChild(el('line', { x1: kx, y1: y + 6, x2: kx, y2: y + NH - 6, stroke: 'rgba(45,49,66,.25)' }));
+      });
+      nodes.appendChild(g);
+      n.children.forEach(draw);
+    })(root);
+
+    document.getElementById('live').textContent = count + ' keys · height ' + h;
+  }
+
+  function out(m) {
+    document.getElementById('readout').textContent = m;
+  }
+  function readKey() {
+    var v = document.getElementById('key').value.trim();
+    var k = Number(v);
+    if (v === '' || !isFinite(k) || k < 0 || k > 999 || Math.floor(k) !== k) { out('Enter a whole number from 0 to 999.'); return null; }
+    return k;
+  }
+  function doInsert(k) {
+    hot = {}; foundKey = null;
+    var before = height(root), ok = add(k);
+    if (!ok) { render(); return 'key ' + k + ' is already in the tree'; }
+    render();
+    var msg = 'inserted ' + k;
+    if (splitSet.length) msg += '\nnode overflow: split into two, middle key moved up' + (rootSplit ? '\nthe root split, so a new root was created' : '');
+    return msg;
+  }
+  document.getElementById('form').addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    var k = readKey(); if (k === null) return;
+    out(doInsert(k));
+  });
+  document.getElementById('b-find').addEventListener('click', function () {
+    var k = readKey(); if (k === null) return;
+    var r = search(k);
+    hot = { set: r.path }; foundKey = r.found ? k : null; splitSet = [];
+    render();
+    out('search ' + k + '\nnode reads: ' + r.path.length + ' of height ' + height(root) +
+      '\n' + (r.found ? 'found in a node at depth ' + (r.path.length - 1) : 'not found, stopped at a leaf'));
+  });
+  document.getElementById('b-rand').addEventListener('click', function () {
+    var added = [], tries = 0;
+    while (added.length < 5 && tries++ < 200) {
+      var k = Math.floor(Math.random() * 100);
+      if (add(k)) added.push(k);
+    }
+    hot = {}; foundKey = null; render();
+    out('inserted ' + added.join(', '));
+  });
+  document.getElementById('b-seq').addEventListener('click', function () {
+    var added = [];
+    for (var k = 1; k <= 10; k++) if (add(k)) added.push(k);
+    hot = {}; foundKey = null; splitSet = []; render();
+    out('inserted ' + (added.length ? added.join(', ') : 'nothing new') + '\nsorted input still gives a balanced tree');
+  });
+  document.getElementById('reset').addEventListener('click', function () { reset(); render(); out('cleared'); });
+
+  reset();
+  [50, 20, 70, 10, 30, 60, 80, 25, 35, 65, 90, 5].forEach(function (k) { add(k); });
+  splitSet = [];
+  render();
+  out('Starting with 12 keys. Insert more and watch nodes split.');
+})();
+</script>
+</body>
+</html>

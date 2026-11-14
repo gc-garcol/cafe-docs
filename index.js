@@ -153,6 +153,16 @@ const DOCS = [
     related: ['AVL Tree', 'Skip List'],
   },
   {
+    title: 'B-Tree',
+    path: 'content/datastructure-algorithm/b-tree/b-tree.html',
+    category: 'Data structures',
+    topic: 'Ordered sets',
+    level: 'Intermediate',
+    tags: ['balanced', 'search tree', 'disk', 'database', 'index', 'split', 'file system', 'O(log n)'],
+    summary: 'A search tree with wide nodes that hold many sorted keys. It stays very short, so a lookup reads only a handful of disk pages.',
+    related: ['B+ Tree', 'AVL Tree', 'LSM Tree'],
+  },
+  {
     title: 'Genetic Algorithm',
     path: 'content/datastructure-algorithm/genetic-algorithm/genetic-algorithm.html',
     category: 'Algorithms',
