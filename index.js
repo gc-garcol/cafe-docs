@@ -4,7 +4,7 @@
 const DOCS = [
   {
     title: 'Skip List',
-    path: 'content/skiplist/skiplist.html',
+    path: 'content/datastructure-algorithm/skiplist/skiplist.html',
     category: 'Data structures',
     topic: 'Ordered sets',
     level: 'Intermediate',
@@ -14,7 +14,7 @@ const DOCS = [
   },
   {
     title: 'Sparse Table',
-    path: 'content/sparse-table/sparse-table.html',
+    path: 'content/datastructure-algorithm/sparse-table/sparse-table.html',
     category: 'Data structures',
     topic: 'Range queries',
     level: 'Intermediate',
@@ -24,7 +24,7 @@ const DOCS = [
   },
   {
     title: 'Merkle Tree',
-    path: 'content/merkle-tree/merkle-tree.html',
+    path: 'content/datastructure-algorithm/merkle-tree/merkle-tree.html',
     category: 'Data structures',
     topic: 'Hash trees',
     level: 'Intermediate',
@@ -34,7 +34,7 @@ const DOCS = [
   },
   {
     title: 'Timer Wheel',
-    path: 'content/timer-wheel/timer-wheel.html',
+    path: 'content/datastructure-algorithm/timer-wheel/timer-wheel.html',
     category: 'Data structures',
     topic: 'Scheduling',
     level: 'Intermediate',
@@ -44,7 +44,7 @@ const DOCS = [
   },
   {
     title: 'Heap',
-    path: 'content/heap/heap.html',
+    path: 'content/datastructure-algorithm/heap/heap.html',
     category: 'Data structures',
     topic: 'Priority queues',
     level: 'Beginner',
@@ -54,7 +54,7 @@ const DOCS = [
   },
   {
     title: 'Count-Min Sketch',
-    path: 'content/count-min-sketch/count-min-sketch.html',
+    path: 'content/datastructure-algorithm/count-min-sketch/count-min-sketch.html',
     category: 'Data structures',
     topic: 'Probabilistic',
     level: 'Intermediate',
@@ -64,7 +64,7 @@ const DOCS = [
   },
   {
     title: 'Segment Tree',
-    path: 'content/segment-tree/segment-tree.html',
+    path: 'content/datastructure-algorithm/segment-tree/segment-tree.html',
     category: 'Data structures',
     topic: 'Range queries',
     level: 'Intermediate',
@@ -74,7 +74,7 @@ const DOCS = [
   },
   {
     title: 'Bloom Filter',
-    path: 'content/bloom-filter/bloom-filter.html',
+    path: 'content/datastructure-algorithm/bloom-filter/bloom-filter.html',
     category: 'Data structures',
     topic: 'Probabilistic sets',
     level: 'Intermediate',
@@ -84,7 +84,7 @@ const DOCS = [
   },
   {
     title: 'HyperLogLog',
-    path: 'content/hyperloglog/hyperloglog.html',
+    path: 'content/datastructure-algorithm/hyperloglog/hyperloglog.html',
     category: 'Data structures',
     topic: 'Probabilistic sets',
     level: 'Advanced',
@@ -94,7 +94,7 @@ const DOCS = [
   },
   {
     title: 'Roaring Bitmap',
-    path: 'content/roaring-bitmap/roaring-bitmap.html',
+    path: 'content/datastructure-algorithm/roaring-bitmap/roaring-bitmap.html',
     category: 'Data structures',
     topic: 'Bitmaps',
     level: 'Intermediate',
@@ -104,7 +104,7 @@ const DOCS = [
   },
   {
     title: 'LSM Tree',
-    path: 'content/lsm-tree/lsm-tree.html',
+    path: 'content/datastructure-algorithm/lsm-tree/lsm-tree.html',
     category: 'Data structures',
     topic: 'Storage engines',
     level: 'Advanced',
@@ -114,7 +114,7 @@ const DOCS = [
   },
   {
     title: 'Quad Tree',
-    path: 'content/quad-tree/quad-tree.html',
+    path: 'content/datastructure-algorithm/quad-tree/quad-tree.html',
     category: 'Data structures',
     topic: 'Spatial indexes',
     level: 'Intermediate',
@@ -124,7 +124,7 @@ const DOCS = [
   },
   {
     title: 'Octree',
-    path: 'content/oct-tree/oct-tree.html',
+    path: 'content/datastructure-algorithm/oct-tree/oct-tree.html',
     category: 'Data structures',
     topic: 'Spatial indexes',
     level: 'Intermediate',
@@ -134,7 +134,7 @@ const DOCS = [
   },
   {
     title: 'AVL Tree',
-    path: 'content/avl-tree/avl-tree.html',
+    path: 'content/datastructure-algorithm/avl-tree/avl-tree.html',
     category: 'Data structures',
     topic: 'Ordered sets',
     level: 'Intermediate',
@@ -144,7 +144,7 @@ const DOCS = [
   },
   {
     title: 'Red-Black Tree',
-    path: 'content/red-black-tree/red-black-tree.html',
+    path: 'content/datastructure-algorithm/red-black-tree/red-black-tree.html',
     category: 'Data structures',
     topic: 'Ordered sets',
     level: 'Advanced',
@@ -154,7 +154,7 @@ const DOCS = [
   },
   {
     title: 'Genetic Algorithm',
-    path: 'content/genetic-algorithm/genetic-algorithm.html',
+    path: 'content/datastructure-algorithm/genetic-algorithm/genetic-algorithm.html',
     category: 'Algorithms',
     topic: 'Optimization',
     level: 'Beginner',
@@ -164,7 +164,7 @@ const DOCS = [
   },
   {
     title: 'Minimax',
-    path: 'content/minimax/minimax.html',
+    path: 'content/datastructure-algorithm/minimax/minimax.html',
     category: 'Algorithms',
     topic: 'Game search',
     level: 'Intermediate',
@@ -174,7 +174,7 @@ const DOCS = [
   },
   {
     title: 'A* Search',
-    path: 'content/a-star/a-star.html',
+    path: 'content/datastructure-algorithm/a-star/a-star.html',
     category: 'Algorithms',
     topic: 'Pathfinding',
     level: 'Intermediate',
@@ -184,7 +184,7 @@ const DOCS = [
   },
   {
     title: 'Quicksort',
-    path: 'content/quicksort/quicksort.html',
+    path: 'content/datastructure-algorithm/quicksort/quicksort.html',
     category: 'Algorithms',
     topic: 'Sorting',
     level: 'Beginner',
@@ -194,7 +194,7 @@ const DOCS = [
   },
   {
     title: 'Merge Sort',
-    path: 'content/merge-sort/merge-sort.html',
+    path: 'content/datastructure-algorithm/merge-sort/merge-sort.html',
     category: 'Algorithms',
     topic: 'Sorting',
     level: 'Beginner',
@@ -204,7 +204,7 @@ const DOCS = [
   },
   {
     title: 'Trie',
-    path: 'content/trie/trie.html',
+    path: 'content/datastructure-algorithm/trie/trie.html',
     category: 'Data structures',
     topic: 'Strings',
     level: 'Beginner',

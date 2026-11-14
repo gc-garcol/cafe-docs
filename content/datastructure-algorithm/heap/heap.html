@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Heap: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+
+.card{margin:24px 0 0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.scroll{overflow-x:auto;padding:0 8px}
+.scroll svg{display:block;height:auto}
+
+.controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;margin-top:16px;align-items:start}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:0 0 12px}
+.row label{font-family:var(--mono);font-size:13px;font-weight:600}
+input[type=number]{width:90px;min-height:40px;padding:0 10px;border:1px solid var(--rule-solid);border-radius:6px;font:500 14px var(--mono);color:var(--ink);background:#fff}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.btn:disabled{opacity:.4;cursor:not-allowed;background:transparent;color:var(--ink)}
+#readout{margin:0;padding:0;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink);border:0;background:none}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:50%;border:1px solid var(--ink);display:inline-block}
+
+pre{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .t{color:var(--link)} .c{color:var(--soft);font-style:italic}
+
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:36px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+
+table.ops{border-collapse:collapse;width:100%;max-width:720px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule)}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
+
+@media (max-width:860px){.controls{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" href="../../../index.html">&larr; Back to home</a>
+
+<header>
+  <div class="eyebrow">Data structures · Priority queues</div>
+  <h1>Heap</h1>
+  <p class="lede">A complete binary tree stored in a plain array, where every parent is no larger than its children. The smallest item is always at the top, and insert and remove cost O(log n).</p>
+</header>
+
+<section>
+  <h2>Try the machine first</h2>
+  <p>This is a <b>min-heap</b> of up to 15 numbers. Insert a value and watch it sift up. Extract the minimum and watch the last item drop from the root. The tree and the array below it are the same data.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">A min-heap as a tree and as an array</span></div>
+    <div class="scroll">
+      <svg id="heap" width="880" height="400" viewBox="0 0 880 400" style="min-width:880px" role="img" aria-labelledby="heap-title heap-desc">
+        <title id="heap-title">Min-heap drawn as a binary tree with its array below</title>
+        <desc id="heap-desc">Each node is no larger than its children. The array row shows the same values in level order. Nodes touched by the last operation are highlighted.</desc>
+        <g id="edges"></g>
+        <g id="nodes"></g>
+        <g id="cells"></g>
+      </svg>
+    </div>
+    <div class="card-bottom"><span class="hint">Index i has children 2i+1 and 2i+2</span><span class="live" id="live"></span></div>
+  </figure>
+
+  <div class="controls">
+    <div class="panel">
+      <form id="form" class="row" novalidate>
+        <label for="val">Value</label>
+        <input type="number" id="val" min="-99" max="99" step="1" value="4" inputmode="numeric">
+        <button type="submit" class="btn" id="ins">Insert</button>
+      </form>
+      <div class="row">
+        <button type="button" class="btn" id="ext">Extract min</button>
+        <button type="button" class="btn" id="reset">Reset</button>
+      </div>
+      <div class="legend" aria-label="Legend">
+        <span><i class="sw" style="background:rgba(191,69,32,.18);border-color:#bf4520"></i>touched by last op</span>
+        <span><i class="sw" style="background:#fff"></i>untouched</span>
+      </div>
+    </div>
+    <div class="panel"><pre id="readout" aria-live="polite"></pre></div>
+  </div>
+</section>
+
+<section>
+  <h2>1. The idea</h2>
+  <p>A heap keeps just enough order to find the minimum fast. It does not sort everything. It only promises one rule, the <b>heap property</b>: every parent is less than or equal to its children. Siblings have no order between them.</p>
+  <p>The shape rule keeps the tree <b>complete</b>: every level is full except possibly the last, which fills from the left. That shape lets you store the tree in an array with no pointers.</p>
+  <pre><span class="t">parent(i)</span> = floor((i - 1) / 2)
+<span class="t">left(i)</span>   = 2i + 1
+<span class="t">right(i)</span>  = 2i + 2</pre>
+  <p class="callout">The root is the minimum. Everything else only has to stay below its parent.</p>
+</section>
+
+<section>
+  <h2>2. Insert: sift up</h2>
+  <p>Put the new value in the first free slot at the end of the array, which keeps the tree complete. It may now be smaller than its parent, so swap upward until the parent is no larger.</p>
+  <pre><span class="k">function</span> push(h, x) {
+  h.push(x);
+  <span class="k">let</span> i = h.length - 1;
+  <span class="k">while</span> (i &gt; 0) {
+    <span class="k">const</span> p = (i - 1) &gt;&gt; 1;
+    <span class="k">if</span> (h[p] &lt;= h[i]) <span class="k">break</span>;
+    [h[p], h[i]] = [h[i], h[p]];
+    i = p;
+  }
+}</pre>
+  <p>The path from a leaf to the root has about <code>log₂ n</code> nodes, so at most that many swaps happen.</p>
+</section>
+
+<section>
+  <h2>3. Extract min: sift down</h2>
+  <p>The answer is <code>h[0]</code>. To remove it without leaving a hole, move the last item to the root, then swap it downward with its <b>smaller</b> child until both children are no smaller than it.</p>
+  <pre><span class="k">function</span> pop(h) {
+  <span class="k">const</span> top = h[0], last = h.pop();
+  <span class="k">if</span> (h.length === 0) <span class="k">return</span> top;
+  h[0] = last;
+  <span class="k">let</span> i = 0;
+  <span class="k">for</span> (;;) {
+    <span class="k">let</span> m = i, l = 2 * i + 1, r = l + 1;
+    <span class="k">if</span> (l &lt; h.length &amp;&amp; h[l] &lt; h[m]) m = l;
+    <span class="k">if</span> (r &lt; h.length &amp;&amp; h[r] &lt; h[m]) m = r;
+    <span class="k">if</span> (m === i) <span class="k">break</span>;
+    [h[m], h[i]] = [h[i], h[m]];
+    i = m;
+  }
+  <span class="k">return</span> top;
+}</pre>
+  <p>Pick the smaller child, not either child. Otherwise a larger child could end up above a smaller one and break the heap property.</p>
+</section>
+
+<section>
+  <h2>4. Build a heap in O(n)</h2>
+  <p>Inserting <code>n</code> items one by one costs <code>O(n log n)</code>. Heapify does better. Copy the items into an array, then sift down every non-leaf node from the last one back to the root.</p>
+  <pre><span class="k">for</span> (<span class="k">let</span> i = (n &gt;&gt; 1) - 1; i &gt;= 0; i--) siftDown(h, i);</pre>
+  <p>Most nodes sit near the bottom and move very little, so the total work sums to <code>O(n)</code>. Heapsort uses this: heapify, then pop the minimum <code>n</code> times.</p>
+</section>
+
+<section>
+  <h2>5. Cost</h2>
+  <div class="cards">
+    <div class="stat focal"><div class="eyebrow">Peek min</div><div class="big">O(1)</div><p>It is always <code>h[0]</code>.</p></div>
+    <div class="stat"><div class="eyebrow">Push / pop</div><div class="big">O(log n)</div><p>One swap per level at most.</p></div>
+    <div class="stat"><div class="eyebrow">Heapify</div><div class="big">O(n)</div><p>Sift down from the middle.</p></div>
+  </div>
+  <table class="ops">
+    <thead><tr><th>Operation</th><th>Time</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>Peek min</td><td><code>O(1)</code></td><td>Read the root</td></tr>
+      <tr><td>Insert</td><td><code>O(log n)</code></td><td>Sift up</td></tr>
+      <tr><td>Extract min</td><td><code>O(log n)</code></td><td>Sift down</td></tr>
+      <tr><td>Decrease key</td><td><code>O(log n)</code></td><td>Needs the item's index</td></tr>
+      <tr><td>Search by value</td><td><code>O(n)</code></td><td>No order between siblings</td></tr>
+      <tr><td>Build from n items</td><td><code>O(n)</code></td><td>Bottom-up heapify</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>6. Where it shows up</h2>
+  <ul class="tight">
+    <li><b>Priority queues</b> in schedulers and event simulations.</li>
+    <li><b>Dijkstra and Prim</b> pick the next closest node with a min-heap.</li>
+    <li><b>Top-k</b>: keep a min-heap of size k to track the k largest items in a stream.</li>
+    <li><b>Merging k sorted lists</b>: the heap holds one head per list.</li>
+    <li><b>Heapsort</b>: in place, <code>O(n log n)</code>, not stable.</li>
+  </ul>
+  <p>For a max-heap, flip every comparison. Most standard libraries ship a min-heap or a max-heap, so check which one before relying on it.</p>
+</section>
+
+</main>
+
+<script>
+(function () {
+  var MAX = 15, NS = 'http://www.w3.org/2000/svg';
+  var INITIAL = [2, 5, 3, 9, 6, 8, 4];
+  var heap = INITIAL.slice(), touched = [], log = 'Heap ready. Insert a value or extract the min.';
+
+  function el(name, attrs, text) {
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (text != null) e.textContent = text;
+    return e;
+  }
+  function pos(i) {
+    var l = Math.floor(Math.log2(i + 1)), p = i + 1 - Math.pow(2, l);
+    return { x: 20 + (p + 0.5) / Math.pow(2, l) * 840, y: 36 + l * 72 };
+  }
+
+  function insert(x) {
+    var steps = ['append ' + x + ' at index ' + heap.length];
+    heap.push(x);
+    var i = heap.length - 1, path = [i];
+    while (i > 0) {
+      var p = (i - 1) >> 1;
+      if (heap[p] <= heap[i]) { steps.push('parent ' + heap[p] + ' <= ' + heap[i] + ', stop'); break; }
+      steps.push('swap ' + heap[i] + ' with parent ' + heap[p]);
+      var t = heap[p]; heap[p] = heap[i]; heap[i] = t;
+      i = p; path.push(i);
+    }
+    if (i === 0 && path.length > 1) steps.push('reached the root');
+    touched = path;
+    log = 'insert ' + x + '\n' + steps.join('\n');
+  }
+
+  function extract() {
+    var top = heap[0], last = heap.pop(), steps = [];
+    if (!heap.length) { touched = []; log = 'extract min = ' + top + '\nheap is now empty'; return; }
+    heap[0] = last;
+    steps.push('move last item ' + last + ' to the root');
+    var i = 0, path = [0];
+    for (;;) {
+      var m = i, l = 2 * i + 1, r = l + 1;
+      if (l < heap.length && heap[l] < heap[m]) m = l;
+      if (r < heap.length && heap[r] < heap[m]) m = r;
+      if (m === i) { steps.push('no smaller child, stop'); break; }
+      steps.push('swap ' + heap[i] + ' with smaller child ' + heap[m]);
+      var t = heap[m]; heap[m] = heap[i]; heap[i] = t;
+      i = m; path.push(i);
+    }
+    touched = path;
+    log = 'extract min = ' + top + '\n' + steps.join('\n');
+  }
+
+  function render() {
+    var edges = document.getElementById('edges'), nodes = document.getElementById('nodes'), cells = document.getElementById('cells');
+    edges.textContent = ''; nodes.textContent = ''; cells.textContent = '';
+    var hot = function (i) { return touched.indexOf(i) >= 0; };
+
+    heap.forEach(function (v, i) {
+      if (i > 0) {
+        var a = pos((i - 1) >> 1), b = pos(i), on = hot(i) && hot((i - 1) >> 1);
+        edges.appendChild(el('line', { x1: a.x, y1: a.y, x2: b.x, y2: b.y, stroke: on ? '#bf4520' : 'rgba(45,49,66,.3)', 'stroke-width': on ? 2 : 1 }));
+      }
+    });
+    heap.forEach(function (v, i) {
+      var p = pos(i), h = hot(i);
+      nodes.appendChild(el('circle', { cx: p.x, cy: p.y, r: 21, fill: h ? 'rgba(191,69,32,.14)' : '#fff', stroke: h ? '#bf4520' : 'rgba(45,49,66,.45)', 'stroke-width': h ? 1.8 : 1.2 }));
+      nodes.appendChild(el('text', { x: p.x, y: p.y + 5, 'text-anchor': 'middle', 'font-family': "'Geist',sans-serif", 'font-size': 15, 'font-weight': 600, fill: '#2d3142' }, v));
+    });
+
+    // array row
+    var cw = 52, x0 = (880 - MAX * cw) / 2, y = 340;
+    for (var i = 0; i < MAX; i++) {
+      var used = i < heap.length, h = used && hot(i);
+      cells.appendChild(el('rect', { x: x0 + i * cw + 2, y: y, width: cw - 4, height: 36, rx: 5, fill: h ? 'rgba(191,69,32,.14)' : used ? '#fff' : 'rgba(45,49,66,.02)', stroke: h ? '#bf4520' : used ? 'rgba(45,49,66,.45)' : 'rgba(45,49,66,.2)', 'stroke-dasharray': used ? 'none' : '4 3' }));
+      if (used) cells.appendChild(el('text', { x: x0 + i * cw + cw / 2, y: y + 23, 'text-anchor': 'middle', 'font-family': "'Geist',sans-serif", 'font-size': 14, 'font-weight': 600, fill: '#2d3142' }, heap[i]));
+      cells.appendChild(el('text', { x: x0 + i * cw + cw / 2, y: y + 54, 'text-anchor': 'middle', 'font-family': "'Geist Mono',monospace", 'font-size': 9, fill: '#5a6580' }, i));
+    }
+
+    document.getElementById('readout').textContent = log;
+    document.getElementById('live').textContent = heap.length ? 'min = ' + heap[0] + ' · size ' + heap.length + '/' + MAX : 'empty';
+    document.getElementById('ext').disabled = !heap.length;
+    document.getElementById('ins').disabled = heap.length >= MAX;
+  }
+
+  document.getElementById('form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var input = document.getElementById('val'), x = parseInt(input.value, 10);
+    if (isNaN(x) || x < -99 || x > 99) { log = 'Enter a whole number from -99 to 99.'; touched = []; render(); return; }
+    if (heap.length >= MAX) return;
+    insert(x); render();
+  });
+  document.getElementById('ext').addEventListener('click', function () { if (heap.length) { extract(); render(); } });
+  document.getElementById('reset').addEventListener('click', function () {
+    heap = INITIAL.slice(); touched = []; log = 'Heap reset.'; render();
+  });
+  render();
+})();
+</script>
+</body>
+</html>

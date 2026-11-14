@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Timer Wheel: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+
+/* Fig 1: framed card */
+.lab{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:24px;align-items:start;margin-top:24px}
+.card{margin:0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--ink)}
+.stage{padding:0 8px}
+.stage svg{display:block;width:100%;height:auto;max-height:560px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:2px;border:1px solid var(--ink);display:inline-block}
+
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.btns{display:flex;flex-wrap:wrap;gap:8px}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.btn[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{background:#9c361a;border-color:#9c361a}
+.row{display:grid;grid-template-columns:64px 1fr 36px;gap:12px;align-items:center;margin:14px 0}
+.row label{font-family:var(--mono);font-size:13px;font-weight:600}
+.row output{font-family:var(--mono);font-size:13px;text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);min-height:28px}
+#readout{margin:16px 0 0;padding:14px 16px;background:var(--paper);border:1px solid var(--rule);border-radius:6px;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink);min-height:132px}
+.na{color:var(--soft)}
+.c-a{color:var(--link);font-weight:600}.c-b{color:var(--accent);font-weight:600}
+
+/* wheel */
+.slot{fill:#fff;stroke:rgba(45,49,66,.35);stroke-width:1}
+.slot.has{fill:rgba(46,90,168,.10)}
+.slot.now{stroke:var(--accent);stroke-width:2.4;fill:var(--accent-tint)}
+.slot.fire{fill:rgba(191,69,32,.28)}
+.slot-l{font-family:'Geist Mono',monospace;font-size:9px;fill:#5a6580;text-anchor:middle}
+.slot-t{font-family:'Geist',sans-serif;font-size:11px;font-weight:600;fill:#2d3142;text-anchor:middle}
+@media (prefers-reduced-motion:no-preference){.slot{transition:fill .2s}}
+
+/* static diagrams */
+.fig{margin:20px 0 8px}
+.scroll{overflow-x:auto;border:1px solid var(--rule);border-radius:8px;background:#fff;padding:8px}
+.scroll svg{display:block;height:auto}
+.cap{font-family:var(--mono);font-size:11px;color:var(--soft);margin:8px 0 0}
+
+pre{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .t{color:var(--link)} .c{color:var(--soft);font-style:italic}
+
+.cards{display:grid;grid-template-columns:1.1fr 1fr .9fr;gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:36px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+
+table.ops{border-collapse:collapse;width:100%;max-width:760px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);border-radius:6px;font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule)}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+.ok{color:#1d6b3a;font-weight:600}.no{color:var(--accent);font-weight:600}
+ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
+
+@media (max-width:860px){.lab{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" href="../../../index.html">&larr; Back to home</a>
+
+<header>
+  <div class="eyebrow">Data structures · Scheduling</div>
+  <h1>Timer Wheel</h1>
+  <p class="lede">A clock face for timeouts. Drop each timer into the slot where it will expire, then let one hand sweep around. Adding and cancelling a timer costs O(1).</p>
+</header>
+
+<section>
+  <h2>Try the machine first</h2>
+  <p>This is a two-level hierarchical wheel. The inner ring has 8 slots of 1 tick each. The outer ring has 8 slots of 8 ticks each, so together they reach 63 ticks ahead. Add a few timers, then step the clock and watch outer timers cascade down into the inner ring before they fire.</p>
+
+  <div class="lab">
+    <figure class="card">
+      <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">A hierarchical timer wheel</span></div>
+      <div class="stage">
+        <svg id="wheel" viewBox="0 0 520 520" role="img" aria-labelledby="wheel-title wheel-desc">
+          <title id="wheel-title">Two-level timer wheel</title>
+          <desc id="wheel-desc">The inner ring has eight one-tick slots and the outer ring has eight eight-tick slots. Timers sit in the slot that matches their expiry time. The highlighted slots mark the current time on each ring.</desc>
+          <g id="scene"></g>
+        </svg>
+      </div>
+      <div class="card-bottom"><span class="hint">Slot labels show the tick range it covers</span><span class="live" id="live">now = 0</span></div>
+    </figure>
+
+    <div>
+      <div class="panel">
+        <div class="btns" role="group" aria-label="Clock controls">
+          <button type="button" class="btn primary" id="tick">Tick +1</button>
+          <button type="button" class="btn" id="tick8">Tick +8</button>
+          <button type="button" class="btn" id="auto" aria-pressed="false">Auto</button>
+          <button type="button" class="btn" id="reset">Reset</button>
+        </div>
+        <div class="row"><label for="delay">delay</label><input type="range" id="delay" min="1" max="63" value="20"><output id="outDelay">20</output></div>
+        <div class="btns">
+          <button type="button" class="btn" id="add">Add timer</button>
+        </div>
+        <div id="readout" aria-live="polite"></div>
+      </div>
+      <div class="legend" aria-label="Legend">
+        <span><i class="sw" style="background:rgba(191,69,32,.08);border-color:#bf4520"></i>current slot</span>
+        <span><i class="sw" style="background:rgba(46,90,168,.10);border-color:#2e5aa8"></i>holds timers</span>
+        <span><i class="sw" style="background:rgba(191,69,32,.28);border-color:#bf4520"></i>just fired</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>1. The problem</h2>
+  <p>A server tracks a lot of timeouts: request deadlines, TCP retransmits, session expiry, heartbeats. Most of them are cancelled before they fire, and they are created and cancelled at a high rate.</p>
+  <p>The usual answer is a min-heap ordered by expiry. It works, but every insert and cancel costs <code>O(log n)</code>, and with millions of timers that adds up. A timer wheel trades a little precision for <code>O(1)</code> on both.</p>
+  <div class="callout">Do not sort timers. Bucket them by when they expire, and only look at the bucket the clock points to.</div>
+</section>
+
+<section>
+  <h2>2. A single wheel</h2>
+  <p>Split time into ticks, for example 1 ms each. Make an array of <code>N</code> slots, where each slot holds a list of timers. A pointer <code>cursor</code> marks the slot for the current tick.</p>
+  <p>To schedule a timer that fires after <code>d</code> ticks, put it in slot <code>(cursor + d) mod N</code>. On every tick, move the cursor forward by one and fire everything in that slot.</p>
+
+  <div class="fig">
+    <div class="scroll">
+<svg width="920" height="220" viewBox="0 0 920 220" style="min-width:920px" role="img" aria-labelledby="single-title single-desc">
+<title id="single-title">A single wheel unrolled into an array</title>
+<desc id="single-desc">Eight slots numbered 0 to 7. The cursor is at slot 2. A timer with delay 3 is placed in slot 5, and a timer with delay 6 is placed in slot 0 after wrapping around.</desc>
+<defs><marker id="single-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#4f5d75" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+<g font-family="'Geist',sans-serif" font-size="13" font-weight="600" text-anchor="middle" fill="#2d3142">
+  <rect x="40"  y="80" width="96" height="56" rx="6" fill="rgba(46,90,168,.10)" stroke="#2e5aa8"/><text x="88" y="106">B</text><text x="88" y="124" font-family="'Geist Mono',monospace" font-size="9" fill="#5a6580">slot 0</text>
+  <rect x="144" y="80" width="96" height="56" rx="6" fill="#fff" stroke="rgba(45,49,66,.35)"/><text x="192" y="124" font-family="'Geist Mono',monospace" font-size="9" fill="#5a6580">slot 1</text>
+  <rect x="248" y="80" width="96" height="56" rx="6" fill="rgba(191,69,32,.08)" stroke="#bf4520" stroke-width="1.6"/><text x="296" y="106">now</text><text x="296" y="124" font-family="'Geist Mono',monospace" font-size="9" fill="#5a6580">slot 2</text>
+  <rect x="352" y="80" width="96" height="56" rx="6" fill="#fff" stroke="rgba(45,49,66,.35)"/><text x="400" y="124" font-family="'Geist Mono',monospace" font-size="9" fill="#5a6580">slot 3</text>
+  <rect x="456" y="80" width="96" height="56" rx="6" fill="#fff" stroke="rgba(45,49,66,.35)"/><text x="504" y="124" font-family="'Geist Mono',monospace" font-size="9" fill="#5a6580">slot 4</text>
+  <rect x="560" y="80" width="96" height="56" rx="6" fill="rgba(46,90,168,.10)" stroke="#2e5aa8"/><text x="608" y="106">A</text><text x="608" y="124" font-family="'Geist Mono',monospace" font-size="9" fill="#5a6580">slot 5</text>
+  <rect x="664" y="80" width="96" height="56" rx="6" fill="#fff" stroke="rgba(45,49,66,.35)"/><text x="712" y="124" font-family="'Geist Mono',monospace" font-size="9" fill="#5a6580">slot 6</text>
+  <rect x="768" y="80" width="96" height="56" rx="6" fill="#fff" stroke="rgba(45,49,66,.35)"/><text x="816" y="124" font-family="'Geist Mono',monospace" font-size="9" fill="#5a6580">slot 7</text>
+</g>
+<g stroke="#4f5d75" stroke-width="1" fill="none" marker-end="url(#single-arrow)">
+  <path d="M296 70 C 360 24, 540 24, 600 70"/>
+  <path d="M296 150 C 300 210, 100 210, 88 142"/>
+</g>
+<g font-family="'Instrument Serif',serif" font-style="italic" font-size="16" fill="#2d3142">
+  <text x="410" y="30">A: delay 3 → (2 + 3) mod 8 = 5</text>
+  <text x="130" y="206">B: delay 6 → (2 + 6) mod 8 = 0, wraps around</text>
+</g>
+</svg>
+    </div>
+    <p class="cap">Fig 2 · One wheel with N = 8. The cursor sits at slot 2.</p>
+  </div>
+
+  <p>The catch is range. A single wheel can only schedule timers up to <code>N − 1</code> ticks ahead. A timer with a longer delay would land on a slot the cursor reaches too early.</p>
+</section>
+
+<section>
+  <h2>3. Two ways to go longer</h2>
+  <p>There are two classic fixes. Both keep the O(1) feel.</p>
+
+  <div class="cards">
+    <div class="stat">
+      <div class="eyebrow">Hashed wheel</div>
+      <div class="big">rounds</div>
+      <p>Same slot formula, but store <code>rounds = d / N</code> in the timer. On each visit, decrement it. Fire only when it reaches 0. Simple, but a slot may hold timers that are not due, so the tick scans them.</p>
+    </div>
+    <div class="stat focal">
+      <div class="eyebrow">Hierarchical wheel</div>
+      <div class="big">cascade</div>
+      <p>Stack wheels like clock hands: seconds, minutes, hours. Far timers wait in a coarse wheel. When the coarse hand moves, its timers drop into the finer wheel.</p>
+    </div>
+    <div class="stat">
+      <div class="eyebrow">Overflow list</div>
+      <div class="big">fallback</div>
+      <p>Anything beyond the top wheel goes into a sorted list or a heap, and is pulled in when it comes within range. Netty and Kafka use this idea.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>4. The hierarchical wheel</h2>
+  <p>Take two wheels of <code>N = 8</code> slots. Wheel 0 has a tick of 1. Wheel 1 has a tick of 8. A timer expiring at absolute time <code>t</code> with delay <code>d = t − now</code> goes to:</p>
+  <ul class="tight">
+    <li><code>d &lt; 8</code>: wheel 0, slot <code>t mod 8</code>.</li>
+    <li><code>8 ≤ d &lt; 64</code>: wheel 1, slot <code>⌊t / 8⌋ mod 8</code>.</li>
+    <li>otherwise: the overflow list.</li>
+  </ul>
+  <p>Each time <code>now</code> becomes a multiple of 8, the cursor of wheel 1 moves. Every timer in its new slot is re-inserted with the same rule. They now have <code>d &lt; 8</code>, so they land in wheel 0. This is the cascade. Then wheel 0 fires its current slot.</p>
+
+  <div class="fig">
+    <div class="scroll">
+<svg width="920" height="300" viewBox="0 0 920 300" style="min-width:920px" role="img" aria-labelledby="casc-title casc-desc">
+<title id="casc-title">Cascade from wheel 1 into wheel 0</title>
+<desc id="casc-desc">At now = 16 a timer with expiry 21 sits in wheel 1 slot 2. When the clock reaches 16 the slot is emptied and the timer moves into wheel 0 slot 5. At now = 21 it fires.</desc>
+<defs><marker id="casc-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#4f5d75" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+<g font-family="'Geist',sans-serif" font-size="12" font-weight="600" fill="#2d3142">
+  <text x="16" y="56">wheel 1</text><text x="16" y="72" font-family="'Geist Mono',monospace" font-size="9" fill="#5a6580">tick = 8</text>
+  <text x="16" y="212">wheel 0</text><text x="16" y="228" font-family="'Geist Mono',monospace" font-size="9" fill="#5a6580">tick = 1</text>
+</g>
+<g font-family="'Geist',sans-serif" font-size="13" font-weight="600" text-anchor="middle" fill="#2d3142">
+  <rect x="120" y="40" width="96" height="48" rx="6" fill="#fff" stroke="rgba(45,49,66,.35)"/><text x="168" y="80" font-family="'Geist Mono',monospace" font-size="9" fill="#5a6580">0 · 0–7</text>
+  <rect x="224" y="40" width="96" height="48" rx="6" fill="#fff" stroke="rgba(45,49,66,.35)"/><text x="272" y="80" font-family="'Geist Mono',monospace" font-size="9" fill="#5a6580">1 · 8–15</text>
+  <rect x="328" y="40" width="96" height="48" rx="6" fill="rgba(191,69,32,.08)" stroke="#bf4520" stroke-width="1.6"/><text x="376" y="62">T</text><text x="376" y="80" font-family="'Geist Mono',monospace" font-size="9" fill="#5a6580">2 · 16–23</text>
+  <rect x="432" y="40" width="96" height="48" rx="6" fill="#fff" stroke="rgba(45,49,66,.35)"/><text x="480" y="80" font-family="'Geist Mono',monospace" font-size="9" fill="#5a6580">3 · 24–31</text>
+  <rect x="536" y="40" width="96" height="48" rx="6" fill="#fff" stroke="rgba(45,49,66,.35)"/><text x="584" y="80" font-family="'Geist Mono',monospace" font-size="9" fill="#5a6580">4 · 32–39</text>
+  <rect x="640" y="40" width="96" height="48" rx="6" fill="#fff" stroke="rgba(45,49,66,.35)"/><text x="688" y="80" font-family="'Geist Mono',monospace" font-size="9" fill="#5a6580">5 · 40–47</text>
+  <rect x="744" y="40" width="72" height="48" rx="6" fill="#fff" stroke="rgba(45,49,66,.35)"/><text x="780" y="80" font-family="'Geist Mono',monospace" font-size="9" fill="#5a6580">6 · 48–55</text>
+  <rect x="824" y="40" width="72" height="48" rx="6" fill="#fff" stroke="rgba(45,49,66,.35)"/><text x="860" y="80" font-family="'Geist Mono',monospace" font-size="9" fill="#5a6580">7 · 56–63</text>
+</g>
+<g font-family="'Geist',sans-serif" font-size="13" font-weight="600" text-anchor="middle" fill="#2d3142">
+  <rect x="120" y="190" width="96" height="48" rx="6" fill="rgba(191,69,32,.08)" stroke="#bf4520" stroke-width="1.6"/><text x="168" y="228" font-family="'Geist Mono',monospace" font-size="9" fill="#5a6580">0 · t=16</text>
+  <rect x="224" y="190" width="96" height="48" rx="6" fill="#fff" stroke="rgba(45,49,66,.35)"/><text x="272" y="228" font-family="'Geist Mono',monospace" font-size="9" fill="#5a6580">1 · t=17</text>
+  <rect x="328" y="190" width="96" height="48" rx="6" fill="#fff" stroke="rgba(45,49,66,.35)"/><text x="376" y="228" font-family="'Geist Mono',monospace" font-size="9" fill="#5a6580">2 · t=18</text>
+  <rect x="432" y="190" width="96" height="48" rx="6" fill="#fff" stroke="rgba(45,49,66,.35)"/><text x="480" y="228" font-family="'Geist Mono',monospace" font-size="9" fill="#5a6580">3 · t=19</text>
+  <rect x="536" y="190" width="96" height="48" rx="6" fill="#fff" stroke="rgba(45,49,66,.35)"/><text x="584" y="228" font-family="'Geist Mono',monospace" font-size="9" fill="#5a6580">4 · t=20</text>
+  <rect x="640" y="190" width="96" height="48" rx="6" fill="rgba(46,90,168,.10)" stroke="#2e5aa8" stroke-width="1.4"/><text x="688" y="212">T</text><text x="688" y="228" font-family="'Geist Mono',monospace" font-size="9" fill="#5a6580">5 · t=21</text>
+  <rect x="744" y="190" width="72" height="48" rx="6" fill="#fff" stroke="rgba(45,49,66,.35)"/><text x="780" y="228" font-family="'Geist Mono',monospace" font-size="9" fill="#5a6580">6 · t=22</text>
+  <rect x="824" y="190" width="72" height="48" rx="6" fill="#fff" stroke="rgba(45,49,66,.35)"/><text x="860" y="228" font-family="'Geist Mono',monospace" font-size="9" fill="#5a6580">7 · t=23</text>
+</g>
+<path d="M376 92 C 376 140, 688 130, 688 186" stroke="#4f5d75" stroke-width="1" fill="none" marker-end="url(#casc-arrow)"/>
+<text x="470" y="136" font-family="'Instrument Serif',serif" font-style="italic" font-size="16" fill="#2d3142">now = 16: slot 2 is emptied, T (expiry 21) re-inserted with d = 5</text>
+<text x="120" y="280" font-family="'Geist Mono',monospace" font-size="10" fill="#5a6580">T was placed at now = 0 with d = 21: wheel 1, slot ⌊21 / 8⌋ mod 8 = 2.  At now = 21 wheel 0 fires slot 5.</text>
+</svg>
+    </div>
+    <p class="cap">Fig 3 · The cascade. Each timer is touched at most once per level, so the total work per timer is O(levels).</p>
+  </div>
+</section>
+
+<section>
+  <h2>5. Code</h2>
+  <p>A minimal two-level wheel in Java-like pseudocode. The tick loop runs on one thread. Other threads hand over new timers through a queue.</p>
+  <pre><span class="k">class</span> TimerWheel {
+  <span class="k">static final int</span> N = 8;
+  List&lt;Timer&gt;[] w0 = <span class="k">new</span> List[N];   <span class="c">// tick = 1</span>
+  List&lt;Timer&gt;[] w1 = <span class="k">new</span> List[N];   <span class="c">// tick = N</span>
+  <span class="k">long</span> now = 0;
+
+  <span class="k">void</span> <span class="t">add</span>(Timer t) {                <span class="c">// t.expiry is absolute</span>
+    <span class="k">long</span> d = t.expiry - now;
+    <span class="k">if</span> (d &lt; N)           w0[(<span class="k">int</span>)(t.expiry % N)].add(t);
+    <span class="k">else if</span> (d &lt; N * N)   w1[(<span class="k">int</span>)((t.expiry / N) % N)].add(t);
+    <span class="k">else</span>                 overflow.add(t);
+  }
+
+  <span class="k">void</span> <span class="t">tick</span>() {
+    now++;
+    <span class="k">if</span> (now % N == 0) {            <span class="c">// wheel 1 moved: cascade</span>
+      List&lt;Timer&gt; s = w1[(<span class="k">int</span>)((now / N) % N)];
+      w1[(<span class="k">int</span>)((now / N) % N)] = <span class="k">new</span> ArrayList&lt;&gt;();
+      <span class="k">for</span> (Timer t : s) <span class="t">add</span>(t);
+    }
+    List&lt;Timer&gt; due = w0[(<span class="k">int</span>)(now % N)];
+    w0[(<span class="k">int</span>)(now % N)] = <span class="k">new</span> ArrayList&lt;&gt;();
+    <span class="k">for</span> (Timer t : due) <span class="k">if</span> (!t.cancelled) t.run();
+  }
+}</pre>
+  <p>Cancelling is just a flag on the timer, or an unlink if the slot is a doubly linked list. Production code usually uses the linked list so a cancelled timer frees memory right away.</p>
+</section>
+
+<section>
+  <h2>6. Cost</h2>
+  <div class="cards">
+    <div class="stat focal"><div class="eyebrow">Add / cancel</div><div class="big">O(1)</div><p>Compute a slot and link the timer in.</p></div>
+    <div class="stat"><div class="eyebrow">Tick</div><div class="big">O(k)</div><p>k is the number of timers in the slot, plus any cascade. Amortized O(1) per timer.</p></div>
+    <div class="stat"><div class="eyebrow">Memory</div><div class="big">O(N·L + n)</div><p>N slots per level, L levels, n live timers.</p></div>
+  </div>
+
+  <table class="ops">
+    <thead><tr><th>Structure</th><th>Add</th><th>Cancel</th><th>Next expiry</th><th>Precision</th></tr></thead>
+    <tbody>
+      <tr><td>Min-heap</td><td>O(log n)</td><td>O(log n)</td><td class="ok">O(1)</td><td class="ok">exact</td></tr>
+      <tr><td>Balanced tree</td><td>O(log n)</td><td>O(log n)</td><td>O(log n)</td><td class="ok">exact</td></tr>
+      <tr><td>Hashed wheel</td><td class="ok">O(1)</td><td class="ok">O(1)</td><td class="no">scan</td><td class="no">one tick</td></tr>
+      <tr><td>Hierarchical wheel</td><td class="ok">O(1)</td><td class="ok">O(1)</td><td class="no">scan</td><td class="no">one tick</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>7. When to use it</h2>
+  <ul class="tight">
+    <li>You have very many timers and most are cancelled before they fire: network timeouts, session expiry, retries.</li>
+    <li>A delay error of up to one tick is fine. Pick the tick to match: 1 ms for RPC, 100 ms or 1 s for sessions.</li>
+    <li>You want predictable cost. A heap has no bad case, but its constant grows with <code>n</code>. A wheel does not.</li>
+  </ul>
+  <p>Avoid it when you need exact deadlines, when there are only a handful of timers, or when the clock must jump to the next expiry to save power. A wheel ticks even when idle, unless you add a way to skip empty slots.</p>
+
+  <p><b>Seen in the wild:</b> the Linux kernel timer subsystem, Netty's <code>HashedWheelTimer</code>, Kafka's purgatory (a hierarchical wheel plus a delay queue), and many TCP stacks.</p>
+</section>
+
+</main>
+
+<script>
+(function () {
+  var N = 8, SPAN = N * N;
+  var NSV = 'http://www.w3.org/2000/svg';
+  var CX = 260, CY = 260;
+  var R = { o0: 196, o1: 118, i0: 112, i1: 44 }; // outer ring: [118,196]; inner ring: [44,112]
+  var $ = function (s) { return document.querySelector(s); };
+
+  var now, w0, w1, over, nextId, fired, log, lastFire;
+
+  function resetState() {
+    now = 0; nextId = 1; fired = []; lastFire = null; log = ['Clock reset. Timers T1..T3 added.'];
+    w0 = []; w1 = []; over = [];
+    for (var i = 0; i < N; i++) { w0.push([]); w1.push([]); }
+    add(3); add(11); add(30);
+  }
+
+  function place(t) {
+    var d = t.expiry - now;
+    if (d < N) w0[t.expiry % N].push(t);
+    else if (d < SPAN) w1[Math.floor(t.expiry / N) % N].push(t);
+    else over.push(t);
+  }
+  function add(delay) {
+    var t = { id: nextId++, expiry: now + delay };
+    place(t);
+    return t;
+  }
+
+  function tick() {
+    now++;
+    var moved = [];
+    lastFire = { s0: -1, ids: [] };
+    if (now % N === 0) {
+      var s1 = Math.floor(now / N) % N;
+      var batch = w1[s1]; w1[s1] = [];
+      batch.forEach(function (t) { moved.push('T' + t.id); place(t); });
+    }
+    var s0 = now % N;
+    var due = w0[s0]; w0[s0] = [];
+    due.forEach(function (t) { fired.push(t.id); lastFire.ids.push(t.id); });
+    lastFire.s0 = s0;
+    var msg = 'now = ' + now;
+    if (moved.length) msg += '\ncascade: ' + moved.join(', ') + ' moved to wheel 0';
+    msg += due.length ? '\nfired: ' + due.map(function (t) { return 'T' + t.id; }).join(', ') : '\nnothing due';
+    log.push(msg);
+    if (log.length > 4) log.shift();
+  }
+
+  function pt(r, a) { return [CX + r * Math.sin(a), CY - r * Math.cos(a)]; }
+  function wedge(r0, r1, a0, a1) {
+    var p1 = pt(r1, a0), p2 = pt(r1, a1), p3 = pt(r0, a1), p4 = pt(r0, a0);
+    return 'M' + p1 + ' A' + r1 + ' ' + r1 + ' 0 0 1 ' + p2 + ' L' + p3 + ' A' + r0 + ' ' + r0 + ' 0 0 0 ' + p4 + ' Z';
+  }
+  function ids(list) { return list.map(function (t) { return 'T' + t.id; }).join(' '); }
+
+  function drawRing(g, slots, r0, r1, cur, span, base, fireSlot) {
+    var step = Math.PI * 2 / N, gap = 0.02;
+    for (var i = 0; i < N; i++) {
+      var a0 = i * step + gap, a1 = (i + 1) * step - gap, am = (a0 + a1) / 2;
+      var p = document.createElementNS(NSV, 'path');
+      var cls = 'slot' + (slots[i].length ? ' has' : '') + (i === cur ? ' now' : '') + (i === fireSlot ? ' fire' : '');
+      p.setAttribute('class', cls);
+      p.setAttribute('d', wedge(r0, r1, a0, a1));
+      g.appendChild(p);
+
+      var lo = base + i * span;
+      var lab = document.createElementNS(NSV, 'text');
+      var lp = pt(r1 - 10, am);
+      lab.setAttribute('class', 'slot-l'); lab.setAttribute('x', lp[0]); lab.setAttribute('y', lp[1] + 3);
+      lab.textContent = span === 1 ? String(lo) : lo + '–' + (lo + span - 1);
+      g.appendChild(lab);
+
+      if (slots[i].length) {
+        var tp = pt((r0 + r1) / 2 - 4, am);
+        var txt = document.createElementNS(NSV, 'text');
+        txt.setAttribute('class', 'slot-t'); txt.setAttribute('x', tp[0]);
+        slots[i].forEach(function (t, j) {
+          var ts = document.createElementNS(NSV, 'tspan');
+          ts.setAttribute('x', tp[0]);
+          ts.setAttribute('dy', j === 0 ? '0' : '1.15em');
+          ts.textContent = 'T' + t.id;
+          txt.appendChild(ts);
+        });
+        txt.setAttribute('y', tp[1] - (slots[i].length - 1) * 5);
+        g.appendChild(txt);
+      }
+    }
+  }
+
+  function render() {
+    var g = $('#scene');
+    g.innerHTML = '';
+    var cur0 = now % N, cur1 = Math.floor(now / N) % N;
+    // outer slots show absolute tick ranges relative to the current rotation of wheel 1
+    var base1 = Math.floor(now / SPAN) * SPAN;
+    var base0 = Math.floor(now / N) * N;
+    drawRing(g, w1, R.o1, R.o0, cur1, N, base1, -1);
+    drawRing(g, w0, R.i1, R.i0, cur0, 1, base0, lastFire && lastFire.ids.length ? lastFire.s0 : -1);
+
+    var c = document.createElementNS(NSV, 'text');
+    c.setAttribute('x', CX); c.setAttribute('y', CY + 6); c.setAttribute('text-anchor', 'middle');
+    c.setAttribute('style', "font-family:'Instrument Serif',serif;font-size:26px;fill:#2d3142");
+    c.textContent = String(now);
+    g.appendChild(c);
+
+    var w0l = document.createElementNS(NSV, 'text');
+    w0l.setAttribute('x', CX); w0l.setAttribute('y', CY - R.o0 - 12); w0l.setAttribute('text-anchor', 'middle');
+    w0l.setAttribute('class', 'slot-l'); w0l.textContent = 'OUTER · wheel 1 · tick 8';
+    g.appendChild(w0l);
+    var w1l = document.createElementNS(NSV, 'text');
+    w1l.setAttribute('x', CX); w1l.setAttribute('y', CY + R.o0 + 22); w1l.setAttribute('text-anchor', 'middle');
+    w1l.setAttribute('class', 'slot-l'); w1l.textContent = 'INNER · wheel 0 · tick 1';
+    g.appendChild(w1l);
+
+    var pending = 0;
+    w0.forEach(function (s) { pending += s.length; });
+    w1.forEach(function (s) { pending += s.length; });
+    pending += over.length;
+    $('#live').textContent = 'now = ' + now + ' · pending ' + pending + ' · fired ' + fired.length;
+
+    var r = log.join('\n\n');
+    if (over.length) r += '\n\noverflow: ' + ids(over);
+    $('#readout').textContent = r;
+  }
+
+  function stepN(n) { for (var i = 0; i < n; i++) tick(); render(); }
+
+  var timer = null;
+  function setAuto(on) {
+    $('#auto').setAttribute('aria-pressed', on ? 'true' : 'false');
+    if (timer) { clearInterval(timer); timer = null; }
+    if (on) timer = setInterval(function () { stepN(1); }, 700);
+  }
+
+  $('#tick').addEventListener('click', function () { stepN(1); });
+  $('#tick8').addEventListener('click', function () { stepN(8); });
+  $('#auto').addEventListener('click', function () { setAuto($('#auto').getAttribute('aria-pressed') !== 'true'); });
+  $('#reset').addEventListener('click', function () { setAuto(false); resetState(); render(); });
+  $('#delay').addEventListener('input', function (e) { $('#outDelay').textContent = e.target.value; });
+  $('#add').addEventListener('click', function () {
+    var d = parseInt($('#delay').value, 10);
+    var t = add(d);
+    log.push('added T' + t.id + ': delay ' + d + ', expiry ' + t.expiry + '\n→ ' + (d < N ? 'wheel 0, slot ' + (t.expiry % N) : 'wheel 1, slot ' + (Math.floor(t.expiry / N) % N)));
+    if (log.length > 4) log.shift();
+    render();
+  });
+
+  resetState();
+  render();
+})();
+</script>
+</body>
+</html>

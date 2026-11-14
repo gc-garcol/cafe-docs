@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Segment Tree: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+
+/* Fig 1: framed card */
+.lab{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:24px;align-items:start;margin-top:24px}
+.card{margin:0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--ink)}
+.stage{padding:0 8px}
+.stage svg{display:block;width:100%;height:auto;max-height:640px}
+#rack [data-k]{cursor:pointer}
+#rack [data-k]:hover polygon{filter:brightness(.97)}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:2px;border:1px solid var(--ink);display:inline-block}
+
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.seg{display:flex;gap:0;border:1px solid var(--rule-solid);border-radius:6px;overflow:hidden;margin-bottom:16px}
+.seg button{flex:1;min-height:40px;border:0;background:transparent;font:500 14px var(--sans);color:var(--muted);cursor:pointer}
+.seg button+button{border-left:1px solid var(--rule-solid)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.row{display:grid;grid-template-columns:28px 1fr 28px;gap:12px;align-items:center;margin:10px 0}
+.row label{font-family:var(--mono);font-size:13px;font-weight:600}
+.row output{font-family:var(--mono);font-size:13px;text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);min-height:28px}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer;margin-top:8px}
+.btn:hover{background:var(--ink);color:var(--paper)}
+#readout{margin:16px 0 0;padding:14px 16px;background:var(--paper);border:1px solid var(--rule);border-radius:6px;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink)}
+.na{color:var(--soft)}
+.c-a{color:var(--link);font-weight:600}.c-b{color:var(--accent);font-weight:600}
+
+/* static diagrams */
+.fig{margin:20px 0 8px}
+.scroll{overflow-x:auto;border:1px solid var(--rule);border-radius:8px;background:#fff;padding:8px}
+.scroll svg{display:block;height:auto}
+.cap{font-family:var(--mono);font-size:11px;color:var(--soft);margin:8px 0 0}
+
+pre{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .t{color:var(--link)} .c{color:var(--soft);font-style:italic}
+
+.cards{display:grid;grid-template-columns:1.1fr 1fr .9fr;gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:36px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+
+table.ops{border-collapse:collapse;width:100%;max-width:720px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);border-radius:6px;font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule)}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+.ok{color:#1d6b3a;font-weight:600}.no{color:var(--accent);font-weight:600}
+ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
+
+@media (max-width:860px){.lab{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" href="../../../index.html">&larr; Back to home</a>
+
+<header>
+  <div class="eyebrow">Data structures · Range queries</div>
+  <h1>Segment Tree</h1>
+  <p class="lede">A binary tree where every node remembers the answer for one segment of the array. Any range query is stitched from a handful of nodes, and a single change only touches one path to the root.</p>
+</header>
+
+<section>
+  <h2>Try the machine first</h2>
+  <p>The rack below is a segment tree of sums for <code>a = [2, 5, 1, 4, 9, 3, 7, 6]</code>. The root shelf is on top, the array sits on the bottom shelf. In <b>Query</b> mode the lifted orange blocks are the nodes that add up to the answer. In <b>Update</b> mode the lifted blocks are the path that has to be recomputed. Click any block to try it.</p>
+
+  <div class="lab">
+    <figure class="card">
+      <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">The segment tree rack</span></div>
+      <div class="stage">
+        <svg id="rack" viewBox="0 0 560 560" role="img" aria-labelledby="rack-title rack-desc">
+          <title id="rack-title">Segment tree as a four-shelf rack</title>
+          <desc id="rack-desc">Shelf d holds the nodes at depth d. The root on the top shelf covers the whole array and the bottom shelf holds single elements. A query lifts the nodes whose segments add up to the range, and an update lifts the path from one leaf to the root.</desc>
+          <g id="scene"></g>
+        </svg>
+      </div>
+      <div class="card-bottom"><span class="hint">Click a block, or use the controls</span><span class="live" id="live"></span></div>
+    </figure>
+
+    <div>
+      <div class="panel">
+        <div class="seg" role="group" aria-label="Mode">
+          <button type="button" id="modeQ" aria-pressed="true">Query</button>
+          <button type="button" id="modeU" aria-pressed="false">Update</button>
+        </div>
+        <div id="panelQ">
+          <div class="row"><label for="inL">L</label><input type="range" id="inL" min="0" max="7" value="1"><output id="outL">1</output></div>
+          <div class="row"><label for="inR">R</label><input type="range" id="inR" min="0" max="7" value="6"><output id="outR">6</output></div>
+        </div>
+        <div id="panelU" hidden>
+          <div class="row"><label for="inI">i</label><input type="range" id="inI" min="0" max="7" value="2"><output id="outI">2</output></div>
+          <div class="row"><label for="inV">v</label><input type="range" id="inV" min="0" max="9" value="1"><output id="outV">1</output></div>
+          <button type="button" class="btn" id="reset">Reset array</button>
+        </div>
+        <div id="readout" aria-live="polite"></div>
+      </div>
+      <div class="legend" aria-label="Legend">
+        <span><i class="sw" style="background:#f09a78;border-color:#7a2a10"></i>taken / changed leaf</span>
+        <span><i class="sw" style="background:#8db3ec;border-color:#1f3f7a"></i>split / recomputed</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>1. The idea</h2>
+  <p>A prefix sum answers range sums fast but breaks the moment one element changes. A plain array changes fast but needs <code>O(n)</code> to sum a range. The segment tree sits in between: both operations cost <code>O(log n)</code>.</p>
+  <p>The root stores the sum of the whole array. Its two children store the sums of the left and right halves. Keep halving until each leaf holds one element. With <code>n = 8</code> that is four levels, and in general <code>⌈log₂ n⌉ + 1</code>.</p>
+
+  <div class="fig">
+    <div class="scroll"><svg width="920" height="380" viewBox="0 0 920 380" style="min-width:920px" role="img" aria-labelledby="seg-struct-title seg-struct-desc">
+<title id="seg-struct-title">Segment tree over a = 2 5 1 4 9 3 7 6</title>
+<desc id="seg-struct-desc">Eight leaves at the bottom. Every parent holds the sum of its two children, so the root holds the sum of the whole array.</desc>
+<path d="M460.0,84 V102.0 H260.0 V120" fill="none" stroke="#4f5d75" stroke-width="1"/>
+<path d="M460.0,84 V102.0 H660.0 V120" fill="none" stroke="#4f5d75" stroke-width="1"/>
+<path d="M260.0,164 V182.0 H160.0 V200" fill="none" stroke="#4f5d75" stroke-width="1"/>
+<path d="M260.0,164 V182.0 H360.0 V200" fill="none" stroke="#4f5d75" stroke-width="1"/>
+<path d="M660.0,164 V182.0 H560.0 V200" fill="none" stroke="#4f5d75" stroke-width="1"/>
+<path d="M660.0,164 V182.0 H760.0 V200" fill="none" stroke="#4f5d75" stroke-width="1"/>
+<path d="M160.0,244 V262.0 H110.0 V280" fill="none" stroke="#4f5d75" stroke-width="1"/>
+<path d="M160.0,244 V262.0 H210.0 V280" fill="none" stroke="#4f5d75" stroke-width="1"/>
+<path d="M360.0,244 V262.0 H310.0 V280" fill="none" stroke="#4f5d75" stroke-width="1"/>
+<path d="M360.0,244 V262.0 H410.0 V280" fill="none" stroke="#4f5d75" stroke-width="1"/>
+<path d="M560.0,244 V262.0 H510.0 V280" fill="none" stroke="#4f5d75" stroke-width="1"/>
+<path d="M560.0,244 V262.0 H610.0 V280" fill="none" stroke="#4f5d75" stroke-width="1"/>
+<path d="M760.0,244 V262.0 H710.0 V280" fill="none" stroke="#4f5d75" stroke-width="1"/>
+<path d="M760.0,244 V262.0 H810.0 V280" fill="none" stroke="#4f5d75" stroke-width="1"/>
+<text x="8" y="60" text-anchor="start" font-family="'Geist',sans-serif" font-size="11" font-weight="600" fill="#2d3142">depth 0</text><text x="8" y="74" text-anchor="start" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">1 node</text>
+<g><rect x="418.0" y="40" width="84" height="44" rx="6" fill="#fff" stroke="rgba(45,49,66,.45)" stroke-width="1"/><text x="460.0" y="60" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">37</text><text x="460.0" y="75" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">[0..7]</text></g>
+<text x="8" y="140" text-anchor="start" font-family="'Geist',sans-serif" font-size="11" font-weight="600" fill="#2d3142">depth 1</text><text x="8" y="154" text-anchor="start" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">2 nodes</text>
+<g><rect x="218.0" y="120" width="84" height="44" rx="6" fill="#fff" stroke="rgba(45,49,66,.45)" stroke-width="1"/><text x="260.0" y="140" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">12</text><text x="260.0" y="155" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">[0..3]</text></g>
+<g><rect x="618.0" y="120" width="84" height="44" rx="6" fill="#fff" stroke="rgba(45,49,66,.45)" stroke-width="1"/><text x="660.0" y="140" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">25</text><text x="660.0" y="155" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">[4..7]</text></g>
+<text x="8" y="220" text-anchor="start" font-family="'Geist',sans-serif" font-size="11" font-weight="600" fill="#2d3142">depth 2</text><text x="8" y="234" text-anchor="start" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">4 nodes</text>
+<g><rect x="118.0" y="200" width="84" height="44" rx="6" fill="#fff" stroke="rgba(45,49,66,.45)" stroke-width="1"/><text x="160.0" y="220" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">7</text><text x="160.0" y="235" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">[0..1]</text></g>
+<g><rect x="318.0" y="200" width="84" height="44" rx="6" fill="#fff" stroke="rgba(45,49,66,.45)" stroke-width="1"/><text x="360.0" y="220" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">5</text><text x="360.0" y="235" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">[2..3]</text></g>
+<g><rect x="518.0" y="200" width="84" height="44" rx="6" fill="#fff" stroke="rgba(45,49,66,.45)" stroke-width="1"/><text x="560.0" y="220" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">12</text><text x="560.0" y="235" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">[4..5]</text></g>
+<g><rect x="718.0" y="200" width="84" height="44" rx="6" fill="#fff" stroke="rgba(45,49,66,.45)" stroke-width="1"/><text x="760.0" y="220" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">13</text><text x="760.0" y="235" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">[6..7]</text></g>
+<text x="8" y="300" text-anchor="start" font-family="'Geist',sans-serif" font-size="11" font-weight="600" fill="#2d3142">depth 3</text><text x="8" y="314" text-anchor="start" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">8 nodes</text>
+<g><rect x="68.0" y="280" width="84" height="44" rx="6" fill="#fff" stroke="rgba(45,49,66,.45)" stroke-width="1"/><text x="110.0" y="300" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">2</text><text x="110.0" y="315" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">a[0]</text></g>
+<g><rect x="168.0" y="280" width="84" height="44" rx="6" fill="#fff" stroke="rgba(45,49,66,.45)" stroke-width="1"/><text x="210.0" y="300" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">5</text><text x="210.0" y="315" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">a[1]</text></g>
+<g><rect x="268.0" y="280" width="84" height="44" rx="6" fill="#fff" stroke="rgba(45,49,66,.45)" stroke-width="1"/><text x="310.0" y="300" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">1</text><text x="310.0" y="315" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">a[2]</text></g>
+<g><rect x="368.0" y="280" width="84" height="44" rx="6" fill="#fff" stroke="rgba(45,49,66,.45)" stroke-width="1"/><text x="410.0" y="300" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">4</text><text x="410.0" y="315" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">a[3]</text></g>
+<g><rect x="468.0" y="280" width="84" height="44" rx="6" fill="#fff" stroke="rgba(45,49,66,.45)" stroke-width="1"/><text x="510.0" y="300" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">9</text><text x="510.0" y="315" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">a[4]</text></g>
+<g><rect x="568.0" y="280" width="84" height="44" rx="6" fill="#fff" stroke="rgba(45,49,66,.45)" stroke-width="1"/><text x="610.0" y="300" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">3</text><text x="610.0" y="315" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">a[5]</text></g>
+<g><rect x="668.0" y="280" width="84" height="44" rx="6" fill="#fff" stroke="rgba(45,49,66,.45)" stroke-width="1"/><text x="710.0" y="300" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">7</text><text x="710.0" y="315" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">a[6]</text></g>
+<g><rect x="768.0" y="280" width="84" height="44" rx="6" fill="#fff" stroke="rgba(45,49,66,.45)" stroke-width="1"/><text x="810.0" y="300" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">6</text><text x="810.0" y="315" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">a[7]</text></g>
+<text x="110.0" y="346" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">i = 0</text>
+<text x="210.0" y="346" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">i = 1</text>
+<text x="310.0" y="346" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">i = 2</text>
+<text x="410.0" y="346" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">i = 3</text>
+<text x="510.0" y="346" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">i = 4</text>
+<text x="610.0" y="346" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">i = 5</text>
+<text x="710.0" y="346" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">i = 6</text>
+<text x="810.0" y="346" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">i = 7</text>
+</svg></div>
+    <p class="cap">Fig 2 · The tree for n = 8. Each parent equals the sum of its two children: 12 = 7 + 5, 37 = 12 + 25.</p>
+  </div>
+</section>
+
+<section>
+  <h2>2. Build: combine two children</h2>
+  <p>Store the tree in a flat array like a binary heap. The root is <code>t[1]</code>, and node <code>v</code> has children <code>2v</code> and <code>2v + 1</code>. Fill the leaves, then walk back up combining pairs.</p>
+  <pre><span class="t">t[v]</span> = t[2v] + t[2v + 1]</pre>
+  <p>Every node is computed once and there are about <code>2n</code> nodes, so building costs <code>O(n)</code>. Allocate <code>4n</code> slots to be safe when <code>n</code> is not a power of two.</p>
+</section>
+
+<section>
+  <h2>3. Query: take, skip, or split</h2>
+  <p>Ask for the sum of <code>a[l..r]</code>. Start at the root and look at each node's segment against the query:</p>
+  <ul class="tight">
+    <li><b>Disjoint:</b> the segment is outside the query. Return the neutral value, <code>0</code> for sums.</li>
+    <li><b>Fully inside:</b> return the stored value. No need to look deeper.</li>
+    <li><b>Partial:</b> some of it is inside. Split into both children and add the results.</li>
+  </ul>
+
+  <div class="fig">
+    <div class="scroll"><svg width="920" height="380" viewBox="0 0 920 380" style="min-width:920px" role="img" aria-labelledby="seg-query-title seg-query-desc">
+<title id="seg-query-title">Range sum query on [1, 6]</title>
+<desc id="seg-query-desc">Four nodes are taken whole: a[1], a[2..3], a[4..5] and a[6]. Their values 5, 5, 12 and 7 add up to 29.</desc>
+<path d="M460.0,84 V102.0 H260.0 V120" fill="none" stroke="#4f5d75" stroke-width="1"/>
+<path d="M460.0,84 V102.0 H660.0 V120" fill="none" stroke="#4f5d75" stroke-width="1"/>
+<path d="M260.0,164 V182.0 H160.0 V200" fill="none" stroke="#4f5d75" stroke-width="1"/>
+<path d="M260.0,164 V182.0 H360.0 V200" fill="none" stroke="#4f5d75" stroke-width="1"/>
+<path d="M660.0,164 V182.0 H560.0 V200" fill="none" stroke="#4f5d75" stroke-width="1"/>
+<path d="M660.0,164 V182.0 H760.0 V200" fill="none" stroke="#4f5d75" stroke-width="1"/>
+<path d="M160.0,244 V262.0 H110.0 V280" fill="none" stroke="rgba(79,93,117,.25)" stroke-width="1"/>
+<path d="M160.0,244 V262.0 H210.0 V280" fill="none" stroke="#4f5d75" stroke-width="1"/>
+<path d="M360.0,244 V262.0 H310.0 V280" fill="none" stroke="rgba(79,93,117,.25)" stroke-width="1"/>
+<path d="M360.0,244 V262.0 H410.0 V280" fill="none" stroke="rgba(79,93,117,.25)" stroke-width="1"/>
+<path d="M560.0,244 V262.0 H510.0 V280" fill="none" stroke="rgba(79,93,117,.25)" stroke-width="1"/>
+<path d="M560.0,244 V262.0 H610.0 V280" fill="none" stroke="rgba(79,93,117,.25)" stroke-width="1"/>
+<path d="M760.0,244 V262.0 H710.0 V280" fill="none" stroke="#4f5d75" stroke-width="1"/>
+<path d="M760.0,244 V262.0 H810.0 V280" fill="none" stroke="rgba(79,93,117,.25)" stroke-width="1"/>
+<text x="8" y="60" text-anchor="start" font-family="'Geist',sans-serif" font-size="11" font-weight="600" fill="#2d3142">depth 0</text><text x="8" y="74" text-anchor="start" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">1 node</text>
+<g><rect x="418.0" y="40" width="84" height="44" rx="6" fill="#fff" stroke="#2e5aa8" stroke-width="1.4"/><text x="460.0" y="60" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">37</text><text x="460.0" y="75" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">[0..7]</text></g>
+<text x="8" y="140" text-anchor="start" font-family="'Geist',sans-serif" font-size="11" font-weight="600" fill="#2d3142">depth 1</text><text x="8" y="154" text-anchor="start" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">2 nodes</text>
+<g><rect x="218.0" y="120" width="84" height="44" rx="6" fill="#fff" stroke="#2e5aa8" stroke-width="1.4"/><text x="260.0" y="140" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">12</text><text x="260.0" y="155" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">[0..3]</text></g>
+<g><rect x="618.0" y="120" width="84" height="44" rx="6" fill="#fff" stroke="#2e5aa8" stroke-width="1.4"/><text x="660.0" y="140" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">25</text><text x="660.0" y="155" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">[4..7]</text></g>
+<text x="8" y="220" text-anchor="start" font-family="'Geist',sans-serif" font-size="11" font-weight="600" fill="#2d3142">depth 2</text><text x="8" y="234" text-anchor="start" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">4 nodes</text>
+<g><rect x="118.0" y="200" width="84" height="44" rx="6" fill="#fff" stroke="#2e5aa8" stroke-width="1.4"/><text x="160.0" y="220" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">7</text><text x="160.0" y="235" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">[0..1]</text></g>
+<g><rect x="318.0" y="200" width="84" height="44" rx="6" fill="rgba(191,69,32,.10)" stroke="#bf4520" stroke-width="1.6"/><text x="360.0" y="220" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">5</text><text x="360.0" y="235" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">[2..3]</text></g>
+<g><rect x="518.0" y="200" width="84" height="44" rx="6" fill="rgba(191,69,32,.10)" stroke="#bf4520" stroke-width="1.6"/><text x="560.0" y="220" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">12</text><text x="560.0" y="235" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">[4..5]</text></g>
+<g><rect x="718.0" y="200" width="84" height="44" rx="6" fill="#fff" stroke="#2e5aa8" stroke-width="1.4"/><text x="760.0" y="220" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">13</text><text x="760.0" y="235" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">[6..7]</text></g>
+<text x="8" y="300" text-anchor="start" font-family="'Geist',sans-serif" font-size="11" font-weight="600" fill="#2d3142">depth 3</text><text x="8" y="314" text-anchor="start" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">8 nodes</text>
+<g opacity="0.4"><rect x="68.0" y="280" width="84" height="44" rx="6" fill="#fff" stroke="rgba(45,49,66,.45)" stroke-width="1"/><text x="110.0" y="300" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">2</text><text x="110.0" y="315" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">a[0]</text></g>
+<g><rect x="168.0" y="280" width="84" height="44" rx="6" fill="rgba(191,69,32,.10)" stroke="#bf4520" stroke-width="1.6"/><text x="210.0" y="300" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">5</text><text x="210.0" y="315" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">a[1]</text></g>
+<g opacity="0.4"><rect x="268.0" y="280" width="84" height="44" rx="6" fill="#fff" stroke="rgba(45,49,66,.45)" stroke-width="1"/><text x="310.0" y="300" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">1</text><text x="310.0" y="315" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">a[2]</text></g>
+<g opacity="0.4"><rect x="368.0" y="280" width="84" height="44" rx="6" fill="#fff" stroke="rgba(45,49,66,.45)" stroke-width="1"/><text x="410.0" y="300" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">4</text><text x="410.0" y="315" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">a[3]</text></g>
+<g opacity="0.4"><rect x="468.0" y="280" width="84" height="44" rx="6" fill="#fff" stroke="rgba(45,49,66,.45)" stroke-width="1"/><text x="510.0" y="300" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">9</text><text x="510.0" y="315" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">a[4]</text></g>
+<g opacity="0.4"><rect x="568.0" y="280" width="84" height="44" rx="6" fill="#fff" stroke="rgba(45,49,66,.45)" stroke-width="1"/><text x="610.0" y="300" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">3</text><text x="610.0" y="315" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">a[5]</text></g>
+<g><rect x="668.0" y="280" width="84" height="44" rx="6" fill="rgba(191,69,32,.10)" stroke="#bf4520" stroke-width="1.6"/><text x="710.0" y="300" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">7</text><text x="710.0" y="315" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">a[6]</text></g>
+<g opacity="0.4"><rect x="768.0" y="280" width="84" height="44" rx="6" fill="#fff" stroke="rgba(45,49,66,.45)" stroke-width="1"/><text x="810.0" y="300" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">6</text><text x="810.0" y="315" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">a[7]</text></g>
+<text x="110.0" y="346" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">i = 0</text>
+<text x="210.0" y="346" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">i = 1</text>
+<text x="310.0" y="346" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">i = 2</text>
+<text x="410.0" y="346" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">i = 3</text>
+<text x="510.0" y="346" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">i = 4</text>
+<text x="610.0" y="346" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">i = 5</text>
+<text x="710.0" y="346" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">i = 6</text>
+<text x="810.0" y="346" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">i = 7</text>
+</svg></div>
+    <p class="cap">Fig 3 · Query [1, 6]: orange nodes are taken whole (5 + 5 + 12 + 7 = 29), blue outlines were split, faded nodes never contribute.</p>
+  </div>
+
+  <div class="callout">At every level at most two nodes are split, so a query touches about 4 log n nodes.</div>
+</section>
+
+<section>
+  <h2>4. Update: walk up one path</h2>
+  <p>Changing <code>a[i]</code> only invalidates the nodes whose segment contains <code>i</code>. That is exactly one node per level: the leaf and all its ancestors. Set the leaf, then recompute each parent on the way back to the root.</p>
+
+  <div class="fig">
+    <div class="scroll"><svg width="920" height="380" viewBox="0 0 920 380" style="min-width:920px" role="img" aria-labelledby="seg-update-title seg-update-desc">
+<title id="seg-update-title">Point update a[2] from 1 to 6</title>
+<desc id="seg-update-desc">Only the leaf and its three ancestors change, one node per level, and each ancestor gains the same delta of 5.</desc>
+<path d="M460.0,84 V102.0 H260.0 V120" fill="none" stroke="#4f5d75" stroke-width="1"/>
+<path d="M460.0,84 V102.0 H660.0 V120" fill="none" stroke="rgba(79,93,117,.25)" stroke-width="1"/>
+<path d="M260.0,164 V182.0 H160.0 V200" fill="none" stroke="rgba(79,93,117,.25)" stroke-width="1"/>
+<path d="M260.0,164 V182.0 H360.0 V200" fill="none" stroke="#4f5d75" stroke-width="1"/>
+<path d="M660.0,164 V182.0 H560.0 V200" fill="none" stroke="rgba(79,93,117,.25)" stroke-width="1"/>
+<path d="M660.0,164 V182.0 H760.0 V200" fill="none" stroke="rgba(79,93,117,.25)" stroke-width="1"/>
+<path d="M160.0,244 V262.0 H110.0 V280" fill="none" stroke="rgba(79,93,117,.25)" stroke-width="1"/>
+<path d="M160.0,244 V262.0 H210.0 V280" fill="none" stroke="rgba(79,93,117,.25)" stroke-width="1"/>
+<path d="M360.0,244 V262.0 H310.0 V280" fill="none" stroke="#4f5d75" stroke-width="1"/>
+<path d="M360.0,244 V262.0 H410.0 V280" fill="none" stroke="rgba(79,93,117,.25)" stroke-width="1"/>
+<path d="M560.0,244 V262.0 H510.0 V280" fill="none" stroke="rgba(79,93,117,.25)" stroke-width="1"/>
+<path d="M560.0,244 V262.0 H610.0 V280" fill="none" stroke="rgba(79,93,117,.25)" stroke-width="1"/>
+<path d="M760.0,244 V262.0 H710.0 V280" fill="none" stroke="rgba(79,93,117,.25)" stroke-width="1"/>
+<path d="M760.0,244 V262.0 H810.0 V280" fill="none" stroke="rgba(79,93,117,.25)" stroke-width="1"/>
+<text x="8" y="60" text-anchor="start" font-family="'Geist',sans-serif" font-size="11" font-weight="600" fill="#2d3142">depth 0</text><text x="8" y="74" text-anchor="start" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">1 node</text>
+<g><rect x="418.0" y="40" width="84" height="44" rx="6" fill="#fff" stroke="#2e5aa8" stroke-width="1.4"/><text x="460.0" y="60" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">42</text><text x="460.0" y="75" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">37 → 42</text></g>
+<text x="8" y="140" text-anchor="start" font-family="'Geist',sans-serif" font-size="11" font-weight="600" fill="#2d3142">depth 1</text><text x="8" y="154" text-anchor="start" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">2 nodes</text>
+<g><rect x="218.0" y="120" width="84" height="44" rx="6" fill="#fff" stroke="#2e5aa8" stroke-width="1.4"/><text x="260.0" y="140" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">17</text><text x="260.0" y="155" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">12 → 17</text></g>
+<g opacity="0.4"><rect x="618.0" y="120" width="84" height="44" rx="6" fill="#fff" stroke="rgba(45,49,66,.45)" stroke-width="1"/><text x="660.0" y="140" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">25</text><text x="660.0" y="155" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">[4..7]</text></g>
+<text x="8" y="220" text-anchor="start" font-family="'Geist',sans-serif" font-size="11" font-weight="600" fill="#2d3142">depth 2</text><text x="8" y="234" text-anchor="start" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">4 nodes</text>
+<g opacity="0.4"><rect x="118.0" y="200" width="84" height="44" rx="6" fill="#fff" stroke="rgba(45,49,66,.45)" stroke-width="1"/><text x="160.0" y="220" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">7</text><text x="160.0" y="235" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">[0..1]</text></g>
+<g><rect x="318.0" y="200" width="84" height="44" rx="6" fill="#fff" stroke="#2e5aa8" stroke-width="1.4"/><text x="360.0" y="220" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">10</text><text x="360.0" y="235" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">5 → 10</text></g>
+<g opacity="0.4"><rect x="518.0" y="200" width="84" height="44" rx="6" fill="#fff" stroke="rgba(45,49,66,.45)" stroke-width="1"/><text x="560.0" y="220" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">12</text><text x="560.0" y="235" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">[4..5]</text></g>
+<g opacity="0.4"><rect x="718.0" y="200" width="84" height="44" rx="6" fill="#fff" stroke="rgba(45,49,66,.45)" stroke-width="1"/><text x="760.0" y="220" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">13</text><text x="760.0" y="235" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">[6..7]</text></g>
+<text x="8" y="300" text-anchor="start" font-family="'Geist',sans-serif" font-size="11" font-weight="600" fill="#2d3142">depth 3</text><text x="8" y="314" text-anchor="start" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">8 nodes</text>
+<g opacity="0.4"><rect x="68.0" y="280" width="84" height="44" rx="6" fill="#fff" stroke="rgba(45,49,66,.45)" stroke-width="1"/><text x="110.0" y="300" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">2</text><text x="110.0" y="315" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">a[0]</text></g>
+<g opacity="0.4"><rect x="168.0" y="280" width="84" height="44" rx="6" fill="#fff" stroke="rgba(45,49,66,.45)" stroke-width="1"/><text x="210.0" y="300" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">5</text><text x="210.0" y="315" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">a[1]</text></g>
+<g><rect x="268.0" y="280" width="84" height="44" rx="6" fill="rgba(191,69,32,.10)" stroke="#bf4520" stroke-width="1.6"/><text x="310.0" y="300" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">6</text><text x="310.0" y="315" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">1 → 6</text></g>
+<g opacity="0.4"><rect x="368.0" y="280" width="84" height="44" rx="6" fill="#fff" stroke="rgba(45,49,66,.45)" stroke-width="1"/><text x="410.0" y="300" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">4</text><text x="410.0" y="315" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">a[3]</text></g>
+<g opacity="0.4"><rect x="468.0" y="280" width="84" height="44" rx="6" fill="#fff" stroke="rgba(45,49,66,.45)" stroke-width="1"/><text x="510.0" y="300" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">9</text><text x="510.0" y="315" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">a[4]</text></g>
+<g opacity="0.4"><rect x="568.0" y="280" width="84" height="44" rx="6" fill="#fff" stroke="rgba(45,49,66,.45)" stroke-width="1"/><text x="610.0" y="300" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">3</text><text x="610.0" y="315" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">a[5]</text></g>
+<g opacity="0.4"><rect x="668.0" y="280" width="84" height="44" rx="6" fill="#fff" stroke="rgba(45,49,66,.45)" stroke-width="1"/><text x="710.0" y="300" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">7</text><text x="710.0" y="315" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">a[6]</text></g>
+<g opacity="0.4"><rect x="768.0" y="280" width="84" height="44" rx="6" fill="#fff" stroke="rgba(45,49,66,.45)" stroke-width="1"/><text x="810.0" y="300" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">6</text><text x="810.0" y="315" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">a[7]</text></g>
+<text x="110.0" y="346" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">i = 0</text>
+<text x="210.0" y="346" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">i = 1</text>
+<text x="310.0" y="346" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">i = 2</text>
+<text x="410.0" y="346" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">i = 3</text>
+<text x="510.0" y="346" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">i = 4</text>
+<text x="610.0" y="346" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">i = 5</text>
+<text x="710.0" y="346" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">i = 6</text>
+<text x="810.0" y="346" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="9" font-weight="400" fill="#5a6580">i = 7</text>
+</svg></div>
+    <p class="cap">Fig 4 · Update a[2] from 1 to 6. Delta = +5 flows up through [2..3], [0..3] and the root.</p>
+  </div>
+</section>
+
+<section>
+  <h2>5. Code</h2>
+  <p>Recursive version, 0-indexed array, inclusive ranges. Call <code>build(1, 0, n - 1)</code> once, then <code>query(1, 0, n - 1, l, r)</code> and <code>update(1, 0, n - 1, i, x)</code>.</p>
+<pre><span class="k">const int</span> MAXN = 100005;
+<span class="k">int</span> n, a[MAXN], t[4 * MAXN];          <span class="c">// t[v]: sum of node v's segment, root = 1</span>
+
+<span class="k">void</span> build(<span class="k">int</span> v, <span class="k">int</span> l, <span class="k">int</span> r) {
+    <span class="k">if</span> (l == r) { t[v] = a[l]; <span class="k">return</span>; }
+    <span class="k">int</span> m = l + (r - l) / 2;
+    build(2 * v, l, m);
+    build(2 * v + 1, m + 1, r);
+    t[v] = t[2 * v] + t[2 * v + 1];
+}
+
+<span class="k">int</span> query(<span class="k">int</span> v, <span class="k">int</span> l, <span class="k">int</span> r, <span class="k">int</span> ql, <span class="k">int</span> qr) {   <span class="c">// inclusive</span>
+    <span class="k">if</span> (qr &lt; l || r &lt; ql) <span class="k">return</span> 0;               <span class="c">// disjoint</span>
+    <span class="k">if</span> (ql &lt;= l &amp;&amp; r &lt;= qr)  <span class="k">return</span> t[v];            <span class="c">// fully inside</span>
+    <span class="k">int</span> m = l + (r - l) / 2;                         <span class="c">// partial: split</span>
+    <span class="k">return</span> query(2 * v, l, m, ql, qr) + query(2 * v + 1, m + 1, r, ql, qr);
+}
+
+<span class="k">void</span> update(<span class="k">int</span> v, <span class="k">int</span> l, <span class="k">int</span> r, <span class="k">int</span> pos, <span class="k">int</span> val) {
+    <span class="k">if</span> (l == r) { t[v] = val; <span class="k">return</span>; }
+    <span class="k">int</span> m = l + (r - l) / 2;
+    <span class="k">if</span> (pos &lt;= m) update(2 * v, l, m, pos, val);
+    <span class="k">else</span>         update(2 * v + 1, m + 1, r, pos, val);
+    t[v] = t[2 * v] + t[2 * v + 1];                    <span class="c">// recompute on the way back up</span>
+}</pre>
+</section>
+
+<section>
+  <h2>6. Cost</h2>
+  <div class="cards">
+    <div class="stat"><div class="eyebrow">Build</div><div class="big">O(n)</div><p>Each of the ~2n nodes is combined once.</p></div>
+    <div class="stat focal"><div class="eyebrow">Query / update</div><div class="big">O(log n)</div><p>One path of length log n, with at most two splits per level.</p></div>
+    <div class="stat"><div class="eyebrow">Memory</div><div class="big">O(n)</div><p>About 2n nodes, 4n slots allocated.</p></div>
+  </div>
+</section>
+
+<section>
+  <h2>7. When to use it</h2>
+  <p>The tree only needs an operation that is <b>associative</b>, because every segment is built from two halves joined once. Unlike the sparse table, nothing is counted twice, so sum, xor, product, min, max and gcd all work.</p>
+  <table class="ops">
+    <thead><tr><th>Structure</th><th>Build</th><th>Query</th><th>Update</th></tr></thead>
+    <tbody>
+      <tr><td>Prefix sums</td><td>O(n)</td><td>O(1)</td><td class="no">O(n)</td></tr>
+      <tr><td>Sparse table</td><td>O(n log n)</td><td class="ok">O(1)</td><td class="no">rebuild</td></tr>
+      <tr><td>Segment tree</td><td>O(n)</td><td>O(log n)</td><td class="ok">O(log n)</td></tr>
+    </tbody>
+  </table>
+
+  <h2 style="margin-top:32px">Pitfalls</h2>
+  <ul class="tight">
+    <li>Allocate <code>4n</code> nodes. <code>2n</code> is only enough when <code>n</code> is a power of two.</li>
+    <li>Return the <b>neutral element</b> for disjoint nodes: <code>0</code> for sum, <code>+∞</code> for min, <code>-∞</code> for max.</li>
+    <li>Compute the midpoint as <code>l + (r - l) / 2</code> and use inclusive ranges consistently.</li>
+    <li>Updating a whole range, such as "add x to a[l..r]", needs <b>lazy propagation</b>. Plain point updates do not.</li>
+  </ul>
+</section>
+
+</main>
+<script>
+(() => {
+  // ---------- model (the one source of truth) ----------
+  const A0 = [2, 5, 1, 4, 9, 3, 7, 6];
+  const N = A0.length, D = 4;               // D levels: depth 0 = root, depth 3 = leaves
+  let A = A0.slice();
+  const buildTree = arr => {
+    const T = [];
+    T[D - 1] = arr.slice();
+    for (let d = D - 2; d >= 0; d--) {
+      T[d] = [];
+      for (let j = 0; j < (1 << d); j++) T[d][j] = T[d + 1][2 * j] + T[d + 1][2 * j + 1];
+    }
+    return T;
+  };
+  const T0 = buildTree(A0);
+  let T = buildTree(A);
+  const span = (d, j) => { const len = N >> d, s = j * len; return [s, s + len - 1]; };
+
+  // ---------- world ----------
+  const PHI = 22 * Math.PI / 180, VC = Math.cos(PHI), VS = Math.sin(PHI);
+  const EX = [VC, VS * 0.5], EY = [-VS, VC * 0.5];
+  const P = 44, CW = 40, CH = 12, GAP = 76, ST = 8;
+  const SX0 = -36, SX1 = N * P + 4, SY0 = -8, SY1 = 62;
+  const pj = (x, y, z) => [x * EX[0] + y * EY[0], x * EX[1] + y * EY[1] - z];
+  const f1 = n => n.toFixed(1);
+  const poly = (pts, fill, stroke, sw) =>
+    `<polygon points="${pts.map(p => f1(p[0]) + ',' + f1(p[1])).join(' ')}" fill="${fill}" stroke="${stroke}" stroke-width="${sw || .7}" stroke-linejoin="round"/>`;
+  function box(x, y, z, w, d, h, c, sw) {
+    const top = [pj(x, y, z + h), pj(x + w, y, z + h), pj(x + w, y + d, z + h), pj(x, y + d, z + h)];
+    const right = [pj(x + w, y, z), pj(x + w, y + d, z), pj(x + w, y + d, z + h), pj(x + w, y, z + h)];
+    const left = [pj(x, y + d, z), pj(x + w, y + d, z), pj(x + w, y + d, z + h), pj(x, y + d, z + h)];
+    return poly(left, c.left, c.stroke, sw) + poly(right, c.right, c.stroke, sw) + poly(top, c.top, c.stroke, sw);
+  }
+  function flatText(str, x, y, z, size, fill, anchor, weight, mono) {
+    return `<text transform="matrix(${EX[0].toFixed(4)},${EX[1].toFixed(4)},${EY[0].toFixed(4)},${EY[1].toFixed(4)},0,${f1(-z)})" x="${x}" y="${y}" font-size="${size}" font-weight="${weight || 600}" fill="${fill}" text-anchor="${anchor || 'middle'}" font-family="${mono ? "'Geist Mono',ui-monospace,monospace" : "'Geist',system-ui,sans-serif"}">${str}</text>`;
+  }
+  const dot = (x, y, z, r) => { const p = pj(x, y, z); return `<circle cx="${f1(p[0])}" cy="${f1(p[1])}" r="${r}" fill="#2d3142" opacity=".55"/>`; };
+  const seg = (a, b, w, o) => `<line x1="${f1(a[0])}" y1="${f1(a[1])}" x2="${f1(b[0])}" y2="${f1(b[1])}" stroke="#4f5d75" stroke-width="${w}" opacity="${o}"/>`;
+
+  const SLAB = { top: '#eceef2', right: '#d3d7df', left: '#bdc3cf', stroke: '#4f5d75' };
+  const BASE = { top: '#dfe3ea', right: '#c6cbd6', left: '#b2b9c7', stroke: '#4f5d75' };
+  const POST = { top: '#e4e7ed', right: '#c9ced9', left: '#b4bbc9', stroke: '#4f5d75' };
+  const FOOT = { top: '#9aa3b5', right: '#7d8699', left: '#6b7488', stroke: '#2d3142' };
+  const PAL = {
+    def: { top: '#ffffff', right: '#e3e6ec', left: '#cdd2dc', stroke: '#4f5d75', text: '#2d3142' },
+    sA: { top: '#dbe8fa', right: '#bcd2ef', left: '#a9c3e8', stroke: '#2e5aa8', text: '#1f3f7a' },
+    A: { top: '#8db3ec', right: '#4f7fc4', left: '#3f6bb0', stroke: '#1f3f7a', text: '#0f2347' },
+    B: { top: '#f09a78', right: '#cf6a45', left: '#b95533', stroke: '#7a2a10', text: '#3d1405' }
+  };
+  const LIFT = { A: 8, B: 8 };
+
+  // ---------- state ----------
+  const st = { mode: 'query', L: 1, R: 6, i: 2 };
+  const lifts = {};
+  const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const $ = id => document.getElementById(id);
+  const scene = $('scene'), rack = $('rack');
+
+  // ---------- fit the viewBox to the scene ----------
+  const topZ = (D - 1) * GAP + ST + 26;
+  let mnX = 1e9, mxX = -1e9, mnY = 1e9, mxY = -1e9;
+  [[-66, -34], [386, -34], [-66, 92], [386, 92]].forEach(([x, y]) => [-18, topZ].forEach(z => {
+    const p = pj(x, y, z);
+    mnX = Math.min(mnX, p[0]); mxX = Math.max(mxX, p[0]); mnY = Math.min(mnY, p[1]); mxY = Math.max(mxY, p[1]);
+  }));
+  const PAD = 16;
+  scene.setAttribute('transform', `translate(${f1(-mnX + PAD)},${f1(-mnY + PAD)})`);
+  rack.setAttribute('viewBox', `0 0 ${Math.ceil(mxX - mnX + 2 * PAD)} ${Math.ceil(mxY - mnY + 2 * PAD)}`);
+
+  // ---------- roles ----------
+  function computeRoles() {
+    const r = {};
+    if (st.mode === 'query') {
+      let calls = 0; const taken = [];
+      (function visit(d, j) {
+        calls++;
+        const [s, e] = span(d, j);
+        if (e < st.L || s > st.R) return;
+        if (st.L <= s && e <= st.R) { r[d + ',' + j] = 'B'; taken.push([d, j]); return; }
+        r[d + ',' + j] = 'sA';
+        visit(d + 1, 2 * j); visit(d + 1, 2 * j + 1);
+      })(0, 0);
+      return { r, taken, calls, sum: taken.reduce((a, [d, j]) => a + T[d][j], 0) };
+    }
+    const path = [];
+    for (let d = D - 1; d >= 0; d--) {
+      const j = st.i >> (D - 1 - d);
+      r[d + ',' + j] = d === D - 1 ? 'B' : 'A';
+      path.push([d, j]);
+    }
+    return { r, path };
+  }
+
+  // ---------- drawing ----------
+  function drawLevel(d, info) {
+    const lvl = D - 1 - d, z0 = lvl * GAP, zt = z0 + ST, len = N >> d;
+    let s = box(SX0, SY0, z0, SX1 - SX0, SY1 - SY0, ST, SLAB, .8);
+    [[SX0 + 5, SY0 + 5], [SX1 - 5, SY0 + 5], [SX0 + 5, SY1 - 5], [SX1 - 5, SY1 - 5]].forEach(c => { s += dot(c[0], c[1], zt, 1.3); });
+    s += flatText('d' + d, SX0 + 4, 22, zt, 11, '#2d3142', 'start', 600, true);
+    s += flatText('×' + (1 << d), SX0 + 4, 36, zt, 9, '#5a6580', 'start', 400, true);
+    for (let j = 0; j < (1 << d); j++) {
+      const key = d + ',' + j, role = info.r[key] || 'def', c = PAL[role];
+      const [a, b] = span(d, j), x = a * P + 2, w = len * P - 6;
+      const h = CH + (lifts[key] || 0);
+      const ttl = `node ${(1 << d) + j}: sum of a[${a}..${b}] = ${T[d][j]}`;
+      s += `<g data-d="${d}" data-j="${j}"><title>${ttl}</title>` +
+        box(x, 0, zt, w, CW, h, c, .8) +
+        flatText(T[d][j], x + w / 2, 23, zt + h, 19, c.text, 'middle', 600, false) +
+        flatText(len === 1 ? 'i=' + a : a + '..' + b, x + w / 2, 35, zt + h, 8, c.text, 'middle', 500, true) + '</g>';
+    }
+    return s;
+  }
+
+  function drawBaseDetails() {
+    let s = '';
+    for (let i = 0; i <= N * 4; i++) {
+      const x = i * 11;
+      s += seg(pj(x, 70, 0), pj(x, 70 + (i % 4 === 0 ? 9 : 4), 0), .6, .6);
+    }
+    s += seg(pj(0, 70, 0), pj(N * 44, 70, 0), .6, .6);
+    s += flatText('0', 0, 92, 0, 7, '#5a6580', 'middle', 500, true);
+    s += flatText(String(N), N * 44, 92, 0, 7, '#5a6580', 'middle', 500, true);
+    [[-56, -26], [376, -26], [-56, 86], [376, 86]].forEach(c => { s += dot(c[0], c[1], 0, 1.5); });
+    return s;
+  }
+
+  function render() {
+    const info = computeRoles();
+    const postH = (D - 1) * GAP + ST + 14;
+    let out = '';
+    [[-60, -34], [372, -34], [-60, 82], [372, 82]].forEach(f => { out += box(f[0], f[1], -18, 12, 12, 6, FOOT, .7); });
+    out += box(-66, -34, -12, 452, 126, 12, BASE, .8);
+    out += drawBaseDetails();
+    out += box(-42, SY0, 0, 6, 6, postH, POST, .7) + box(-42, SY1 - 6, 0, 6, 6, postH, POST, .7);
+    for (let d = D - 1; d >= 0; d--) out += drawLevel(d, info);   // bottom shelf first
+    out += box(SX1, SY0, 0, 6, 6, postH, POST, .7) + box(SX1, SY1 - 6, 0, 6, 6, postH, POST, .7);
+    scene.innerHTML = out;
+  }
+
+  // ---------- animation ----------
+  let raf = 0, last = 0, curTg = {};
+  function targets(info) {
+    const tg = {};
+    for (let d = 0; d < D; d++) for (let j = 0; j < (1 << d); j++) tg[d + ',' + j] = LIFT[info.r[d + ',' + j]] || 0;
+    return tg;
+  }
+  function step(t) {
+    const dt = Math.min(.05, (t - last) / 1000 || .016); last = t;
+    const f = 1 - Math.exp(-dt * 12);
+    let moving = false;
+    for (const key in curTg) {
+      const cur = lifts[key] || 0, tg = curTg[key], nv = cur + (tg - cur) * f;
+      if (Math.abs(tg - nv) < .05) lifts[key] = tg; else { lifts[key] = nv; moving = true; }
+    }
+    render();
+    raf = moving ? requestAnimationFrame(step) : 0;
+  }
+
+  // ---------- readout + controls ----------
+  function words(info) {
+    if (st.mode === 'query') {
+      const parts = info.taken.map(([d, j]) => { const [a, b] = span(d, j); return `<span class="c-b">t[${(1 << d) + j}] = ${T[d][j]}</span> <span class="na">a[${a}${a === b ? '' : '..' + b}]</span>`; });
+      return `<b>query(l=${st.L}, r=${st.R})</b>\n` +
+        `nodes touched: ${info.calls}   taken whole: ${info.taken.length}\n` +
+        parts.join('\n') + `\n<b>sum = ${info.taken.map(([d, j]) => T[d][j]).join(' + ')} = ${info.sum}</b>`;
+    }
+    const delta = A[st.i] - A0[st.i];
+    const lines = info.path.map(([d, j]) => {
+      const [a, b] = span(d, j), id = (1 << d) + j;
+      return `<span class="${d === D - 1 ? 'c-b' : 'c-a'}">t[${id}]</span> a[${a}${a === b ? '' : '..' + b}]: ${T0[d][j]} → <b>${T[d][j]}</b>`;
+    });
+    return `<b>update(i=${st.i}, v=${A[st.i]})</b>\n` +
+      (delta === 0 ? `<span class="na">no change yet, move v</span>\n` : `delta = ${delta > 0 ? '+' : ''}${delta}, added to each node on the path\n`) +
+      lines.join('\n') + `\n<span class="na">${D} nodes recomputed, one per level</span>`;
+  }
+
+  function sync() {
+    $('modeQ').setAttribute('aria-pressed', st.mode === 'query');
+    $('modeU').setAttribute('aria-pressed', st.mode === 'update');
+    $('panelQ').hidden = st.mode !== 'query';
+    $('panelU').hidden = st.mode !== 'update';
+    $('inL').value = st.L; $('outL').textContent = st.L;
+    $('inR').value = st.R; $('outR').textContent = st.R;
+    $('inI').value = st.i; $('outI').textContent = st.i;
+    $('inV').value = A[st.i]; $('outV').textContent = A[st.i];
+  }
+
+  function update() {
+    sync();
+    const info = computeRoles();
+    $('readout').innerHTML = words(info);
+    $('live').textContent = st.mode === 'query'
+      ? `sum(a[${st.L}..${st.R}]) = ${info.sum}`
+      : `a[${st.i}] = ${A[st.i]} · total = ${T[0][0]}`;
+    curTg = targets(info);
+    if (reduce) {
+      for (const key in curTg) lifts[key] = curTg[key];
+      render();
+    } else if (!raf) { last = performance.now(); raf = requestAnimationFrame(step); }
+  }
+
+  $('modeQ').onclick = () => { st.mode = 'query'; update(); };
+  $('modeU').onclick = () => { st.mode = 'update'; update(); };
+  $('inL').oninput = e => { st.L = +e.target.value; if (st.R < st.L) st.R = st.L; update(); };
+  $('inR').oninput = e => { st.R = +e.target.value; if (st.L > st.R) st.L = st.R; update(); };
+  $('inI').oninput = e => { st.i = +e.target.value; update(); };
+  $('inV').oninput = e => { A[st.i] = +e.target.value; T = buildTree(A); update(); };
+  $('reset').onclick = () => { A = A0.slice(); T = buildTree(A); update(); };
+  rack.addEventListener('click', e => {
+    const g = e.target.closest('[data-d]'); if (!g) return;
+    const d = +g.dataset.d, j = +g.dataset.j;
+    if (d === D - 1) {
+      if (st.mode === 'update') st.i = j;
+      else if (j < st.L) st.L = j; else if (j > st.R) st.R = j; else if (j - st.L <= st.R - j) st.L = j; else st.R = j;
+    } else { st.mode = 'query'; [st.L, st.R] = span(d, j); }
+    update();
+  });
+
+  update();
+})();
+
+</script>
+</body>
+</html>

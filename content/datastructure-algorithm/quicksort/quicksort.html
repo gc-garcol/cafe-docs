@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quicksort: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+a{color:var(--link)}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+
+.card{margin:24px 0 0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.scroll{overflow-x:auto;padding:0 8px}
+.scroll svg{display:block;height:auto}
+
+.controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;margin-top:16px;align-items:start}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:0 0 12px}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.btn:disabled{opacity:.4;cursor:not-allowed;background:transparent;color:var(--ink)}
+#readout{margin:0;padding:0;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink);border:0;background:none}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:3px;border:1px solid var(--ink);display:inline-block}
+
+pre{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .t{color:var(--link)} .c{color:var(--soft);font-style:italic}
+
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:36px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+
+table.ops{border-collapse:collapse;width:100%;max-width:720px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule)}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
+
+@media (max-width:860px){.controls{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" href="../../../index.html">&larr; Back to home</a>
+
+<header>
+  <div class="eyebrow">Algorithms · Sorting</div>
+  <h1>Quicksort</h1>
+  <p class="lede">Pick a pivot, push smaller items to its left and larger items to its right, then sort each side the same way. The pivot lands in its final place after every pass.</p>
+</header>
+
+<section>
+  <h2>Try the machine first</h2>
+  <p>This uses the <b>Lomuto partition</b> with the last item as the pivot. Press <b>Step</b> to move one comparison at a time. The blue bar is <code>j</code>, the item being compared. The amber bar is <code>i</code>, the end of the "smaller than pivot" zone. Use <b>Back</b> to rewind.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">Quicksort on 12 numbers</span></div>
+    <div class="scroll">
+      <svg id="chart" width="880" height="300" viewBox="0 0 880 300" style="min-width:880px" role="img" aria-labelledby="chart-title chart-desc">
+        <title id="chart-title">Bar chart of an array being sorted by quicksort</title>
+        <desc id="chart-desc">Each bar is one number. The pivot bar is orange, the compared bar is blue, the boundary of the smaller zone is amber, and bars in their final position are green. Bars outside the current range are faded.</desc>
+        <g id="bars"></g>
+      </svg>
+    </div>
+    <div class="card-bottom"><span class="hint">Average O(n log n) · worst case O(n²)</span><span class="live" id="live"></span></div>
+  </figure>
+
+  <div class="controls">
+    <div class="panel">
+      <div class="row">
+        <button type="button" class="btn" id="back">Back</button>
+        <button type="button" class="btn" id="step">Step</button>
+        <button type="button" class="btn" id="run">Run</button>
+      </div>
+      <div class="row">
+        <button type="button" class="btn" id="shuffle">New array</button>
+        <button type="button" class="btn" id="sorted">Sorted array (worst case)</button>
+      </div>
+      <div class="legend" aria-label="Legend">
+        <span><i class="sw" style="background:#bf4520;border-color:#bf4520"></i>pivot</span>
+        <span><i class="sw" style="background:#2e5aa8;border-color:#2e5aa8"></i>j (compared)</span>
+        <span><i class="sw" style="background:#d9a03a;border-color:#d9a03a"></i>i (smaller zone end)</span>
+        <span><i class="sw" style="background:#1f7a4d;border-color:#1f7a4d"></i>final place</span>
+      </div>
+    </div>
+    <div class="panel"><pre id="readout" aria-live="polite"></pre></div>
+  </div>
+</section>
+
+<section>
+  <h2>1. The idea</h2>
+  <p>Quicksort is divide and conquer, but the work happens <b>before</b> the recursion, not after. Partitioning does the real job. After one partition, the pivot sits where it belongs in the sorted array, and nothing will ever cross it again.</p>
+  <p class="callout">Partition once, then forget the pivot. Two smaller problems remain, and they do not interact.</p>
+</section>
+
+<section>
+  <h2>2. Partition</h2>
+  <p>Walk <code>j</code> from left to right. Whenever <code>a[j]</code> is smaller than the pivot, grow the smaller zone by one and swap the item into it. At the end, swap the pivot into the slot just after the zone.</p>
+  <pre><span class="k">function</span> partition(a, lo, hi) {
+  <span class="k">const</span> pivot = a[hi];
+  <span class="k">let</span> i = lo - 1;                      <span class="c">// end of the "smaller" zone</span>
+  <span class="k">for</span> (<span class="k">let</span> j = lo; j &lt; hi; j++) {
+    <span class="k">if</span> (a[j] &lt; pivot) {
+      i++;
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+  }
+  [a[i + 1], a[hi]] = [a[hi], a[i + 1]];  <span class="c">// pivot into place</span>
+  <span class="k">return</span> i + 1;
+}
+
+<span class="k">function</span> quicksort(a, lo = 0, hi = a.length - 1) {
+  <span class="k">if</span> (lo &gt;= hi) <span class="k">return</span>;
+  <span class="k">const</span> p = partition(a, lo, hi);
+  quicksort(a, lo, p - 1);
+  quicksort(a, p + 1, hi);
+}</pre>
+  <p>Partitioning takes one pass, so it costs <code>O(n)</code> for a range of size <code>n</code>.</p>
+</section>
+
+<section>
+  <h2>3. Why the pivot matters</h2>
+  <p>If each pivot splits the range roughly in half, the recursion is <code>log₂ n</code> levels deep and each level does <code>O(n)</code> work. That gives <code>O(n log n)</code>.</p>
+  <p>If the pivot is always the smallest or largest item, one side is empty and the other has <code>n - 1</code> items. The depth becomes <code>n</code> and the total is <code>O(n²)</code>. Press <b>Sorted array (worst case)</b>: with the last item as pivot, an already sorted input does exactly this.</p>
+  <ul class="tight">
+    <li><b>Random pivot:</b> pick a random index and swap it to the end first. No input is reliably bad.</li>
+    <li><b>Median of three:</b> use the median of the first, middle and last items.</li>
+    <li><b>Three-way partition:</b> group items equal to the pivot together. It avoids quadratic time on many duplicates.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>4. Cost</h2>
+  <div class="cards">
+    <div class="stat focal"><div class="eyebrow">Average</div><div class="big">O(n log n)</div><p>Balanced enough splits.</p></div>
+    <div class="stat"><div class="eyebrow">Worst</div><div class="big">O(n²)</div><p>Pivot is always an extreme.</p></div>
+    <div class="stat"><div class="eyebrow">Extra space</div><div class="big">O(log n)</div><p>Recursion stack, if you recurse into the smaller side first.</p></div>
+  </div>
+  <table class="ops">
+    <thead><tr><th>Property</th><th>Quicksort</th></tr></thead>
+    <tbody>
+      <tr><td>In place</td><td>Yes, only swaps</td></tr>
+      <tr><td>Stable</td><td>No, swaps can reorder equal items</td></tr>
+      <tr><td>Cache behavior</td><td>Good: it scans memory in order</td></tr>
+      <tr><td>Adaptive</td><td>No, a plain version ignores existing order</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>5. Where it shows up</h2>
+  <ul class="tight">
+    <li><b>General-purpose sorting</b> of arrays in memory. Many standard libraries use a quicksort variant, such as introsort, which falls back to <a href="../heap/heap.html">heapsort</a> when recursion gets too deep.</li>
+    <li><b>Quickselect:</b> run one side of the partition only, to find the k-th smallest item in <code>O(n)</code> average time.</li>
+    <li><b>Compare with <a href="../merge-sort/merge-sort.html">merge sort</a>:</b> choose merge sort when you need stability or a guaranteed <code>O(n log n)</code>.</li>
+  </ul>
+</section>
+
+</main>
+
+<script>
+(function () {
+  var N = 12, NS = 'http://www.w3.org/2000/svg';
+  var frames = [], pos = 0, timer = null, base;
+
+  function el(name, attrs, text) {
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (text != null) e.textContent = text;
+    return e;
+  }
+  function reduced() { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; }
+
+  function record(input) {
+    var a = input.slice(), fixed = {}, out = [];
+    function snap(msg, o) {
+      o = o || {};
+      out.push({ a: a.slice(), fixed: Object.keys(fixed).map(Number), lo: o.lo, hi: o.hi, p: o.p, i: o.i, j: o.j, msg: msg });
+    }
+    function swap(x, y) { var t = a[x]; a[x] = a[y]; a[y] = t; }
+    snap('Start. Press Step to run the first partition.');
+    (function qs(lo, hi) {
+      if (lo > hi) return;
+      if (lo === hi) { fixed[lo] = 1; snap('Range of one item at index ' + lo + ' is already in place.', { lo: lo, hi: hi }); return; }
+      var pivot = a[hi], i = lo - 1;
+      snap('Partition [' + lo + '..' + hi + ']. Pivot = ' + pivot + ' (last item).', { lo: lo, hi: hi, p: hi, i: i });
+      for (var j = lo; j < hi; j++) {
+        var small = a[j] < pivot;
+        snap('Compare a[' + j + '] = ' + a[j] + ' with pivot ' + pivot + (small ? ': smaller, grow the zone.' : ': not smaller, skip.'), { lo: lo, hi: hi, p: hi, i: i, j: j });
+        if (small) {
+          i++;
+          if (i !== j) swap(i, j);
+          snap('Swap a[' + i + '] and a[' + j + '].', { lo: lo, hi: hi, p: hi, i: i, j: j });
+        }
+      }
+      swap(i + 1, hi);
+      fixed[i + 1] = 1;
+      snap('Place pivot ' + pivot + ' at index ' + (i + 1) + '. It is now final.', { lo: lo, hi: hi });
+      qs(lo, i);
+      qs(i + 2, hi);
+    })(0, input.length - 1);
+    snap('Sorted. Every item is in its final place.');
+    return out;
+  }
+
+  function load(arr) {
+    stop(); base = arr; frames = record(arr); pos = 0; render();
+  }
+  function randomArray() {
+    var a = []; while (a.length < N) { var v = 10 + Math.floor(Math.random() * 90); if (a.indexOf(v) < 0) a.push(v); }
+    return a;
+  }
+  function sortedArray() { var a = randomArray().sort(function (x, y) { return x - y; }); return a; }
+
+  function render() {
+    var f = frames[pos], g = document.getElementById('bars');
+    g.textContent = '';
+    var bw = 56, x0 = (880 - N * bw) / 2, base_y = 270, max = 100;
+    f.a.forEach(function (v, k) {
+      var h = v / max * 220, inRange = f.lo === undefined || (k >= f.lo && k <= f.hi);
+      var fill = '#fff', stroke = 'rgba(45,49,66,.45)', op = 1;
+      if (f.fixed.indexOf(k) >= 0) { fill = '#1f7a4d'; stroke = '#1f7a4d'; }
+      else if (k === f.p) { fill = '#bf4520'; stroke = '#bf4520'; }
+      else if (k === f.j) { fill = '#2e5aa8'; stroke = '#2e5aa8'; }
+      else if (k === f.i) { fill = '#d9a03a'; stroke = '#d9a03a'; }
+      if (!inRange && f.fixed.indexOf(k) < 0) op = .35;
+      g.appendChild(el('rect', { x: x0 + k * bw + 4, y: base_y - h, width: bw - 8, height: h, rx: 4, fill: fill, stroke: stroke, opacity: op }));
+      var dark = fill !== '#fff';
+      g.appendChild(el('text', { x: x0 + k * bw + bw / 2, y: base_y - h + 18, 'text-anchor': 'middle', 'font-family': "'Geist',sans-serif", 'font-size': 13, 'font-weight': 600, fill: dark ? '#fff' : '#2d3142', opacity: op }, v));
+      g.appendChild(el('text', { x: x0 + k * bw + bw / 2, y: base_y + 16, 'text-anchor': 'middle', 'font-family': "'Geist Mono',monospace", 'font-size': 10, fill: '#5a6580' }, k));
+    });
+    document.getElementById('readout').textContent = f.msg;
+    document.getElementById('live').textContent = 'step ' + pos + ' / ' + (frames.length - 1);
+    document.getElementById('back').disabled = pos === 0;
+    document.getElementById('step').disabled = pos === frames.length - 1;
+    document.getElementById('run').disabled = pos === frames.length - 1 && !timer;
+  }
+
+  function stop() {
+    if (timer) { clearInterval(timer); timer = null; }
+    var r = document.getElementById('run'); if (r) r.textContent = 'Run';
+  }
+  function run() {
+    if (timer) { stop(); return render(); }
+    if (reduced()) { pos = frames.length - 1; return render(); }
+    document.getElementById('run').textContent = 'Pause';
+    timer = setInterval(function () {
+      if (pos >= frames.length - 1) { stop(); return render(); }
+      pos++; render();
+    }, 350);
+  }
+
+  document.getElementById('step').addEventListener('click', function () { stop(); if (pos < frames.length - 1) pos++; render(); });
+  document.getElementById('back').addEventListener('click', function () { stop(); if (pos > 0) pos--; render(); });
+  document.getElementById('run').addEventListener('click', run);
+  document.getElementById('shuffle').addEventListener('click', function () { load(randomArray()); });
+  document.getElementById('sorted').addEventListener('click', function () { load(sortedArray()); });
+
+  load([62, 17, 85, 34, 91, 48, 23, 70, 56, 12, 39, 77]);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trie: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+a{color:var(--link)}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+
+.card{margin:24px 0 0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.scroll{overflow-x:auto;padding:0 8px}
+.scroll svg{display:block;height:auto}
+
+.controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;margin-top:16px;align-items:start}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:0 0 12px}
+.row label{font-family:var(--mono);font-size:13px;font-weight:600}
+input[type=text]{width:150px;min-height:40px;padding:0 10px;border:1px solid var(--rule-solid);border-radius:6px;font:500 14px var(--mono);color:var(--ink);background:#fff}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.btn:disabled{opacity:.4;cursor:not-allowed;background:transparent;color:var(--ink)}
+#readout{margin:0;padding:0;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink);border:0;background:none}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:50%;border:1px solid var(--ink);display:inline-block}
+
+pre{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .t{color:var(--link)} .c{color:var(--soft);font-style:italic}
+
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:36px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+
+table.ops{border-collapse:collapse;width:100%;max-width:720px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule)}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
+
+@media (max-width:860px){.controls{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" href="../../../index.html">&larr; Back to home</a>
+
+<header>
+  <div class="eyebrow">Data structures · Strings</div>
+  <h1>Trie</h1>
+  <p class="lede">A tree where each edge is one character and each path from the root spells a prefix. Words that share a start share nodes, and lookup costs O(L) for a word of length L, no matter how many words are stored.</p>
+</header>
+
+<section>
+  <h2>Try the machine first</h2>
+  <p>The trie starts with five words. <b>Insert</b> a word to add its missing nodes. <b>Search</b> checks for a whole word. <b>Prefix</b> lists every word that starts with the text you type. Double-ringed nodes mark the end of a word.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">A trie of lowercase words</span></div>
+    <div class="scroll">
+      <svg id="tree" width="880" height="330" viewBox="0 0 880 330" style="min-width:880px" role="img" aria-labelledby="tree-title tree-desc">
+        <title id="tree-title">Trie drawn as a tree of letters</title>
+        <desc id="tree-desc">The root is empty. Each node holds one letter, and the path from the root to a node spells a prefix. Nodes with a double ring end a stored word. Nodes on the path walked by the last operation are highlighted.</desc>
+        <g id="edges"></g>
+        <g id="nodes"></g>
+      </svg>
+    </div>
+    <div class="card-bottom"><span class="hint">Each edge is one letter · double ring = end of word</span><span class="live" id="live"></span></div>
+  </figure>
+
+  <div class="controls">
+    <div class="panel">
+      <form id="form" class="row" novalidate>
+        <label for="word">Text</label>
+        <input type="text" id="word" maxlength="10" value="care" autocomplete="off" spellcheck="false" autocapitalize="off">
+      </form>
+      <div class="row">
+        <button type="button" class="btn" id="ins">Insert</button>
+        <button type="button" class="btn" id="srch">Search</button>
+        <button type="button" class="btn" id="pre">Prefix</button>
+        <button type="button" class="btn" id="reset">Reset</button>
+      </div>
+      <div class="legend" aria-label="Legend">
+        <span><i class="sw" style="background:rgba(191,69,32,.18);border-color:#bf4520"></i>on the walked path</span>
+        <span><i class="sw" style="background:#fff;box-shadow:0 0 0 2px #fff,0 0 0 3px #2d3142"></i>end of word</span>
+      </div>
+    </div>
+    <div class="panel"><pre id="readout" aria-live="polite"></pre></div>
+  </div>
+</section>
+
+<section>
+  <h2>1. The idea</h2>
+  <p>A hash set answers "is this word stored?" but knows nothing about structure. It cannot list the words that start with <code>ca</code> without scanning everything. A trie stores words <b>by their letters</b>, so shared prefixes are stored once and prefix questions become a walk down the tree.</p>
+  <p class="callout">The cost depends on the length of the word, not on how many words are in the set.</p>
+</section>
+
+<section>
+  <h2>2. Insert and search</h2>
+  <p>Each node has a map from letter to child and a flag that says whether a word ends here. The flag matters: <code>car</code> is a prefix of <code>cart</code>, but both can be words.</p>
+  <pre><span class="k">class</span> Trie {
+  root = { next: <span class="k">new</span> Map(), end: <span class="k">false</span> };
+
+  insert(word) {
+    <span class="k">let</span> n = <span class="k">this</span>.root;
+    <span class="k">for</span> (<span class="k">const</span> ch <span class="k">of</span> word) {
+      <span class="k">if</span> (!n.next.has(ch)) n.next.set(ch, { next: <span class="k">new</span> Map(), end: <span class="k">false</span> });
+      n = n.next.get(ch);
+    }
+    n.end = <span class="k">true</span>;
+  }
+
+  <span class="c">// the node for a prefix, or null</span>
+  find(prefix) {
+    <span class="k">let</span> n = <span class="k">this</span>.root;
+    <span class="k">for</span> (<span class="k">const</span> ch <span class="k">of</span> prefix) {
+      n = n.next.get(ch);
+      <span class="k">if</span> (!n) <span class="k">return</span> <span class="k">null</span>;
+    }
+    <span class="k">return</span> n;
+  }
+
+  has(word)        { <span class="k">const</span> n = <span class="k">this</span>.find(word); <span class="k">return</span> !!n &amp;&amp; n.end; }
+  startsWith(pre)  { <span class="k">return</span> <span class="k">this</span>.find(pre) !== <span class="k">null</span>; }
+}</pre>
+  <p>Try searching for <code>ca</code> in the demo. The path exists, but the last node is not an end of a word, so search says no while prefix says yes.</p>
+</section>
+
+<section>
+  <h2>3. Prefix queries</h2>
+  <p>To list every word with a prefix, find the node for the prefix, then walk its whole subtree and collect the paths that end at a flagged node. This is the engine behind autocomplete.</p>
+  <pre><span class="k">function</span> collect(node, path, out) {
+  <span class="k">if</span> (node.end) out.push(path);
+  <span class="k">for</span> (<span class="k">const</span> [ch, child] <span class="k">of</span> [...node.next].sort()) collect(child, path + ch, out);
+}</pre>
+  <p>Walking children in letter order returns the words in alphabetical order for free.</p>
+</section>
+
+<section>
+  <h2>4. Cost</h2>
+  <div class="cards">
+    <div class="stat focal"><div class="eyebrow">Insert / search</div><div class="big">O(L)</div><p>L is the word length.</p></div>
+    <div class="stat"><div class="eyebrow">Prefix check</div><div class="big">O(P)</div><p>P is the prefix length.</p></div>
+    <div class="stat"><div class="eyebrow">Memory</div><div class="big">O(total letters)</div><p>Less when prefixes are shared.</p></div>
+  </div>
+  <table class="ops">
+    <thead><tr><th>Choice</th><th>Trade-off</th></tr></thead>
+    <tbody>
+      <tr><td>Array of 26 children</td><td>Fast, but wastes memory when nodes have few children</td></tr>
+      <tr><td>Hash map of children</td><td>Compact for sparse nodes, a little slower per step</td></tr>
+      <tr><td>Radix tree (compressed)</td><td>Merges single-child chains into one edge, so far fewer nodes</td></tr>
+      <tr><td>Hash set of words</td><td>Smaller and simpler, but no prefix search</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>5. Where it shows up</h2>
+  <ul class="tight">
+    <li><b>Autocomplete and search suggestions:</b> walk to the typed prefix, then list the best completions.</li>
+    <li><b>Spell checking:</b> fast "is this a word?" plus nearby-word search.</li>
+    <li><b>Routing tables:</b> IP routing uses a binary trie to find the longest matching prefix.</li>
+    <li><b>Word games:</b> prune a board search as soon as no word starts with the current letters.</li>
+    <li><b>Bit tries:</b> the same idea with 0 and 1 edges, used for integer keys and XOR queries.</li>
+  </ul>
+  <p>If you only need membership and can tolerate false positives, a Bloom filter uses much less memory. A trie is the tool when the structure of the key matters.</p>
+</section>
+
+</main>
+
+<script>
+(function () {
+  var NS = 'http://www.w3.org/2000/svg';
+  var START = ['car', 'cart', 'cat', 'dog', 'do'];
+  var root, hot, log;
+
+  function el(name, attrs, text) {
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (text != null) e.textContent = text;
+    return e;
+  }
+  function node(ch) { return { ch: ch, kids: {}, end: false, id: 0 }; }
+  function fresh() {
+    root = node(''); hot = {}; var n = 0;
+    START.forEach(function (w) { put(w); });
+    hot = {};
+    log = 'Trie ready with: ' + START.join(', ') + '.\nType text, then Insert, Search or Prefix.';
+  }
+  function put(w) {
+    var n = root, steps = [];
+    for (var i = 0; i < w.length; i++) {
+      var ch = w[i], made = !n.kids[ch];
+      if (made) n.kids[ch] = node(ch);
+      n = n.kids[ch];
+      steps.push((made ? 'create' : 'follow') + ' "' + ch + '"');
+    }
+    var wasEnd = n.end; n.end = true;
+    return { node: n, steps: steps, wasEnd: wasEnd };
+  }
+  function walk(s) {
+    var n = root, path = [root], steps = [];
+    for (var i = 0; i < s.length; i++) {
+      var nx = n.kids[s[i]];
+      if (!nx) { steps.push('no edge "' + s[i] + '", stop'); return { node: null, path: path, steps: steps }; }
+      n = nx; path.push(n); steps.push('follow "' + s[i] + '"');
+    }
+    return { node: n, path: path, steps: steps };
+  }
+  function collect(n, p, out) {
+    if (n.end) out.push(p);
+    Object.keys(n.kids).sort().forEach(function (c) { collect(n.kids[c], p + c, out); });
+  }
+  function words() { var o = []; collect(root, '', o); return o; }
+
+  function pathOf(s) { var w = walk(s); return w.path; }
+  function mark(list) { hot = {}; list.forEach(function (n) { hot[idOf(n)] = true; }); }
+  var ids = new WeakMap(), nextId = 1;
+  function idOf(n) { if (!ids.has(n)) ids.set(n, nextId++); return ids.get(n); }
+
+  // layout: leaves get consecutive x slots, parents are centred over children
+  function layout() {
+    var slot = 0, pts = [], maxDepth = 0;
+    (function place(n, d) {
+      maxDepth = Math.max(maxDepth, d);
+      var keys = Object.keys(n.kids).sort();
+      if (!keys.length) n.sx = slot++;
+      else { keys.forEach(function (k) { place(n.kids[k], d + 1); }); n.sx = (n.kids[keys[0]].sx + n.kids[keys[keys.length - 1]].sx) / 2; }
+      n.d = d;
+    })(root, 0);
+    return { slots: Math.max(slot, 1), depth: maxDepth };
+  }
+
+  function render() {
+    var L = layout(), gap = 56, w = Math.max(880, L.slots * gap + 40), h = Math.max(330, 60 + L.depth * 64 + 40);
+    var svg = document.getElementById('tree');
+    svg.setAttribute('width', w); svg.setAttribute('height', h); svg.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
+    svg.style.minWidth = w + 'px';
+    var pad = (w - L.slots * gap) / 2;
+    function X(n) { return pad + (n.sx + .5) * gap; }
+    function Y(n) { return 36 + n.d * 64; }
+    var edges = document.getElementById('edges'), nodes = document.getElementById('nodes');
+    edges.textContent = ''; nodes.textContent = '';
+    var count = 0;
+    (function draw(n) {
+      count++;
+      Object.keys(n.kids).sort().forEach(function (k) {
+        var c = n.kids[k], on = hot[idOf(n)] && hot[idOf(c)];
+        edges.appendChild(el('line', { x1: X(n), y1: Y(n), x2: X(c), y2: Y(c), stroke: on ? '#bf4520' : 'rgba(45,49,66,.3)', 'stroke-width': on ? 2 : 1 }));
+        draw(c);
+      });
+    })(root);
+    (function drawNodes(n) {
+      var on = !!hot[idOf(n)], x = X(n), y = Y(n);
+      if (n.end) nodes.appendChild(el('circle', { cx: x, cy: y, r: 23, fill: 'none', stroke: on ? '#bf4520' : 'rgba(45,49,66,.6)', 'stroke-width': 1.2 }));
+      nodes.appendChild(el('circle', { cx: x, cy: y, r: 18, fill: on ? 'rgba(191,69,32,.14)' : '#fff', stroke: on ? '#bf4520' : 'rgba(45,49,66,.45)', 'stroke-width': on ? 1.8 : 1.2 }));
+      nodes.appendChild(el('text', { x: x, y: y + 5, 'text-anchor': 'middle', 'font-family': "'Geist Mono',monospace", 'font-size': 15, 'font-weight': 600, fill: '#2d3142' }, n.ch || '·'));
+      Object.keys(n.kids).sort().forEach(function (k) { drawNodes(n.kids[k]); });
+    })(root);
+    document.getElementById('readout').textContent = log;
+    document.getElementById('live').textContent = (count - 1) + ' nodes · ' + words().length + ' words';
+  }
+
+  function input() {
+    var v = document.getElementById('word').value.trim().toLowerCase();
+    if (!/^[a-z]+$/.test(v)) { hot = {}; log = 'Use letters a to z only, 1 to 10 characters.'; render(); return null; }
+    return v;
+  }
+
+  function doInsert() {
+    var v = input(); if (!v) return;
+    var r = put(v);
+    mark(pathOf(v));
+    log = 'insert "' + v + '"\n' + r.steps.join('\n') + '\n' + (r.wasEnd ? 'already stored, nothing new' : 'mark end of word');
+    render();
+  }
+  function doSearch() {
+    var v = input(); if (!v) return;
+    var r = walk(v); mark(r.path);
+    var lines = ['search "' + v + '"'].concat(r.steps);
+    if (!r.node) lines.push('result: not found');
+    else if (!r.node.end) lines.push('path exists but it is not an end of word', 'result: not found (it is only a prefix)');
+    else lines.push('end of word reached', 'result: found');
+    log = lines.join('\n'); render();
+  }
+  function doPrefix() {
+    var v = input(); if (!v) return;
+    var r = walk(v); mark(r.path);
+    var lines = ['prefix "' + v + '"'].concat(r.steps);
+    if (!r.node) lines.push('result: no word starts with "' + v + '"');
+    else {
+      var out = []; collect(r.node, v, out);
+      lines.push('words: ' + (out.length ? out.join(', ') : '(none)'));
+    }
+    log = lines.join('\n'); render();
+  }
+
+  document.getElementById('form').addEventListener('submit', function (e) { e.preventDefault(); doInsert(); });
+  document.getElementById('ins').addEventListener('click', doInsert);
+  document.getElementById('srch').addEventListener('click', doSearch);
+  document.getElementById('pre').addEventListener('click', doPrefix);
+  document.getElementById('reset').addEventListener('click', function () { fresh(); render(); });
+
+  fresh(); render();
+})();
+</script>
+</body>
+</html>

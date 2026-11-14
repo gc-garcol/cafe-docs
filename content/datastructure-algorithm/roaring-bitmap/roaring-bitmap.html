@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Roaring Bitmap: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+
+.card{margin:24px 0 0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.scroll{overflow-x:auto;padding:0 8px}
+.scroll svg{display:block;height:auto}
+
+.controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;margin-top:16px;align-items:start}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:0 0 12px}
+.row label{font-family:var(--mono);font-size:13px;font-weight:600}
+input[type=number]{width:170px;min-height:40px;padding:0 10px;border:1px solid var(--rule-solid);border-radius:6px;font:500 14px var(--mono);color:var(--ink);background:#fff}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.btn:disabled{opacity:.4;cursor:not-allowed;background:transparent;color:var(--ink)}
+#readout{margin:0;padding:0;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink);border:0;background:none}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:3px;border:1px solid var(--ink);display:inline-block}
+
+pre{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .t{color:var(--link)} .c{color:var(--soft);font-style:italic}
+
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:36px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+
+table.ops{border-collapse:collapse;width:100%;max-width:720px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule)}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
+
+@media (max-width:860px){.controls{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" href="../../../index.html">&larr; Back to home</a>
+
+<header>
+  <div class="eyebrow">Data structures · Bitmaps</div>
+  <h1>Roaring Bitmap</h1>
+  <p class="lede">A compressed set of 32-bit integers. Split every number into a high half and a low half, then store each chunk in whichever container is smallest: a sorted array, a bitmap, or a list of runs.</p>
+</header>
+
+<section>
+  <h2>Try the machine first</h2>
+  <p>Each row is one <b>chunk</b>, the set of values that share the same high 16 bits. The strip shows its 65,536 possible low values as 128 cells, darker where more values are present. Add a few values, then try the bulk buttons and watch the container type change.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">Chunks and their containers</span></div>
+    <div class="scroll">
+      <svg id="chunks" width="880" height="150" viewBox="0 0 880 150" style="min-width:880px" role="img" aria-labelledby="chunks-title chunks-desc">
+        <title id="chunks-title">Roaring bitmap chunks and container types</title>
+        <desc id="chunks-desc">One row per chunk. Each row shows the chunk key, a density strip of the 65,536 values in the chunk, the container type chosen, and its size in bytes.</desc>
+        <g id="rows"></g>
+      </svg>
+    </div>
+    <div class="card-bottom"><span class="hint">value = (key &lt;&lt; 16) | low</span><span class="live" id="live"></span></div>
+  </figure>
+
+  <div class="controls">
+    <div class="panel">
+      <form id="form" class="row" novalidate>
+        <label for="val">Value</label>
+        <input type="number" id="val" min="0" max="4294967295" step="1" value="70000" inputmode="numeric">
+        <button type="submit" class="btn" id="add">Add</button>
+        <button type="button" class="btn" id="rem">Remove</button>
+        <button type="button" class="btn" id="has">Contains?</button>
+      </form>
+      <div class="row">
+        <button type="button" class="btn" id="b-sparse">+ 20 sparse values</button>
+        <button type="button" class="btn" id="b-dense">+ 6000 random values</button>
+        <button type="button" class="btn" id="b-run">+ run 131072..140000</button>
+        <button type="button" class="btn" id="reset">Reset</button>
+      </div>
+      <div class="legend" aria-label="Legend">
+        <span><i class="sw" style="background:#2e5aa8"></i>array</span>
+        <span><i class="sw" style="background:#bf4520"></i>bitmap</span>
+        <span><i class="sw" style="background:#3f7d5a"></i>run</span>
+      </div>
+    </div>
+    <div class="panel"><pre id="readout" aria-live="polite"></pre></div>
+  </div>
+</section>
+
+<section>
+  <h2>1. The problem</h2>
+  <p>A plain bitmap is great for sets of integers. One bit per possible value, and union is a bitwise OR. But a bitmap over 32-bit IDs needs 512 MB even if it holds three numbers. A sorted array of 4-byte integers is small for sparse data and large for dense data.</p>
+  <p>Neither wins everywhere, and real data is usually a mix: some dense clusters, some empty stretches, some long runs of consecutive IDs.</p>
+</section>
+
+<section>
+  <h2>2. The idea: two levels</h2>
+  <p>Split each 32-bit value in two. The high 16 bits are the <b>key</b> and pick a chunk. The low 16 bits are stored inside that chunk. Only chunks that hold at least one value exist, so empty ranges cost nothing.</p>
+  <pre><span class="t">key</span> = x &gt;&gt;&gt; 16          <span class="c">// which chunk</span>
+<span class="t">low</span> = x &amp; 0xFFFF       <span class="c">// position inside it, 0..65535</span></pre>
+  <p>The keys are kept in a small sorted array, so finding a chunk is a binary search.</p>
+  <p class="callout">Each chunk picks its own representation. That is where the compression comes from.</p>
+</section>
+
+<section>
+  <h2>3. Three containers</h2>
+  <p>A chunk holds up to 65,536 low values. Each container below stores the same set in a different way.</p>
+  <table class="ops">
+    <thead><tr><th>Container</th><th>Size</th><th>Best when</th></tr></thead>
+    <tbody>
+      <tr><td>Array</td><td><code>2 × cardinality</code> bytes</td><td>Sparse, up to 4096 values</td></tr>
+      <tr><td>Bitmap</td><td><code>8192</code> bytes, fixed</td><td>Dense, more than 4096 values</td></tr>
+      <tr><td>Run</td><td><code>2 + 4 × runs</code> bytes</td><td>Long stretches of consecutive values</td></tr>
+    </tbody>
+  </table>
+  <p>The 4096 cutoff is where the two main forms cost the same: 4096 values × 2 bytes = 8192 bytes. Past that point the bitmap is never larger, so an array that grows beyond 4096 values converts to a bitmap, and a bitmap that shrinks to 4096 or fewer converts back.</p>
+  <p>Run containers store pairs of <code>(start, length)</code>. They are chosen when you call <code>runOptimize()</code>, which compares sizes and keeps the smallest. The demo above applies that choice after every change.</p>
+</section>
+
+<section>
+  <h2>4. Add and contains</h2>
+  <pre><span class="k">function</span> add(rb, x) {
+  <span class="k">const</span> key = x &gt;&gt;&gt; 16, low = x &amp; 0xFFFF;
+  <span class="k">let</span> c = rb.get(key);
+  <span class="k">if</span> (!c) rb.set(key, c = <span class="k">new</span> ArrayContainer());
+  c.add(low);
+  <span class="k">if</span> (c <span class="k">instanceof</span> ArrayContainer &amp;&amp; c.size &gt; 4096)
+    rb.set(key, c.toBitmap());
+}
+
+<span class="k">function</span> contains(rb, x) {
+  <span class="k">const</span> c = rb.get(x &gt;&gt;&gt; 16);
+  <span class="k">return</span> c !== <span class="k">undefined</span> &amp;&amp; c.contains(x &amp; 0xFFFF);
+}</pre>
+  <p>Contains is a lookup of the chunk, then one probe: a binary search in an array, a bit test in a bitmap, or a binary search over runs.</p>
+</section>
+
+<section>
+  <h2>5. Set operations</h2>
+  <p>Union, intersection, and difference work chunk by chunk. Keys are sorted, so two bitmaps are merged like two sorted lists. Chunks that appear in only one side are skipped for intersection and copied for union.</p>
+  <p>When both containers are bitmaps, the work is 1024 word-level operations on 64-bit words, which modern CPUs run with SIMD. This is why Roaring is often faster than plain compressed formats while using similar space.</p>
+  <pre><span class="c">// AND of two bitmap containers</span>
+<span class="k">for</span> (<span class="k">let</span> i = 0; i &lt; 1024; i++) out[i] = a[i] &amp; b[i];</pre>
+</section>
+
+<section>
+  <h2>6. Cost</h2>
+  <div class="cards">
+    <div class="stat focal"><div class="eyebrow">Contains</div><div class="big">O(log n)</div><p>Binary search over keys, then one probe in the container.</p></div>
+    <div class="stat"><div class="eyebrow">Per chunk</div><div class="big">≤ 8 KB</div><p>No container is larger than a flat bitmap of its chunk.</p></div>
+    <div class="stat"><div class="eyebrow">Union / AND</div><div class="big">O(n)</div><p>Linear in the number of chunks and container sizes.</p></div>
+  </div>
+</section>
+
+<section>
+  <h2>7. Where it shows up</h2>
+  <ul class="tight">
+    <li><b>Search engines</b>: posting lists of document IDs, combined with AND and OR.</li>
+    <li><b>Databases and analytics</b>: bitmap indexes in Lucene, Elasticsearch, Druid, Pinot, and ClickHouse.</li>
+    <li><b>Data processing</b>: Spark, Hive, and Git use it for sets of row or object IDs.</li>
+    <li><b>Feature flags and audiences</b>: one bitmap per segment, intersected on demand.</li>
+  </ul>
+  <p>It fits best when IDs are integers that you intersect and union often. If your data is a few random values spread across the whole range, a sorted array can be smaller. For approximate membership with no deletes of exact values, see Bloom filters instead.</p>
+</section>
+
+</main>
+
+<script>
+(function () {
+  var NS = 'http://www.w3.org/2000/svg';
+  var MAXV = 4294967295, CELLS = 128, PER = 65536 / CELLS;
+  var COL = { array: '#2e5aa8', bitmap: '#bf4520', run: '#3f7d5a' };
+  var chunks = {}; // key -> Set of low values
+  var log = 'Empty set. Add a value or use a bulk button.';
+  var lastKey = null;
+
+  function el(name, attrs, text) {
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (text != null) e.textContent = text;
+    return e;
+  }
+  function fmt(n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+
+  // Analyze one chunk: sorted values, run count, and the smallest container.
+  function analyze(set) {
+    var v = Array.from(set).sort(function (a, b) { return a - b; });
+    var runs = 0;
+    for (var i = 0; i < v.length; i++) if (i === 0 || v[i] !== v[i - 1] + 1) runs++;
+    var sizes = { array: 2 * v.length, bitmap: 8192, run: 2 + 4 * runs };
+    var type = 'array';
+    if (sizes.bitmap < sizes[type]) type = 'bitmap';
+    if (sizes.run < sizes[type]) type = 'run';
+    return { values: v, runs: runs, type: type, bytes: sizes[type], sizes: sizes };
+  }
+
+  function addValue(x) {
+    var key = Math.floor(x / 65536), low = x % 65536;
+    (chunks[key] || (chunks[key] = new Set())).add(low);
+    return key;
+  }
+
+  function readX() {
+    var x = Number(document.getElementById('val').value);
+    if (!isFinite(x) || x % 1 !== 0 || x < 0 || x > MAXV) return null;
+    return x;
+  }
+
+  function render() {
+    var rows = document.getElementById('rows'), svg = document.getElementById('chunks');
+    rows.textContent = '';
+    var keys = Object.keys(chunks).map(Number).sort(function (a, b) { return a - b; });
+    var total = 0, count = 0, ROW = 56;
+
+    if (!keys.length) {
+      rows.appendChild(el('text', { x: 440, y: 76, 'text-anchor': 'middle', 'font-family': "'Geist Mono',monospace", 'font-size': 12, fill: '#5a6580' }, 'no chunks yet'));
+    }
+    keys.forEach(function (key, r) {
+      var info = analyze(chunks[key]), y = 14 + r * ROW, hot = key === lastKey;
+      total += info.bytes + 4; count += info.values.length;
+
+      rows.appendChild(el('rect', { x: 8, y: y - 6, width: 864, height: ROW - 6, rx: 6, fill: hot ? 'rgba(191,69,32,.08)' : 'rgba(45,49,66,.02)', stroke: hot ? '#bf4520' : 'rgba(45,49,66,.15)' }));
+      rows.appendChild(el('text', { x: 20, y: y + 12, 'font-family': "'Geist Mono',monospace", 'font-size': 10, fill: '#5a6580' }, 'KEY'));
+      rows.appendChild(el('text', { x: 20, y: y + 30, 'font-family': "'Geist',sans-serif", 'font-size': 16, 'font-weight': 600, fill: '#2d3142' }, key));
+
+      var cells = new Array(CELLS).fill(0);
+      info.values.forEach(function (lo) { cells[Math.floor(lo / PER)]++; });
+      for (var i = 0; i < CELLS; i++) {
+        var a = cells[i] / PER;
+        rows.appendChild(el('rect', { x: 90 + i * 5, y: y, width: 4.4, height: 30, fill: a ? COL[info.type] : '#e4e4e4', 'fill-opacity': a ? 0.2 + 0.8 * Math.min(1, a) : 1 }));
+      }
+      rows.appendChild(el('text', { x: 750, y: y + 12, 'font-family': "'Geist Mono',monospace", 'font-size': 11, 'font-weight': 600, fill: COL[info.type] }, info.type.toUpperCase()));
+      rows.appendChild(el('text', { x: 750, y: y + 28, 'font-family': "'Geist Mono',monospace", 'font-size': 10, fill: '#5a6580' }, fmt(info.values.length) + ' vals · ' + fmt(info.bytes) + ' B'));
+    });
+
+    var h = Math.max(150, 20 + keys.length * ROW);
+    svg.setAttribute('height', h);
+    svg.setAttribute('viewBox', '0 0 880 ' + h);
+
+    var plain = count * 4;
+    document.getElementById('live').textContent = keys.length
+      ? fmt(count) + ' values · ' + keys.length + ' chunk' + (keys.length > 1 ? 's' : '') + ' · ' + fmt(total) + ' B (int32 array: ' + fmt(plain) + ' B)'
+      : 'empty';
+    document.getElementById('readout').textContent = log;
+  }
+
+  function describe(x, verb) {
+    var key = Math.floor(x / 65536), low = x % 65536;
+    return verb + ' ' + fmt(x) + '\n  key = ' + key + ', low = ' + low;
+  }
+
+  document.getElementById('form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var x = readX();
+    if (x === null) { log = 'Enter a whole number from 0 to 4,294,967,295.'; render(); return; }
+    var key = addValue(x); lastKey = key;
+    log = describe(x, 'add') + '\n  chunk ' + key + ' now holds ' + fmt(chunks[key].size) + ' value(s)';
+    render();
+  });
+  document.getElementById('rem').addEventListener('click', function () {
+    var x = readX();
+    if (x === null) { log = 'Enter a whole number from 0 to 4,294,967,295.'; render(); return; }
+    var key = Math.floor(x / 65536), low = x % 65536, c = chunks[key];
+    lastKey = null;
+    if (c && c.delete(low)) {
+      log = describe(x, 'remove');
+      if (!c.size) { delete chunks[key]; log += '\n  chunk ' + key + ' is empty, so it is dropped'; }
+      else lastKey = key;
+    } else log = describe(x, 'remove') + '\n  not present, nothing to do';
+    render();
+  });
+  document.getElementById('has').addEventListener('click', function () {
+    var x = readX();
+    if (x === null) { log = 'Enter a whole number from 0 to 4,294,967,295.'; render(); return; }
+    var key = Math.floor(x / 65536), low = x % 65536, c = chunks[key];
+    lastKey = c ? key : null;
+    log = describe(x, 'contains') + '\n  ' + (c ? 'chunk ' + key + ' found, ' + (c.has(low) ? 'low value present: true' : 'low value missing: false') : 'no chunk ' + key + ': false');
+    render();
+  });
+  document.getElementById('b-sparse').addEventListener('click', function () {
+    var n = 0; while (n < 20) { addValue(Math.floor(Math.random() * 65536 * 3)); n++; }
+    lastKey = null;
+    log = 'added 20 random values in chunks 0..2\nfew values per chunk, so arrays stay smallest';
+    render();
+  });
+  document.getElementById('b-dense').addEventListener('click', function () {
+    var s = chunks[4] || (chunks[4] = new Set());
+    while (s.size < 6000) s.add(Math.floor(Math.random() * 65536));
+    lastKey = 4;
+    log = 'filled chunk 4 with 6,000 random values\n2 x 6000 = 12,000 B as an array, 8,192 B as a bitmap\nmore than 4096 values, so the bitmap wins';
+    render();
+  });
+  document.getElementById('b-run').addEventListener('click', function () {
+    var n = 0;
+    for (var x = 131072; x <= 140000; x++) { addValue(x); n++; }
+    lastKey = 2;
+    log = 'added ' + fmt(n) + ' consecutive values (chunk 2)\n1 run = 2 + 4 = 6 B\nrun container beats array and bitmap';
+    render();
+  });
+  document.getElementById('reset').addEventListener('click', function () {
+    chunks = {}; lastKey = null; log = 'Reset. Empty set.'; render();
+  });
+
+  [0, 1, 7, 65535, 65537, 70000, 70001, 70002].forEach(addValue);
+  log = 'Starting set: 0, 1, 7, 65535, 65537, 70000, 70001, 70002\nchunk 0 holds 4 values, chunk 1 holds 4 values';
+  render();
+})();
+</script>
+</body>
+</html>
