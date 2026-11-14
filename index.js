@@ -292,6 +292,16 @@ const DOCS = [
     summary: 'Weight a signal by a fading exponential and measure the area. The result turns derivatives into multiplication and differential equations into algebra.',
     related: ['Fourier Transform', 'Integrals', 'Derivatives'],
   },
+  {
+    title: 'Complex Analysis',
+    path: 'content/math/complex-analysis/complex-analysis.html',
+    category: 'Mathematics',
+    topic: 'Complex numbers',
+    level: 'Advanced',
+    tags: ['complex', 'analytic', 'conformal', 'cauchy-riemann', 'contour integral', 'residue', 'pole'],
+    summary: 'Calculus on the complex plane. Watch a grid bend under z², 1/z, eᶻ and sin z while keeping right angles, then count poles to evaluate loop integrals.',
+    related: ['Derivatives', 'Integrals', 'Laplace Transform', 'Fourier Transform'],
+  },
 ];
 
 // ---------- helpers ----------

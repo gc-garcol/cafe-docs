@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Complex Analysis: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;font-family:var(--serif);font-size:24px;text-align:center;overflow-x:auto}
+
+.lab{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:24px;align-items:start;margin-top:24px}
+.card{margin:0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.stage{padding:0 8px}
+.stage svg{display:block;width:100%;height:auto}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.seg{display:flex;border:1px solid var(--rule-solid);border-radius:6px;overflow:hidden;margin-bottom:16px}
+.seg button{flex:1;min-height:40px;border:0;background:transparent;font:500 13px var(--sans);color:var(--muted);cursor:pointer;padding:0 8px}
+.seg button+button{border-left:1px solid var(--rule-solid)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.row{display:grid;grid-template-columns:44px 1fr 56px;gap:12px;align-items:center;margin:12px 0}
+.row label{font-family:var(--mono);font-size:13px;font-weight:600}
+.row output{font-family:var(--mono);font-size:12px;text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);min-height:28px}
+#readout{margin:16px 0 0;padding:14px 16px;background:var(--paper);border:1px solid var(--rule);border-radius:6px;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;min-height:150px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:2px;border:1px solid var(--ink);display:inline-block}
+.planes{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.planes svg+svg{border-left:1px solid var(--rule)}
+
+.fig{margin:20px 0 8px}
+.scroll{overflow-x:auto;border:1px solid var(--rule);border-radius:8px;background:#fff;padding:8px}
+.scroll svg{display:block;height:auto}
+.cap{font-family:var(--mono);font-size:11px;color:var(--soft);margin:8px 0 0}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:30px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+table.ops{border-collapse:collapse;width:100%;max-width:760px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);border-radius:6px;font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule)}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+@media (max-width:860px){.lab{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (max-width:520px){.planes{grid-template-columns:1fr}.planes svg+svg{border-left:0;border-top:1px solid var(--rule)}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" href="../../../index.html">&larr; Back to home</a>
+
+<header>
+  <div class="eyebrow">Mathematics · Complex numbers</div>
+  <h1>Complex Analysis</h1>
+  <p class="lede">Calculus on the complex plane. Differentiable here means much more than on the real line: every such function turns tiny shapes into rotated, scaled copies of themselves.</p>
+</header>
+
+<section>
+  <h2>Try it first</h2>
+  <p>A complex function <code>f</code> sends each point <code>z</code> in the left plane to a point <code>w = f(z)</code> in the right plane. The grid lines on the left bend into curves on the right, yet they still cross at right angles. Move the point and read how <code>f′(z)</code> rotates and scales its neighborhood.</p>
+
+  <div class="lab">
+    <figure class="card">
+      <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title" id="fnTitle">w = z²</span></div>
+      <div class="planes">
+        <svg id="zPlane" viewBox="0 0 320 320" role="img" aria-labelledby="zp-title zp-desc">
+          <title id="zp-title">The z plane</title>
+          <desc id="zp-desc">A square grid of horizontal and vertical lines with one marked point z that you control with the sliders.</desc>
+        </svg>
+        <svg id="wPlane" viewBox="0 0 320 320" role="img" aria-labelledby="wp-title wp-desc">
+          <title id="wp-title">The w plane</title>
+          <desc id="wp-desc">The image of the grid under the chosen function, drawn as curves that still cross at right angles, with the image point f of z marked.</desc>
+        </svg>
+      </div>
+      <div class="card-bottom"><span class="hint">Left: z · Right: w = f(z)</span><span class="live" id="live"></span></div>
+    </figure>
+
+    <div>
+      <div class="panel">
+        <div class="seg" role="group" aria-label="Function">
+          <button type="button" data-fn="0" aria-pressed="true">z²</button>
+          <button type="button" data-fn="1" aria-pressed="false">1/z</button>
+          <button type="button" data-fn="2" aria-pressed="false">eᶻ</button>
+          <button type="button" data-fn="3" aria-pressed="false">sin z</button>
+        </div>
+        <div class="row"><label for="inX">Re z</label><input type="range" id="inX" min="-2" max="2" step="0.05" value="0.8"><output id="outX"></output></div>
+        <div class="row"><label for="inY">Im z</label><input type="range" id="inY" min="-2" max="2" step="0.05" value="0.6"><output id="outY"></output></div>
+        <div id="readout" aria-live="polite"></div>
+      </div>
+      <div class="legend" aria-label="Legend">
+        <span><i class="sw" style="background:#2e5aa8"></i>Re z = const</span>
+        <span><i class="sw" style="background:#bf4520"></i>Im z = const</span>
+        <span><i class="sw" style="background:#2d3142"></i>the point</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>1. Numbers with two parts</h2>
+  <p>A complex number is <code>z = x + iy</code> with <code>i² = −1</code>. It lives at the point <code>(x, y)</code> of a plane. In polar form it has a length and an angle.</p>
+  <div class="formula">z = r·e<sup>iθ</sup> = r(cos θ + i sin θ)</div>
+  <p>Multiplying two complex numbers multiplies their lengths and adds their angles. So multiplication by <code>z</code> is a rotation plus a stretch. That single fact explains most of what follows.</p>
+</section>
+
+<section>
+  <h2>2. Functions as maps</h2>
+  <p>A real function draws a graph. A complex function needs four dimensions, two in and two out, so we picture it as a map between two planes, as in Fig 1.</p>
+  <ul>
+    <li><code>z²</code> squares the length and doubles the angle. It folds the plane around the origin.</li>
+    <li><code>1/z</code> inverts the length and flips the angle. It swaps the inside and outside of the unit circle.</li>
+    <li><code>eᶻ = eˣ(cos y + i sin y)</code> turns horizontal lines into rays and vertical lines into circles.</li>
+    <li><code>sin z</code> repeats along the real axis and grows quickly in the imaginary direction.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>3. The complex derivative</h2>
+  <p>The definition looks like the real one.</p>
+  <div class="formula">f′(z) = lim<sub>h→0</sub> [f(z + h) − f(z)] / h</div>
+  <p>The catch is that <code>h</code> is a complex number and may approach zero from any direction in the plane. The limit must agree along every path. That is a strong demand, and it forces the function to behave like multiplication by one complex number, <code>f′(z)</code>, near each point.</p>
+  <div class="callout">Reading <code>f′(z)</code>: its length is the local zoom, its angle is the local turn.</div>
+  <p>Try it in the lab. For <code>z²</code> at <code>z = 0.8 + 0.6i</code> the derivative is <code>2z = 1.6 + 1.2i</code>. Its length is <code>2</code> and the readout reports that scale factor.</p>
+</section>
+
+<section>
+  <h2>4. Cauchy–Riemann and analytic functions</h2>
+  <p>Write <code>f = u + iv</code>. The limit agrees along the horizontal and vertical directions only when these two equations hold.</p>
+  <div class="formula">∂u/∂x = ∂v/∂y &nbsp;&nbsp; and &nbsp;&nbsp; ∂u/∂y = −∂v/∂x</div>
+  <p>A function that has a complex derivative on an open region is called <b>analytic</b> (or holomorphic). Because the derivative is a rotation and a stretch, analytic maps are <b>conformal</b>: they keep angles. That is why the grid in Fig 1 keeps its right-angle crossings, except at points where <code>f′ = 0</code> or where <code>f</code> blows up.</p>
+  <p>Analytic functions are also far more rigid than real differentiable ones. Having one derivative means having all of them, and the function is fixed everywhere by its values on a tiny patch.</p>
+</section>
+
+<section>
+  <h2>5. Integrating along a path</h2>
+  <p>A contour integral adds up <code>f(z) dz</code> along a curve <code>C</code> in the plane.</p>
+  <div class="formula">∮<sub>C</sub> f(z) dz</div>
+  <p><b>Cauchy's theorem:</b> if <code>f</code> is analytic everywhere inside and on a closed loop <code>C</code>, the integral around the loop is <code>0</code>. The value depends only on the endpoints, so any path between them gives the same answer.</p>
+  <p>The interesting case is a loop that encloses a point where <code>f</code> fails to be analytic.</p>
+  <div class="formula">∮<sub>|z|=1</sub> (1 / z) dz = 2πi</div>
+  <p>The function <code>1/z</code> has a pole at the origin. Walking once counterclockwise around it gives <code>2πi</code>, no matter how large or small the loop is.</p>
+
+  <div class="fig">
+    <div class="scroll">
+<svg width="760" height="260" viewBox="0 0 760 260" style="min-width:760px" role="img" aria-labelledby="cont-title cont-desc">
+<title id="cont-title">Contours with and without a pole inside</title>
+<desc id="cont-desc">Two panels. On the left a closed loop encloses no pole, so the integral is zero. On the right a closed loop encloses a pole marked with a dot, so the integral is two pi i times the residue.</desc>
+<defs><marker id="cont-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#bf4520" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+<rect x="30" y="20" width="320" height="200" rx="8" fill="#fff" stroke="#bfc0c0"/>
+<rect x="410" y="20" width="320" height="200" rx="8" fill="#fff" stroke="#bfc0c0"/>
+<ellipse cx="190" cy="120" rx="100" ry="62" fill="rgba(46,90,168,.08)" stroke="#bf4520" stroke-width="2"/>
+<path d="M190 58 L200 58" stroke="#bf4520" stroke-width="2" marker-end="url(#cont-arrow)"/>
+<ellipse cx="570" cy="120" rx="100" ry="62" fill="rgba(191,69,32,.08)" stroke="#bf4520" stroke-width="2"/>
+<path d="M570 58 L580 58" stroke="#bf4520" stroke-width="2" marker-end="url(#cont-arrow)"/>
+<circle cx="570" cy="120" r="5" fill="#2d3142"/>
+<circle cx="300" cy="190" r="5" fill="#2d3142"/>
+<g font-family="'Geist Mono',monospace" font-size="11" fill="#4f5d75" text-anchor="middle">
+<text x="190" y="124">no pole inside</text><text x="190" y="242">∮ f dz = 0</text>
+<text x="570" y="108">pole</text><text x="570" y="242">∮ f dz = 2πi · Res</text>
+<text x="300" y="208">pole outside</text>
+</g>
+</svg>
+    </div>
+    <p class="cap">Fig 2 · Only poles inside the loop contribute. A pole outside changes nothing.</p>
+  </div>
+</section>
+
+<section>
+  <h2>6. Residues</h2>
+  <p>Near a pole, <code>f</code> expands as a series with negative powers of <code>(z − a)</code>. The coefficient of <code>(z − a)<sup>−1</sup></code> is the <b>residue</b>. It is the only term that survives a trip around the loop.</p>
+  <div class="formula">∮<sub>C</sub> f(z) dz = 2πi · Σ Res(f, a<sub>k</sub>)</div>
+  <p>For a simple pole at <code>a</code> the residue is <code>lim (z − a)·f(z)</code>. Example: <code>f(z) = 1/(z² + 1)</code> has poles at <code>±i</code>. At <code>z = i</code> the residue is <code>1/(2i)</code>. This is how real integrals such as <code>∫ dx/(x² + 1) = π</code> get solved: close the path in the upper half plane and collect one residue.</p>
+</section>
+
+<section>
+  <h2>7. Cheat sheet</h2>
+  <div class="cards">
+    <div class="stat focal"><div class="eyebrow">Derivative</div><div class="big">turn + zoom</div><p>A complex derivative is one number: a rotation and a scale.</p></div>
+    <div class="stat"><div class="eyebrow">Cauchy</div><div class="big">loop = 0</div><p>No trouble spots inside means the closed integral vanishes.</p></div>
+    <div class="stat"><div class="eyebrow">Residues</div><div class="big">2πi · Σ</div><p>Each pole inside the loop adds its residue.</p></div>
+  </div>
+  <table class="ops">
+    <thead><tr><th>f(z)</th><th>f′(z)</th><th>Where it fails</th></tr></thead>
+    <tbody>
+      <tr><td><code>z²</code></td><td><code>2z</code></td><td>nowhere</td></tr>
+      <tr><td><code>1/z</code></td><td><code>−1/z²</code></td><td><code>z = 0</code> (pole)</td></tr>
+      <tr><td><code>eᶻ</code></td><td><code>eᶻ</code></td><td>nowhere</td></tr>
+      <tr><td><code>sin z</code></td><td><code>cos z</code></td><td>nowhere</td></tr>
+      <tr><td><code>z̄</code> (conjugate)</td><td>does not exist</td><td>everywhere</td></tr>
+    </tbody>
+  </table>
+  <p>Complex analysis also underlies the <a href="../laplace-transform/laplace-transform.html" style="color:var(--link)">Laplace transform</a>, where <code>s</code> is a complex variable and poles of <code>F(s)</code> decide a system's behavior.</p>
+</section>
+
+</main>
+
+<script>
+(function () {
+  var NSV = 'http://www.w3.org/2000/svg';
+  var S = 320, M = 16;
+  var ZR = 2, WR = 4;
+  var $ = function (s) { return document.querySelector(s); };
+
+  // complex helpers: numbers are [re, im]
+  var mul = function (a, b) { return [a[0] * b[0] - a[1] * b[1], a[0] * b[1] + a[1] * b[0]]; };
+  var inv = function (a) { var d = a[0] * a[0] + a[1] * a[1]; return [a[0] / d, -a[1] / d]; };
+  var neg = function (a) { return [-a[0], -a[1]]; };
+  var cexp = function (a) { var e = Math.exp(a[0]); return [e * Math.cos(a[1]), e * Math.sin(a[1])]; };
+  var csin = function (a) { return [Math.sin(a[0]) * Math.cosh(a[1]), Math.cos(a[0]) * Math.sinh(a[1])]; };
+  var ccos = function (a) { return [Math.cos(a[0]) * Math.cosh(a[1]), -Math.sin(a[0]) * Math.sinh(a[1])]; };
+
+  var FNS = [
+    { name: 'w = z²', f: function (z) { return mul(z, z); }, d: function (z) { return [2 * z[0], 2 * z[1]]; } },
+    { name: 'w = 1/z', f: inv, d: function (z) { var i = inv(z); return neg(mul(i, i)); } },
+    { name: 'w = eᶻ', f: cexp, d: cexp },
+    { name: 'w = sin z', f: csin, d: ccos }
+  ];
+  var cur = 0;
+
+  function el(n, attrs, parent) {
+    var e = document.createElementNS(NSV, n);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function map(R) { return function (v) { return M + (v + R) / (2 * R) * (S - 2 * M); }; }
+  function mapY(R) { return function (v) { return S - M - (v + R) / (2 * R) * (S - 2 * M); }; }
+  function sgn(v, d) { return (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(d); }
+  function fmt(c) { return c[0].toFixed(3) + ' ' + (c[1] < 0 ? '−' : '+') + ' ' + Math.abs(c[1]).toFixed(3) + 'i'; }
+
+  function frame(svg, R, label) {
+    Array.prototype.slice.call(svg.querySelectorAll('.dyn')).forEach(function (e) { e.remove(); });
+    var g = el('g', { 'class': 'dyn' }, svg);
+    var X = map(R), Y = mapY(R);
+    var id = svg.id + 'Clip';
+    var cp = el('clipPath', { id: id }, g);
+    el('rect', { x: M, y: M, width: S - 2 * M, height: S - 2 * M }, cp);
+    el('rect', { x: M, y: M, width: S - 2 * M, height: S - 2 * M, fill: '#fff', stroke: 'rgba(45,49,66,.25)' }, g);
+    el('line', { x1: X(0), x2: X(0), y1: M, y2: S - M, stroke: '#2d3142', 'stroke-width': 0.8 }, g);
+    el('line', { x1: M, x2: S - M, y1: Y(0), y2: Y(0), stroke: '#2d3142', 'stroke-width': 0.8 }, g);
+    var t = el('text', { x: S - M - 4, y: M + 12, 'text-anchor': 'end', 'font-size': 11, fill: '#5a6580', 'font-family': 'Geist Mono, monospace' }, g);
+    t.textContent = label;
+    return { g: el('g', { 'clip-path': 'url(#' + id + ')' }, g), outer: g, X: X, Y: Y };
+  }
+
+  // draw polyline of mapped points, breaking where points leave a safe radius
+  function curve(parent, pts, X, Y, color, w) {
+    var d = '', pen = false, LIM = 60;
+    pts.forEach(function (p) {
+      if (!isFinite(p[0]) || !isFinite(p[1]) || Math.abs(p[0]) > LIM || Math.abs(p[1]) > LIM) { pen = false; return; }
+      d += (pen ? ' L' : ' M') + X(p[0]).toFixed(1) + ' ' + Y(p[1]).toFixed(1);
+      pen = true;
+    });
+    if (d) el('path', { d: d, fill: 'none', stroke: color, 'stroke-width': w, 'stroke-linejoin': 'round' }, parent);
+  }
+
+  function render() {
+    var F = FNS[cur];
+    var zx = +$('#inX').value, zy = +$('#inY').value;
+    var z = [zx, zy];
+    var N = 160, step = 0.5;
+    var zf = frame($('#zPlane'), ZR, 'z');
+    var wf = frame($('#wPlane'), WR, 'w');
+
+    for (var c = -ZR; c <= ZR + 1e-9; c += step) {
+      var vert = [], horiz = [];
+      for (var i = 0; i <= N; i++) {
+        var t = -ZR + 2 * ZR * i / N;
+        vert.push([c, t]);
+        horiz.push([t, c]);
+      }
+      var onAxis = Math.abs(c) < 1e-9;
+      curve(zf.g, vert, zf.X, zf.Y, '#2e5aa8', onAxis ? 1.8 : 1);
+      curve(zf.g, horiz, zf.X, zf.Y, '#bf4520', onAxis ? 1.8 : 1);
+      curve(wf.g, vert.map(F.f), wf.X, wf.Y, '#2e5aa8', onAxis ? 1.8 : 1);
+      curve(wf.g, horiz.map(F.f), wf.X, wf.Y, '#bf4520', onAxis ? 1.8 : 1);
+    }
+
+    var w = F.f(z), d = F.d(z);
+    var inView = isFinite(w[0]) && Math.abs(w[0]) <= WR && Math.abs(w[1]) <= WR;
+    el('circle', { cx: zf.X(zx), cy: zf.Y(zy), r: 5.5, fill: '#2d3142', stroke: '#fff', 'stroke-width': 1.5 }, zf.outer);
+    if (inView) el('circle', { cx: wf.X(w[0]), cy: wf.Y(w[1]), r: 5.5, fill: '#2d3142', stroke: '#fff', 'stroke-width': 1.5 }, wf.outer);
+
+    var scale = Math.hypot(d[0], d[1]), turn = Math.atan2(d[1], d[0]) * 180 / Math.PI;
+    $('#outX').textContent = zx.toFixed(2);
+    $('#outY').textContent = zy.toFixed(2);
+    $('#fnTitle').textContent = F.name;
+    $('#live').textContent = isFinite(scale) ? '|f′| = ' + scale.toFixed(3) : '|f′| = ∞';
+    $('#readout').textContent =
+      'z      = ' + fmt(z) + '\n' +
+      'f(z)   = ' + (isFinite(w[0]) ? fmt(w) : 'undefined') + (inView ? '' : '  (off plot)') + '\n' +
+      "f'(z)  = " + (isFinite(scale) ? fmt(d) : 'undefined') + '\n' +
+      'zoom   = ' + (isFinite(scale) ? scale.toFixed(3) + 'x' : '∞') + '\n' +
+      'turn   = ' + (isFinite(scale) ? sgn(turn, 1) + '°' : 'n/a');
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll('[data-fn]'), function (b) {
+    b.addEventListener('click', function () {
+      cur = +b.dataset.fn;
+      Array.prototype.forEach.call(document.querySelectorAll('[data-fn]'), function (o) { o.setAttribute('aria-pressed', o === b); });
+      render();
+    });
+  });
+  $('#inX').addEventListener('input', render);
+  $('#inY').addEventListener('input', render);
+  render();
+})();
+</script>
+</body>
+</html>
