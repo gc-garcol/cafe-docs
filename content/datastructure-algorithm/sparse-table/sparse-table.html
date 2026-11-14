@@ -54,13 +54,31 @@ p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4
 .seg button+button{border-left:1px solid var(--rule-solid)}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
 button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.row{display:grid;grid-template-columns:28px 1fr 28px;gap:12px;align-items:center;margin:10px 0}
-.row label{font-family:var(--mono);font-size:13px;font-weight:600}
+.row{display:grid;grid-template-columns:84px 1fr 28px;gap:12px;align-items:center;margin:10px 0}
+.row label{font-family:var(--mono);font-size:12px;font-weight:600}
+.howto{margin:16px 0 0;padding:16px 20px;background:#fff;border:1px solid var(--rule-solid);border-left:3px solid var(--accent);border-radius:8px;max-width:760px}
+.howto h3{font:600 11px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--soft);margin:0 0 8px}
+.howto ol{margin:0;padding-left:20px}.howto li{margin:4px 0}
+.task{margin:0 0 16px;padding:12px 14px;background:var(--accent-tint);border:1px solid rgba(191,69,32,.25);border-radius:6px;font-size:13.5px;line-height:1.55}
+.task .rule{display:block;margin-top:6px;font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+.arr-label,.chips-label,.res-label{font:500 11px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--soft);margin:12px 0 6px}
+.arr{display:flex;gap:4px}
+.arr button{flex:1;min-width:0;min-height:48px;border:1px solid var(--rule-solid);border-radius:6px;background:#fff;font:600 15px var(--sans);color:var(--ink);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2px 0;line-height:1.25}
+.arr button small{font:400 9px var(--mono);color:var(--soft)}
+.arr button:hover{border-color:var(--ink)}
+.arr button[aria-pressed="true"]{background:var(--accent-tint);border-color:var(--accent)}
+.arr button.end{background:var(--accent);border-color:var(--accent);color:#fff}
+.arr button.end small{color:#fff}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 4px}
+.chip{min-height:34px;padding:0 12px;border:1px solid var(--rule-solid);border-radius:999px;background:#fff;color:var(--ink);font:500 12.5px var(--sans);cursor:pointer}
+.chip:hover{border-color:var(--ink)}
+.chip:focus-visible,.arr button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
 .row output{font-family:var(--mono);font-size:13px;text-align:right}
 input[type=range]{width:100%;accent-color:var(--accent);min-height:28px}
 .btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer;margin-top:8px}
 .btn:hover{background:var(--ink);color:var(--paper)}
-#readout{margin:16px 0 0;padding:14px 16px;background:var(--paper);border:1px solid var(--rule);border-radius:6px;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink)}
+#readout{margin:0;padding:14px 16px;background:var(--paper);border:1px solid var(--rule);border-radius:6px;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink)}
 .na{color:var(--soft)}
 .c-a{color:var(--link);font-weight:600}.c-b{color:var(--accent);font-weight:600}
 
@@ -103,7 +121,17 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
 
 <section>
   <h2>Try the machine first</h2>
-  <p>The rack below is a real sparse table for <code>a = [5, 2, 4, 7, 1, 3, 6, 8]</code>. Each shelf is one level <code>k</code>. A cell on shelf <code>k</code> holds the minimum of <code>2<sup>k</sup></code> array elements. Switch between <b>Query</b> and <b>Build</b> and watch the cells lift.</p>
+  <p>The rack below is a real sparse table for <code>a = [5, 2, 4, 7, 1, 3, 6, 8]</code>. Each shelf is one level <code>k</code>. A cell on shelf <code>k</code> holds the minimum of <code>2<sup>k</sup></code> array elements. Pick a mode in the panel, then set the inputs and watch the cells lift.</p>
+
+  <div class="howto">
+    <h3>How to use this simulator</h3>
+    <ol>
+      <li>Stay in <b>Query</b> mode. Choose a range: drag <b>L</b> and <b>R</b>, click two numbers in the array strip, or press a preset.</li>
+      <li>Read the <b>Result</b> box. It shows the two table cells that answer the query and the final minimum.</li>
+      <li>Switch to <b>Build</b> mode to see how one table cell is made from two cells on the level below.</li>
+      <li>You can also click any block on the rack. Level 0 blocks set the range, higher blocks open Build mode.</li>
+    </ol>
+  </div>
 
   <div class="lab">
     <figure class="card">
@@ -115,27 +143,43 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
           <g id="scene"></g>
         </svg>
       </div>
-      <div class="card-bottom"><span class="hint">Click a cell, or use the controls</span><span class="live" id="live">min = 1</span></div>
+      <div class="card-bottom"><span class="hint">Click any block on the rack, or use the panel</span><span class="live" id="live">min = 1</span></div>
     </figure>
 
     <div>
       <div class="panel">
         <div class="seg" role="group" aria-label="Mode">
-          <button type="button" id="modeQ" aria-pressed="true">Query</button>
-          <button type="button" id="modeB" aria-pressed="false">Build</button>
+          <button type="button" id="modeQ" aria-pressed="true">Query · find a min</button>
+          <button type="button" id="modeB" aria-pressed="false">Build · one cell</button>
         </div>
 
+        <div class="task" id="task"></div>
+
         <div id="panelQ">
-          <div class="row"><label for="inL">L</label><input type="range" id="inL" min="0" max="7" value="1"><output id="outL">1</output></div>
-          <div class="row"><label for="inR">R</label><input type="range" id="inR" min="0" max="7" value="6"><output id="outR">6</output></div>
+          <div class="arr-label">Array a (click two numbers to set the range)</div>
+          <div class="arr" id="arr" role="group" aria-label="Array a. Click a number to move the nearest end of the range."></div>
+          <div class="row"><label for="inL">L · from</label><input type="range" id="inL" min="0" max="7" value="1"><output id="outL" for="inL">1</output></div>
+          <div class="row"><label for="inR">R · to</label><input type="range" id="inR" min="0" max="7" value="6"><output id="outR" for="inR">6</output></div>
+          <div class="chips-label">Presets</div>
+          <div class="chips" role="group" aria-label="Range presets">
+            <button type="button" class="chip" data-l="0" data-r="7">Whole array 0–7</button>
+            <button type="button" class="chip" data-l="1" data-r="6">Two blocks overlap 1–6</button>
+            <button type="button" class="chip" data-l="2" data-r="5">Exact fit 2–5</button>
+            <button type="button" class="chip" data-l="3" data-r="3">One cell 3–3</button>
+            <button type="button" class="chip" id="rndQ">Random</button>
+          </div>
         </div>
 
         <div id="panelB" hidden>
-          <div class="row"><label for="inK">k</label><input type="range" id="inK" min="1" max="3" value="2"><output id="outK">2</output></div>
-          <div class="row"><label for="inI">i</label><input type="range" id="inI" min="0" max="4" value="1"><output id="outI">1</output></div>
-          <button type="button" class="btn" id="replay">Replay build</button>
+          <div class="row"><label for="inK">k · level</label><input type="range" id="inK" min="1" max="3" value="2"><output id="outK" for="inK">2</output></div>
+          <div class="row"><label for="inI">i · start</label><input type="range" id="inI" min="0" max="4" value="1"><output id="outI" for="inI">1</output></div>
+          <div class="chips" role="group" aria-label="Build actions">
+            <button type="button" class="chip" id="rndB">Random cell</button>
+            <button type="button" class="chip" id="replay">Replay build animation</button>
+          </div>
         </div>
 
+        <div class="res-label">Result</div>
         <div id="readout" aria-live="polite"></div>
       </div>
       <div class="legend" aria-label="Legend">
@@ -589,7 +633,32 @@ answer = min( <span class="t">t[k][l]</span>, <span class="t">t[k][r - 2<sup>k</
     $('inK').value = st.sel.k; $('outK').textContent = st.sel.k;
     const imax = N - (1 << st.sel.k);
     $('inI').max = imax; $('inI').value = st.sel.i; $('outI').textContent = st.sel.i;
+    $('inL').max = N - 1; $('inR').max = N - 1;
+
+    $('task').innerHTML = st.mode === 'query'
+      ? `<b>Goal:</b> find the smallest value in <code>a[L..R]</code>.<br>` +
+        `<b>Do:</b> set L and R with the sliders, the array strip, or a preset.<br>` +
+        `<b>You get:</b> the answer from only two table cells, A (blue) and B (orange).` +
+        `<span class="rule">Rule: 0 ≤ L ≤ R ≤ ${N - 1}, both ends included. If the ends cross, the other end follows.</span>`
+      : `<b>Goal:</b> see how one table cell is built.<br>` +
+        `<b>Do:</b> pick a level k and a start i, or click any block above level 0 on the rack.<br>` +
+        `<b>You get:</b> the two cells one level down that are combined with <code>min</code>.` +
+        `<span class="rule">Rule: k from 1 to ${K - 1}. For this k, i goes from 0 to ${imax}.</span>`;
+
+    $('arr').innerHTML = A.map((v, i) => {
+      const inR = i >= st.L && i <= st.R, end = i === st.L || i === st.R;
+      return `<button type="button" data-i="${i}" class="${end ? 'end' : ''}" aria-pressed="${inR}" aria-label="a[${i}] = ${v}${inR ? ', in range' : ''}">${v}<small>i=${i}</small></button>`;
+    }).join('');
+    document.querySelectorAll('.chip[data-l]').forEach(c =>
+      c.setAttribute('aria-pressed', +c.dataset.l === st.L && +c.dataset.r === st.R));
   }
+
+  // move the nearest end of the range to index i
+  function pickEnd(i) {
+    if (i < st.L) st.L = i; else if (i > st.R) st.R = i;
+    else if (i - st.L <= st.R - i) st.L = i; else st.R = i;
+  }
+  const rnd = n => Math.floor(Math.random() * n);
 
   function update() {
     sync();
@@ -620,13 +689,21 @@ answer = min( <span class="t">t[k][l]</span>, <span class="t">t[k][r - 2<sup>k</
     update();
     for (let k = 1; k < K; k++) timers.push(setTimeout(() => { appT[k] = 1; update(); }, 450 * k));
   };
+  $('arr').addEventListener('click', e => {
+    const b = e.target.closest('button[data-i]'); if (!b) return;
+    pickEnd(+b.dataset.i); update();
+    const again = $('arr').querySelector(`button[data-i="${b.dataset.i}"]`); if (again) again.focus();
+  });
+  document.querySelectorAll('.chip[data-l]').forEach(c => c.addEventListener('click', () => {
+    st.L = +c.dataset.l; st.R = +c.dataset.r; update();
+  }));
+  $('rndQ').onclick = () => { const a = rnd(N), b = rnd(N); st.L = Math.min(a, b); st.R = Math.max(a, b); update(); };
+  $('rndB').onclick = () => { const k = 1 + rnd(K - 1); st.sel = { k, i: rnd(N - (1 << k) + 1) }; update(); };
   rack.addEventListener('click', e => {
     const g = e.target.closest('[data-k]'); if (!g) return;
     const k = +g.dataset.k, i = +g.dataset.i;
-    if (k === 0) {
-      st.mode = 'query';
-      if (i < st.L) st.L = i; else if (i > st.R) st.R = i; else if (i - st.L <= st.R - i) st.L = i; else st.R = i;
-    } else { st.mode = 'build'; st.sel = { k, i }; }
+    if (k === 0) { st.mode = 'query'; pickEnd(i); }
+    else { st.mode = 'build'; st.sel = { k, i }; }
     update();
   });
 

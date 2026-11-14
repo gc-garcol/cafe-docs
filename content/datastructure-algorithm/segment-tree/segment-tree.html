@@ -54,13 +54,31 @@ p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4
 .seg button+button{border-left:1px solid var(--rule-solid)}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
 button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.row{display:grid;grid-template-columns:28px 1fr 28px;gap:12px;align-items:center;margin:10px 0}
-.row label{font-family:var(--mono);font-size:13px;font-weight:600}
+.row{display:grid;grid-template-columns:96px 1fr 28px;gap:12px;align-items:center;margin:10px 0}
+.row label{font-family:var(--mono);font-size:12px;font-weight:600}
+.howto{margin:16px 0 0;padding:16px 20px;background:#fff;border:1px solid var(--rule-solid);border-left:3px solid var(--accent);border-radius:8px;max-width:760px}
+.howto h3{font:600 11px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--soft);margin:0 0 8px}
+.howto ol{margin:0;padding-left:20px}.howto li{margin:4px 0}
+.task{margin:0 0 16px;padding:12px 14px;background:var(--accent-tint);border:1px solid rgba(191,69,32,.25);border-radius:6px;font-size:13.5px;line-height:1.55}
+.task .rule{display:block;margin-top:6px;font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+.arr-label,.chips-label,.res-label{font:500 11px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--soft);margin:12px 0 6px}
+.arr{display:flex;gap:4px;margin-bottom:8px}
+.arr button{flex:1;min-width:0;min-height:48px;border:1px solid var(--rule-solid);border-radius:6px;background:#fff;font:600 15px var(--sans);color:var(--ink);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2px 0;line-height:1.25}
+.arr button small{font:400 9px var(--mono);color:var(--soft)}
+.arr button:hover{border-color:var(--ink)}
+.arr button[aria-pressed="true"]{background:var(--accent-tint);border-color:var(--accent)}
+.arr button.end{background:var(--accent);border-color:var(--accent);color:#fff}
+.arr button.end small{color:#fff}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 4px}
+.chip{min-height:34px;padding:0 12px;border:1px solid var(--rule-solid);border-radius:999px;background:#fff;color:var(--ink);font:500 12.5px var(--sans);cursor:pointer}
+.chip:hover{border-color:var(--ink)}
+.chip:focus-visible,.arr button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
 .row output{font-family:var(--mono);font-size:13px;text-align:right}
 input[type=range]{width:100%;accent-color:var(--accent);min-height:28px}
 .btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer;margin-top:8px}
 .btn:hover{background:var(--ink);color:var(--paper)}
-#readout{margin:16px 0 0;padding:14px 16px;background:var(--paper);border:1px solid var(--rule);border-radius:6px;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink)}
+#readout{margin:0;padding:14px 16px;background:var(--paper);border:1px solid var(--rule);border-radius:6px;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink)}
 .na{color:var(--soft)}
 .c-a{color:var(--link);font-weight:600}.c-b{color:var(--accent);font-weight:600}
 
@@ -103,7 +121,17 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
 
 <section>
   <h2>Try the machine first</h2>
-  <p>The rack below is a segment tree of sums for <code>a = [2, 5, 1, 4, 9, 3, 7, 6]</code>. The root shelf is on top, the array sits on the bottom shelf. In <b>Query</b> mode the lifted orange blocks are the nodes that add up to the answer. In <b>Update</b> mode the lifted blocks are the path that has to be recomputed. Click any block to try it.</p>
+  <p>The rack below is a segment tree of sums for <code>a = [2, 5, 1, 4, 9, 3, 7, 6]</code>. The root shelf is on top, the array sits on the bottom shelf. Pick a mode in the panel, then set the inputs and watch the blocks lift.</p>
+
+  <div class="howto">
+    <h3>How to use this simulator</h3>
+    <ol>
+      <li>Stay in <b>Query</b> mode. Choose a range: drag <b>L</b> and <b>R</b>, click two numbers in the array strip, or press a preset.</li>
+      <li>Read the <b>Result</b> box. The lifted orange blocks are the few nodes that add up to the answer.</li>
+      <li>Switch to <b>Update</b> mode, choose an index <b>i</b> and a new value <b>v</b>. The lifted path from the leaf to the root is what gets recomputed.</li>
+      <li>You can also click any block on the rack. A leaf picks an index, and a higher block queries its whole segment.</li>
+    </ol>
+  </div>
 
   <div class="lab">
     <figure class="card">
@@ -115,24 +143,46 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
           <g id="scene"></g>
         </svg>
       </div>
-      <div class="card-bottom"><span class="hint">Click a block, or use the controls</span><span class="live" id="live"></span></div>
+      <div class="card-bottom"><span class="hint">Click any block on the rack, or use the panel</span><span class="live" id="live"></span></div>
     </figure>
 
     <div>
       <div class="panel">
         <div class="seg" role="group" aria-label="Mode">
-          <button type="button" id="modeQ" aria-pressed="true">Query</button>
-          <button type="button" id="modeU" aria-pressed="false">Update</button>
+          <button type="button" id="modeQ" aria-pressed="true">Query · sum a range</button>
+          <button type="button" id="modeU" aria-pressed="false">Update · change a value</button>
         </div>
+
+        <div class="task" id="task"></div>
+
+        <div class="arr-label" id="arrLabel">Array a</div>
+        <div class="arr" id="arr" role="group" aria-label="Array a. Click a number to use it as an input."></div>
+
         <div id="panelQ">
-          <div class="row"><label for="inL">L</label><input type="range" id="inL" min="0" max="7" value="1"><output id="outL">1</output></div>
-          <div class="row"><label for="inR">R</label><input type="range" id="inR" min="0" max="7" value="6"><output id="outR">6</output></div>
+          <div class="row"><label for="inL">L · from</label><input type="range" id="inL" min="0" max="7" value="1"><output id="outL" for="inL">1</output></div>
+          <div class="row"><label for="inR">R · to</label><input type="range" id="inR" min="0" max="7" value="6"><output id="outR" for="inR">6</output></div>
+          <div class="chips-label">Presets</div>
+          <div class="chips" role="group" aria-label="Range presets">
+            <button type="button" class="chip" data-l="0" data-r="7">Whole array 0–7</button>
+            <button type="button" class="chip" data-l="0" data-r="3">Left half 0–3</button>
+            <button type="button" class="chip" data-l="1" data-r="6">Needs 4 nodes 1–6</button>
+            <button type="button" class="chip" data-l="3" data-r="3">One cell 3–3</button>
+            <button type="button" class="chip" id="rndQ">Random</button>
+          </div>
         </div>
         <div id="panelU" hidden>
-          <div class="row"><label for="inI">i</label><input type="range" id="inI" min="0" max="7" value="2"><output id="outI">2</output></div>
-          <div class="row"><label for="inV">v</label><input type="range" id="inV" min="0" max="9" value="1"><output id="outV">1</output></div>
-          <button type="button" class="btn" id="reset">Reset array</button>
+          <div class="row"><label for="inI">i · index</label><input type="range" id="inI" min="0" max="7" value="2"><output id="outI" for="inI">2</output></div>
+          <div class="row"><label for="inV">v · new value</label><input type="range" id="inV" min="0" max="9" value="1"><output id="outV" for="inV">1</output></div>
+          <div class="chips-label">Quick changes</div>
+          <div class="chips" role="group" aria-label="Update actions">
+            <button type="button" class="chip" id="dec">v − 1</button>
+            <button type="button" class="chip" id="inc">v + 1</button>
+            <button type="button" class="chip" id="rndU">Random i and v</button>
+            <button type="button" class="chip" id="reset">Reset array</button>
+          </div>
         </div>
+
+        <div class="res-label">Result</div>
         <div id="readout" aria-live="polite"></div>
       </div>
       <div class="legend" aria-label="Legend">
@@ -567,7 +617,34 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
     $('inR').value = st.R; $('outR').textContent = st.R;
     $('inI').value = st.i; $('outI').textContent = st.i;
     $('inV').value = A[st.i]; $('outV').textContent = A[st.i];
+
+    const q = st.mode === 'query';
+    $('task').innerHTML = q
+      ? `<b>Goal:</b> find the sum of <code>a[L..R]</code>.<br>` +
+        `<b>Do:</b> set L and R with the sliders, the array strip, or a preset.<br>` +
+        `<b>You get:</b> the fewest nodes (orange) whose segments add up to the answer.` +
+        `<span class="rule">Rule: 0 ≤ L ≤ R ≤ ${N - 1}, both ends included. If the ends cross, the other end follows.</span>`
+      : `<b>Goal:</b> change one element and see what must be recomputed.<br>` +
+        `<b>Do:</b> choose the index i, then set the new value v.<br>` +
+        `<b>You get:</b> the path from leaf i up to the root, with each node's old and new sum.` +
+        `<span class="rule">Rule: i from 0 to ${N - 1}, v from 0 to 9. Reset array restores the original values.</span>`;
+    $('arrLabel').textContent = q ? 'Array a (click two numbers to set the range)' : 'Array a (click a number to choose index i)';
+    $('arr').innerHTML = A.map((v, i) => {
+      const on = q ? (i >= st.L && i <= st.R) : i === st.i;
+      const end = q ? (i === st.L || i === st.R) : i === st.i;
+      return `<button type="button" data-i="${i}" class="${end ? 'end' : ''}" aria-pressed="${on}" aria-label="a[${i}] = ${v}${on ? (q ? ', in range' : ', selected') : ''}">${v}<small>i=${i}</small></button>`;
+    }).join('');
+    document.querySelectorAll('.chip[data-l]').forEach(c =>
+      c.setAttribute('aria-pressed', +c.dataset.l === st.L && +c.dataset.r === st.R));
   }
+
+  // move the nearest end of the range to index i
+  function pickEnd(i) {
+    if (i < st.L) st.L = i; else if (i > st.R) st.R = i;
+    else if (i - st.L <= st.R - i) st.L = i; else st.R = i;
+  }
+  const rnd = n => Math.floor(Math.random() * n);
+  const setV = v => { A[st.i] = Math.max(0, Math.min(9, v)); T = buildTree(A); };
 
   function update() {
     sync();
@@ -590,12 +667,25 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
   $('inI').oninput = e => { st.i = +e.target.value; update(); };
   $('inV').oninput = e => { A[st.i] = +e.target.value; T = buildTree(A); update(); };
   $('reset').onclick = () => { A = A0.slice(); T = buildTree(A); update(); };
+  $('arr').addEventListener('click', e => {
+    const b = e.target.closest('button[data-i]'); if (!b) return;
+    const i = +b.dataset.i;
+    if (st.mode === 'update') st.i = i; else pickEnd(i);
+    update();
+    const again = $('arr').querySelector(`button[data-i="${i}"]`); if (again) again.focus();
+  });
+  document.querySelectorAll('.chip[data-l]').forEach(c => c.addEventListener('click', () => {
+    st.L = +c.dataset.l; st.R = +c.dataset.r; update();
+  }));
+  $('rndQ').onclick = () => { const a = rnd(N), b = rnd(N); st.L = Math.min(a, b); st.R = Math.max(a, b); update(); };
+  $('dec').onclick = () => { setV(A[st.i] - 1); update(); };
+  $('inc').onclick = () => { setV(A[st.i] + 1); update(); };
+  $('rndU').onclick = () => { st.i = rnd(N); setV(rnd(10)); update(); };
   rack.addEventListener('click', e => {
     const g = e.target.closest('[data-d]'); if (!g) return;
     const d = +g.dataset.d, j = +g.dataset.j;
     if (d === D - 1) {
-      if (st.mode === 'update') st.i = j;
-      else if (j < st.L) st.L = j; else if (j > st.R) st.R = j; else if (j - st.L <= st.R - j) st.L = j; else st.R = j;
+      if (st.mode === 'update') st.i = j; else pickEnd(j);
     } else { st.mode = 'query'; [st.L, st.R] = span(d, j); }
     update();
   });
