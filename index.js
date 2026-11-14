@@ -322,6 +322,16 @@ const DOCS = [
     summary: 'Raise e to an imaginary power and you walk around a circle. See cosine and sine as shadows of one spinning point, and build it from the exponential series.',
     related: ['Complex Analysis', 'Taylor Series', 'Fourier Transform', 'Laplace Transform'],
   },
+  {
+    title: "Bayes' Theorem",
+    path: 'content/math/bayes-theorem/bayes-theorem.html',
+    category: 'Mathematics',
+    topic: 'Probability',
+    level: 'Beginner',
+    tags: ['probability', 'bayes', 'prior', 'posterior', 'conditional probability', 'base rate', 'inference'],
+    summary: 'Update a belief when evidence arrives. Count 1000 people and see why a positive test for a rare condition is usually a false alarm.',
+    related: ['Bloom Filter', 'Integrals'],
+  },
 ];
 
 // ---------- helpers ----------

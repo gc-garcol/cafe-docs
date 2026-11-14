@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bayes' Theorem: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+
+.card{margin:24px 0 0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.scroll{overflow-x:auto;padding:0 8px;text-align:center}
+.scroll svg{display:inline-block;max-width:100%;height:auto}
+
+.controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;margin-top:16px;align-items:start}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:0 0 12px}
+.row label{font-family:var(--mono);font-size:13px;font-weight:600}
+input[type=number]{width:90px;min-height:40px;padding:0 10px;border:1px solid var(--rule-solid);border-radius:6px;font:500 14px var(--mono);color:var(--ink);background:#fff}
+button:focus-visible,input:focus-visible,svg:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--paper)}
+#readout{margin:0;padding:0;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink);border:0;background:none}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:3px;border:1px solid var(--ink);display:inline-block}
+
+pre{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .t{color:var(--link)} .c{color:var(--soft);font-style:italic}
+
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:36px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+
+table.ops{border-collapse:collapse;width:100%;max-width:720px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule)}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
+
+@media (max-width:860px){.controls{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+
+.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;text-align:center;overflow-x:auto}
+.formula .katex{font-size:1.25em}
+.katex{color:var(--ink)}
+p .katex,td .katex,li .katex{font-size:1.05em}
+input[type=range]{width:200px;accent-color:#bf4520}
+.row label.wide{min-width:150px}
+.val{font-family:var(--mono);font-size:13px;font-weight:600;min-width:52px}
+.big-answer{font-family:var(--serif);font-size:44px;line-height:1.1;margin:4px 0 8px;color:var(--accent)}
+#calc{overflow-x:auto;margin-top:8px}
+.sw.sq{border-radius:3px}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" href="../../../index.html">&larr; Back to home</a>
+
+<header>
+  <div class="eyebrow">Mathematics · Probability</div>
+  <h1>Bayes' Theorem</h1>
+  <p class="lede">How to update a belief when new evidence arrives. Start from how common something is, weigh it against how well the evidence points to it, and get the probability you should believe now.</p>
+</header>
+
+<section>
+  <h2>Try the machine first</h2>
+  <p>A test for a condition comes back <b>positive</b>. How likely is it that the person really has the condition? Move the sliders. Each dot is one person out of 1000. The answer is the share of orange among all the filled dots, which are the people who tested positive.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">1000 people, one positive test</span></div>
+    <div class="scroll">
+      <svg id="dots" width="460" height="290" viewBox="0 0 460 290" role="img" aria-labelledby="dots-title dots-desc">
+        <title id="dots-title">Icon array of 1000 people sorted by condition and test result</title>
+        <desc id="dots-desc">A grid of 1000 dots in four groups. Solid orange dots have the condition and tested positive. Hollow orange dots have the condition and tested negative. Solid blue dots do not have the condition but tested positive. Grey dots do not have the condition and tested negative. The probability of having the condition given a positive test is the number of solid orange dots divided by the number of solid dots. The numbers are also given in the readout beside the figure.</desc>
+        <rect width="100%" height="100%" fill="#fff"/>
+        <g id="grid"></g>
+      </svg>
+    </div>
+    <div class="card-bottom"><span class="hint">Groups run top to bottom, left to right</span><span class="live" id="live"></span></div>
+  </figure>
+
+  <div class="controls">
+    <div class="panel">
+      <div class="row"><label class="wide" for="prior">Base rate $P(H)$</label><input type="range" id="prior" min="1" max="500" value="10"><span class="val" id="v-prior"></span></div>
+      <div class="row"><label class="wide" for="sens">Hit rate $P(E \mid H)$</label><input type="range" id="sens" min="50" max="100" value="90"><span class="val" id="v-sens"></span></div>
+      <div class="row"><label class="wide" for="fpr">False alarm $P(E \mid \neg H)$</label><input type="range" id="fpr" min="0" max="300" value="90"><span class="val" id="v-fpr"></span></div>
+      <div class="row">
+        <button type="button" class="btn" id="p-med">Rare disease</button>
+        <button type="button" class="btn" id="p-spam">Spam filter</button>
+        <button type="button" class="btn" id="p-good">Good test</button>
+      </div>
+      <div class="legend" aria-label="Legend">
+        <span><i class="sw" style="background:#bf4520;border-color:#bf4520"></i>has it, positive</span>
+        <span><i class="sw" style="border-color:#bf4520;border-width:2px"></i>has it, negative</span>
+        <span><i class="sw" style="background:#2e5aa8;border-color:#2e5aa8"></i>does not, positive</span>
+        <span><i class="sw" style="background:#d6d8dd;border-color:#d6d8dd"></i>does not, negative</span>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="eyebrow">P(has it | positive)</div>
+      <div class="big-answer" id="answer"></div>
+      <pre id="readout" aria-live="polite"></pre>
+      <div id="calc"></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>1. The idea</h2>
+  <p>You start with a belief, the <b>prior</b>. You see some evidence. The evidence is more likely if your belief is true than if it is false, so you raise the belief. The new belief is the <b>posterior</b>. How far it moves depends on two things: how strong the evidence is, and how likely the belief was to begin with.</p>
+  <p>The second part is the one people forget. A strong test for a very rare thing still gives mostly false alarms, because there are so many more healthy people to be wrong about.</p>
+  <p class="callout">New belief = old belief, scaled by how well the evidence fits.</p>
+</section>
+
+<section>
+  <h2>2. The formula</h2>
+  <p>Let $H$ be the hypothesis and $E$ the evidence. The chance of both happening can be written two ways:</p>
+  <div class="formula">$$P(H \cap E) = P(E \mid H)\,P(H) = P(H \mid E)\,P(E)$$</div>
+  <p>Divide both sides by $P(E)$ and you get Bayes' theorem:</p>
+  <div class="formula">$$P(H \mid E) = \frac{P(E \mid H)\,P(H)}{P(E)}$$</div>
+  <p>The bottom part, $P(E)$, is all the ways the evidence can show up. Split it into two cases, with the hypothesis true and false:</p>
+  <div class="formula">$$P(E) = P(E \mid H)\,P(H) + P(E \mid \neg H)\,P(\neg H)$$</div>
+  <table class="ops">
+    <thead><tr><th>Term</th><th>Name</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td>$P(H)$</td><td>Prior</td><td>Belief before the evidence</td></tr>
+      <tr><td>$P(E \mid H)$</td><td>Likelihood</td><td>Chance of the evidence if $H$ is true</td></tr>
+      <tr><td>$P(E)$</td><td>Evidence</td><td>Chance of the evidence overall</td></tr>
+      <tr><td>$P(H \mid E)$</td><td>Posterior</td><td>Belief after the evidence</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>3. Count people instead</h2>
+  <p>The formula is easier to trust when you count. Take the default sliders: 1% of people have the condition, the test catches 90% of them, and it falsely flags 9% of the rest. Out of 1000 people:</p>
+  <ul class="tight">
+    <li>10 have it, and 9 of them test positive.</li>
+    <li>990 do not, and about 89 of them test positive anyway.</li>
+    <li>So 98 people test positive, and only 9 of them have it.</li>
+  </ul>
+  <p>A positive result means about $9 / 98 \approx 9\%$, not 90%. That is the same number the formula gives. Counting is just Bayes' theorem with the fractions multiplied out.</p>
+</section>
+
+<section>
+  <h2>4. Base rate neglect</h2>
+  <p>People often answer with the hit rate, 90%, because it is the number the test advertises. That swaps $P(E \mid H)$ for $P(H \mid E)$. They are different questions: "how many sick people test positive" and "how many positive people are sick". Drag the base rate slider up to 30% and watch the answer climb. The test did not change. Only the population did.</p>
+</section>
+
+<section>
+  <h2>5. Updating again and again</h2>
+  <p>Today's posterior is tomorrow's prior. In odds form, each piece of evidence just multiplies the odds by a fixed number, the <b>likelihood ratio</b>:</p>
+  <div class="formula">$$\underbrace{\frac{P(H \mid E)}{P(\neg H \mid E)}}_{\text{posterior odds}} = \underbrace{\frac{P(H)}{P(\neg H)}}_{\text{prior odds}} \times \underbrace{\frac{P(E \mid H)}{P(E \mid \neg H)}}_{\text{likelihood ratio}}$$</div>
+  <p>With the defaults the ratio is $0.90 / 0.09 = 10$. Prior odds of about $1 : 99$ become about $10 : 99$ after one positive test, which is roughly 9%. A second independent positive test multiplies by 10 again, giving about $100 : 99$, or roughly 50%.</p>
+</section>
+
+<section>
+  <h2>6. The same thing in code</h2>
+  <pre><span class="k">function</span> posterior(prior, hit, falseAlarm) {
+  <span class="k">const</span> pEvidence = hit * prior + falseAlarm * (<span class="t">1</span> - prior);
+  <span class="k">return</span> (hit * prior) / pEvidence;
+}
+
+posterior(<span class="t">0.01</span>, <span class="t">0.90</span>, <span class="t">0.09</span>);   <span class="c">// 0.092  (about 9%)</span>
+posterior(<span class="t">0.092</span>, <span class="t">0.90</span>, <span class="t">0.09</span>);  <span class="c">// 0.503  (a second positive test)</span></pre>
+</section>
+
+<section>
+  <h2>7. Where it shows up</h2>
+  <ul class="tight">
+    <li><b>Spam filters</b>: how likely is a message to be spam, given that it contains a certain word?</li>
+    <li><b>Medicine</b>: reading screening tests and weighing a result against how common the disease is.</li>
+    <li><b>Machine learning</b>: naive Bayes classifiers, Bayesian optimization, and Bayesian inference over model weights.</li>
+    <li><b>Search and robotics</b>: Kalman and particle filters keep updating where an object is, as sensor readings come in.</li>
+    <li><b>Probabilistic data structures</b>: a <i>Bloom Filter</i> says "maybe present", and Bayes' theorem tells you how much to trust that answer.</li>
+  </ul>
+  <p>The result is only as good as the inputs. A wrong base rate or independence that does not hold will give a confident, wrong answer.</p>
+</section>
+
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var NS = 'http://www.w3.org/2000/svg', COLS = 40, ROWS = 25, C = 11, X0 = 10, Y0 = 8, TOTAL = 1000;
+  var $ = function (id) { return document.getElementById(id); };
+
+  function el(name, attrs) {
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+  function pct(x, d) { return (x * 100).toFixed(d === undefined ? 1 : d) + '%'; }
+
+  function values() {
+    return { p: +$('prior').value / 1000, h: +$('sens').value / 100, f: +$('fpr').value / 1000 };
+  }
+  function render() {
+    var v = values(), p = v.p, h = v.h, f = v.f;
+    $('v-prior').textContent = pct(p);
+    $('v-sens').textContent = pct(h, 0);
+    $('v-fpr').textContent = pct(f);
+
+    var pe = h * p + f * (1 - p), post = pe > 0 ? (h * p) / pe : 0;
+    var sick = Math.round(TOTAL * p), tp = Math.round(sick * h), fn = sick - tp;
+    var healthy = TOTAL - sick, fp = Math.round(healthy * f), tn = healthy - fp;
+
+    var g = $('grid'); g.textContent = '';
+    var kinds = [[tp, 'tp'], [fn, 'fn'], [fp, 'fp'], [tn, 'tn']], i = 0;
+    kinds.forEach(function (k) {
+      for (var n = 0; n < k[0]; n++, i++) {
+        var col = Math.floor(i / ROWS), row = i % ROWS, cx = X0 + col * C + C / 2, cy = Y0 + row * C + C / 2;
+        var a = { cx: cx, cy: cy, r: 3.6 };
+        if (k[1] === 'tp') { a.fill = '#bf4520'; a.stroke = '#bf4520'; }
+        else if (k[1] === 'fn') { a.fill = '#fff'; a.stroke = '#bf4520'; a['stroke-width'] = 1.4; }
+        else if (k[1] === 'fp') { a.fill = '#2e5aa8'; a.stroke = '#2e5aa8'; }
+        else { a.fill = '#d6d8dd'; a.stroke = '#d6d8dd'; }
+        g.appendChild(el('circle', a));
+      }
+    });
+
+    $('answer').textContent = pct(post);
+    $('live').textContent = (tp + fp) + ' positive · ' + tp + ' truly have it';
+    $('readout').textContent =
+      'out of ' + TOTAL + ' people\n' +
+      sick + ' have it: ' + tp + ' test positive, ' + fn + ' test negative\n' +
+      healthy + ' do not: ' + fp + ' test positive, ' + tn + ' test negative\n\n' +
+      'positives: ' + tp + ' + ' + fp + ' = ' + (tp + fp) + '\n' +
+      'truly have it: ' + tp + ' of ' + (tp + fp) + '\n' +
+      'base rate was ' + pct(p) + ', now ' + pct(post) + (p > 0 ? ' (x' + (post / p).toFixed(1) + ')' : '');
+
+    var tex = 'P(H\\mid E)=\\frac{' + h.toFixed(2) + '\\cdot' + p.toFixed(3) + '}{' + h.toFixed(2) + '\\cdot' + p.toFixed(3) +
+      '+' + f.toFixed(3) + '\\cdot' + (1 - p).toFixed(3) + '}=' + post.toFixed(3);
+    if (window.katex) window.katex.render(tex, $('calc'), { throwOnError: false, displayMode: false });
+    else $('calc').textContent = tex;
+  }
+
+  function preset(p, h, f) { $('prior').value = p; $('sens').value = h; $('fpr').value = f; render(); }
+  ['prior', 'sens', 'fpr'].forEach(function (id) { $(id).addEventListener('input', render); });
+  $('p-med').addEventListener('click', function () { preset(10, 90, 90); });
+  $('p-spam').addEventListener('click', function () { preset(400, 95, 30); });
+  $('p-good').addEventListener('click', function () { preset(10, 99, 10); });
+
+  render();
+  if (window.renderMathInElement) {
+    window.renderMathInElement(document.body, {
+      delimiters: [{ left: '$$', right: '$$', display: true }, { left: '$', right: '$', display: false }],
+      ignoredTags: ['script', 'style', 'textarea', 'pre', 'code'],
+      throwOnError: false
+    });
+  }
+});
+</script>
+</body>
+</html>
