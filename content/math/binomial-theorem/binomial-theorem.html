@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Binomial Theorem: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;text-align:center;overflow-x:auto}
+.formula .katex{font-size:1.25em}
+.katex{color:var(--ink)}
+p .katex,td .katex,li .katex{font-size:1.05em}
+
+.lab{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:24px;align-items:start;margin-top:24px}
+.card{margin:0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.stage{padding:0 8px}
+.stage svg{display:block;width:100%;height:auto}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.row{display:grid;grid-template-columns:56px 1fr 40px;gap:12px;align-items:center;margin:12px 0}
+.row label{font-family:var(--mono);font-size:13px;font-weight:600}
+.row output{font-family:var(--mono);font-size:12px;text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);min-height:28px}
+.out{margin:16px 0 0;padding:14px 16px;background:var(--paper);border:1px solid var(--rule);border-radius:6px;font-size:14px;line-height:1.7;min-height:120px}
+.out .tex{overflow-x:auto;padding:4px 0}
+.out p{margin:8px 0 0;font-size:13px;color:var(--muted)}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:2px;border:1px solid var(--ink);display:inline-block}
+
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:30px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
+@media (max-width:860px){.lab{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" href="../../../index.html">&larr; Back to home</a>
+
+<header>
+  <div class="eyebrow">Mathematics · Algebra</div>
+  <h1>Binomial Theorem</h1>
+  <p class="lede">Expand $(a+b)^n$ without multiplying out n brackets. The coefficients come from counting, and they line up in Pascal's triangle.</p>
+</header>
+
+<section>
+  <h2>Try it first</h2>
+  <p>Each row of the triangle holds the coefficients of one expansion. Move <b>n</b> to pick the row and <b>k</b> to pick a term. The highlighted term on the right is the one that matches the highlighted cell. Blue cells are the two numbers above it that add up to it.</p>
+
+  <div class="lab">
+    <figure class="card">
+      <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">Pascal's triangle</span></div>
+      <div class="stage">
+        <svg id="tri" viewBox="0 0 560 372" role="img" aria-labelledby="tri-title tri-desc">
+          <title id="tri-title">Pascal's triangle with one row and one entry highlighted</title>
+          <desc id="tri-desc">A triangle of numbers with rows 0 to 10. Every entry is the sum of the two entries above it, and the edges are all 1. The row chosen with the n slider is outlined in orange. The entry chosen with the k slider is filled orange, and the two entries above it that add up to it are filled blue.</desc>
+        </svg>
+      </div>
+      <div class="card-bottom"><span class="hint">Choose a row n and a term k</span><span class="live" id="live"></span></div>
+    </figure>
+
+    <div>
+      <div class="panel">
+        <div class="row"><label for="inN">n</label><input type="range" id="inN" min="0" max="10" value="5"><output id="outN" for="inN"></output></div>
+        <div class="row"><label for="inK">k</label><input type="range" id="inK" min="0" max="5" value="2"><output id="outK" for="inK"></output></div>
+        <div class="out" id="out" aria-live="polite">
+          <div class="tex" id="eq"></div>
+          <p id="info1"></p>
+          <p id="info2"></p>
+        </div>
+      </div>
+      <div class="legend" aria-label="Legend">
+        <span><i class="sw" style="background:#bf4520;border-color:#bf4520"></i>chosen coefficient</span>
+        <span><i class="sw" style="background:#2e5aa8;border-color:#2e5aa8"></i>its two parents</span>
+        <span><i class="sw" style="background:rgba(191,69,32,.08);border-color:#bf4520"></i>chosen row</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>1. The problem</h2>
+  <p>Squaring a sum is easy: $(a+b)^2 = a^2 + 2ab + b^2$. Cubing it takes more work, and by the tenth power, multiplying brackets by hand is hopeless. You want a rule that gives every term directly.</p>
+  <div class="formula">$$(a+b)^1 = a + b$$</div>
+  <div class="formula">$$(a+b)^2 = a^2 + 2ab + b^2$$</div>
+  <div class="formula">$$(a+b)^3 = a^3 + 3a^2b + 3ab^2 + b^3$$</div>
+  <p>Two patterns show up. The powers of $a$ go down while the powers of $b$ go up, and the total power in each term is always $n$. The coefficients $1, 3, 3, 1$ need an explanation.</p>
+</section>
+
+<section>
+  <h2>2. Where the coefficients come from</h2>
+  <p>Write $(a+b)^n$ as $n$ copies of $(a+b)$ multiplied together. To build a term, pick either $a$ or $b$ from each copy. The term $a^{n-k}b^k$ appears once for every way to pick $b$ from exactly $k$ of the $n$ copies.</p>
+  <p>That count is the number of ways to choose $k$ items from $n$, written $\binom{n}{k}$ and read "n choose k":</p>
+  <div class="formula">$$\binom{n}{k} = \frac{n!}{k!\,(n-k)!}$$</div>
+  <div class="callout">The coefficient of a term is the number of ways to build it.</div>
+  <p>For $(a+b)^3$ and the term $ab^2$, you choose which 2 of the 3 brackets give $b$. There are $\binom{3}{2} = 3$ ways, so the coefficient is 3.</p>
+</section>
+
+<section>
+  <h2>3. The theorem</h2>
+  <p>Add up every term, from no $b$ at all to all $b$:</p>
+  <div class="formula">$$(a+b)^n = \sum_{k=0}^{n} \binom{n}{k}\, a^{\,n-k}\, b^{\,k}$$</div>
+  <p>The lab above builds exactly this sum. The term at position $k$ has coefficient $\binom{n}{k}$, and there are $n+1$ terms in total.</p>
+</section>
+
+<section>
+  <h2>4. Pascal's triangle</h2>
+  <p>You do not need factorials to get the coefficients. Every entry is the sum of the two entries above it:</p>
+  <div class="formula">$$\binom{n}{k} = \binom{n-1}{k-1} + \binom{n-1}{k}$$</div>
+  <p>The reason is the counting rule from section 2. Look at one bracket. Either it gives $b$, and you choose the other $k-1$ from the remaining $n-1$, or it gives $a$, and you choose all $k$ from the remaining $n-1$. The edges are always 1, because there is only one way to pick no $b$ or all $b$.</p>
+  <p>In the lab, pick any inner cell and the two blue cells above it add up to it.</p>
+</section>
+
+<section>
+  <h2>5. Worked examples</h2>
+  <p><b>Expand $(2x+3)^4$.</b> Use $a = 2x$, $b = 3$, and the row $1, 4, 6, 4, 1$:</p>
+  <div class="formula">$$\begin{aligned}(2x+3)^4 &= (2x)^4 + 4(2x)^3(3) + 6(2x)^2(3)^2 + 4(2x)(3)^3 + 3^4 \\ &= 16x^4 + 96x^3 + 216x^2 + 216x + 81\end{aligned}$$</div>
+  <p>Check with $x = 1$: the left side is $5^4 = 625$, and the right side is $16 + 96 + 216 + 216 + 81 = 625$.</p>
+  <p><b>Find the coefficient of $x^3$ in $(x+2)^7$.</b> The general term is $\binom{7}{k}x^{7-k}2^k$. For $x^3$ you need $7-k = 3$, so $k = 4$:</p>
+  <div class="formula">$$\binom{7}{4}\, 2^4 = 35 \cdot 16 = 560$$</div>
+  <p>You get one term without expanding the other seven.</p>
+</section>
+
+<section>
+  <h2>6. Identities you get for free</h2>
+  <p>Set $a = b = 1$. The left side becomes $2^n$ and the right side is the sum of a row of the triangle:</p>
+  <div class="formula">$$\sum_{k=0}^{n} \binom{n}{k} = 2^n$$</div>
+  <p>Set $a = 1$ and $b = -1$ instead. The left side is $0^n$, which is 0 for $n \ge 1$, so the signs cancel:</p>
+  <div class="formula">$$\sum_{k=0}^{n} (-1)^k \binom{n}{k} = 0$$</div>
+  <p>The first says a set of $n$ items has $2^n$ subsets. The second says that, for $n \ge 1$, exactly as many subsets have an even size as an odd size. The readout in the lab shows the row sum for the row you picked.</p>
+</section>
+
+<section>
+  <h2>7. Newton's generalization</h2>
+  <p>Newton extended the theorem to exponents that are not whole numbers. For $|x| < 1$ and any real $\alpha$:</p>
+  <div class="formula">$$(1+x)^{\alpha} = \sum_{k=0}^{\infty} \binom{\alpha}{k} x^k, \qquad \binom{\alpha}{k} = \frac{\alpha(\alpha-1)\cdots(\alpha-k+1)}{k!}$$</div>
+  <p>When $\alpha$ is a whole number, $\binom{\alpha}{k}$ becomes 0 once $k > \alpha$, so the series stops and you get the ordinary theorem back. For other $\alpha$ it never stops, and it becomes an infinite series.</p>
+  <p>Take $\alpha = \tfrac12$ to approximate a square root:</p>
+  <div class="formula">$$\sqrt{1+x} = 1 + \frac{x}{2} - \frac{x^2}{8} + \frac{x^3}{16} - \cdots$$</div>
+  <p>With $x = 0.1$, the first three terms give $1 + 0.05 - 0.00125 = 1.04875$. The true value of $\sqrt{1.1}$ is $1.04881$, so three terms are already close. With $\alpha = -1$ the series is $1 - x + x^2 - \cdots$, the geometric series for $\frac{1}{1+x}$. This is the Taylor series of $(1+x)^\alpha$ at 0, so see the Taylor Series guide for the general idea.</p>
+</section>
+
+<section>
+  <h2>8. Where it is used</h2>
+  <div class="cards">
+    <div class="stat focal"><div class="eyebrow">Probability</div><div class="big">Binomial distribution</div><p>$P(X=k) = \binom{n}{k}p^k(1-p)^{n-k}$. These add up to 1 because $(p + (1-p))^n = 1$.</p></div>
+    <div class="stat"><div class="eyebrow">Approximation</div><div class="big">Small changes</div><p>For small $x$, $(1+x)^n \approx 1 + nx$. For example, $1.01^{10} \approx 1.10$.</p></div>
+    <div class="stat"><div class="eyebrow">Counting</div><div class="big">Subsets</div><p>Row $n$ counts subsets by size, and the row sum $2^n$ counts them all.</p></div>
+  </div>
+</section>
+
+<section>
+  <h2>9. Next</h2>
+  <p>The generalized series is a special case of a Taylor series, so the Taylor Series guide is the natural next step. The Limits guide explains why the infinite series only makes sense for $|x| < 1$.</p>
+</section>
+
+</main>
+
+<script>
+(function () {
+  var NSV = 'http://www.w3.org/2000/svg';
+  var ROWS = 11;
+  var $ = function (s) { return document.querySelector(s); };
+
+  function binom(n, k) {
+    var r = 1;
+    for (var i = 1; i <= k; i++) r = r * (n - k + i) / i;
+    return Math.round(r);
+  }
+  function el(n, attrs, parent) {
+    var e = document.createElementNS(NSV, n);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function tex(node, s, display) {
+    if (window.katex) katex.render(s, node, { throwOnError: false, displayMode: !!display });
+    else node.textContent = s;
+  }
+  // one term of the expansion as LaTeX, optionally highlighted
+  function term(n, j, hi) {
+    var c = binom(n, j), e1 = n - j, e2 = j;
+    var a = e1 === 0 ? '' : e1 === 1 ? 'a' : 'a^{' + e1 + '}';
+    var b = e2 === 0 ? '' : e2 === 1 ? 'b' : 'b^{' + e2 + '}';
+    var body = (c === 1 && !a && !b) ? '1' : (c === 1 ? '' : String(c)) + a + b;
+    return hi ? '{\\color{#bf4520}' + body + '}' : body;
+  }
+
+  function render() {
+    var n = +$('#inN').value, kIn = $('#inK');
+    kIn.max = n;
+    if (+kIn.value > n) kIn.value = n;
+    var k = +kIn.value;
+    $('#outN').textContent = n;
+    $('#outK').textContent = k;
+
+    var svg = $('#tri');
+    Array.prototype.slice.call(svg.querySelectorAll('.dyn')).forEach(function (x) { x.remove(); });
+    var g = el('g', { 'class': 'dyn' }, svg);
+    var parentA = (k > 0 && k < n) ? [n - 1, k - 1] : null;
+    var parentB = (k > 0 && k < n) ? [n - 1, k] : null;
+
+    for (var r = 0; r < ROWS; r++) {
+      if (r === n) {
+        var half = (r + 1) * 25 + 4;
+        el('rect', { x: 280 - half, y: 14 + r * 32 - 2, width: half * 2, height: 28, rx: 8, fill: 'rgba(191,69,32,.08)', stroke: '#bf4520', 'stroke-width': 1.2 }, g);
+      }
+      for (var c = 0; c <= r; c++) {
+        var cx = 280 + (c - r / 2) * 50, cy = 14 + r * 32 + 12;
+        var sel = (r === n && c === k);
+        var par = (parentA && r === parentA[0] && c === parentA[1]) || (parentB && r === parentB[0] && c === parentB[1]);
+        var fill = sel ? '#bf4520' : par ? '#2e5aa8' : 'none';
+        if (sel || par) el('rect', { x: cx - 21, y: cy - 12, width: 42, height: 24, rx: 5, fill: fill }, g);
+        var t = el('text', {
+          x: cx, y: cy + 4, 'text-anchor': 'middle', 'font-size': 12, 'font-weight': sel || par ? 600 : 400,
+          'font-family': 'Geist Mono, monospace',
+          fill: (sel || par) ? '#fff' : (r > n ? '#8a92a6' : '#2d3142')
+        }, g);
+        t.textContent = binom(r, c);
+      }
+    }
+
+    var terms = [];
+    for (var j = 0; j <= n; j++) terms.push(term(n, j, j === k));
+    tex($('#eq'), '(a+b)^{' + n + '} = ' + terms.join(' + '), false);
+
+    var v = binom(n, k);
+    if (parentA) {
+      var p1 = binom(n - 1, k - 1), p2 = binom(n - 1, k);
+      tex($('#info1'), '\\binom{' + n + '}{' + k + '} = \\binom{' + (n - 1) + '}{' + (k - 1) + '} + \\binom{' + (n - 1) + '}{' + k + '} = ' + p1 + ' + ' + p2 + ' = ' + v, false);
+    } else {
+      tex($('#info1'), '\\binom{' + n + '}{' + k + '} = ' + v + '\\ \\text{(an edge entry, always 1)}', false);
+    }
+    tex($('#info2'), '\\text{row sum} = 2^{' + n + '} = ' + Math.pow(2, n), false);
+    $('#live').textContent = 'C(' + n + ',' + k + ') = ' + v;
+  }
+
+  $('#inN').addEventListener('input', render);
+  $('#inK').addEventListener('input', render);
+  document.addEventListener('DOMContentLoaded', render);
+})();
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  renderMathInElement(document.body, {
+    delimiters: [
+      { left: '$$', right: '$$', display: true },
+      { left: '$', right: '$', display: false }
+    ],
+    ignoredTags: ['script', 'style', 'textarea', 'pre', 'code'],
+    throwOnError: false
+  });
+});
+</script>
+</body>
+</html>

@@ -352,6 +352,16 @@ const DOCS = [
     summary: 'Find the one polynomial that passes through every data point. Add points, compare equal and Chebyshev spacing, and watch Runge\'s phenomenon appear.',
     related: ['Taylor Series', 'Derivatives', 'Integrals'],
   },
+  {
+    title: 'Binomial Theorem',
+    path: 'content/math/binomial-theorem/binomial-theorem.html',
+    category: 'Mathematics',
+    topic: 'Algebra',
+    level: 'Beginner',
+    tags: ['binomial', 'newton', 'pascal', 'combinations', 'expansion', 'series', 'counting', 'algebra'],
+    summary: 'Expand (a+b)^n without multiplying out brackets. Coefficients come from counting choices and line up in Pascal\'s triangle, and Newton extended the rule to any exponent.',
+    related: ['Taylor Series', 'Bayes\' Theorem', 'Limits'],
+  },
 ];
 
 // ---------- helpers ----------
