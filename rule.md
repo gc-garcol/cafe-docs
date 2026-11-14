@@ -18,7 +18,7 @@ All content is written in English. This covers page text, code comments, and the
 
 Each doc is a single self-contained HTML file at `content/datastructure-algorithm/<name>/<name>.html` (math docs live in `content/math/<name>/<name>.html`, at the same depth). AI docs sit one level deeper, under a topic folder: `content/AI/machine-learning/<name>/<name>.html` and `content/AI/deep-learning/<name>/<name>.html`.
 
-- **Navigation:** every page must start with a "Back to home" link that points to `../../../index.html` (use `../../../../index.html` for docs under `content/AI/`), placed at the top of `<main>`, before the header.
+- **Navigation:** every page must start with a "Back to home" link that points to `../../../index.html` (use `../../../../index.html` for docs under `content/AI/`), placed at the top of `<main>`, before the header. Right after it, add a "Back to <category>" link (class `back back-cat`) that points to the same `index.html` with `#cat=<category>` (URL-encoded, for example `#cat=Data%20structures`), using the doc's `category` from `DOCS`.
 - **Styling:** reuse the shared design tokens and fonts from the existing pages (Instrument Serif, Geist, Geist Mono).
 - **Accessibility:** give every SVG a `<title>` and `<desc>`, keep controls keyboard reachable with a visible focus state, and respect `prefers-reduced-motion`.
 
@@ -48,5 +48,5 @@ The category, index, and search data live in `index.js`, not in the HTML.
 ## 6. Checklist before merging
 
 - [ ] The page opens correctly from the file system.
-- [ ] The "Back to home" link works.
+- [ ] The "Back to home" and "Back to <category>" links work.
 - [ ] The doc is registered in `DOCS` and appears in search, the mind map, and contents.
