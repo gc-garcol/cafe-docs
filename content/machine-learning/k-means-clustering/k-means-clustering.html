@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>K-means Clustering: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+a{color:var(--link)}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+
+.card{margin:24px 0 0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.scroll{overflow-x:auto;padding:0 8px;text-align:center}
+.scroll svg{display:inline-block;width:100%;max-width:720px;height:auto}
+
+.controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;margin-top:16px;align-items:start}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.row{display:grid;grid-template-columns:44px 1fr 56px;gap:12px;align-items:center;margin:0 0 12px}
+.row label{font-family:var(--mono);font-size:13px;font-weight:600}
+.row output{font-family:var(--mono);font-size:12px;text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);min-height:28px}
+.group-label{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);margin:16px 0 6px}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.big-answer{font-family:var(--serif);font-size:44px;line-height:1.1;margin:4px 0 8px;color:var(--accent)}
+#readout{margin:0;padding:0;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink);border:0;background:none}
+#calc{overflow-x:auto;margin-top:8px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:3px;border:1px solid var(--ink);display:inline-block}
+
+pre.code{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .t{color:var(--link)} .c{color:var(--soft);font-style:italic}
+
+.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;text-align:center;overflow-x:auto}
+.formula .katex{font-size:1.25em}
+.katex{color:var(--ink)}
+p .katex,td .katex,li .katex{font-size:1.05em}
+
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:30px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+ul.tight,ol.tight{padding-left:20px;max-width:68ch}ul.tight li,ol.tight li{margin:6px 0}
+
+@media (max-width:860px){.controls{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" href="../../../index.html">&larr; Back to home</a>
+
+<header>
+  <div class="eyebrow">Machine Learning · Clustering</div>
+  <h1>K-means Clustering</h1>
+  <p class="lede">Find groups in data that has no labels. Drop $k$ centers, let every point join its nearest one, move each center to the middle of its group, and repeat until nothing changes.</p>
+</header>
+
+<section>
+  <h2>Try it first</h2>
+  <p>Choose the number of clusters $k$, then press Step. One press assigns every point to its nearest center, and the next press moves each center to the mean of its points. Watch the total squared distance, called inertia, fall. If you are unlucky with the starting centers, press New centers and try again.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">Assign, then update</span></div>
+    <div class="scroll">
+      <svg id="plot" viewBox="0 0 720 360" role="img" aria-labelledby="plot-title plot-desc">
+        <title id="plot-title">Two dimensional points grouped by color around cluster centers</title>
+        <desc id="plot-desc">Points form several loose blobs. Large diamonds mark the cluster centers. Each point takes the color of its nearest center, and a faint line joins it to that center. A thin trail shows where each center has moved. The readout beside the figure lists the iteration, the phase and the inertia.</desc>
+        <rect width="720" height="360" fill="#fff" stroke="rgba(45,49,66,.12)"/>
+        <g id="layer"></g>
+      </svg>
+    </div>
+    <div class="card-bottom"><span class="hint">Diamonds are centers, dots are data</span><span class="live" id="live"></span></div>
+  </figure>
+
+  <div class="controls">
+    <div class="panel">
+      <div class="row"><label for="k">$k$</label><input type="range" id="k" min="1" max="6" step="1" value="3"><output id="o-k"></output></div>
+      <div class="btns">
+        <button type="button" class="btn" id="step">Step</button>
+        <button type="button" class="btn" id="run">Run to the end</button>
+        <button type="button" class="btn" id="cents">New centers</button>
+        <button type="button" class="btn" id="data">New data</button>
+      </div>
+      <div class="legend" aria-label="Legend">
+        <span><i class="sw" style="background:#bf4520"></i>cluster 1</span>
+        <span><i class="sw" style="background:#2e5aa8"></i>cluster 2</span>
+        <span><i class="sw" style="background:#2f8f6b"></i>cluster 3</span>
+        <span><i class="sw" style="background:#fff"></i>not assigned yet</span>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="eyebrow">Inertia</div>
+      <div class="big-answer" id="answer"></div>
+      <pre id="readout" aria-live="polite"></pre>
+      <div id="calc"></div>
+    </div>
+  </div>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 2</span><span class="card-title">Choosing k: the elbow</span></div>
+    <div class="scroll">
+      <svg id="elbow" viewBox="0 0 720 240" role="img" aria-labelledby="elbow-title elbow-desc">
+        <title id="elbow-title">Inertia as the number of clusters grows from 1 to 8</title>
+        <desc id="elbow-desc">A line chart with the number of clusters on the horizontal axis and the best inertia found on the vertical axis. The curve drops steeply at first and then flattens, forming an elbow near the true number of groups. The currently chosen k is highlighted.</desc>
+        <rect width="720" height="240" fill="#fff"/>
+        <g id="elbow-layer"></g>
+      </svg>
+    </div>
+    <div class="card-bottom"><span class="hint">Best of 8 random starts for each k</span><span class="live" id="elbow-live"></span></div>
+  </figure>
+</section>
+
+<section>
+  <h2>1. The idea</h2>
+  <p>A cluster is a group of points that sit close together. K-means describes each cluster by one point, its center, also called a centroid. Every data point belongs to the cluster whose center is nearest. You choose $k$, the number of clusters, in advance.</p>
+  <p class="callout">Good centers make points close to them. Good assignments make each point close to its center. K-means improves one while holding the other fixed.</p>
+</section>
+
+<section>
+  <h2>2. The goal</h2>
+  <p>K-means searches for the centers $\mu_1, \dots, \mu_k$ and the assignments that make the total squared distance as small as possible. This total is the inertia, or within-cluster sum of squares:</p>
+  <div class="formula">$$J = \sum_{j=1}^{k} \sum_{x_i \in C_j} \lVert x_i - \mu_j \rVert^2$$</div>
+  <p>Here $C_j$ is the set of points assigned to cluster $j$. A small $J$ means tight, compact groups. There is no label to compare against, so $J$ is the only score the algorithm sees.</p>
+</section>
+
+<section>
+  <h2>3. The loop</h2>
+  <p>The algorithm, also called Lloyd's algorithm, repeats two steps.</p>
+  <ol class="tight">
+    <li><b>Assign.</b> Give each point to its nearest center: $c_i = \arg\min_j \lVert x_i - \mu_j \rVert^2$.</li>
+    <li><b>Update.</b> Move each center to the mean of its points: $\mu_j = \dfrac{1}{|C_j|}\sum_{x_i \in C_j} x_i$.</li>
+  </ol>
+  <p>The mean is the right move because it is the single point that minimizes the sum of squared distances to a set. So neither step can make $J$ larger. Since there are only finitely many ways to split the points, $J$ must stop changing, and the loop ends. In the lab, the run finishes when an Assign step changes no point.</p>
+</section>
+
+<section>
+  <h2>4. What can go wrong</h2>
+  <ul class="tight">
+    <li><b>Bad starts.</b> The result is only a local minimum. Two centers born in the same blob can leave another blob with none. Press New centers a few times and compare the inertia. Real libraries run many starts and keep the best, and use k-means++ to spread the first centers apart.</li>
+    <li><b>Choosing k.</b> Inertia always falls as $k$ grows, down to zero when $k$ equals the number of points. So look for the elbow in Fig 2, where adding another cluster stops helping much.</li>
+    <li><b>Round blobs only.</b> Distance to a center favors clusters of similar size and round shape. Long curved shapes or rings get cut in pieces.</li>
+    <li><b>Scale matters.</b> A feature measured in thousands will outvote one measured in tenths. Standardize features first.</li>
+    <li><b>Outliers.</b> A far point pulls its center toward it, because a mean is not robust.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>5. The same thing in code</h2>
+  <pre class="code"><span class="k">function</span> kmeans(points, k, maxIter = <span class="t">100</span>) {
+  <span class="c">// start from k distinct data points</span>
+  <span class="k">let</span> centers = shuffle(points).slice(<span class="t">0</span>, k).map(p =&gt; [...p]);
+  <span class="k">let</span> labels = <span class="k">new</span> Array(points.length).fill(-<span class="t">1</span>);
+
+  <span class="k">for</span> (<span class="k">let</span> iter = <span class="t">0</span>; iter &lt; maxIter; iter++) {
+    <span class="c">// assign: nearest center for each point</span>
+    <span class="k">let</span> changed = <span class="k">false</span>;
+    points.forEach((p, i) =&gt; {
+      <span class="k">const</span> c = nearest(p, centers);
+      <span class="k">if</span> (c !== labels[i]) { labels[i] = c; changed = <span class="k">true</span>; }
+    });
+    <span class="k">if</span> (!changed) <span class="k">break</span>;
+
+    <span class="c">// update: each center becomes the mean of its points</span>
+    centers = centers.map((old, j) =&gt; {
+      <span class="k">const</span> mine = points.filter((_, i) =&gt; labels[i] === j);
+      <span class="k">return</span> mine.length ? mean(mine) : old;
+    });
+  }
+  <span class="k">return</span> { centers, labels };
+}</pre>
+  <p>Each pass costs $O(n\,k\,d)$ for $n$ points in $d$ dimensions, which is why k-means scales to millions of rows.</p>
+</section>
+
+<section>
+  <h2>6. Where it shows up</h2>
+  <div class="cards">
+    <div class="stat focal"><div class="eyebrow">Business</div><div class="big">segments</div><p>Group customers by behavior to target offers.</p></div>
+    <div class="stat"><div class="eyebrow">Images</div><div class="big">palette</div><p>Replace every pixel with its center color to compress an image to $k$ colors.</p></div>
+    <div class="stat"><div class="eyebrow">Search</div><div class="big">codebook</div><p>Vector quantization splits a huge set of vectors into cells for fast lookup.</p></div>
+  </div>
+  <p style="margin-top:20px">K-means is unsupervised. If you do have labels and want to predict a class, see <a href="../logistic-regression/logistic-regression.html">Logistic Regression</a> or <a href="../perceptron-learning-algorithm/perceptron-learning-algorithm.html">Perceptron</a>. For the full map of methods, read <a href="../ml-algorithm-groups/ml-algorithm-groups.html">Machine Learning Algorithm Groups</a>. The nearest-center step is the same search problem that <a href="../../datastructure-algorithm/quad-tree/quad-tree.html">Quad Tree</a> speeds up.</p>
+</section>
+
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var NS = 'http://www.w3.org/2000/svg';
+  var W = 720, H = 360, SC = 3.6; // data runs 0..200 by 0..100, same scale on both axes
+  var COLORS = ['#bf4520', '#2e5aa8', '#2f8f6b', '#b8860b', '#7b4fa3', '#c2547d'];
+  var $ = function (id) { return document.getElementById(id); };
+  var state = { seed: 7, pts: [], cents: [], next: 'assign', iter: 0, done: false, lastChanged: 0, elbow: [] };
+
+  function el(name, attrs, parent) {
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  // small seeded random generator so a seed always gives the same data
+  function rng(seed) {
+    var a = seed >>> 0;
+    return function () {
+      a = (a + 0x6D2B79F5) >>> 0;
+      var t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function gauss(r) {
+    var u = 1 - r(), v = r();
+    return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+  }
+  function d2(a, b) { var dx = a.x - b.x, dy = a.y - b.y; return dx * dx + dy * dy; }
+
+  function makeData(seed) {
+    var r = rng(seed), blobs = 3, pts = [];
+    for (var j = 0; j < blobs; j++) {
+      var cx = 25 + r() * 150, cy = 20 + r() * 60;
+      for (var i = 0; i < 26; i++) {
+        pts.push({ x: Math.min(198, Math.max(2, cx + gauss(r) * 9)), y: Math.min(98, Math.max(2, cy + gauss(r) * 9)), c: -1 });
+      }
+    }
+    return pts;
+  }
+
+  function pickCenters(pts, k, r) {
+    var idx = [], out = [];
+    while (idx.length < k) {
+      var i = Math.floor(r() * pts.length);
+      if (idx.indexOf(i) < 0) idx.push(i);
+    }
+    idx.forEach(function (i) { out.push({ x: pts[i].x, y: pts[i].y, trail: [[pts[i].x, pts[i].y]] }); });
+    return out;
+  }
+
+  function assign(pts, cents) {
+    var changed = 0;
+    pts.forEach(function (p) {
+      var best = 0, bd = Infinity;
+      cents.forEach(function (c, j) { var d = d2(p, c); if (d < bd) { bd = d; best = j; } });
+      if (p.c !== best) { p.c = best; changed++; }
+    });
+    return changed;
+  }
+  function update(pts, cents) {
+    cents.forEach(function (c, j) {
+      var sx = 0, sy = 0, n = 0;
+      pts.forEach(function (p) { if (p.c === j) { sx += p.x; sy += p.y; n++; } });
+      if (n) { c.x = sx / n; c.y = sy / n; c.trail.push([c.x, c.y]); }
+    });
+  }
+  function inertia(pts, cents) {
+    var s = 0;
+    pts.forEach(function (p) { if (p.c >= 0) s += d2(p, cents[p.c]); });
+    return s;
+  }
+
+  // best inertia over several random starts, used for the elbow chart
+  function bestInertia(pts, k, seed) {
+    var r = rng(seed * 101 + k), best = Infinity;
+    for (var t = 0; t < 8; t++) {
+      var copy = pts.map(function (p) { return { x: p.x, y: p.y, c: -1 }; });
+      var cs = pickCenters(copy, k, r);
+      for (var it = 0; it < 60; it++) {
+        var ch = assign(copy, cs);
+        if (!ch) break;
+        update(copy, cs);
+      }
+      best = Math.min(best, inertia(copy, cs));
+    }
+    return best;
+  }
+  function computeElbow() {
+    state.elbow = [];
+    for (var k = 1; k <= 8; k++) state.elbow.push(bestInertia(state.pts, k, state.seed));
+  }
+
+  function resetCenters() {
+    var k = +$('k').value;
+    state.pts.forEach(function (p) { p.c = -1; });
+    state.cents = pickCenters(state.pts, k, rng(Math.floor(Math.random() * 1e9)));
+    state.next = 'assign'; state.iter = 0; state.done = false; state.lastChanged = 0;
+  }
+
+  function step() {
+    if (state.done) return;
+    if (state.next === 'assign') {
+      var ch = assign(state.pts, state.cents);
+      state.lastChanged = ch;
+      if (ch === 0) state.done = true; else state.next = 'update';
+    } else {
+      update(state.pts, state.cents);
+      state.iter++;
+      state.next = 'assign';
+    }
+  }
+
+  function drawElbow() {
+    var g = $('elbow-layer'); g.textContent = '';
+    var L = 60, R = 690, T = 20, B = 200, e = state.elbow, max = e[0] || 1;
+    var X = function (k) { return L + (k - 1) / 7 * (R - L); };
+    var Y = function (v) { return B - v / max * (B - T); };
+    el('line', { x1: L, x2: R, y1: B, y2: B, stroke: '#2d3142' }, g);
+    el('line', { x1: L, x2: L, y1: T, y2: B, stroke: '#2d3142' }, g);
+    for (var k = 1; k <= 8; k++) {
+      el('line', { x1: X(k), x2: X(k), y1: T, y2: B, stroke: 'rgba(45,49,66,.08)' }, g);
+      var t = el('text', { x: X(k), y: B + 18, 'text-anchor': 'middle', 'font-size': 11, fill: '#5a6580', 'font-family': 'Geist Mono, monospace' }, g);
+      t.textContent = k;
+    }
+    var xl = el('text', { x: (L + R) / 2, y: B + 36, 'text-anchor': 'middle', 'font-size': 11, fill: '#5a6580', 'font-family': 'Geist Mono, monospace' }, g);
+    xl.textContent = 'number of clusters k';
+    var d = '';
+    e.forEach(function (v, i) { d += (i ? ' L' : 'M') + X(i + 1).toFixed(1) + ' ' + Y(v).toFixed(1); });
+    el('path', { d: d, fill: 'none', stroke: '#2d3142', 'stroke-width': 2.2 }, g);
+    e.forEach(function (v, i) {
+      var on = i + 1 === +$('k').value;
+      el('circle', { cx: X(i + 1), cy: Y(v), r: on ? 7 : 4, fill: on ? '#bf4520' : '#fff', stroke: on ? '#bf4520' : '#2d3142', 'stroke-width': 2 }, g);
+    });
+    $('elbow-live').textContent = 'k=1: ' + Math.round(e[0]) + ' · k=8: ' + Math.round(e[7]);
+  }
+
+  function render() {
+    var k = +$('k').value;
+    $('o-k').textContent = k;
+    var g = $('layer'); g.textContent = '';
+    var P = function (p) { return [p.x * SC, H - p.y * SC]; };
+
+    // light grid
+    for (var gx = 0; gx <= 200; gx += 50) el('line', { x1: gx * SC, x2: gx * SC, y1: 0, y2: H, stroke: 'rgba(45,49,66,.06)' }, g);
+    for (var gy = 0; gy <= 100; gy += 50) el('line', { x1: 0, x2: W, y1: H - gy * SC, y2: H - gy * SC, stroke: 'rgba(45,49,66,.06)' }, g);
+
+    // links from points to their center
+    state.pts.forEach(function (p) {
+      if (p.c < 0) return;
+      var a = P(p), c = P(state.cents[p.c]);
+      el('line', { x1: a[0], y1: a[1], x2: c[0], y2: c[1], stroke: COLORS[p.c], 'stroke-width': 1, opacity: 0.22 }, g);
+    });
+    // points
+    state.pts.forEach(function (p) {
+      var a = P(p);
+      el('circle', { cx: a[0], cy: a[1], r: 4.5, fill: p.c < 0 ? '#fff' : COLORS[p.c], stroke: p.c < 0 ? '#2d3142' : '#fff', 'stroke-width': p.c < 0 ? 1.5 : 1 }, g);
+    });
+    // trails and centers
+    state.cents.forEach(function (c, j) {
+      var d = '';
+      c.trail.forEach(function (t, i) { d += (i ? ' L' : 'M') + (t[0] * SC).toFixed(1) + ' ' + (H - t[1] * SC).toFixed(1); });
+      if (c.trail.length > 1) el('path', { d: d, fill: 'none', stroke: COLORS[j], 'stroke-width': 2, 'stroke-dasharray': '3 3' }, g);
+      var a = P(c);
+      el('path', { d: 'M' + a[0] + ',' + (a[1] - 11) + ' L' + (a[0] + 11) + ',' + a[1] + ' L' + a[0] + ',' + (a[1] + 11) + ' L' + (a[0] - 11) + ',' + a[1] + ' Z', fill: COLORS[j], stroke: '#2d3142', 'stroke-width': 2 }, g);
+    });
+
+    var J = inertia(state.pts, state.cents), assigned = state.pts.some(function (p) { return p.c >= 0; });
+    $('answer').textContent = assigned ? Math.round(J).toLocaleString('en-US') : 'not yet';
+    $('live').textContent = state.done ? 'converged' : 'next: ' + state.next;
+    $('readout').textContent =
+      'k          = ' + k + '\n' +
+      'points     = ' + state.pts.length + '\n' +
+      'iteration  = ' + state.iter + '\n' +
+      'next step  = ' + (state.done ? 'none, converged' : state.next) + '\n' +
+      'moved last = ' + state.lastChanged + ' points\n';
+    var tex = 'J=' + (assigned ? Math.round(J) : '?') + '\\quad k=' + k;
+    if (window.katex) window.katex.render(tex, $('calc'), { throwOnError: false, displayMode: false });
+    else $('calc').textContent = tex;
+  }
+
+  function fresh() {
+    state.pts = makeData(state.seed);
+    computeElbow();
+    resetCenters();
+    drawElbow();
+    render();
+  }
+
+  $('step').addEventListener('click', function () { step(); render(); });
+  $('run').addEventListener('click', function () {
+    var guard = 0;
+    while (!state.done && guard++ < 200) step();
+    render();
+  });
+  $('cents').addEventListener('click', function () { resetCenters(); render(); });
+  $('data').addEventListener('click', function () { state.seed = Math.floor(Math.random() * 100000) + 1; fresh(); });
+  $('k').addEventListener('input', function () { resetCenters(); drawElbow(); render(); });
+
+  fresh();
+  if (window.renderMathInElement) {
+    window.renderMathInElement(document.body, {
+      delimiters: [{ left: '$$', right: '$$', display: true }, { left: '$', right: '$', display: false }],
+      ignoredTags: ['script', 'style', 'textarea', 'pre', 'code'],
+      throwOnError: false
+    });
+  }
+});
+</script>
+</body>
+</html>

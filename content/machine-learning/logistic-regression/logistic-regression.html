@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Logistic Regression: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+a{color:var(--link)}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+
+.card{margin:24px 0 0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.scroll{overflow-x:auto;padding:0 8px;text-align:center}
+.scroll svg{display:inline-block;width:100%;max-width:720px;height:auto;cursor:crosshair}
+
+.controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;margin-top:16px;align-items:start}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.row{display:grid;grid-template-columns:44px 1fr 56px;gap:12px;align-items:center;margin:0 0 12px}
+.row label{font-family:var(--mono);font-size:13px;font-weight:600}
+.row output{font-family:var(--mono);font-size:12px;text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);min-height:28px}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.big-answer{font-family:var(--serif);font-size:44px;line-height:1.1;margin:4px 0 8px;color:var(--accent)}
+#readout{margin:0;padding:0;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink);border:0;background:none}
+#calc{overflow-x:auto;margin-top:8px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:3px;border:1px solid var(--ink);display:inline-block}
+
+pre.code{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .t{color:var(--link)} .c{color:var(--soft);font-style:italic}
+
+.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;text-align:center;overflow-x:auto}
+.formula .katex{font-size:1.25em}
+.katex{color:var(--ink)}
+p .katex,td .katex,li .katex{font-size:1.05em}
+
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:30px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+table.ops{border-collapse:collapse;width:100%;max-width:720px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+.tblwrap{overflow-x:auto}
+ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
+
+@media (max-width:860px){.controls{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" href="../../../index.html">&larr; Back to home</a>
+
+<header>
+  <div class="eyebrow">Machine Learning · Classification</div>
+  <h1>Logistic Regression</h1>
+  <p class="lede">A classifier that answers with a probability. It takes the same weighted sum as linear regression and bends it into an S-shaped curve between 0 and 1.</p>
+</header>
+
+<section>
+  <h2>Try it first</h2>
+  <p>Each dot is one example with a single feature $x$. Dots on the top row belong to class 1, and dots on the bottom row to class 0. The curve is the model's probability of class 1. Move $w$ and $b$ by hand to fit it, or press Train to let <a href="../gradient-descent/gradient-descent.html">Gradient Descent</a> do it. The threshold turns probabilities into decisions, and the readout counts the errors. Click the top or bottom half of the chart to add a point.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">The sigmoid curve and its decision boundary</span></div>
+    <div class="scroll">
+      <svg id="plot" viewBox="0 0 720 330" role="img" aria-labelledby="plot-title plot-desc">
+        <title id="plot-title">Sigmoid probability curve over points of two classes</title>
+        <desc id="plot-desc">The horizontal axis is a single feature. Points of class 1 sit along the top at probability 1 and points of class 0 sit along the bottom at probability 0. An S-shaped curve rises from near 0 on the left to near 1 on the right and gives the predicted probability of class 1. A horizontal dashed line marks the decision threshold, and a vertical dashed line marks the feature value where the curve crosses it. Points that fall on the wrong side of the vertical line are drawn with a thick outline. The readout beside the figure gives the loss and accuracy.</desc>
+        <rect width="720" height="330" fill="#fff"/>
+        <g id="layer"></g>
+      </svg>
+    </div>
+    <div class="card-bottom"><span class="hint">Click the top half for class 1, the bottom half for class 0</span><span class="live" id="live"></span></div>
+  </figure>
+
+  <div class="controls">
+    <div class="panel">
+      <div class="row"><label for="w">$w$</label><input type="range" id="w" min="-4" max="4" step="0.05" value="0.2"><output id="o-w"></output></div>
+      <div class="row"><label for="b">$b$</label><input type="range" id="b" min="-6" max="6" step="0.1" value="0"><output id="o-b"></output></div>
+      <div class="row"><label for="t" title="decision threshold">$t$</label><input type="range" id="t" min="0.05" max="0.95" step="0.05" value="0.5"><output id="o-t"></output></div>
+      <div class="btns">
+        <button type="button" class="btn" id="step">Train 1 step</button>
+        <button type="button" class="btn" id="run">Train 200 steps</button>
+        <button type="button" class="btn" id="add0">Add a 0</button>
+        <button type="button" class="btn" id="add1">Add a 1</button>
+        <button type="button" class="btn" id="reset">Reset</button>
+      </div>
+      <div class="legend" aria-label="Legend">
+        <span><i class="sw" style="background:#bf4520;border-radius:50%"></i>class 1</span>
+        <span><i class="sw" style="background:#2e5aa8;border-radius:50%"></i>class 0</span>
+        <span><i class="sw" style="background:#2d3142"></i>probability</span>
+        <span><i class="sw" style="background:#fff;border:3px solid #2d3142;border-radius:50%"></i>wrong side</span>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="eyebrow">Log loss</div>
+      <div class="big-answer" id="answer"></div>
+      <pre id="readout" aria-live="polite"></pre>
+      <div id="calc"></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>1. From a score to a probability</h2>
+  <p>Linear regression gives a score $z = w x + b$ that can be any number. A probability must lie between 0 and 1. The sigmoid function squeezes any score into that range:</p>
+  <div class="formula">$$\sigma(z) = \frac{1}{1 + e^{-z}}, \qquad P(y = 1 \mid x) = \sigma(w x + b)$$</div>
+  <p>Big positive scores give probabilities near 1, big negative scores give probabilities near 0, and a score of exactly 0 gives $\tfrac{1}{2}$. Its slope is steepest in the middle, which is why the curve in the lab turns quickly near the boundary and flattens at the ends. A neat fact is that its derivative is $\sigma'(z) = \sigma(z)\,(1 - \sigma(z))$.</p>
+  <p class="callout">The model is still linear. It is the log-odds that depend linearly on $x$, not the probability.</p>
+  <div class="formula">$$\ln\frac{p}{1-p} = w x + b$$</div>
+  <p>The ratio $p/(1-p)$ is the odds. Add 1 to $x$ and the odds multiply by $e^{w}$. This makes the weights easy to interpret.</p>
+</section>
+
+<section>
+  <h2>2. Making a decision</h2>
+  <p>To turn a probability into a class, compare it with a threshold $t$. The usual choice is $t = 0.5$, which means "say 1 when it is more likely than not". For one feature this cuts the axis at a single point, the dashed vertical line in the lab:</p>
+  <div class="formula">$$\hat{y} = \begin{cases} 1 & p \ge t \\ 0 & p < t \end{cases} \qquad\Longrightarrow\qquad x^\ast = \frac{\ln\frac{t}{1-t} - b}{w}$$</div>
+  <p>With $t = 0.5$ the log term is zero and the boundary is simply $-b/w$. With more features the boundary becomes a straight line or plane, so logistic regression is a linear classifier, like the <a href="../perceptron-learning-algorithm/perceptron-learning-algorithm.html">Perceptron</a>. Move the threshold to trade one kind of mistake for the other. A low $t$ catches more true 1s but raises false alarms.</p>
+</section>
+
+<section>
+  <h2>3. The loss</h2>
+  <p>Squared error is a poor fit for probabilities. Instead, ask how likely the model thought the true labels were. For one example with label $y$ and predicted probability $p$, the log loss is:</p>
+  <div class="formula">$$\ell(p, y) = -\,y \ln p - (1 - y)\ln(1 - p)$$</div>
+  <p>If $y = 1$ the loss is $-\ln p$, which is zero when $p = 1$ and shoots up as $p$ approaches 0. A confident wrong answer is punished heavily. Averaging over all examples gives the training loss, which is the same as maximizing the likelihood of the data:</p>
+  <div class="formula">$$L(w, b) = \frac{1}{n}\sum_{i=1}^{n} \ell\big(\sigma(w x_i + b),\, y_i\big)$$</div>
+  <p>This loss is convex, so there is no bad local minimum to get stuck in.</p>
+</section>
+
+<section>
+  <h2>4. Training with gradient descent</h2>
+  <p>Unlike <a href="../linear-regression/linear-regression.html">Linear Regression</a>, there is no closed form answer, so we walk downhill. The gradient of the log loss has a pleasantly simple shape: for every example, take the error $p_i - y_i$ and weight it by the input.</p>
+  <div class="formula">$$\frac{\partial L}{\partial w} = \frac{1}{n}\sum_i (p_i - y_i)\,x_i, \qquad \frac{\partial L}{\partial b} = \frac{1}{n}\sum_i (p_i - y_i)$$</div>
+  <p>Each update is $w \leftarrow w - \eta \,\partial L/\partial w$, and likewise for $b$. Press Train 200 steps and watch the curve settle onto the data. The lab uses $\eta = 0.3$. If the two classes can be split perfectly, for example after you pull the groups apart, the best $w$ grows without bound because a steeper curve always lowers the loss. Real implementations add a penalty on the size of $w$, called regularization, to stop that.</p>
+</section>
+
+<section>
+  <h2>5. Reading the errors</h2>
+  <p>Accuracy hides which mistakes are made. Count the four outcomes at your threshold:</p>
+  <div class="tblwrap">
+  <table class="ops">
+    <thead><tr><th></th><th>Predicted 1</th><th>Predicted 0</th></tr></thead>
+    <tbody>
+      <tr><td>Actually 1</td><td>true positive (TP)</td><td>false negative (FN)</td></tr>
+      <tr><td>Actually 0</td><td>false positive (FP)</td><td>true negative (TN)</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>Precision is $\mathrm{TP}/(\mathrm{TP}+\mathrm{FP})$, how many alarms were real. Recall is $\mathrm{TP}/(\mathrm{TP}+\mathrm{FN})$, how many real cases were caught. The lab prints both.</p>
+</section>
+
+<section>
+  <h2>6. The same thing in code</h2>
+  <pre class="code"><span class="k">const</span> sigmoid = z =&gt; <span class="t">1</span> / (<span class="t">1</span> + Math.exp(-z));
+
+<span class="k">function</span> train(xs, ys, lr = <span class="t">0.3</span>, steps = <span class="t">200</span>) {
+  <span class="k">let</span> w = <span class="t">0</span>, b = <span class="t">0</span>;
+  <span class="k">for</span> (<span class="k">let</span> s = <span class="t">0</span>; s &lt; steps; s++) {
+    <span class="k">let</span> gw = <span class="t">0</span>, gb = <span class="t">0</span>;
+    xs.forEach((x, i) =&gt; {
+      <span class="k">const</span> err = sigmoid(w * x + b) - ys[i];   <span class="c">// p - y</span>
+      gw += err * x;
+      gb += err;
+    });
+    w -= lr * gw / xs.length;
+    b -= lr * gb / xs.length;
+  }
+  <span class="k">return</span> { w, b };
+}</pre>
+</section>
+
+<section>
+  <h2>7. Where it fits</h2>
+  <div class="cards">
+    <div class="stat focal"><div class="eyebrow">Strength</div><div class="big">calibrated</div><p>The output is a probability you can rank, threshold, and explain with odds.</p></div>
+    <div class="stat"><div class="eyebrow">Use</div><div class="big">baseline</div><p>Spam filters, credit risk, medical scores, and click prediction often start here.</p></div>
+    <div class="stat"><div class="eyebrow">Weakness</div><div class="big">linear</div><p>The boundary is flat. For curved boundaries, add features or use a non-linear model.</p></div>
+  </div>
+  <p style="margin-top:20px">With several classes, the sigmoid generalizes to the softmax, the last layer of most neural classifiers. The Bayesian view of the same output is in <a href="../../math/bayes-theorem/bayes-theorem.html">Bayes' Theorem</a>. For the map of related methods, read <a href="../ml-algorithm-groups/ml-algorithm-groups.html">Machine Learning Algorithm Groups</a>.</p>
+</section>
+
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var NS = 'http://www.w3.org/2000/svg';
+  var L = 40, R = 690, T = 24, B = 286, XMIN = -6, XMAX = 6, LR = 0.3;
+  var $ = function (id) { return document.getElementById(id); };
+  var C0 = [-4.6, -3.8, -3.3, -2.7, -2.2, -1.6, -1.1, -0.4, 0.6];
+  var C1 = [-0.7, 0.3, 1.0, 1.5, 2.1, 2.6, 3.2, 3.9, 4.7];
+  var state = { pts: [], jit: 0, w: 0.2, b: 0 };
+
+  var X = function (v) { return L + (v - XMIN) / (XMAX - XMIN) * (R - L); };
+  var Y = function (p) { return B - p * (B - T); };
+
+  function el(name, attrs, parent) {
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function sig(z) { return 1 / (1 + Math.exp(-z)); }
+  function addPt(x, y) {
+    state.jit++;
+    // deterministic vertical wobble keeps stacked dots readable
+    state.pts.push({ x: x, y: y, j: ((state.jit * 37) % 11 - 5) * 1.6 });
+  }
+  function loadData() {
+    state.pts = []; state.jit = 0;
+    C0.forEach(function (x) { addPt(x, 0); });
+    C1.forEach(function (x) { addPt(x, 1); });
+  }
+  function grads(w, b) {
+    var gw = 0, gb = 0, n = state.pts.length || 1;
+    state.pts.forEach(function (p) { var e = sig(w * p.x + b) - p.y; gw += e * p.x; gb += e; });
+    return [gw / n, gb / n];
+  }
+  function clampTo(id, v) {
+    var s = $(id);
+    return Math.min(+s.max, Math.max(+s.min, v));
+  }
+  function trainSteps(k) {
+    // the model keeps full precision, the sliders only show a snapped copy
+    for (var i = 0; i < k; i++) {
+      var g = grads(state.w, state.b);
+      state.w = clampTo('w', state.w - LR * g[0]);
+      state.b = clampTo('b', state.b - LR * g[1]);
+    }
+    $('w').value = state.w; $('b').value = state.b;
+  }
+
+  function render() {
+    var w = state.w, b = state.b, t = +$('t').value, pts = state.pts, n = pts.length;
+    $('o-w').textContent = w.toFixed(2);
+    $('o-b').textContent = b.toFixed(1);
+    $('o-t').textContent = t.toFixed(2);
+    var g = $('layer'); g.textContent = '';
+
+    // grid and axes
+    for (var x = XMIN; x <= XMAX; x += 2) {
+      el('line', { x1: X(x), x2: X(x), y1: T, y2: B, stroke: 'rgba(45,49,66,.08)' }, g);
+      var lab = el('text', { x: X(x), y: B + 36, 'text-anchor': 'middle', 'font-size': 11, fill: '#5a6580', 'font-family': 'Geist Mono, monospace' }, g);
+      lab.textContent = x;
+    }
+    [0, 0.5, 1].forEach(function (p) {
+      el('line', { x1: L, x2: R, y1: Y(p), y2: Y(p), stroke: 'rgba(45,49,66,.12)' }, g);
+      var lab = el('text', { x: L - 6, y: Y(p) + 4, 'text-anchor': 'end', 'font-size': 11, fill: '#5a6580', 'font-family': 'Geist Mono, monospace' }, g);
+      lab.textContent = p;
+    });
+    el('line', { x1: L, x2: R, y1: B + 14, y2: B + 14, stroke: '#2d3142' }, g);
+
+    // threshold and boundary
+    el('line', { x1: L, x2: R, y1: Y(t), y2: Y(t), stroke: '#bf4520', 'stroke-width': 1.2, 'stroke-dasharray': '5 4' }, g);
+    var xb = null;
+    if (Math.abs(w) > 1e-6) xb = (Math.log(t / (1 - t)) - b) / w;
+    if (xb !== null && xb >= XMIN && xb <= XMAX) {
+      el('line', { x1: X(xb), x2: X(xb), y1: T, y2: B + 14, stroke: '#bf4520', 'stroke-width': 1.6, 'stroke-dasharray': '5 4' }, g);
+      var bl = el('text', { x: X(xb) + 6, y: T + 10, 'font-size': 11, fill: '#bf4520', 'font-family': 'Geist Mono, monospace' }, g);
+      bl.textContent = 'x* = ' + xb.toFixed(2);
+    }
+
+    // sigmoid curve
+    var d = '', N = 240;
+    for (var i = 0; i <= N; i++) {
+      var xx = XMIN + (XMAX - XMIN) * i / N;
+      d += (i ? ' L' : 'M') + X(xx).toFixed(1) + ' ' + Y(sig(w * xx + b)).toFixed(1);
+    }
+    el('path', { d: d, fill: 'none', stroke: '#2d3142', 'stroke-width': 2.6, 'stroke-linejoin': 'round' }, g);
+
+    // points and metrics
+    var loss = 0, tp = 0, fp = 0, fn = 0, tn = 0;
+    pts.forEach(function (p) {
+      var pr = sig(w * p.x + b), eps = 1e-12;
+      loss += -(p.y * Math.log(Math.max(pr, eps)) + (1 - p.y) * Math.log(Math.max(1 - pr, eps)));
+      var pred = pr >= t ? 1 : 0;
+      if (pred === 1 && p.y === 1) tp++; else if (pred === 1 && p.y === 0) fp++; else if (pred === 0 && p.y === 1) fn++; else tn++;
+      var bad = pred !== p.y;
+      var cy = Y(p.y) + (p.y === 1 ? 14 : -14) + p.j;
+      el('circle', { cx: X(p.x), cy: cy, r: 6, fill: p.y === 1 ? '#bf4520' : '#2e5aa8', stroke: bad ? '#2d3142' : '#fff', 'stroke-width': bad ? 3 : 1.5 }, g);
+    });
+    loss = n ? loss / n : 0;
+    var acc = n ? (tp + tn) / n : 0;
+    var prec = tp + fp ? tp / (tp + fp) : 0, rec = tp + fn ? tp / (tp + fn) : 0;
+
+    $('answer').textContent = n ? loss.toFixed(3) : 'no points';
+    $('live').textContent = 'accuracy ' + (acc * 100).toFixed(0) + '% · n = ' + n;
+    $('readout').textContent =
+      'w, b      = ' + w.toFixed(2) + ', ' + b.toFixed(2) + '\n' +
+      'threshold = ' + t.toFixed(2) + '\n' +
+      'boundary  = ' + (xb === null ? 'none' : xb.toFixed(2)) + '\n' +
+      'TP ' + tp + '  FP ' + fp + '  FN ' + fn + '  TN ' + tn + '\n' +
+      'precision = ' + prec.toFixed(2) + '\n' +
+      'recall    = ' + rec.toFixed(2);
+    var tex = 'p=\\sigma(' + w.toFixed(2) + 'x' + (b < 0 ? '-' : '+') + Math.abs(b).toFixed(2) + ')\\quad L=' + loss.toFixed(3);
+    if (window.katex) window.katex.render(tex, $('calc'), { throwOnError: false, displayMode: false });
+    else $('calc').textContent = tex;
+  }
+
+  $('plot').addEventListener('click', function (e) {
+    var r = $('plot').getBoundingClientRect();
+    var px = (e.clientX - r.left) / r.width * 720, py = (e.clientY - r.top) / r.height * 330;
+    var x = XMIN + (px - L) / (R - L) * (XMAX - XMIN);
+    if (x < XMIN || x > XMAX) return;
+    addPt(x, py < (T + B) / 2 ? 1 : 0);
+    render();
+  });
+  $('add0').addEventListener('click', function () { addPt(-5 + Math.random() * 6, 0); render(); });
+  $('add1').addEventListener('click', function () { addPt(-1 + Math.random() * 6, 1); render(); });
+  $('step').addEventListener('click', function () { trainSteps(1); render(); });
+  $('run').addEventListener('click', function () { trainSteps(200); render(); });
+  $('reset').addEventListener('click', function () {
+    loadData(); state.w = 0.2; state.b = 0;
+    $('w').value = 0.2; $('b').value = 0; $('t').value = 0.5; render();
+  });
+  $('w').addEventListener('input', function () { state.w = +$('w').value; render(); });
+  $('b').addEventListener('input', function () { state.b = +$('b').value; render(); });
+  $('t').addEventListener('input', render);
+
+  loadData();
+  render();
+  if (window.renderMathInElement) {
+    window.renderMathInElement(document.body, {
+      delimiters: [{ left: '$$', right: '$$', display: true }, { left: '$', right: '$', display: false }],
+      ignoredTags: ['script', 'style', 'textarea', 'pre', 'code'],
+      throwOnError: false
+    });
+  }
+});
+</script>
+</body>
+</html>

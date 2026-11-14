@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Linear Regression: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+a{color:var(--link)}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+
+.card{margin:24px 0 0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.scroll{overflow-x:auto;padding:0 8px;text-align:center}
+.scroll svg{display:inline-block;width:100%;max-width:720px;height:auto;cursor:crosshair}
+
+.controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;margin-top:16px;align-items:start}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.row{display:grid;grid-template-columns:44px 1fr 56px;gap:12px;align-items:center;margin:0 0 12px}
+.row label{font-family:var(--mono);font-size:13px;font-weight:600}
+.row output{font-family:var(--mono);font-size:12px;text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);min-height:28px}
+.group-label{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);margin:16px 0 6px}
+.seg{display:flex;flex-wrap:wrap;border:1px solid var(--rule-solid);border-radius:6px;overflow:hidden}
+.seg button{flex:1;min-height:40px;border:0;background:transparent;font:500 13px var(--sans);color:var(--muted);cursor:pointer;padding:0 8px}
+.seg button+button{border-left:1px solid var(--rule-solid)}
+.seg button:hover{background:var(--paper-2)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.big-answer{font-family:var(--serif);font-size:44px;line-height:1.1;margin:4px 0 8px;color:var(--accent)}
+#readout{margin:0;padding:0;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink);border:0;background:none}
+#calc{overflow-x:auto;margin-top:8px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:3px;border:1px solid var(--ink);display:inline-block}
+
+pre.code{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .t{color:var(--link)} .c{color:var(--soft);font-style:italic}
+
+.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;text-align:center;overflow-x:auto}
+.formula .katex{font-size:1.25em}
+.katex{color:var(--ink)}
+p .katex,td .katex,li .katex{font-size:1.05em}
+
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:30px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
+
+@media (max-width:860px){.controls{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" href="../../../index.html">&larr; Back to home</a>
+
+<header>
+  <div class="eyebrow">Machine Learning · Regression</div>
+  <h1>Linear Regression</h1>
+  <p class="lede">Draw the straight line that sits as close as possible to a cloud of points. It is the oldest and simplest way to predict a number from other numbers, and the starting point for most of machine learning.</p>
+</header>
+
+<section>
+  <h2>Try it first</h2>
+  <p>Drag the slope $w$ and the intercept $b$ to place a line by hand. Each vertical segment is a residual, the gap between the line and a point. Switch to squares to see the area that the loss adds up. Then press Fit best line and compare. Click the chart to add your own points.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">Fit a line to points</span></div>
+    <div class="scroll">
+      <svg id="plot" viewBox="0 0 720 330" role="img" aria-labelledby="plot-title plot-desc">
+        <title id="plot-title">Scatter plot with a straight line and the errors of each point</title>
+        <desc id="plot-desc">Points on a two dimensional chart roughly follow an upward trend. A solid line is the current model with the slope and intercept set by the sliders. A faint dashed line is the best least squares fit. Short vertical segments or squares show how far each point is from the current line. The numbers in the readout beside the figure give the mean squared error.</desc>
+        <rect width="720" height="330" fill="#fff"/>
+        <g id="layer"></g>
+      </svg>
+    </div>
+    <div class="card-bottom"><span class="hint">Click the chart to add a point</span><span class="live" id="live"></span></div>
+  </figure>
+
+  <div class="controls">
+    <div class="panel">
+      <div class="row"><label for="w">$w$</label><input type="range" id="w" min="-2" max="3" step="0.05" value="0.2"><output id="o-w"></output></div>
+      <div class="row"><label for="b">$b$</label><input type="range" id="b" min="-5" max="10" step="0.1" value="6"><output id="o-b"></output></div>
+      <div class="group-label" id="show-label">Show errors as</div>
+      <div class="seg" role="group" aria-labelledby="show-label">
+        <button type="button" data-show="res" aria-pressed="true">Residuals</button>
+        <button type="button" data-show="sq" aria-pressed="false">Squares</button>
+        <button type="button" data-show="off" aria-pressed="false">Off</button>
+      </div>
+      <div class="btns">
+        <button type="button" class="btn" id="fit">Fit best line</button>
+        <button type="button" class="btn" id="add">Add a point</button>
+        <button type="button" class="btn" id="undo">Remove last</button>
+        <button type="button" class="btn" id="reset">Reset</button>
+      </div>
+      <div class="legend" aria-label="Legend">
+        <span><i class="sw" style="background:#2d3142"></i>your line</span>
+        <span><i class="sw" style="background:#fff;border-color:#2e5aa8"></i>best fit</span>
+        <span><i class="sw" style="background:rgba(191,69,32,.25);border-color:#bf4520"></i>error</span>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="eyebrow">Mean squared error</div>
+      <div class="big-answer" id="answer"></div>
+      <pre id="readout" aria-live="polite"></pre>
+      <div id="calc"></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>1. The model</h2>
+  <p>With one input $x$, the model is a line. The slope $w$ says how much the prediction changes when $x$ goes up by one. The intercept $b$ is the prediction when $x = 0$.</p>
+  <div class="formula">$$\hat{y} = w x + b$$</div>
+  <p>With many inputs, the line becomes a weighted sum, and the same idea holds. Stack a column of ones next to the inputs so that $b$ becomes just another weight:</p>
+  <div class="formula">$$\hat{y} = \mathbf{w}^\top \mathbf{x} = w_0 + w_1 x_1 + \cdots + w_d x_d$$</div>
+  <p class="callout">Linear means linear in the weights. The inputs can still be squared or logged before they go in.</p>
+</section>
+
+<section>
+  <h2>2. The loss</h2>
+  <p>To pick a line we need a score for how wrong it is. For each point the residual is $r_i = y_i - \hat{y}_i$. Squaring makes every error positive and punishes big misses more than small ones. Averaging gives the mean squared error:</p>
+  <div class="formula">$$\mathrm{MSE}(w, b) = \frac{1}{n}\sum_{i=1}^{n}\big(y_i - (w x_i + b)\big)^2$$</div>
+  <p>This is the total area of the squares in the lab, divided by $n$. The best line is the one with the smallest area. Because the loss is a smooth bowl in $w$ and $b$, there is exactly one lowest point.</p>
+</section>
+
+<section>
+  <h2>3. The closed form answer</h2>
+  <p>Set the slope of the bowl to zero in both directions and solve. For one input the result is short. Let $\bar{x}$ and $\bar{y}$ be the means.</p>
+  <div class="formula">$$w = \frac{\sum_i (x_i - \bar{x})(y_i - \bar{y})}{\sum_i (x_i - \bar{x})^2}, \qquad b = \bar{y} - w\,\bar{x}$$</div>
+  <p>The numerator is the covariance of $x$ and $y$, and the denominator is the variance of $x$. So the slope is how much they move together, relative to how much $x$ moves on its own. The line always passes through the point $(\bar{x}, \bar{y})$, the center of the cloud.</p>
+  <p>For many inputs the same step is the normal equation. Here $X$ is the matrix of inputs with a column of ones, and $\mathbf{y}$ the vector of targets:</p>
+  <div class="formula">$$\hat{\mathbf{w}} = (X^\top X)^{-1} X^\top \mathbf{y}$$</div>
+  <p>Inverting $X^\top X$ costs about $O(d^3)$, so with very many features people train with <a href="../gradient-descent/gradient-descent.html">Gradient Descent</a> instead.</p>
+</section>
+
+<section>
+  <h2>4. How good is the fit?</h2>
+  <p>MSE depends on the units of $y$, so it is hard to judge alone. The coefficient of determination compares your line to the laziest model, which always predicts the mean:</p>
+  <div class="formula">$$R^2 = 1 - \frac{\sum_i (y_i - \hat{y}_i)^2}{\sum_i (y_i - \bar{y})^2}$$</div>
+  <p>A value of 1 means a perfect fit. A value of 0 means no better than the mean. It can even go negative for a line you placed badly, which you can see in the lab by dragging $w$ the wrong way.</p>
+</section>
+
+<section>
+  <h2>5. The same thing in code</h2>
+  <pre class="code"><span class="k">function</span> fit(xs, ys) {
+  <span class="k">const</span> n = xs.length;
+  <span class="k">const</span> mx = xs.reduce((a, v) =&gt; a + v, <span class="t">0</span>) / n;
+  <span class="k">const</span> my = ys.reduce((a, v) =&gt; a + v, <span class="t">0</span>) / n;
+  <span class="k">let</span> sxy = <span class="t">0</span>, sxx = <span class="t">0</span>;
+  <span class="k">for</span> (<span class="k">let</span> i = <span class="t">0</span>; i &lt; n; i++) {
+    sxy += (xs[i] - mx) * (ys[i] - my);
+    sxx += (xs[i] - mx) ** <span class="t">2</span>;
+  }
+  <span class="k">const</span> w = sxy / sxx;           <span class="c">// slope</span>
+  <span class="k">const</span> b = my - w * mx;         <span class="c">// intercept</span>
+  <span class="k">return</span> { w, b };
+}</pre>
+</section>
+
+<section>
+  <h2>6. Where it works and where it breaks</h2>
+  <div class="cards">
+    <div class="stat focal"><div class="eyebrow">Strength</div><div class="big">simple</div><p>Fast, easy to explain, and every weight has a plain meaning. A strong baseline for any numeric target.</p></div>
+    <div class="stat"><div class="eyebrow">Weakness</div><div class="big">outliers</div><p>Squared error lets one far point drag the whole line. Add a wild point in the lab and watch the fit swing.</p></div>
+    <div class="stat"><div class="eyebrow">Weakness</div><div class="big">curves</div><p>A line cannot bend. Add features such as $x^2$ or switch to a non-linear model when the trend is curved.</p></div>
+  </div>
+  <p style="margin-top:20px">When the target is a category instead of a number, use <a href="../logistic-regression/logistic-regression.html">Logistic Regression</a>. To see where linear regression sits among other methods, read <a href="../ml-algorithm-groups/ml-algorithm-groups.html">Machine Learning Algorithm Groups</a>. The related idea of fitting a curve exactly through every point is covered in <a href="../../math/polynomial-interpolation/polynomial-interpolation.html">Polynomial Interpolation</a>.</p>
+</section>
+
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var NS = 'http://www.w3.org/2000/svg';
+  var L = 50, R = 700, T = 16, B = 300, XMAX = 10, YMAX = 10;
+  var $ = function (id) { return document.getElementById(id); };
+  var DEFAULT = [[0.8, 2.1], [1.5, 2.0], [2.1, 3.4], [2.9, 3.1], [3.4, 4.6], [4.2, 4.0], [5.0, 5.6], [5.8, 5.1], [6.5, 6.9], [7.3, 6.4], [8.1, 7.9], [9.0, 8.2]];
+  var state = { pts: DEFAULT.map(function (p) { return p.slice(); }), show: 'res', w: 0.2, b: 6 };
+
+  var X = function (v) { return L + v / XMAX * (R - L); };
+  var Y = function (v) { return B - v / YMAX * (B - T); };
+
+  function el(name, attrs, parent) {
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+
+  function best(pts) {
+    var n = pts.length, mx = 0, my = 0, sxy = 0, sxx = 0, i;
+    if (!n) return { w: 0, b: 0 };
+    for (i = 0; i < n; i++) { mx += pts[i][0]; my += pts[i][1]; }
+    mx /= n; my /= n;
+    for (i = 0; i < n; i++) { sxy += (pts[i][0] - mx) * (pts[i][1] - my); sxx += Math.pow(pts[i][0] - mx, 2); }
+    var w = sxx < 1e-9 ? 0 : sxy / sxx;
+    return { w: w, b: my - w * mx };
+  }
+  function sse(pts, w, b) {
+    var s = 0;
+    pts.forEach(function (p) { var r = p[1] - (w * p[0] + b); s += r * r; });
+    return s;
+  }
+  function sst(pts) {
+    var n = pts.length, m = 0, s = 0;
+    pts.forEach(function (p) { m += p[1]; }); m /= (n || 1);
+    pts.forEach(function (p) { s += Math.pow(p[1] - m, 2); });
+    return s;
+  }
+  function clampTo(id, v) {
+    var s = $(id), lo = +s.min, hi = +s.max;
+    s.value = Math.min(hi, Math.max(lo, v));
+  }
+
+  function render() {
+    var w = state.w, b = state.b, pts = state.pts, n = pts.length;
+    $('o-w').textContent = w.toFixed(2);
+    $('o-b').textContent = b.toFixed(1);
+    var g = $('layer'); g.textContent = '';
+
+    // grid and axes
+    for (var t = 0; t <= 10; t += 2) {
+      el('line', { x1: X(t), x2: X(t), y1: T, y2: B, stroke: 'rgba(45,49,66,.08)' }, g);
+      el('line', { x1: L, x2: R, y1: Y(t), y2: Y(t), stroke: 'rgba(45,49,66,.08)' }, g);
+      var lx = el('text', { x: X(t), y: B + 18, 'text-anchor': 'middle', 'font-size': 11, fill: '#5a6580', 'font-family': 'Geist Mono, monospace' }, g);
+      lx.textContent = t;
+      var ly = el('text', { x: L - 8, y: Y(t) + 4, 'text-anchor': 'end', 'font-size': 11, fill: '#5a6580', 'font-family': 'Geist Mono, monospace' }, g);
+      ly.textContent = t;
+    }
+    el('line', { x1: L, x2: R, y1: B, y2: B, stroke: '#2d3142' }, g);
+    el('line', { x1: L, x2: L, y1: T, y2: B, stroke: '#2d3142' }, g);
+
+    // best line (faint)
+    var bf = best(pts);
+    if (n >= 2) {
+      el('line', { x1: X(0), y1: Y(bf.b), x2: X(XMAX), y2: Y(bf.w * XMAX + bf.b), stroke: '#2e5aa8', 'stroke-width': 1.6, 'stroke-dasharray': '6 4', opacity: 0.7 }, g);
+    }
+
+    // errors
+    if (state.show !== 'off') {
+      pts.forEach(function (p) {
+        var py = w * p[0] + b, y1 = Y(p[1]), y2 = Y(py), h = Math.abs(y2 - y1);
+        if (state.show === 'sq') {
+          el('rect', { x: X(p[0]), y: Math.min(y1, y2), width: h, height: h, fill: 'rgba(191,69,32,.18)', stroke: '#bf4520', 'stroke-width': 1 }, g);
+        } else {
+          el('line', { x1: X(p[0]), x2: X(p[0]), y1: y1, y2: y2, stroke: '#bf4520', 'stroke-width': 2 }, g);
+        }
+      });
+    }
+
+    // current line
+    el('line', { x1: X(0), y1: Y(b), x2: X(XMAX), y2: Y(w * XMAX + b), stroke: '#2d3142', 'stroke-width': 2.6, 'stroke-linecap': 'round' }, g);
+
+    // points
+    pts.forEach(function (p) {
+      el('circle', { cx: X(p[0]), cy: Y(p[1]), r: 5, fill: '#fff', stroke: '#2d3142', 'stroke-width': 2 }, g);
+    });
+
+    // readout
+    var e = sse(pts, w, b), mse = n ? e / n : 0, bmse = n ? sse(pts, bf.w, bf.b) / n : 0;
+    var s0 = sst(pts), r2 = s0 > 1e-9 ? 1 - e / s0 : 0;
+    $('answer').textContent = n ? mse.toFixed(3) : 'no points';
+    $('live').textContent = 'n = ' + n + ' · R² = ' + r2.toFixed(3);
+    $('readout').textContent =
+      'your line   w = ' + w.toFixed(2) + '   b = ' + b.toFixed(1) + '\n' +
+      'best line   w = ' + bf.w.toFixed(2) + '   b = ' + bf.b.toFixed(2) + '\n' +
+      'your MSE    = ' + mse.toFixed(3) + '\n' +
+      'best MSE    = ' + bmse.toFixed(3) + '\n' +
+      'R squared   = ' + r2.toFixed(3);
+
+    var tex = '\\hat{y}=' + w.toFixed(2) + 'x' + (b < 0 ? '-' : '+') + Math.abs(b).toFixed(1) + '\\quad \\mathrm{MSE}=' + mse.toFixed(3);
+    if (window.katex) window.katex.render(tex, $('calc'), { throwOnError: false, displayMode: false });
+    else $('calc').textContent = tex;
+  }
+
+  function addPoint(x, y) {
+    if (x < 0 || x > XMAX || y < 0 || y > YMAX) return;
+    state.pts.push([x, y]);
+    render();
+  }
+
+  $('plot').addEventListener('click', function (e) {
+    var r = $('plot').getBoundingClientRect();
+    var px = (e.clientX - r.left) / r.width * 720, py = (e.clientY - r.top) / r.height * 330;
+    addPoint((px - L) / (R - L) * XMAX, (B - py) / (B - T) * YMAX);
+  });
+  $('add').addEventListener('click', function () {
+    var bf = best(state.pts);
+    var x = 0.5 + Math.random() * 9, y = bf.w * x + bf.b + (Math.random() - 0.5) * 3;
+    addPoint(x, Math.min(YMAX, Math.max(0, y)));
+  });
+  $('undo').addEventListener('click', function () { state.pts.pop(); render(); });
+  $('reset').addEventListener('click', function () {
+    state.pts = DEFAULT.map(function (p) { return p.slice(); });
+    state.w = 0.2; state.b = 6;
+    $('w').value = 0.2; $('b').value = 6; render();
+  });
+  $('fit').addEventListener('click', function () {
+    // the model keeps the exact answer, the sliders show a snapped copy
+    var bf = best(state.pts);
+    state.w = bf.w; state.b = bf.b;
+    clampTo('w', bf.w); clampTo('b', bf.b); render();
+  });
+  $('w').addEventListener('input', function () { state.w = +$('w').value; render(); });
+  $('b').addEventListener('input', function () { state.b = +$('b').value; render(); });
+  Array.prototype.forEach.call(document.querySelectorAll('[data-show]'), function (btn) {
+    btn.addEventListener('click', function () {
+      state.show = btn.getAttribute('data-show');
+      Array.prototype.forEach.call(document.querySelectorAll('[data-show]'), function (o) {
+        o.setAttribute('aria-pressed', String(o === btn));
+      });
+      render();
+    });
+  });
+
+  render();
+  if (window.renderMathInElement) {
+    window.renderMathInElement(document.body, {
+      delimiters: [{ left: '$$', right: '$$', display: true }, { left: '$', right: '$', display: false }],
+      ignoredTags: ['script', 'style', 'textarea', 'pre', 'code'],
+      throwOnError: false
+    });
+  }
+});
+</script>
+</body>
+</html>

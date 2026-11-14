@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Machine Learning Algorithm Groups: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+a{color:var(--link)}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+
+.card{margin:24px 0 0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.scroll{overflow-x:auto;padding:0 8px;text-align:center}
+.scroll svg{display:inline-block;width:100%;max-width:720px;height:auto}
+
+.controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;margin-top:16px;align-items:start}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.group-label{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);margin:16px 0 6px}
+.group-label:first-child{margin-top:0}
+.seg{display:flex;flex-wrap:wrap;border:1px solid var(--rule-solid);border-radius:6px;overflow:hidden}
+.seg button{flex:1;min-height:40px;border:0;background:transparent;font:500 13px var(--sans);color:var(--muted);cursor:pointer;padding:0 8px}
+.seg button+button{border-left:1px solid var(--rule-solid)}
+.seg button:hover{background:var(--paper-2)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.field{width:100%;min-height:40px;padding:0 12px;border:1px solid var(--rule-solid);border-radius:6px;font:400 14px var(--sans);color:var(--ink);background:#fff}
+.big-answer{font-family:var(--serif);font-size:44px;line-height:1.1;margin:4px 0 8px;color:var(--accent)}
+#readout{margin:0;padding:0;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink);border:0;background:none}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:3px;border:1px solid var(--ink);display:inline-block}
+
+.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;text-align:center;overflow-x:auto}
+.formula .katex{font-size:1.25em}
+.katex{color:var(--ink)}
+p .katex,td .katex,li .katex{font-size:1.05em}
+
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:30px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+table.ops{border-collapse:collapse;width:100%;max-width:820px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
+
+.tblwrap{overflow-x:auto}
+.node{fill:#fff;stroke:#bfc0c0}
+.node.root{fill:#2d3142;stroke:#2d3142}
+.node.par{fill:rgba(191,69,32,.08);stroke:#bf4520}
+.node.doc{stroke:#2e5aa8;stroke-width:1.6}
+.nt{font-family:'Geist Mono',monospace;font-size:11.5px;fill:#2d3142}
+.nt.root{fill:#f5f5f5}
+.nt.doc{fill:#2e5aa8;font-weight:600}
+.edge{fill:none;stroke:#bfc0c0}
+.dim{opacity:.22}
+
+@media (max-width:860px){.controls{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" href="../../../index.html">&larr; Back to home</a>
+
+<header>
+  <div class="eyebrow">Machine Learning · Overview</div>
+  <h1>Machine Learning Algorithm Groups</h1>
+  <p class="lede">Hundreds of algorithms, but only a few families. Sort them by what kind of feedback they learn from, and by the job they do, and the map becomes small enough to remember.</p>
+</header>
+
+<section>
+  <h2>Try it first</h2>
+  <p>Pick a learning style to see only that branch of the tree, or type part of a name to light up matching algorithms. Algorithms with a blue outline have their own page in this collection, and clicking one opens it.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">The algorithm tree</span></div>
+    <div class="scroll">
+      <svg id="tree" viewBox="0 0 720 600" role="img" aria-labelledby="tree-title tree-desc">
+        <title id="tree-title">Tree of machine learning algorithms grouped by learning style and task</title>
+        <desc id="tree-desc">A left to right tree. The root splits into learning styles: supervised, unsupervised, semi-supervised, reinforcement and optimization. Each style splits into tasks such as regression, classification, clustering or dimensionality reduction. Each task lists example algorithms. The same information is given in the tables further down the page.</desc>
+        <rect id="bg" width="720" height="600" fill="#fff"/>
+        <g id="layer"></g>
+      </svg>
+    </div>
+    <div class="card-bottom"><span class="hint">Click a blue algorithm to open its page</span><span class="live" id="live"></span></div>
+  </figure>
+
+  <div class="controls">
+    <div class="panel">
+      <div class="group-label" id="par-label">Learning style</div>
+      <div class="seg" role="group" aria-labelledby="par-label" id="par-seg"></div>
+      <div class="group-label"><label for="q">Find an algorithm</label></div>
+      <input class="field" id="q" type="search" placeholder="e.g. tree, k-means, PCA" autocomplete="off">
+      <div class="legend" aria-label="Legend">
+        <span><i class="sw" style="background:rgba(191,69,32,.08);border-color:#bf4520"></i>learning style</span>
+        <span><i class="sw" style="background:#fff;border-color:#bfc0c0"></i>task</span>
+        <span><i class="sw" style="background:#fff;border-color:#2e5aa8"></i>has a page here</span>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="eyebrow">In view</div>
+      <div class="big-answer" id="answer"></div>
+      <pre id="readout" aria-live="polite"></pre>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>1. The main axis: what feedback is there?</h2>
+  <p>The first question to ask is what the algorithm is told while it learns. That one choice splits almost everything into three big families.</p>
+  <div class="cards">
+    <div class="stat focal"><div class="eyebrow">Supervised</div><div class="big">labels</div><p>Every example comes with the right answer. The model learns to predict that answer for new inputs.</p></div>
+    <div class="stat"><div class="eyebrow">Unsupervised</div><div class="big">structure</div><p>No answers at all. The model looks for groups, directions or patterns that are already in the data.</p></div>
+    <div class="stat"><div class="eyebrow">Reinforcement</div><div class="big">rewards</div><p>An agent acts, then gets a score. It learns which sequence of actions earns the most over time.</p></div>
+  </div>
+  <p style="margin-top:20px">Two smaller groups sit between them. <b>Semi-supervised</b> methods use a few labels and many unlabeled examples. Self-supervised methods invent labels from the data itself, such as hiding a word and predicting it.</p>
+  <p>Supervised learning has a compact definition. Given pairs $(x_i, y_i)$, find parameters $\theta$ that make the model $f_\theta$ agree with the answers:</p>
+  <div class="formula">$$\min_{\theta}\; \frac{1}{n}\sum_{i=1}^{n} L\big(f_\theta(x_i),\, y_i\big)$$</div>
+  <p>Here $L$ is a loss that grows when the prediction is wrong. Unsupervised learning has no $y_i$, so the loss compares the model to the data itself. K-means, for example, minimizes the squared distance from each point to its cluster center.</p>
+</section>
+
+<section>
+  <h2>2. The second axis: what job is it doing?</h2>
+  <p>Inside each family, algorithms are grouped by the kind of answer they produce.</p>
+  <div class="tblwrap">
+  <table class="ops">
+    <thead><tr><th>Task</th><th>Family</th><th>Output</th><th>Example algorithms</th></tr></thead>
+    <tbody>
+      <tr><td>Regression</td><td>Supervised</td><td>A number</td><td><a href="../linear-regression/linear-regression.html">Linear Regression</a>, decision trees, random forests</td></tr>
+      <tr><td>Classification</td><td>Supervised</td><td>A class label or probability</td><td><a href="../logistic-regression/logistic-regression.html">Logistic Regression</a>, <a href="../perceptron-learning-algorithm/perceptron-learning-algorithm.html">Perceptron</a>, SVM, k-NN</td></tr>
+      <tr><td>Clustering</td><td>Unsupervised</td><td>A group id for each point</td><td><a href="../k-means-clustering/k-means-clustering.html">K-means</a>, DBSCAN, hierarchical</td></tr>
+      <tr><td>Dimensionality reduction</td><td>Unsupervised</td><td>Fewer coordinates per point</td><td>PCA, t-SNE, autoencoders</td></tr>
+      <tr><td>Control and decisions</td><td>Reinforcement</td><td>An action for each situation</td><td>Q-learning, policy gradients</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="callout">Regression answers "how much?". Classification answers "which one?". Clustering answers "which belong together?".</p>
+</section>
+
+<section>
+  <h2>3. Other ways to group the same algorithms</h2>
+  <p>The same algorithm can be placed on several axes at once. These views cut across the tree and help you predict how a method behaves.</p>
+  <div class="tblwrap">
+  <table class="ops">
+    <thead><tr><th>Axis</th><th>One side</th><th>Other side</th></tr></thead>
+    <tbody>
+      <tr><td>Model size</td><td><b>Parametric</b>: a fixed number of parameters, such as the weights of a line.</td><td><b>Non-parametric</b>: the model grows with the data, such as k-NN or decision trees.</td></tr>
+      <tr><td>What is modeled</td><td><b>Discriminative</b>: learns the boundary $P(y\mid x)$, such as logistic regression.</td><td><b>Generative</b>: learns how data is produced, $P(x, y)$, such as naive Bayes.</td></tr>
+      <tr><td>Shape of the model</td><td><b>Linear</b>: a weighted sum of inputs, then maybe a squashing function.</td><td><b>Non-linear</b>: trees, kernels and neural networks bend the boundary.</td></tr>
+      <tr><td>How it is trained</td><td><b>Closed form</b>: solve an equation once, such as least squares.</td><td><b>Iterative</b>: improve step by step with <a href="../gradient-descent/gradient-descent.html">Gradient Descent</a>.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>Optimization is not a family of models, it is the engine under many of them. Gradient descent trains linear models, logistic regression and neural networks alike, which is why it has its own group in the tree above.</p>
+</section>
+
+<section>
+  <h2>4. How to choose a group</h2>
+  <ul class="tight">
+    <li>Do you have the right answers for past examples? Start with supervised learning.</li>
+    <li>Is the answer a number or a category? Number means regression, category means classification.</li>
+    <li>No answers, but you want groups or a simpler view? Use clustering or dimensionality reduction.</li>
+    <li>Does the model act, and does each action change what comes next? Look at reinforcement learning.</li>
+    <li>Start with the simplest linear model. It trains fast, it is easy to explain, and it sets a baseline for anything fancier.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>5. The algorithms in this collection</h2>
+  <div class="cards">
+    <div class="stat focal"><div class="eyebrow">Supervised · regression</div><div class="big"><a href="../linear-regression/linear-regression.html">Linear Regression</a></div><p>Fit the straight line with the smallest squared error.</p></div>
+    <div class="stat"><div class="eyebrow">Supervised · classification</div><div class="big"><a href="../logistic-regression/logistic-regression.html">Logistic Regression</a></div><p>Squash a linear score into a probability between 0 and 1.</p></div>
+    <div class="stat"><div class="eyebrow">Supervised · classification</div><div class="big"><a href="../perceptron-learning-algorithm/perceptron-learning-algorithm.html">Perceptron</a></div><p>Nudge a line every time it gets a point wrong.</p></div>
+    <div class="stat"><div class="eyebrow">Unsupervised · clustering</div><div class="big"><a href="../k-means-clustering/k-means-clustering.html">K-means</a></div><p>Alternate between assigning points and moving centers.</p></div>
+    <div class="stat"><div class="eyebrow">Optimization</div><div class="big"><a href="../gradient-descent/gradient-descent.html">Gradient Descent</a></div><p>Walk downhill on the loss to train almost any model.</p></div>
+  </div>
+</section>
+
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var NS = 'http://www.w3.org/2000/svg';
+  var $ = function (id) { return document.getElementById(id); };
+  var LIN = '../linear-regression/linear-regression.html';
+  var LOG = '../logistic-regression/logistic-regression.html';
+  var PER = '../perceptron-learning-algorithm/perceptron-learning-algorithm.html';
+  var KM = '../k-means-clustering/k-means-clustering.html';
+  var GD = '../gradient-descent/gradient-descent.html';
+
+  var TREE = [
+    { id: 'supervised', name: 'Supervised', tasks: [
+      { name: 'Regression', algos: [['Linear Regression', LIN], ['Ridge / Lasso'], ['Decision Tree'], ['Random Forest'], ['Support Vector Regression']] },
+      { name: 'Classification', algos: [['Logistic Regression', LOG], ['Perceptron', PER], ['k-Nearest Neighbors'], ['Naive Bayes'], ['Decision Tree'], ['Support Vector Machine'], ['Neural Network']] }
+    ] },
+    { id: 'unsupervised', name: 'Unsupervised', tasks: [
+      { name: 'Clustering', algos: [['K-means', KM], ['Hierarchical Clustering'], ['DBSCAN'], ['Gaussian Mixture']] },
+      { name: 'Dimensionality reduction', algos: [['PCA'], ['t-SNE'], ['Autoencoder']] },
+      { name: 'Association rules', algos: [['Apriori']] }
+    ] },
+    { id: 'semi', name: 'Semi-supervised', tasks: [
+      { name: 'Pseudo-labeling', algos: [['Self-training'], ['Co-training']] },
+      { name: 'Graph based', algos: [['Label Propagation']] }
+    ] },
+    { id: 'reinforcement', name: 'Reinforcement', tasks: [
+      { name: 'Value based', algos: [['Q-learning'], ['Deep Q-Network']] },
+      { name: 'Policy based', algos: [['REINFORCE'], ['PPO']] },
+      { name: 'Model based', algos: [['Monte Carlo Tree Search'], ['Dyna-Q']] }
+    ] },
+    { id: 'optimization', name: 'Optimization', tasks: [
+      { name: 'Training methods', algos: [['Gradient Descent', GD], ['Stochastic GD'], ['Adam'], ['Newton\'s Method']] }
+    ] }
+  ];
+
+  var state = { par: 'all', q: '' };
+
+  function el(name, attrs, parent) {
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+
+  // buttons for the learning styles
+  var seg = $('par-seg');
+  [{ id: 'all', name: 'All' }].concat(TREE).forEach(function (p) {
+    var b = document.createElement('button');
+    b.type = 'button'; b.textContent = p.name; b.setAttribute('data-par', p.id);
+    b.setAttribute('aria-pressed', String(p.id === state.par));
+    b.addEventListener('click', function () { state.par = p.id; render(); });
+    seg.appendChild(b);
+  });
+
+  function node(g, x, y, w, label, cls, href) {
+    var parent = g;
+    if (href) { parent = el('a', { href: href }, g); }
+    var grp = el('g', {}, parent);
+    el('rect', { x: x, y: y - 11, width: w, height: 22, rx: 5, 'class': 'node ' + cls }, grp);
+    var t = el('text', { x: x + w / 2, y: y + 4, 'text-anchor': 'middle', 'class': 'nt ' + cls }, grp);
+    t.textContent = label;
+    return grp;
+  }
+  function edge(g, x1, y1, x2, y2) {
+    var mx = (x1 + x2) / 2;
+    el('path', { d: 'M' + x1 + ',' + y1 + ' C' + mx + ',' + y1 + ' ' + mx + ',' + y2 + ' ' + x2 + ',' + y2, 'class': 'edge' }, g);
+  }
+
+  function render() {
+    var g = $('layer'); g.textContent = '';
+    var q = state.q.trim().toLowerCase();
+    var pars = TREE.filter(function (p) { return state.par === 'all' || p.id === state.par; });
+    var ROW = 27, row = 0, top = 30;
+    var CX = { root: 8, par: 112, task: 262, leaf: 466 }, CW = { root: 84, par: 130, task: 180, leaf: 222 };
+
+    // layout pass
+    pars.forEach(function (p) {
+      p.tasks.forEach(function (t) {
+        t.algos.forEach(function (a) { a.y = top + row * ROW; row++; });
+        t.y = (t.algos[0].y + t.algos[t.algos.length - 1].y) / 2;
+        row += 0.4;
+      });
+      p.y = (p.tasks[0].y + p.tasks[p.tasks.length - 1].y) / 2;
+    });
+    var rootY = (pars[0].y + pars[pars.length - 1].y) / 2;
+    var H = Math.max(120, top + row * ROW);
+    $('tree').setAttribute('viewBox', '0 0 720 ' + H);
+    $('bg').setAttribute('height', H);
+
+    var total = 0, hit = 0, groups = 0;
+    // edges first so nodes sit on top
+    pars.forEach(function (p) {
+      edge(g, CX.root + CW.root, rootY, CX.par, p.y);
+      p.tasks.forEach(function (t) {
+        edge(g, CX.par + CW.par, p.y, CX.task, t.y);
+        t.algos.forEach(function (a) { edge(g, CX.task + CW.task, t.y, CX.leaf, a.y); });
+      });
+    });
+    node(g, CX.root, rootY, CW.root, 'ML', 'root');
+    pars.forEach(function (p) {
+      node(g, CX.par, p.y, CW.par, p.name, 'par');
+      p.tasks.forEach(function (t) {
+        groups++;
+        node(g, CX.task, t.y, CW.task, t.name, 'task');
+        t.algos.forEach(function (a) {
+          total++;
+          var on = !q || a[0].toLowerCase().indexOf(q) >= 0;
+          if (on) hit++;
+          var grp = node(g, CX.leaf, a.y, CW.leaf, a[0], a[1] ? 'doc' : 'leaf', a[1]);
+          if (!on) grp.setAttribute('class', 'dim');
+        });
+      });
+    });
+
+    Array.prototype.forEach.call(document.querySelectorAll('[data-par]'), function (b) {
+      b.setAttribute('aria-pressed', String(b.getAttribute('data-par') === state.par));
+    });
+    $('answer').textContent = q ? hit + ' match' + (hit === 1 ? '' : 'es') : total + ' algorithms';
+    $('live').textContent = groups + ' task groups';
+    $('readout').textContent =
+      'style    = ' + (state.par === 'all' ? 'all' : pars[0].name) + '\n' +
+      'tasks    = ' + groups + '\n' +
+      'listed   = ' + total + '\n' +
+      (q ? 'matching = ' + hit + ' for "' + state.q.trim() + '"\n' : 'search   = (empty)\n');
+  }
+
+  $('q').addEventListener('input', function (e) { state.q = e.target.value; render(); });
+  render();
+
+  if (window.renderMathInElement) {
+    window.renderMathInElement(document.body, {
+      delimiters: [{ left: '$$', right: '$$', display: true }, { left: '$', right: '$', display: false }],
+      ignoredTags: ['script', 'style', 'textarea', 'pre', 'code'],
+      throwOnError: false
+    });
+  }
+});
+</script>
+</body>
+</html>

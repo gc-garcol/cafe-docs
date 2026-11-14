@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Perceptron Learning Algorithm: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+a{color:var(--link)}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+
+.card{margin:24px 0 0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.scroll{overflow-x:auto;padding:0 8px;text-align:center}
+.scroll svg{display:inline-block;width:100%;max-width:720px;height:auto;cursor:crosshair}
+
+.controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;margin-top:16px;align-items:start}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.group-label{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);margin:16px 0 6px}
+.group-label:first-child{margin-top:0}
+.seg{display:flex;flex-wrap:wrap;border:1px solid var(--rule-solid);border-radius:6px;overflow:hidden}
+.seg button{flex:1;min-height:40px;border:0;background:transparent;font:500 13px var(--sans);color:var(--muted);cursor:pointer;padding:0 8px}
+.seg button+button{border-left:1px solid var(--rule-solid)}
+.seg button:hover{background:var(--paper-2)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.big-answer{font-family:var(--serif);font-size:44px;line-height:1.1;margin:4px 0 8px;color:var(--accent)}
+#readout{margin:0;padding:0;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink);border:0;background:none}
+#calc{overflow-x:auto;margin-top:8px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:3px;border:1px solid var(--ink);display:inline-block}
+
+pre.code{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .t{color:var(--link)} .c{color:var(--soft);font-style:italic}
+
+.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;text-align:center;overflow-x:auto}
+.formula .katex{font-size:1.25em}
+.katex{color:var(--ink)}
+p .katex,td .katex,li .katex{font-size:1.05em}
+
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:30px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+ul.tight,ol.tight{padding-left:20px;max-width:68ch}ul.tight li,ol.tight li{margin:6px 0}
+
+@media (max-width:860px){.controls{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" href="../../../index.html">&larr; Back to home</a>
+
+<header>
+  <div class="eyebrow">Machine Learning · Classification</div>
+  <h1>Perceptron Learning Algorithm</h1>
+  <p class="lede">The first learning machine. A perceptron draws a line between two classes, and every time it misclassifies a point it tilts the line toward getting that point right.</p>
+</header>
+
+<section>
+  <h2>Try it first</h2>
+  <p>Orange circles are class $+1$ and blue squares are class $-1$. The line is the decision boundary, and the small arrow shows which side counts as $+1$. Press Step to fix one mistake, or Run to the end to let it loop. A point with a thick ring is currently misclassified. Then switch the data to Overlapping or XOR and watch what happens when no straight line can work.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">Tilting a line, one mistake at a time</span></div>
+    <div class="scroll">
+      <svg id="plot" viewBox="0 0 720 360" role="img" aria-labelledby="plot-title plot-desc">
+        <title id="plot-title">Two classes of points and the perceptron decision line</title>
+        <desc id="plot-desc">Orange circles and blue squares are spread over a plane. A solid line is the current decision boundary of the perceptron, and a short arrow from the line shows which side is predicted as the positive class. Points that are on the wrong side have a thick ring. When the classes can be separated by a line, repeated updates end with no ringed points. For overlapping or XOR data the line keeps moving and some points always stay wrong. The readout beside the figure lists the weights and the mistake count.</desc>
+        <rect width="720" height="360" fill="#fff" stroke="rgba(45,49,66,.12)"/>
+        <g id="layer"></g>
+      </svg>
+    </div>
+    <div class="card-bottom"><span class="hint">Click the chart to add a point of the chosen class</span><span class="live" id="live"></span></div>
+  </figure>
+
+  <div class="controls">
+    <div class="panel">
+      <div class="group-label" id="data-label">Data</div>
+      <div class="seg" role="group" aria-labelledby="data-label">
+        <button type="button" data-set="sep" aria-pressed="true">Separable</button>
+        <button type="button" data-set="overlap" aria-pressed="false">Overlapping</button>
+        <button type="button" data-set="xor" aria-pressed="false">XOR</button>
+      </div>
+      <div class="group-label" id="cls-label">Class to add on click</div>
+      <div class="seg" role="group" aria-labelledby="cls-label">
+        <button type="button" data-cls="1" aria-pressed="true">+1 circle</button>
+        <button type="button" data-cls="-1" aria-pressed="false">&minus;1 square</button>
+      </div>
+      <div class="btns">
+        <button type="button" class="btn" id="step">Step</button>
+        <button type="button" class="btn" id="epoch">One pass</button>
+        <button type="button" class="btn" id="run">Run to the end</button>
+        <button type="button" class="btn" id="reset">Reset weights</button>
+      </div>
+      <div class="legend" aria-label="Legend">
+        <span><i class="sw" style="background:#bf4520;border-radius:50%"></i>class +1</span>
+        <span><i class="sw" style="background:#2e5aa8"></i>class &minus;1</span>
+        <span><i class="sw" style="background:#fff;border:3px solid #2d3142"></i>misclassified</span>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="eyebrow">Mistakes right now</div>
+      <div class="big-answer" id="answer"></div>
+      <pre id="readout" aria-live="polite"></pre>
+      <div id="calc"></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>1. The model</h2>
+  <p>A perceptron takes a weighted sum of the inputs, adds a bias, and reports only its sign. The weights $\mathbf{w}$ and bias $b$ define a line in 2D, a plane in 3D, and a hyperplane in general.</p>
+  <div class="formula">$$\hat{y} = \operatorname{sign}\!\left(\mathbf{w}^\top \mathbf{x} + b\right)$$</div>
+  <p>The vector $\mathbf{w}$ is perpendicular to the boundary and points toward the $+1$ side. That is the arrow in the lab. The bias slides the line away from the origin. Labels are $y \in \{+1, -1\}$, so a prediction is right exactly when $y\,(\mathbf{w}^\top \mathbf{x} + b) > 0$.</p>
+</section>
+
+<section>
+  <h2>2. The learning rule</h2>
+  <p>Start with all weights at zero. Look at the points one by one. If a point is classified correctly, do nothing. If it is wrong, pull the boundary toward it:</p>
+  <div class="formula">$$\mathbf{w} \leftarrow \mathbf{w} + y\,\mathbf{x}, \qquad b \leftarrow b + y$$</div>
+  <p>Why does this help? For the point just updated, the quantity $y\,(\mathbf{w}^\top \mathbf{x} + b)$ grows by exactly $\lVert\mathbf{x}\rVert^2 + 1$, which is always positive. The point is not always fixed in one step, but it always ends up closer to the right side. One mistake fixed can break others, so the loop keeps going over the data.</p>
+  <ol class="tight">
+    <li>Set $\mathbf{w} = \mathbf{0}$ and $b = 0$.</li>
+    <li>Scan the points. For each one with $y\,(\mathbf{w}^\top\mathbf{x} + b) \le 0$, apply the update.</li>
+    <li>If a full pass makes no update, stop. Otherwise scan again.</li>
+  </ol>
+  <p class="callout">The perceptron only learns from its mistakes. Points it already gets right change nothing.</p>
+</section>
+
+<section>
+  <h2>3. When it is guaranteed to stop</h2>
+  <p>Say the data is linearly separable with margin $\gamma$, meaning some unit vector separates the classes with every point at least $\gamma$ from the line. Say all points lie within a ball of radius $R$. Novikoff's theorem then bounds the total number of updates, whatever the order:</p>
+  <div class="formula">$$\text{mistakes} \le \left(\frac{R}{\gamma}\right)^2$$</div>
+  <p>The bound does not depend on the number of points or the dimension. A wide gap between the classes means few mistakes. In the lab, the Separable set always finishes. Press Run to the end and read the update count.</p>
+</section>
+
+<section>
+  <h2>4. When it never stops</h2>
+  <p>If no line separates the classes, some point is always misclassified, so every pass triggers an update and the weights wander forever. Pick Overlapping or XOR and press Run. The run gives up after 200 passes, with the mistake count never reaching zero.</p>
+  <p>XOR is the famous case: the $+1$ points sit on one diagonal and the $-1$ points on the other, and no single line can split them. This limit was a big blow to early neural network research. The fix is to stack layers of perceptrons or to add features such as the product $x_1 x_2$. Another route is to replace the hard sign with a smooth function so that <a href="../gradient-descent/gradient-descent.html">Gradient Descent</a> applies, which leads to <a href="../logistic-regression/logistic-regression.html">Logistic Regression</a>.</p>
+</section>
+
+<section>
+  <h2>5. The same thing in code</h2>
+  <pre class="code"><span class="k">function</span> train(points, labels, maxPasses = <span class="t">200</span>) {
+  <span class="k">let</span> w = [<span class="t">0</span>, <span class="t">0</span>], b = <span class="t">0</span>;
+  <span class="k">for</span> (<span class="k">let</span> pass = <span class="t">0</span>; pass &lt; maxPasses; pass++) {
+    <span class="k">let</span> updates = <span class="t">0</span>;
+    points.forEach((x, i) =&gt; {
+      <span class="k">const</span> score = w[<span class="t">0</span>] * x[<span class="t">0</span>] + w[<span class="t">1</span>] * x[<span class="t">1</span>] + b;
+      <span class="k">if</span> (labels[i] * score &lt;= <span class="t">0</span>) {        <span class="c">// wrong or on the line</span>
+        w[<span class="t">0</span>] += labels[i] * x[<span class="t">0</span>];
+        w[<span class="t">1</span>] += labels[i] * x[<span class="t">1</span>];
+        b += labels[i];
+        updates++;
+      }
+    });
+    <span class="k">if</span> (updates === <span class="t">0</span>) <span class="k">return</span> { w, b, pass };   <span class="c">// converged</span>
+  }
+  <span class="k">return</span> { w, b, pass: maxPasses };            <span class="c">// not separable</span>
+}</pre>
+</section>
+
+<section>
+  <h2>6. Where it fits</h2>
+  <div class="cards">
+    <div class="stat focal"><div class="eyebrow">History</div><div class="big">1958</div><p>Frank Rosenblatt built it in hardware. It is the ancestor of the neuron in every neural network.</p></div>
+    <div class="stat"><div class="eyebrow">Strength</div><div class="big">tiny</div><p>No learning rate, no probabilities, just additions. It works online, one example at a time.</p></div>
+    <div class="stat"><div class="eyebrow">Weakness</div><div class="big">hard edge</div><p>It only says yes or no, with no confidence, and it fails on data a line cannot separate.</p></div>
+  </div>
+  <p style="margin-top:20px">Compare it with <a href="../logistic-regression/logistic-regression.html">Logistic Regression</a>, which keeps the same linear score but turns it into a probability, and with <a href="../linear-regression/linear-regression.html">Linear Regression</a>, which predicts a number. The full family tree is in <a href="../ml-algorithm-groups/ml-algorithm-groups.html">Machine Learning Algorithm Groups</a>.</p>
+</section>
+
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var NS = 'http://www.w3.org/2000/svg';
+  var W = 720, H = 360, PX = 60, CX = 360, CY = 180;
+  var $ = function (id) { return document.getElementById(id); };
+  var SETS = {
+    sep: [[1.2, 1.8, 1], [2.5, 0.9, 1], [3.1, 2.0, 1], [1.8, 0.2, 1], [3.8, 0.6, 1], [2.2, 2.4, 1], [4.2, 1.7, 1],
+          [-1.4, -1.6, -1], [-2.7, -0.8, -1], [-3.2, -2.0, -1], [-1.6, 0.1, -1], [-2.2, -2.4, -1], [-4.0, -0.5, -1], [-0.8, -1.0, -1]],
+    overlap: [[1.2, 1.8, 1], [2.5, 0.9, 1], [3.1, 2.0, 1], [1.8, 0.2, 1], [3.8, 0.6, 1], [2.2, 2.4, 1], [4.2, 1.7, 1], [-1.2, -0.8, 1],
+          [-1.4, -1.6, -1], [-2.7, -0.8, -1], [-3.2, -2.0, -1], [-1.6, 0.1, -1], [-2.2, -2.4, -1], [-4.0, -0.5, -1], [1.0, 0.9, -1]],
+    xor: [[-2, 2, 1], [2, -2, 1], [-2.6, 1.4, 1], [2.6, -1.4, 1], [2, 2, -1], [-2, -2, -1], [2.6, 1.4, -1], [-2.6, -1.4, -1]]
+  };
+  var state = { set: 'sep', cls: 1, pts: [], w1: 0, w2: 0, b: 0, ptr: 0, updates: 0, passes: 0, last: -1, done: false, gaveUp: false };
+
+  var X = function (v) { return CX + v * PX; };
+  var Y = function (v) { return CY - v * PX; };
+
+  function el(name, attrs, parent) {
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function score(p) { return state.w1 * p[0] + state.w2 * p[1] + state.b; }
+  function wrong(p) { return p[2] * score(p) <= 0; }
+  function mistakes() { return state.pts.filter(wrong).length; }
+
+  function load(name) {
+    state.set = name;
+    state.pts = SETS[name].map(function (p) { return p.slice(); });
+    resetWeights();
+  }
+  function resetWeights() {
+    state.w1 = 0; state.w2 = 0; state.b = 0; state.ptr = 0;
+    state.updates = 0; state.passes = 0; state.last = -1; state.done = false; state.gaveUp = false;
+  }
+  function apply(i) {
+    var p = state.pts[i];
+    state.w1 += p[2] * p[0]; state.w2 += p[2] * p[1]; state.b += p[2];
+    state.updates++; state.last = i;
+  }
+  function step() {
+    var n = state.pts.length;
+    if (!n || state.done) return;
+    for (var k = 0; k < n; k++) {
+      var i = (state.ptr + k) % n;
+      if (wrong(state.pts[i])) { apply(i); state.ptr = (i + 1) % n; return; }
+    }
+    state.done = true;
+  }
+  function onePass() {
+    var upd = 0;
+    state.pts.forEach(function (p, i) { if (wrong(p)) { apply(i); upd++; } });
+    state.passes++;
+    if (upd === 0) state.done = true;
+    return upd;
+  }
+  function runAll() {
+    while (!state.done && state.passes < 200) onePass();
+    if (!state.done) state.gaveUp = true;
+  }
+
+  // end points of the line w1 x + w2 y + b = 0 inside the plot
+  function lineEnds() {
+    if (Math.abs(state.w1) < 1e-9 && Math.abs(state.w2) < 1e-9) return null;
+    var xs = -W / 2 / PX, xe = W / 2 / PX, ys = -H / 2 / PX, ye = H / 2 / PX, out = [];
+    function add(x, y) { if (x >= xs - 1e-6 && x <= xe + 1e-6 && y >= ys - 1e-6 && y <= ye + 1e-6) out.push([x, y]); }
+    if (Math.abs(state.w2) > 1e-9) { add(xs, -(state.w1 * xs + state.b) / state.w2); add(xe, -(state.w1 * xe + state.b) / state.w2); }
+    if (Math.abs(state.w1) > 1e-9) { add(-(state.w2 * ys + state.b) / state.w1, ys); add(-(state.w2 * ye + state.b) / state.w1, ye); }
+    return out.length >= 2 ? [out[0], out[out.length - 1]] : null;
+  }
+
+  function render() {
+    var g = $('layer'); g.textContent = '';
+    for (var gx = -5; gx <= 5; gx++) el('line', { x1: X(gx), x2: X(gx), y1: 0, y2: H, stroke: gx === 0 ? 'rgba(45,49,66,.25)' : 'rgba(45,49,66,.06)' }, g);
+    for (var gy = -2; gy <= 2; gy++) el('line', { x1: 0, x2: W, y1: Y(gy), y2: Y(gy), stroke: gy === 0 ? 'rgba(45,49,66,.25)' : 'rgba(45,49,66,.06)' }, g);
+
+    var ends = lineEnds();
+    if (ends) {
+      el('line', { x1: X(ends[0][0]), y1: Y(ends[0][1]), x2: X(ends[1][0]), y2: Y(ends[1][1]), stroke: '#2d3142', 'stroke-width': 2.6 }, g);
+      // arrow from the middle of the line toward the +1 side
+      var mx = (ends[0][0] + ends[1][0]) / 2, my = (ends[0][1] + ends[1][1]) / 2;
+      var nl = Math.hypot(state.w1, state.w2), ux = state.w1 / nl, uy = state.w2 / nl;
+      var ax = X(mx), ay = Y(my), bx = ax + ux * 36, by = ay - uy * 36;
+      el('line', { x1: ax, y1: ay, x2: bx, y2: by, stroke: '#bf4520', 'stroke-width': 2.4 }, g);
+      var ang = Math.atan2(by - ay, bx - ax);
+      el('path', { d: 'M' + bx + ',' + by + ' L' + (bx - 9 * Math.cos(ang - 0.45)) + ',' + (by - 9 * Math.sin(ang - 0.45)) + ' L' + (bx - 9 * Math.cos(ang + 0.45)) + ',' + (by - 9 * Math.sin(ang + 0.45)) + ' Z', fill: '#bf4520' }, g);
+    }
+
+    state.pts.forEach(function (p, i) {
+      var cx = X(p[0]), cy = Y(p[1]), bad = wrong(p);
+      if (i === state.last) el('circle', { cx: cx, cy: cy, r: 15, fill: 'none', stroke: '#bf4520', 'stroke-width': 1.5, 'stroke-dasharray': '3 3' }, g);
+      if (p[2] === 1) el('circle', { cx: cx, cy: cy, r: 7, fill: '#bf4520', stroke: bad ? '#2d3142' : '#fff', 'stroke-width': bad ? 3 : 1.5 }, g);
+      else el('rect', { x: cx - 7, y: cy - 7, width: 14, height: 14, fill: '#2e5aa8', stroke: bad ? '#2d3142' : '#fff', 'stroke-width': bad ? 3 : 1.5 }, g);
+    });
+
+    var m = mistakes(), n = state.pts.length;
+    $('answer').textContent = m + ' of ' + n;
+    var status = state.done ? 'converged' : (state.gaveUp ? 'did not converge' : 'learning');
+    $('live').textContent = 'updates ' + state.updates + ' · ' + status;
+    $('readout').textContent =
+      'w1       = ' + state.w1.toFixed(2) + '\n' +
+      'w2       = ' + state.w2.toFixed(2) + '\n' +
+      'bias b   = ' + state.b.toFixed(2) + '\n' +
+      'updates  = ' + state.updates + '\n' +
+      'passes   = ' + state.passes + '\n' +
+      'status   = ' + status + (state.gaveUp ? ' after 200 passes' : '') + '\n';
+    var tex = '\\hat{y}=\\operatorname{sign}(' + state.w1.toFixed(1) + 'x_1' + (state.w2 < 0 ? '-' : '+') + Math.abs(state.w2).toFixed(1) + 'x_2' + (state.b < 0 ? '-' : '+') + Math.abs(state.b).toFixed(1) + ')';
+    if (window.katex) window.katex.render(tex, $('calc'), { throwOnError: false, displayMode: false });
+    else $('calc').textContent = tex;
+  }
+
+  function pressed(sel, attr, val) {
+    Array.prototype.forEach.call(document.querySelectorAll(sel), function (b) {
+      b.setAttribute('aria-pressed', String(b.getAttribute(attr) === String(val)));
+    });
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('[data-set]'), function (b) {
+    b.addEventListener('click', function () { load(b.getAttribute('data-set')); pressed('[data-set]', 'data-set', state.set); render(); });
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('[data-cls]'), function (b) {
+    b.addEventListener('click', function () { state.cls = +b.getAttribute('data-cls'); pressed('[data-cls]', 'data-cls', state.cls); });
+  });
+  $('plot').addEventListener('click', function (e) {
+    var r = $('plot').getBoundingClientRect();
+    var px = (e.clientX - r.left) / r.width * W, py = (e.clientY - r.top) / r.height * H;
+    state.pts.push([(px - CX) / PX, (CY - py) / PX, state.cls]);
+    state.done = false; state.gaveUp = false;
+    render();
+  });
+  $('step').addEventListener('click', function () { step(); render(); });
+  $('epoch').addEventListener('click', function () { if (!state.done) onePass(); render(); });
+  $('run').addEventListener('click', function () { runAll(); render(); });
+  $('reset').addEventListener('click', function () { resetWeights(); render(); });
+
+  load('sep');
+  render();
+  if (window.renderMathInElement) {
+    window.renderMathInElement(document.body, {
+      delimiters: [{ left: '$$', right: '$$', display: true }, { left: '$', right: '$', display: false }],
+      ignoredTags: ['script', 'style', 'textarea', 'pre', 'code'],
+      throwOnError: false
+    });
+  }
+});
+</script>
+</body>
+</html>
