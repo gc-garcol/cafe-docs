@@ -31,7 +31,14 @@ The category, index, and search data live in `index.js`, not in the HTML.
 - Categories, tags, the mind map, and the contents list are derived from `DOCS`. Do not edit them by hand.
 - Do not list docs in `readme.md`. It has no `## Docs` section, so there is nothing to update there when adding a doc.
 
-## 5. Checklist before merging
+## 5. Commits
+
+- After finishing a change to a doc or to the registry, commit it directly to the `main` branch without waiting to be asked.
+- Stage only the files you changed. Do not include unrelated or untracked work.
+- Write a short, imperative commit message in English, such as `Add Octree doc`.
+- Pushing is a separate step: do not push unless asked.
+
+## 6. Checklist before merging
 
 - [ ] The page opens correctly from the file system.
 - [ ] The "Back to home" link works.
