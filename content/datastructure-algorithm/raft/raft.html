@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Raft: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+
+.card{margin:24px 0 0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.scroll{overflow-x:auto;padding:0 8px;text-align:center}
+.scroll svg{display:inline-block;max-width:100%;height:auto}
+
+.controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;margin-top:16px;align-items:start}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:0 0 12px}
+.row label{font-family:var(--mono);font-size:13px;font-weight:600}
+input[type=number]{width:90px;min-height:40px;padding:0 10px;border:1px solid var(--rule-solid);border-radius:6px;font:500 14px var(--mono);color:var(--ink);background:#fff}
+button:focus-visible,input:focus-visible,svg:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--paper)}
+#readout{margin:0;padding:0;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink);border:0;background:none}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:3px;border:1px solid var(--ink);display:inline-block}
+
+pre{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .t{color:var(--link)} .c{color:var(--soft);font-style:italic}
+
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:36px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+
+table.ops{border-collapse:collapse;width:100%;max-width:720px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule)}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
+
+@media (max-width:860px){.controls{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+
+table.logs{border-collapse:collapse;width:100%;font-size:13px}
+table.logs th,table.logs td{padding:8px 10px;text-align:left;border-top:1px solid var(--rule);vertical-align:middle}
+table.logs th{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--soft);font-weight:500;border-top:0}
+table.logs td.id{font-family:var(--mono);font-weight:600}
+table.logs tr.down td{color:var(--soft);background:var(--paper)}
+.cells{display:flex;flex-wrap:wrap;gap:4px;min-height:26px}
+.cell{font-family:var(--mono);font-size:11px;font-weight:600;min-width:34px;padding:2px 6px;border-radius:4px;border:1px dashed var(--ink);text-align:center;line-height:1.5}
+.cell.cm{border-style:solid;border-width:2px}
+.t0{background:#fff}.t1{background:#dbe6f6}.t2{background:#f6dccf}.t3{background:#dcefd9}.t4{background:#efe3b8}.t5{background:#e6d6ef}
+.sw.sq{border-radius:3px}
+.tbtn[aria-pressed=true]{background:var(--ink);color:var(--paper)}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" href="../../../index.html">&larr; Back to home</a>
+
+<header>
+  <div class="eyebrow">Algorithms · Distributed systems</div>
+  <h1>Raft</h1>
+  <p class="lede">How a group of servers agrees on one ordered log, even when some of them crash. One server is elected leader, it appends every command to its log, and a command counts as committed once a majority has stored it.</p>
+</header>
+
+<section>
+  <h2>Try the machine first</h2>
+  <p>Five servers start as followers. Press <b>Step</b> to advance time by one tick. When a follower hears nothing for too long it runs for leader. Then send a <b>client write</b> and watch it spread. Try <b>Kill</b> on the leader and watch a new election happen, then bring the old leader back.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">A five-server Raft cluster</span></div>
+    <div class="scroll">
+      <svg id="ring" width="480" height="380" viewBox="0 0 480 380" role="img" aria-labelledby="ring-title ring-desc">
+        <title id="ring-title">Five Raft servers in a ring</title>
+        <desc id="ring-desc">Five circles represent servers S1 to S5. A filled orange circle is the leader, a dashed blue circle is a candidate, a white circle is a follower, and a grey dashed circle is a server that is down. Small dots between servers are messages in flight. The table below the figure lists each server's role, term and log, and is the accessible version of this picture.</desc>
+        <rect width="100%" height="100%" fill="#fff"/>
+        <g id="links"></g>
+        <g id="msgs"></g>
+        <g id="servers"></g>
+      </svg>
+    </div>
+    <div class="card-bottom"><span class="hint">Election timeout 7 to 12 ticks · heartbeat every 2 ticks · messages take 1 tick</span><span class="live" id="live"></span></div>
+  </figure>
+
+  <div class="controls">
+    <div class="panel">
+      <div class="row">
+        <button type="button" class="btn" id="b-step">Step</button>
+        <button type="button" class="btn tbtn" id="b-auto" aria-pressed="false">Auto run</button>
+        <button type="button" class="btn" id="b-write">Client write</button>
+        <button type="button" class="btn" id="reset">Reset</button>
+      </div>
+      <div class="row" id="kills" role="group" aria-label="Crash or restart a server"></div>
+      <div class="legend" aria-label="Legend">
+        <span><i class="sw" style="background:#bf4520;border-color:#bf4520"></i>leader</span>
+        <span><i class="sw" style="background:rgba(46,90,168,.2);border-color:#2e5aa8;border-style:dashed"></i>candidate</span>
+        <span><i class="sw" style="background:#fff"></i>follower</span>
+        <span><i class="sw" style="background:#ececec;border-style:dashed;border-color:#5a6580"></i>down</span>
+        <span><i class="sw sq" style="background:#fff;border-style:dashed"></i>log entry</span>
+        <span><i class="sw sq" style="background:#fff;border-width:2px"></i>committed</span>
+      </div>
+    </div>
+    <div class="panel"><pre id="readout" aria-live="polite"></pre></div>
+  </div>
+
+  <div class="panel" style="margin-top:16px;overflow-x:auto">
+    <table class="logs">
+      <caption class="eyebrow" style="text-align:left;padding-bottom:8px">Server state</caption>
+      <thead><tr><th scope="col">Server</th><th scope="col">Role</th><th scope="col">Term</th><th scope="col">Timer</th><th scope="col">Log (cell = term:command)</th></tr></thead>
+      <tbody id="logs"></tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <h2>1. The idea</h2>
+  <p>Many servers must act like one reliable machine. If they all apply the same commands in the same order, they end up in the same state. So the problem becomes: agree on one log. Raft splits that into three smaller pieces that can be understood alone: <b>leader election</b>, <b>log replication</b>, and <b>safety</b>.</p>
+  <p>At any moment a server is a follower, a candidate, or the leader. Time is cut into <b>terms</b>, numbered upward. Each term has at most one leader, and a higher term always wins over a lower one.</p>
+  <p class="callout">One leader per term. Only the leader writes to the log.</p>
+</section>
+
+<section>
+  <h2>2. Leader election</h2>
+  <p>Followers expect a heartbeat from the leader. Each follower has a random election timeout. If it fires, the follower becomes a candidate, adds one to its term, votes for itself, and asks everyone else for a vote.</p>
+  <ul class="tight">
+    <li>A server gives one vote per term, to the first candidate that asks.</li>
+    <li>A server refuses a candidate whose log is less up to date than its own.</li>
+    <li>A candidate with votes from a majority becomes leader and starts sending heartbeats.</li>
+    <li>If nobody wins, timeouts fire again. The random timeouts make repeated ties unlikely.</li>
+  </ul>
+  <pre><span class="k">function</span> onElectionTimeout(me) {
+  me.term += <span class="t">1</span>;
+  me.role = <span class="t">'candidate'</span>;
+  me.votedFor = me.id;
+  me.votes = <span class="t">1</span>;
+  broadcast({ type: <span class="t">'RequestVote'</span>, term: me.term,
+              lastLogIndex: me.log.length, lastLogTerm: lastTerm(me) });
+}</pre>
+</section>
+
+<section>
+  <h2>3. Log replication</h2>
+  <p>A client sends a command to the leader. The leader appends it to its own log, then sends <code>AppendEntries</code> to every follower. Each message says where the new entries attach: the index and term of the entry just before them.</p>
+  <p>A follower accepts only if its log has a matching entry at that spot. If not, it says no, and the leader steps back one entry and tries again until the logs agree. Then the follower overwrites anything that conflicts.</p>
+  <pre><span class="k">function</span> onAppendEntries(me, m) {
+  <span class="k">if</span> (m.term &lt; me.term) <span class="k">return</span> reply(<span class="k">false</span>);
+  resetElectionTimer(me);
+  <span class="k">if</span> (m.prevIndex &gt; <span class="t">0</span> &amp;&amp; termAt(me, m.prevIndex) !== m.prevTerm) <span class="k">return</span> reply(<span class="k">false</span>);
+  appendAndTruncateConflicts(me, m.prevIndex, m.entries);
+  me.commitIndex = Math.min(m.leaderCommit, lastIndex(me));
+  reply(<span class="k">true</span>);
+}</pre>
+  <p>An entry is <b>committed</b> once the leader has stored it on a majority of servers, and it is from the leader's current term. Committed entries are never lost. The next heartbeat tells followers the new commit index. In the table above, committed entries have a solid border.</p>
+</section>
+
+<section>
+  <h2>4. Why it is safe</h2>
+  <p>Two rules protect committed entries. A candidate needs votes from a majority, and a voter refuses a candidate with a staler log. Any two majorities overlap in at least one server. So a new leader must have collected a vote from a server that holds every committed entry, and it cannot win with a log that misses one.</p>
+  <p>Try it: write a few entries, kill the leader, and see who wins. The winner always has all committed entries. Uncommitted entries on a dead leader may be lost, and the client then has to retry. If you revive the old leader, it learns the new term, steps down, and has its log rewritten to match.</p>
+</section>
+
+<section>
+  <h2>5. Cost and limits</h2>
+  <div class="cards">
+    <div class="stat focal"><div class="eyebrow">Commit latency</div><div class="big">1 round trip</div><p>Leader to a majority and back, in the normal case.</p></div>
+    <div class="stat"><div class="eyebrow">Fault tolerance</div><div class="big">f of 2f+1</div><p>5 servers survive 2 crashes. 3 servers survive 1.</p></div>
+    <div class="stat"><div class="eyebrow">Throughput</div><div class="big">one leader</div><p>All writes pass through one server.</p></div>
+  </div>
+  <table class="ops">
+    <thead><tr><th>Cluster size</th><th>Majority</th><th>Crashes survived</th></tr></thead>
+    <tbody>
+      <tr><td>3</td><td>2</td><td>1</td></tr>
+      <tr><td>5</td><td>3</td><td>2</td></tr>
+      <tr><td>7</td><td>4</td><td>3</td></tr>
+    </tbody>
+  </table>
+  <p>This demo leaves out several things a real system needs: network partitions, persistent storage, log compaction with snapshots, and changing cluster membership.</p>
+</section>
+
+<section>
+  <h2>6. Where it shows up</h2>
+  <ul class="tight">
+    <li><b>Coordination stores</b>: etcd (the brain of Kubernetes) and Consul.</li>
+    <li><b>Databases</b>: CockroachDB, TiKV, and YugabyteDB replicate each data range with Raft.</li>
+    <li><b>Streaming</b>: Kafka's KRaft mode and RabbitMQ quorum queues.</li>
+  </ul>
+  <p>Raft is equivalent in purpose to Paxos, but it was designed to be easier to teach and implement. Most new systems pick Raft.</p>
+</section>
+
+</main>
+
+<script>
+(function () {
+  var NS = 'http://www.w3.org/2000/svg', N = 5, MAJ = 3;
+  var CX = 240, CY = 190, RR = 135, NR = 32;
+  var nodes, pending, events, tick, cmdSeq, auto = null;
+
+  function el(name, attrs) {
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+  function rnd(a, b) { return a + Math.floor(Math.random() * (b - a + 1)); }
+  function pos(i) {
+    var a = -Math.PI / 2 + i * 2 * Math.PI / N;
+    return { x: CX + RR * Math.cos(a), y: CY + RR * Math.sin(a) };
+  }
+  function log(m) { events.push('t' + tick + '  ' + m); if (events.length > 9) events.shift(); }
+  function resetTimer(n) { n.timer = rnd(7, 12); }
+  function lastTerm(n) { return n.log.length ? n.log[n.log.length - 1].term : 0; }
+  function send(m) { pending.push(m); }
+
+  function init() {
+    nodes = []; pending = []; events = []; tick = 0; cmdSeq = 0;
+    for (var i = 0; i < N; i++) {
+      var n = { id: i, role: 'follower', term: 0, votedFor: null, log: [], commit: 0, alive: true, timer: 0, hb: 0, votes: 0, next: [], match: [] };
+      resetTimer(n); nodes.push(n);
+    }
+    log('cluster started, all servers are followers');
+  }
+
+  function stepDown(n, term) { n.term = term; n.role = 'follower'; n.votedFor = null; }
+
+  function startElection(n) {
+    n.term++; n.role = 'candidate'; n.votedFor = n.id; n.votes = 1; resetTimer(n);
+    log('S' + (n.id + 1) + ' timed out and became a candidate for term ' + n.term);
+    for (var j = 0; j < N; j++) if (j !== n.id) send({ type: 'RV', from: n.id, to: j, term: n.term, lastIdx: n.log.length, lastTerm: lastTerm(n) });
+  }
+  function becomeLeader(n) {
+    n.role = 'leader'; n.hb = 0;
+    for (var j = 0; j < N; j++) { n.next[j] = n.log.length + 1; n.match[j] = 0; }
+    log('S' + (n.id + 1) + ' won a majority and is leader of term ' + n.term);
+  }
+  function sendAE(n, f) {
+    var prev = n.next[f] - 1;
+    send({ type: 'AE', from: n.id, to: f, term: n.term, prev: prev, prevTerm: prev > 0 ? n.log[prev - 1].term : 0, entries: n.log.slice(prev), commit: n.commit });
+  }
+  function advanceCommit(n) {
+    for (var idx = n.log.length; idx > n.commit; idx--) {
+      if (n.log[idx - 1].term !== n.term) break;
+      var c = 1;
+      for (var j = 0; j < N; j++) if (j !== n.id && n.match[j] >= idx) c++;
+      if (c >= MAJ) { n.commit = idx; log('S' + (n.id + 1) + ' committed entries up to index ' + idx); break; }
+    }
+  }
+
+  function handle(n, m) {
+    if (m.term > n.term) stepDown(n, m.term);
+    if (m.type === 'RV') {
+      var upToDate = m.lastTerm > lastTerm(n) || (m.lastTerm === lastTerm(n) && m.lastIdx >= n.log.length);
+      var grant = m.term === n.term && (n.votedFor === null || n.votedFor === m.from) && upToDate;
+      if (grant) { n.votedFor = m.from; resetTimer(n); }
+      else if (m.term === n.term) log('S' + (n.id + 1) + ' refused to vote for S' + (m.from + 1) + (upToDate ? '' : ' (its log is behind)'));
+      send({ type: 'RVR', from: n.id, to: m.from, term: n.term, granted: grant });
+    } else if (m.type === 'RVR') {
+      if (n.role === 'candidate' && m.term === n.term && m.granted && ++n.votes >= MAJ) becomeLeader(n);
+    } else if (m.type === 'AE') {
+      if (m.term < n.term) return send({ type: 'AER', from: n.id, to: m.from, term: n.term, ok: false, match: 0 });
+      n.role = 'follower'; resetTimer(n);
+      var ok = m.prev === 0 || (n.log.length >= m.prev && n.log[m.prev - 1].term === m.prevTerm);
+      if (!ok) return send({ type: 'AER', from: n.id, to: m.from, term: n.term, ok: false, match: 0 });
+      m.entries.forEach(function (e, j) {
+        var idx = m.prev + j + 1;
+        if (n.log.length >= idx && n.log[idx - 1].term !== e.term) { n.log.length = idx - 1; log('S' + (n.id + 1) + ' discarded conflicting entries from index ' + idx); }
+        if (n.log.length < idx) n.log.push({ term: e.term, cmd: e.cmd });
+      });
+      var match = m.prev + m.entries.length;
+      if (m.commit > n.commit) n.commit = Math.min(m.commit, match);
+      send({ type: 'AER', from: n.id, to: m.from, term: n.term, ok: true, match: match });
+    } else if (m.type === 'AER') {
+      if (n.role !== 'leader' || m.term !== n.term) return;
+      if (m.ok) { n.match[m.from] = Math.max(n.match[m.from], m.match); n.next[m.from] = n.match[m.from] + 1; advanceCommit(n); }
+      else n.next[m.from] = Math.max(1, n.next[m.from] - 1);
+    }
+  }
+
+  function step() {
+    tick++;
+    var inbox = pending; pending = [];
+    inbox.forEach(function (m) { if (nodes[m.to].alive) handle(nodes[m.to], m); });
+    nodes.forEach(function (n) {
+      if (!n.alive) return;
+      if (n.role === 'leader') {
+        if (--n.hb <= 0) { n.hb = 2; for (var j = 0; j < N; j++) if (j !== n.id && nodes[j]) sendAE(n, j); }
+      } else if (--n.timer <= 0) startElection(n);
+    });
+    render();
+  }
+
+  function leader() {
+    var best = null;
+    nodes.forEach(function (n) { if (n.alive && n.role === 'leader' && (!best || n.term > best.term)) best = n; });
+    return best;
+  }
+  function write() {
+    var l = leader();
+    if (!l) { log('client write failed: no leader right now, retry later'); return render(); }
+    var cmd = 'x' + (++cmdSeq);
+    l.log.push({ term: l.term, cmd: cmd });
+    log('client sent ' + cmd + ' to leader S' + (l.id + 1) + ' (index ' + l.log.length + ')');
+    render();
+  }
+  function toggle(i) {
+    var n = nodes[i];
+    if (n.alive) { n.alive = false; log('S' + (i + 1) + ' crashed' + (n.role === 'leader' ? ' (it was the leader)' : '')); }
+    else { n.alive = true; n.role = 'follower'; n.votedFor = null; resetTimer(n); log('S' + (i + 1) + ' restarted as a follower'); }
+    render();
+  }
+
+  var COLORS = { RV: '#2e5aa8', RVR: '#2e5aa8', AE: '#bf4520', AER: '#bf4520' };
+  function render() {
+    var links = document.getElementById('links'), msgs = document.getElementById('msgs'), sv = document.getElementById('servers');
+    links.textContent = ''; msgs.textContent = ''; sv.textContent = '';
+    for (var i = 0; i < N; i++) for (var j = i + 1; j < N; j++) {
+      var a = pos(i), b = pos(j);
+      links.appendChild(el('line', { x1: a.x, y1: a.y, x2: b.x, y2: b.y, stroke: 'rgba(45,49,66,.14)', 'stroke-width': 1 }));
+    }
+    pending.forEach(function (m) {
+      var a = pos(m.from), b = pos(m.to), t = (m.type === 'RV' || m.type === 'AE') ? 0.35 : 0.65;
+      var d = el('circle', { cx: a.x + (b.x - a.x) * t, cy: a.y + (b.y - a.y) * t, r: 3.5, fill: COLORS[m.type], opacity: m.type === 'RVR' || m.type === 'AER' ? 0.55 : 1 });
+      msgs.appendChild(d);
+    });
+    nodes.forEach(function (n) {
+      var p = pos(n.id), lead = n.role === 'leader' && n.alive, cand = n.role === 'candidate' && n.alive;
+      sv.appendChild(el('circle', {
+        cx: p.x, cy: p.y, r: NR,
+        fill: !n.alive ? '#ececec' : lead ? '#bf4520' : cand ? 'rgba(46,90,168,.15)' : '#fff',
+        stroke: !n.alive ? '#5a6580' : cand ? '#2e5aa8' : lead ? '#bf4520' : '#2d3142',
+        'stroke-width': 2, 'stroke-dasharray': (!n.alive || cand) ? '5 4' : 'none'
+      }));
+      var col = lead ? '#fff' : '#2d3142';
+      var t1 = el('text', { x: p.x, y: p.y - 2, 'text-anchor': 'middle', 'font-family': 'Geist Mono, monospace', 'font-size': 14, 'font-weight': 600, fill: col });
+      t1.textContent = 'S' + (n.id + 1);
+      var t2 = el('text', { x: p.x, y: p.y + 14, 'text-anchor': 'middle', 'font-family': 'Geist Mono, monospace', 'font-size': 11, fill: col });
+      t2.textContent = n.alive ? 'term ' + n.term : 'down';
+      sv.appendChild(t1); sv.appendChild(t2);
+    });
+
+    var l = leader();
+    document.getElementById('live').textContent = 'tick ' + tick + ' · ' + (l ? 'leader S' + (l.id + 1) + ' (term ' + l.term + ')' : 'no leader');
+
+    var rows = '';
+    nodes.forEach(function (n) {
+      var cells = n.log.map(function (e, i) {
+        return '<span class="cell t' + (e.term % 6) + (i < n.commit ? ' cm' : '') + '" title="index ' + (i + 1) + (i < n.commit ? ', committed' : ', not committed') + '">' + e.term + ':' + e.cmd + '</span>';
+      }).join('');
+      rows += '<tr class="' + (n.alive ? '' : 'down') + '"><td class="id">S' + (n.id + 1) + '</td><td>' + (n.alive ? n.role : 'down') + '</td><td>' + n.term +
+        '</td><td>' + (!n.alive ? '-' : n.role === 'leader' ? 'heartbeat ' + Math.max(n.hb, 0) : 'timeout ' + Math.max(n.timer, 0)) +
+        '</td><td><div class="cells">' + (cells || '<span class="hint">empty</span>') + '</div></td></tr>';
+    });
+    document.getElementById('logs').innerHTML = rows;
+
+    var kills = document.getElementById('kills');
+    if (!kills.children.length) {
+      nodes.forEach(function (n) {
+        var b = document.createElement('button');
+        b.type = 'button'; b.className = 'btn'; b.dataset.i = n.id;
+        b.addEventListener('click', function () { toggle(n.id); });
+        kills.appendChild(b);
+      });
+    }
+    nodes.forEach(function (n) { kills.children[n.id].textContent = (n.alive ? 'Kill S' : 'Revive S') + (n.id + 1); });
+
+    document.getElementById('readout').textContent = events.join('\n');
+  }
+
+  function setAuto(on) {
+    var b = document.getElementById('b-auto');
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    if (on && !auto) auto = setInterval(step, 700);
+    if (!on && auto) { clearInterval(auto); auto = null; }
+  }
+  document.getElementById('b-step').addEventListener('click', step);
+  document.getElementById('b-auto').addEventListener('click', function () { setAuto(!auto); });
+  document.getElementById('b-write').addEventListener('click', write);
+  document.getElementById('reset').addEventListener('click', function () { setAuto(false); init(); render(); });
+
+  init();
+  render();
+})();
+</script>
+</body>
+</html>

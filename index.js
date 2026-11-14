@@ -203,6 +203,16 @@ const DOCS = [
     related: ['Heap'],
   },
   {
+    title: 'Raft',
+    path: 'content/datastructure-algorithm/raft/raft.html',
+    category: 'Algorithms',
+    topic: 'Distributed systems',
+    level: 'Advanced',
+    tags: ['consensus', 'leader election', 'replication', 'replicated log', 'fault tolerance', 'quorum', 'etcd'],
+    summary: 'Servers elect one leader, and the leader replicates an ordered log. An entry is committed once a majority stores it, so the cluster survives crashes.',
+    related: ['Merkle Tree', 'LSM Tree'],
+  },
+  {
     title: 'Quicksort',
     path: 'content/datastructure-algorithm/quicksort/quicksort.html',
     category: 'Algorithms',
@@ -261,6 +271,16 @@ const DOCS = [
     tags: ['integral', 'area', 'riemann sum', 'antiderivative', 'calculus'],
     summary: 'Add up infinitely many thin slices. Riemann sums close in on the area under a curve, and the Fundamental Theorem gives the shortcut.',
     related: ['Limits', 'Derivatives'],
+  },
+  {
+    title: 'Fourier Transform',
+    path: 'content/math/fourier-transform/fourier-transform.html',
+    category: 'Mathematics',
+    topic: 'Signals',
+    level: 'Intermediate',
+    tags: ['fourier', 'frequency', 'signal', 'fft', 'dft', 'sine waves', 'spectrum'],
+    summary: 'Any signal is a stack of simple waves. Chain turning circles tip to tail, watch them draw a waveform, and read off which frequencies it contains.',
+    related: ['Integrals', 'Merge Sort'],
   },
 ];
 
