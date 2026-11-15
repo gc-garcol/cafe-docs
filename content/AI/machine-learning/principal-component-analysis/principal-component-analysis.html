@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Principal Component Analysis: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+a{color:var(--link)}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+
+.card{margin:24px 0 0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.scroll{overflow-x:auto;padding:0 8px;text-align:center}
+.scroll svg{display:inline-block;width:100%;max-width:720px;height:auto}
+
+.controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;margin-top:16px;align-items:start}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.row{display:grid;grid-template-columns:44px 1fr 56px;gap:12px;align-items:center;margin:0 0 12px}
+.row label{font-family:var(--mono);font-size:13px;font-weight:600}
+.row output{font-family:var(--mono);font-size:12px;text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);min-height:28px}
+.group-label{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);margin:16px 0 6px}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.big-answer{font-family:var(--serif);font-size:44px;line-height:1.1;margin:4px 0 8px;color:var(--accent)}
+#readout{margin:0;padding:0;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink);border:0;background:none}
+#calc{overflow-x:auto;margin-top:8px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:3px;border:1px solid var(--ink);display:inline-block}
+
+pre.code{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .t{color:var(--link)} .c{color:var(--soft);font-style:italic}
+
+.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;text-align:center;overflow-x:auto}
+.formula .katex{font-size:1.25em}
+.katex{color:var(--ink)}
+p .katex,td .katex,li .katex{font-size:1.05em}
+
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:30px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+ul.tight,ol.tight{padding-left:20px;max-width:68ch}ul.tight li,ol.tight li{margin:6px 0}
+
+@media (max-width:860px){.controls{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" style="margin-right:8px" href="../../../../index.html">&larr; Back to home</a>
+<a class="back back-cat" href="../../../../index.html#cat=AI">&larr; Back to AI</a>
+
+<header>
+  <div class="eyebrow">AI · Dimensionality reduction</div>
+  <h1>Principal Component Analysis</h1>
+  <p class="lede">Squash many features into a few without losing the story. PCA finds the direction along which the data varies the most, then keeps that direction and drops the rest.</p>
+</header>
+
+<section>
+  <h2>Try it first</h2>
+  <p>Each dot has two features, and we want to describe it with one number. Choose a line through the center of the cloud by turning the angle. Every point drops straight onto the line. Watch two things: how spread out the shadows are, and how far the dots had to travel. The best line is where the shadows are most spread, and the travel is smallest. Press Snap to find it.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">Project the cloud onto a line</span></div>
+    <div class="scroll">
+      <svg id="plot" viewBox="0 0 720 360" role="img" aria-labelledby="plot-title plot-desc">
+        <title id="plot-title">Correlated points projected onto an adjustable line through their mean</title>
+        <desc id="plot-desc">A tilted cloud of dots with a cross at its mean. A long orange line passes through the mean at an angle you choose. Short gray segments connect each dot to its shadow on that line, and the shadows are drawn as small orange marks. When the line points along the long axis of the cloud, the segments are short and the shadows are widely spread.</desc>
+        <rect width="720" height="360" fill="#fff" stroke="rgba(45,49,66,.12)"/>
+        <g id="layer"></g>
+      </svg>
+    </div>
+    <div class="card-bottom"><span class="hint">Gray segments are the information thrown away</span><span class="live" id="live"></span></div>
+  </figure>
+
+  <div class="controls">
+    <div class="panel">
+      <div class="row"><label for="ang">angle</label><input type="range" id="ang" min="0" max="179" step="1" value="100"><output id="o-ang"></output></div>
+      <div class="btns">
+        <button type="button" class="btn" id="snap">Snap to best</button>
+        <button type="button" class="btn" id="data">New data</button>
+      </div>
+      <div class="legend" aria-label="Legend">
+        <span><i class="sw" style="background:#2e5aa8"></i>data</span>
+        <span><i class="sw" style="background:#bf4520"></i>line and shadows</span>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="eyebrow">Variance kept</div>
+      <div class="big-answer" id="answer"></div>
+      <pre id="readout" aria-live="polite"></pre>
+      <div id="calc"></div>
+    </div>
+  </div>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 2</span><span class="card-title">Variance along every direction</span></div>
+    <div class="scroll">
+      <svg id="curve" viewBox="0 0 720 240" role="img" aria-labelledby="curve-title curve-desc">
+        <title id="curve-title">Variance of the projected data as the line turns from 0 to 180 degrees</title>
+        <desc id="curve-desc">A smooth wave with the line angle on the horizontal axis and the variance of the shadows on the vertical axis. It reaches one peak, the first principal component, and one valley 90 degrees later, the second component. A marker shows the current angle.</desc>
+        <rect width="720" height="240" fill="#fff"/>
+        <g id="curve-layer"></g>
+      </svg>
+    </div>
+    <div class="card-bottom"><span class="hint">Peak: first component. Valley: second</span><span class="live" id="curve-live"></span></div>
+  </figure>
+</section>
+
+<section>
+  <h2>1. Why drop dimensions</h2>
+  <p>Real data often has many features that move together, such as height and weight, or neighboring pixels. The cloud is flat in practice, with a few directions that matter and many that are almost noise. PCA finds a new set of axes aligned with the cloud, ordered from most to least spread, so you can keep the first few. That gives faster models, less noise, and data you can plot in 2D.</p>
+  <p class="callout">Keep the directions where the data actually moves.</p>
+</section>
+
+<section>
+  <h2>2. The goal</h2>
+  <p>First subtract the mean from every feature so the cloud is centered at the origin. For a unit direction $u$, the shadow of a point $x_i$ is the number $u^\top x_i$. The variance of the shadows is</p>
+  <div class="formula">$$\operatorname{Var}(u) = \frac{1}{n}\sum_{i=1}^{n} (u^\top x_i)^2 = u^\top C\, u, \qquad C = \frac{1}{n}\sum_{i=1}^{n} x_i x_i^\top$$</div>
+  <p>$C$ is the covariance matrix. PCA looks for the unit vector $u$ that makes $u^\top C u$ as large as possible. That is Fig 2: the peak of the curve.</p>
+  <p>Maximizing the spread and minimizing the dropped distance are the same problem. By Pythagoras, each point satisfies $\lVert x_i\rVert^2 = (u^\top x_i)^2 + \text{distance}^2$, and the left side does not depend on $u$. So when the shadows grow, the leftover distance shrinks by exactly the same amount.</p>
+</section>
+
+<section>
+  <h2>3. The answer is an eigenvector</h2>
+  <p>The maximizer satisfies $C u = \lambda u$, so it is an eigenvector of $C$, and the variance it keeps is the eigenvalue $\lambda$. Sorting eigenvectors by eigenvalue gives the principal components. They are perpendicular to each other, and the fraction of variance kept by the first $m$ is</p>
+  <div class="formula">$$\text{explained} = \frac{\lambda_1 + \dots + \lambda_m}{\lambda_1 + \dots + \lambda_d}$$</div>
+  <p>For two features, $C = \begin{pmatrix} a & b \\ b & c \end{pmatrix}$ has $\lambda = \dfrac{a+c}{2} \pm \sqrt{\left(\dfrac{a-c}{2}\right)^2 + b^2}$, and the best angle is $\tfrac12 \operatorname{atan2}(2b,\, a-c)$. See <a href="../../../math/eigenvalues-eigenvectors/eigenvalues-eigenvectors.html">Eigenvalues and Eigenvectors</a> and <a href="../../../math/matrix-diagonalization/matrix-diagonalization.html">Matrix Diagonalization</a> for why this works.</p>
+</section>
+
+<section>
+  <h2>4. Recipe</h2>
+  <ol class="tight">
+    <li>Center the data, and usually scale each feature to unit variance.</li>
+    <li>Compute the covariance matrix $C$.</li>
+    <li>Find its eigenvectors and eigenvalues, and sort them from large to small.</li>
+    <li>Keep the top $m$ eigenvectors, enough to explain, say, 95% of the variance.</li>
+    <li>Project: the new coordinates are $z = U_m^\top x$.</li>
+  </ol>
+  <p>In practice libraries use the singular value decomposition instead of forming $C$, which is more accurate and faster for wide data.</p>
+</section>
+
+<section>
+  <h2>5. The same thing in code</h2>
+  <pre class="code"><span class="k">function</span> pca2d(points) {
+  <span class="k">const</span> n = points.length;
+  <span class="k">const</span> mx = sum(points.map(p =&gt; p.x)) / n, my = sum(points.map(p =&gt; p.y)) / n;
+  <span class="k">const</span> c = points.map(p =&gt; ({ x: p.x - mx, y: p.y - my }));   <span class="c">// center</span>
+
+  <span class="k">const</span> a = sum(c.map(p =&gt; p.x * p.x)) / n;                     <span class="c">// covariance</span>
+  <span class="k">const</span> b = sum(c.map(p =&gt; p.x * p.y)) / n;
+  <span class="k">const</span> d = sum(c.map(p =&gt; p.y * p.y)) / n;
+
+  <span class="k">const</span> mid = (a + d) / <span class="t">2</span>, r = Math.hypot((a - d) / <span class="t">2</span>, b);
+  <span class="k">const</span> lambda1 = mid + r, lambda2 = mid - r;                  <span class="c">// eigenvalues</span>
+  <span class="k">const</span> theta = <span class="t">0.5</span> * Math.atan2(<span class="t">2</span> * b, a - d);               <span class="c">// first component</span>
+  <span class="k">return</span> { theta, lambda1, lambda2, explained: lambda1 / (lambda1 + lambda2) };
+}</pre>
+</section>
+
+<section>
+  <h2>6. Limits</h2>
+  <ul class="tight">
+    <li><b>Linear only.</b> PCA finds straight directions. A curled cloud, like a spiral, needs a nonlinear method such as t-SNE or an autoencoder.</li>
+    <li><b>Variance is not importance.</b> A direction with large spread may be useless for predicting your label, and a small one may be the key.</li>
+    <li><b>Scale matters.</b> Without standardizing, the feature with the largest units dominates the first component.</li>
+    <li><b>Components are blends.</b> Each new axis mixes the original features, so it can be hard to name.</li>
+  </ul>
+  <p>PCA is often the first step before <a href="../k-means-clustering/k-means-clustering.html">K-means</a> or <a href="../k-nearest-neighbors/k-nearest-neighbors.html">k-NN</a>, which both suffer when there are too many dimensions. See the map in <a href="../ml-algorithm-groups/ml-algorithm-groups.html">Machine Learning Algorithm Groups</a>.</p>
+</section>
+
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var NS = 'http://www.w3.org/2000/svg';
+  var W = 720, H = 360, SC = 3.6;
+  var $ = function (id) { return document.getElementById(id); };
+  var state = { seed: 21, pts: [], mx: 0, my: 0, a: 0, b: 0, c: 0, l1: 0, l2: 0, best: 0 };
+
+  function el(name, attrs, parent) {
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function rng(seed) {
+    var a = seed >>> 0;
+    return function () {
+      a = (a + 0x6D2B79F5) >>> 0;
+      var t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function gauss(r) { var u = 1 - r(), v = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+  function clamp(v, a, b) { return Math.min(b, Math.max(a, v)); }
+  var RAD = Math.PI / 180;
+
+  function makeData(seed) {
+    var r = rng(seed), th = (20 + r() * 50) * RAD, pts = [];
+    for (var i = 0; i < 50; i++) {
+      var s = gauss(r) * 26, t = gauss(r) * 7;
+      pts.push({ x: clamp(100 + s * Math.cos(th) - t * Math.sin(th), 3, 197), y: clamp(50 + s * Math.sin(th) + t * Math.cos(th), 3, 97) });
+    }
+    return pts;
+  }
+  function analyse() {
+    var n = state.pts.length, sx = 0, sy = 0;
+    state.pts.forEach(function (p) { sx += p.x; sy += p.y; });
+    state.mx = sx / n; state.my = sy / n;
+    var a = 0, b = 0, c = 0;
+    state.pts.forEach(function (p) { var dx = p.x - state.mx, dy = p.y - state.my; a += dx * dx; b += dx * dy; c += dy * dy; });
+    state.a = a / n; state.b = b / n; state.c = c / n;
+    var mid = (state.a + state.c) / 2, rr = Math.hypot((state.a - state.c) / 2, state.b);
+    state.l1 = mid + rr; state.l2 = mid - rr;
+    var best = 0.5 * Math.atan2(2 * state.b, state.a - state.c) / RAD;
+    state.best = (best + 180) % 180;
+  }
+  function variance(deg) {
+    var u = Math.cos(deg * RAD), v = Math.sin(deg * RAD);
+    return u * u * state.a + 2 * u * v * state.b + v * v * state.c;
+  }
+
+  function drawCurve(cur) {
+    var g = $('curve-layer'); g.textContent = '';
+    var L = 60, R = 690, T = 20, B = 200, hi = state.l1 * 1.1;
+    var X = function (d) { return L + d / 180 * (R - L); };
+    var Y = function (v) { return B - v / hi * (B - T); };
+    el('line', { x1: L, x2: R, y1: B, y2: B, stroke: '#2d3142' }, g);
+    el('line', { x1: L, x2: L, y1: T, y2: B, stroke: '#2d3142' }, g);
+    [0, 45, 90, 135, 180].forEach(function (d) {
+      var t = el('text', { x: X(d), y: B + 18, 'text-anchor': 'middle', 'font-size': 11, fill: '#5a6580', 'font-family': 'Geist Mono, monospace' }, g);
+      t.textContent = d + '\u00B0';
+    });
+    var xl = el('text', { x: (L + R) / 2, y: B + 36, 'text-anchor': 'middle', 'font-size': 11, fill: '#5a6580', 'font-family': 'Geist Mono, monospace' }, g);
+    xl.textContent = 'line angle';
+    var d = '';
+    for (var a = 0; a <= 180; a += 2) d += (a ? ' L' : 'M') + X(a).toFixed(1) + ' ' + Y(variance(a)).toFixed(1);
+    el('path', { d: d, fill: 'none', stroke: '#2d3142', 'stroke-width': 2.2 }, g);
+    el('circle', { cx: X(state.best), cy: Y(state.l1), r: 5, fill: '#fff', stroke: '#2f8f6b', 'stroke-width': 2 }, g);
+    el('line', { x1: X(cur), x2: X(cur), y1: T, y2: B, stroke: '#bf4520', opacity: 0.4 }, g);
+    el('circle', { cx: X(cur), cy: Y(variance(cur)), r: 7, fill: '#bf4520', stroke: '#fff', 'stroke-width': 2 }, g);
+    $('curve-live').textContent = 'peak at ' + Math.round(state.best) + '\u00B0';
+  }
+
+  function render() {
+    var deg = +$('ang').value;
+    $('o-ang').textContent = deg + '\u00B0';
+    var u = Math.cos(deg * RAD), v = Math.sin(deg * RAD);
+    var g = $('layer'); g.textContent = '';
+    var X = function (x) { return x * SC; }, Y = function (y) { return H - y * SC; };
+
+    // the line
+    var ext = 130;
+    el('line', { x1: X(state.mx - u * ext), y1: Y(state.my - v * ext), x2: X(state.mx + u * ext), y2: Y(state.my + v * ext), stroke: '#bf4520', 'stroke-width': 2.5 }, g);
+    var resid = 0;
+    state.pts.forEach(function (p) {
+      var dx = p.x - state.mx, dy = p.y - state.my, s = dx * u + dy * v;
+      var sx = state.mx + s * u, sy = state.my + s * v;
+      resid += (p.x - sx) * (p.x - sx) + (p.y - sy) * (p.y - sy);
+      el('line', { x1: X(p.x), y1: Y(p.y), x2: X(sx), y2: Y(sy), stroke: '#5a6580', 'stroke-width': 1, opacity: 0.5 }, g);
+    });
+    state.pts.forEach(function (p) {
+      var dx = p.x - state.mx, dy = p.y - state.my, s = dx * u + dy * v;
+      el('circle', { cx: X(state.mx + s * u), cy: Y(state.my + s * v), r: 3, fill: '#bf4520' }, g);
+      el('circle', { cx: X(p.x), cy: Y(p.y), r: 4.5, fill: '#2e5aa8', stroke: '#fff', 'stroke-width': 1 }, g);
+    });
+    el('path', { d: 'M' + (X(state.mx) - 7) + ',' + Y(state.my) + ' h14 M' + X(state.mx) + ',' + (Y(state.my) - 7) + ' v14', stroke: '#2d3142', 'stroke-width': 2.5 }, g);
+
+    var kept = variance(deg) / (state.a + state.c);
+    resid /= state.pts.length;
+    $('answer').textContent = (kept * 100).toFixed(1) + '%';
+    $('live').textContent = 'best possible: ' + (state.l1 / (state.l1 + state.l2) * 100).toFixed(1) + '%';
+    $('readout').textContent =
+      'angle           = ' + deg + ' deg\n' +
+      'shadow variance = ' + variance(deg).toFixed(1) + '\n' +
+      'dropped dist^2  = ' + resid.toFixed(1) + '\n' +
+      'lambda1, lambda2= ' + state.l1.toFixed(1) + ', ' + state.l2.toFixed(1) + '\n' +
+      'PC1 angle       = ' + state.best.toFixed(0) + ' deg\n';
+    var tex = '\\dfrac{u^\\top C u}{\\lambda_1+\\lambda_2}=' + kept.toFixed(3);
+    if (window.katex) window.katex.render(tex, $('calc'), { throwOnError: false });
+    else $('calc').textContent = tex;
+    drawCurve(deg);
+  }
+
+  function fresh() { state.pts = makeData(state.seed); analyse(); $('ang').value = (Math.round(state.best) + 90) % 180; render(); }
+
+  $('ang').addEventListener('input', render);
+  $('snap').addEventListener('click', function () { $('ang').value = Math.round(state.best) % 180; render(); });
+  $('data').addEventListener('click', function () { state.seed = Math.floor(Math.random() * 100000) + 1; fresh(); });
+  fresh();
+  if (window.renderMathInElement) {
+    window.renderMathInElement(document.body, {
+      delimiters: [{ left: '$$', right: '$$', display: true }, { left: '$', right: '$', display: false }],
+      ignoredTags: ['script', 'style', 'textarea', 'pre', 'code'],
+      throwOnError: false
+    });
+  }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>k-Nearest Neighbors: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+a{color:var(--link)}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+
+.card{margin:24px 0 0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.scroll{overflow-x:auto;padding:0 8px;text-align:center}
+.scroll svg{display:inline-block;width:100%;max-width:720px;height:auto}
+
+.controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;margin-top:16px;align-items:start}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.row{display:grid;grid-template-columns:44px 1fr 56px;gap:12px;align-items:center;margin:0 0 12px}
+.row label{font-family:var(--mono);font-size:13px;font-weight:600}
+.row output{font-family:var(--mono);font-size:12px;text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);min-height:28px}
+.group-label{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);margin:16px 0 6px}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.big-answer{font-family:var(--serif);font-size:44px;line-height:1.1;margin:4px 0 8px;color:var(--accent)}
+#readout{margin:0;padding:0;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink);border:0;background:none}
+#calc{overflow-x:auto;margin-top:8px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:3px;border:1px solid var(--ink);display:inline-block}
+
+pre.code{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .t{color:var(--link)} .c{color:var(--soft);font-style:italic}
+
+.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;text-align:center;overflow-x:auto}
+.formula .katex{font-size:1.25em}
+.katex{color:var(--ink)}
+p .katex,td .katex,li .katex{font-size:1.05em}
+
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:30px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+ul.tight,ol.tight{padding-left:20px;max-width:68ch}ul.tight li,ol.tight li{margin:6px 0}
+
+@media (max-width:860px){.controls{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" style="margin-right:8px" href="../../../../index.html">&larr; Back to home</a>
+<a class="back back-cat" href="../../../../index.html#cat=AI">&larr; Back to AI</a>
+
+<header>
+  <div class="eyebrow">AI · Classification</div>
+  <h1>k-Nearest Neighbors</h1>
+  <p class="lede">The laziest useful classifier. It learns nothing in advance. To label a new point, it finds the $k$ closest known points and lets them vote.</p>
+</header>
+
+<section>
+  <h2>Try it first</h2>
+  <p>Click the plot to place the query point, or use the sliders. The ring grows until it holds the $k$ nearest neighbors, and the majority color wins. Turn on the regions to see the whole decision boundary. Set $k=1$ and the boundary hugs every point. Raise $k$ and it smooths out.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">Vote of the nearest neighbors</span></div>
+    <div class="scroll">
+      <svg id="plot" viewBox="0 0 720 360" role="img" aria-labelledby="plot-title plot-desc" style="cursor:crosshair">
+        <title id="plot-title">Two classes of points with a query point and its nearest neighbors</title>
+        <desc id="plot-desc">Orange and blue dots form two overlapping groups. A black cross marks the query point. A ring around it just reaches the k nearest dots, and lines join the query to each of them. Optional faint background cells show which class would win at every location. The readout lists the votes.</desc>
+        <rect width="720" height="360" fill="#fff" stroke="rgba(45,49,66,.12)"/>
+        <g id="layer"></g>
+      </svg>
+    </div>
+    <div class="card-bottom"><span class="hint">Click the plot to move the query</span><span class="live" id="live"></span></div>
+  </figure>
+
+  <div class="controls">
+    <div class="panel">
+      <div class="row"><label for="k">$k$</label><input type="range" id="k" min="1" max="15" step="2" value="5"><output id="o-k"></output></div>
+      <div class="row"><label for="qx">$x$</label><input type="range" id="qx" min="0" max="200" step="1" value="100"><output id="o-qx"></output></div>
+      <div class="row"><label for="qy">$y$</label><input type="range" id="qy" min="0" max="100" step="1" value="50"><output id="o-qy"></output></div>
+      <div class="group-label">View</div>
+      <label><input type="checkbox" id="regions"> Show decision regions</label>
+      <div class="btns"><button type="button" class="btn" id="data">New data</button></div>
+      <div class="legend" aria-label="Legend">
+        <span><i class="sw" style="background:#bf4520"></i>class A</span>
+        <span><i class="sw" style="background:#2e5aa8"></i>class B</span>
+        <span><i class="sw" style="background:#fff"></i>query</span>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="eyebrow">Prediction</div>
+      <div class="big-answer" id="answer"></div>
+      <pre id="readout" aria-live="polite"></pre>
+      <div id="calc"></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>1. The idea</h2>
+  <p>Similar inputs tend to have similar labels. So to predict for a new point $x$, look at the training points closest to it. K-NN has no training step and no parameters to fit. The data is the model, which is why it is called a lazy or instance-based learner.</p>
+  <p class="callout">Do not learn a rule. Remember everything and ask the neighbors.</p>
+</section>
+
+<section>
+  <h2>2. The rule</h2>
+  <p>Measure distance, usually Euclidean, from the query to every training point:</p>
+  <div class="formula">$$d(x, x_i) = \sqrt{\sum_{j=1}^{d} (x_j - x_{i,j})^2}$$</div>
+  <p>Let $N_k(x)$ be the $k$ points with the smallest distance. The predicted class is the most common label among them, which is also an estimate of the class probability:</p>
+  <div class="formula">$$\hat{P}(c \mid x) = \frac{1}{k}\sum_{x_i \in N_k(x)} \mathbb{1}[y_i = c], \qquad \hat{y} = \arg\max_c \hat{P}(c \mid x)$$</div>
+  <p>For regression, replace the vote with the average of the neighbors' values.</p>
+</section>
+
+<section>
+  <h2>3. Choosing k</h2>
+  <div class="cards">
+    <div class="stat focal"><div class="eyebrow">Small k</div><div class="big">wiggly</div><p>$k=1$ copies the nearest point, noise included. Low bias, high variance, and the model overfits.</p></div>
+    <div class="stat"><div class="eyebrow">Large k</div><div class="big">smooth</div><p>The vote averages over a wide area. The boundary is stable, but real structure gets washed out.</p></div>
+    <div class="stat"><div class="eyebrow">In practice</div><div class="big">validate</div><p>Try several odd values of $k$ on held-out data and keep the best. Odd $k$ avoids ties with two classes.</p></div>
+  </div>
+</section>
+
+<section>
+  <h2>4. What can go wrong</h2>
+  <ul class="tight">
+    <li><b>Scale.</b> Distance adds all features together, so a feature in thousands drowns one in tenths. Standardize first.</li>
+    <li><b>Many dimensions.</b> In high dimensions all points become almost equally far apart, and "nearest" loses meaning. Reduce dimensions first, for example with <a href="../principal-component-analysis/principal-component-analysis.html">PCA</a>.</li>
+    <li><b>Cost.</b> A query scans all $n$ points, $O(nd)$. Spatial indexes such as a k-d tree or a <a href="../../../datastructure-algorithm/quad-tree/quad-tree.html">Quad Tree</a> prune most of that in low dimensions.</li>
+    <li><b>Memory.</b> You must keep the whole training set.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>5. The same thing in code</h2>
+  <pre class="code"><span class="k">function</span> knnPredict(train, query, k) {
+  <span class="c">// distance from the query to every labeled point</span>
+  <span class="k">const</span> byDist = train
+    .map(p =&gt; ({ label: p.label, d: dist(p.x, query) }))
+    .sort((a, b) =&gt; a.d - b.d)
+    .slice(<span class="t">0</span>, k);
+
+  <span class="c">// majority vote</span>
+  <span class="k">const</span> votes = {};
+  <span class="k">for</span> (<span class="k">const</span> n <span class="k">of</span> byDist) votes[n.label] = (votes[n.label] || <span class="t">0</span>) + <span class="t">1</span>;
+  <span class="k">return</span> Object.entries(votes).sort((a, b) =&gt; b[<span class="t">1</span>] - a[<span class="t">1</span>])[<span class="t">0</span>][<span class="t">0</span>];
+}</pre>
+</section>
+
+<section>
+  <h2>6. Related</h2>
+  <p>K-NN draws curved boundaries without any equations. A linear model such as <a href="../logistic-regression/logistic-regression.html">Logistic Regression</a> or the <a href="../perceptron-learning-algorithm/perceptron-learning-algorithm.html">Perceptron</a> draws a straight one and is far cheaper at prediction time. <a href="../k-means-clustering/k-means-clustering.html">K-means</a> also uses distance, but without labels. See the full map in <a href="../ml-algorithm-groups/ml-algorithm-groups.html">Machine Learning Algorithm Groups</a>.</p>
+</section>
+
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var NS = 'http://www.w3.org/2000/svg';
+  var W = 720, H = 360, SC = 3.6;
+  var COL = ['#bf4520', '#2e5aa8'], NAME = ['A', 'B'];
+  var $ = function (id) { return document.getElementById(id); };
+  var state = { seed: 11, pts: [] };
+
+  function el(name, attrs, parent) {
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function rng(seed) {
+    var a = seed >>> 0;
+    return function () {
+      a = (a + 0x6D2B79F5) >>> 0;
+      var t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function gauss(r) { var u = 1 - r(), v = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+  function clamp(v, a, b) { return Math.min(b, Math.max(a, v)); }
+
+  function makeData(seed) {
+    var r = rng(seed), pts = [];
+    var centers = [[60, 55], [135, 45]];
+    for (var c = 0; c < 2; c++) {
+      for (var i = 0; i < 34; i++) {
+        pts.push({ x: clamp(centers[c][0] + gauss(r) * 20, 3, 197), y: clamp(centers[c][1] + gauss(r) * 17, 3, 97), c: c });
+      }
+    }
+    return pts;
+  }
+  function neighbors(x, y, k) {
+    return state.pts.map(function (p) { return { p: p, d: Math.hypot(p.x - x, p.y - y) }; })
+      .sort(function (a, b) { return a.d - b.d; }).slice(0, k);
+  }
+  function vote(x, y, k) {
+    var nb = neighbors(x, y, k), v = [0, 0];
+    nb.forEach(function (n) { v[n.p.c]++; });
+    return { nb: nb, v: v, win: v[0] >= v[1] ? 0 : 1 };
+  }
+
+  function render() {
+    var k = +$('k').value, qx = +$('qx').value, qy = +$('qy').value;
+    $('o-k').textContent = k; $('o-qx').textContent = qx; $('o-qy').textContent = qy;
+    var g = $('layer'); g.textContent = '';
+    var X = function (v) { return v * SC; }, Y = function (v) { return H - v * SC; };
+
+    if ($('regions').checked) {
+      for (var gx = 0; gx < 200; gx += 5) for (var gy = 0; gy < 100; gy += 5) {
+        var r = vote(gx + 2.5, gy + 2.5, k);
+        el('rect', { x: X(gx), y: Y(gy + 5), width: 5 * SC, height: 5 * SC, fill: COL[r.win], opacity: 0.12 }, g);
+      }
+    }
+    var res = vote(qx, qy, k);
+    var rad = res.nb[res.nb.length - 1].d;
+    el('circle', { cx: X(qx), cy: Y(qy), r: rad * SC, fill: 'rgba(45,49,66,.05)', stroke: '#2d3142', 'stroke-dasharray': '4 4' }, g);
+    res.nb.forEach(function (n) {
+      el('line', { x1: X(qx), y1: Y(qy), x2: X(n.p.x), y2: Y(n.p.y), stroke: COL[n.p.c], 'stroke-width': 1.5, opacity: 0.7 }, g);
+    });
+    state.pts.forEach(function (p) {
+      var isN = res.nb.some(function (n) { return n.p === p; });
+      el('circle', { cx: X(p.x), cy: Y(p.y), r: isN ? 6 : 4.5, fill: COL[p.c], stroke: isN ? '#2d3142' : '#fff', 'stroke-width': isN ? 2 : 1 }, g);
+    });
+    el('path', { d: 'M' + (X(qx) - 8) + ',' + (Y(qy) - 8) + ' L' + (X(qx) + 8) + ',' + (Y(qy) + 8) + ' M' + (X(qx) + 8) + ',' + (Y(qy) - 8) + ' L' + (X(qx) - 8) + ',' + (Y(qy) + 8), stroke: '#2d3142', 'stroke-width': 3, 'stroke-linecap': 'round' }, g);
+
+    var tied = res.v[0] === res.v[1];
+    $('answer').textContent = tied ? 'tie' : 'class ' + NAME[res.win];
+    $('answer').style.color = tied ? '#2d3142' : COL[res.win];
+    $('live').textContent = res.v[0] + ' A · ' + res.v[1] + ' B';
+    $('readout').textContent =
+      'k              = ' + k + '\n' +
+      'query          = (' + qx + ', ' + qy + ')\n' +
+      'votes A / B    = ' + res.v[0] + ' / ' + res.v[1] + '\n' +
+      'radius         = ' + rad.toFixed(1) + '\n' +
+      'P(A | x)       = ' + (res.v[0] / k).toFixed(2) + '\n';
+    var tex = '\\hat P(A\\mid x)=\\tfrac{' + res.v[0] + '}{' + k + '}=' + (res.v[0] / k).toFixed(2);
+    if (window.katex) window.katex.render(tex, $('calc'), { throwOnError: false });
+    else $('calc').textContent = tex;
+  }
+
+  $('plot').addEventListener('click', function (e) {
+    var b = $('plot').getBoundingClientRect();
+    var x = (e.clientX - b.left) / b.width * W / SC, y = (H - (e.clientY - b.top) / b.height * H) / SC;
+    $('qx').value = Math.round(clamp(x, 0, 200)); $('qy').value = Math.round(clamp(y, 0, 100));
+    render();
+  });
+  ['k', 'qx', 'qy', 'regions'].forEach(function (id) { $(id).addEventListener('input', render); });
+  $('data').addEventListener('click', function () { state.seed = Math.floor(Math.random() * 100000) + 1; state.pts = makeData(state.seed); render(); });
+
+  state.pts = makeData(state.seed);
+  render();
+  if (window.renderMathInElement) {
+    window.renderMathInElement(document.body, {
+      delimiters: [{ left: '$$', right: '$$', display: true }, { left: '$', right: '$', display: false }],
+      ignoredTags: ['script', 'style', 'textarea', 'pre', 'code'],
+      throwOnError: false
+    });
+  }
+});
+</script>
+</body>
+</html>

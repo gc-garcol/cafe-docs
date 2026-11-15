@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Naive Bayes: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+a{color:var(--link)}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+
+.card{margin:24px 0 0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.scroll{overflow-x:auto;padding:0 8px;text-align:center}
+.scroll svg{display:inline-block;width:100%;max-width:720px;height:auto}
+
+.controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;margin-top:16px;align-items:start}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.row{display:grid;grid-template-columns:44px 1fr 56px;gap:12px;align-items:center;margin:0 0 12px}
+.row label{font-family:var(--mono);font-size:13px;font-weight:600}
+.row output{font-family:var(--mono);font-size:12px;text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);min-height:28px}
+.group-label{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);margin:16px 0 6px}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.big-answer{font-family:var(--serif);font-size:44px;line-height:1.1;margin:4px 0 8px;color:var(--accent)}
+#readout{margin:0;padding:0;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink);border:0;background:none}
+#calc{overflow-x:auto;margin-top:8px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:3px;border:1px solid var(--ink);display:inline-block}
+
+pre.code{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .t{color:var(--link)} .c{color:var(--soft);font-style:italic}
+
+.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;text-align:center;overflow-x:auto}
+.formula .katex{font-size:1.25em}
+.katex{color:var(--ink)}
+p .katex,td .katex,li .katex{font-size:1.05em}
+
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:30px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+ul.tight,ol.tight{padding-left:20px;max-width:68ch}ul.tight li,ol.tight li{margin:6px 0}
+
+@media (max-width:860px){.controls{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" style="margin-right:8px" href="../../../../index.html">&larr; Back to home</a>
+<a class="back back-cat" href="../../../../index.html#cat=AI">&larr; Back to AI</a>
+
+<header>
+  <div class="eyebrow">AI · Classification</div>
+  <h1>Naive Bayes</h1>
+  <p class="lede">A classifier built from counting. Use Bayes' theorem to ask how likely each class is given the evidence, and pretend every clue is independent so the math stays simple.</p>
+</header>
+
+<section>
+  <h2>Try it first</h2>
+  <p>A tiny spam filter was trained on 100 emails and six words. Tick the words that appear in a new email. Each word pushes the verdict toward spam or toward normal mail, and the bars show how hard. Move the prior to say how much spam you expect before reading anything.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">Evidence in favor of spam</span></div>
+    <div class="scroll">
+      <svg id="plot" viewBox="0 0 720 340" role="img" aria-labelledby="plot-title plot-desc">
+        <title id="plot-title">Bars showing how much each word moves the log-odds toward spam or normal mail</title>
+        <desc id="plot-desc">A horizontal bar chart with a vertical zero line in the middle. Each row is a word. A bar to the right of zero pushes toward spam, drawn in orange. A bar to the left pushes toward normal mail, drawn in blue. The top row shows the prior and the bottom row shows the total, with the final spam probability written at the right.</desc>
+        <rect width="720" height="340" fill="#fff" stroke="rgba(45,49,66,.12)"/>
+        <g id="layer"></g>
+      </svg>
+    </div>
+    <div class="card-bottom"><span class="hint">Right of the line means spam, left means normal</span><span class="live" id="live"></span></div>
+  </figure>
+
+  <div class="controls">
+    <div class="panel">
+      <div class="group-label" id="w-label">Words in the email</div>
+      <div id="words" role="group" aria-labelledby="w-label"></div>
+      <div class="row" style="margin-top:16px"><label for="prior">Prior</label><input type="range" id="prior" min="5" max="95" step="1" value="40"><output id="o-prior"></output></div>
+      <div class="btns"><button type="button" class="btn" id="clear">Clear</button><button type="button" class="btn" id="demo">Try a spammy one</button></div>
+    </div>
+    <div class="panel">
+      <div class="eyebrow">P(spam | words)</div>
+      <div class="big-answer" id="answer"></div>
+      <pre id="readout" aria-live="polite"></pre>
+      <div id="calc"></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>1. Bayes' theorem as a classifier</h2>
+  <p>We want the chance of a class $c$ given the features $x$. <a href="../../../math/bayes-theorem/bayes-theorem.html">Bayes' theorem</a> flips it into things we can count:</p>
+  <div class="formula">$$P(c \mid x) = \frac{P(x \mid c)\,P(c)}{P(x)} \;\propto\; P(c)\,P(x \mid c)$$</div>
+  <p>The denominator is the same for every class, so to pick a class we only compare the numerators. The prior $P(c)$ is how common the class is. The likelihood $P(x \mid c)$ is how typical these features are inside the class.</p>
+</section>
+
+<section>
+  <h2>2. The naive part</h2>
+  <p>Writing the likelihood of many features together needs a huge table. Naive Bayes assumes the features are independent once the class is known:</p>
+  <div class="formula">$$P(x_1,\dots,x_d \mid c) = \prod_{j=1}^{d} P(x_j \mid c)$$</div>
+  <p>That is rarely true, since "free" and "winner" tend to arrive together. Yet the ranking of classes is often still right, because the errors from each feature partly cancel. Each $P(x_j \mid c)$ is just a count divided by a total.</p>
+  <p class="callout">Naive is the assumption. The counts are honest.</p>
+</section>
+
+<section>
+  <h2>3. Log-odds make it additive</h2>
+  <p>Products of small numbers underflow, and they are hard to read. Take logs and the product becomes a sum. For two classes, the log-odds of spam is the prior log-odds plus one term per word:</p>
+  <div class="formula">$$\log\frac{P(\text{spam}\mid x)}{P(\text{ham}\mid x)} = \log\frac{P(\text{spam})}{P(\text{ham})} + \sum_{j=1}^{d} \log\frac{P(x_j \mid \text{spam})}{P(x_j \mid \text{ham})}$$</div>
+  <p>These are the bars in Fig 1. Convert the total back to a probability with the sigmoid $\sigma(z)=1/(1+e^{-z})$, the same function used in <a href="../logistic-regression/logistic-regression.html">Logistic Regression</a>. In fact, Naive Bayes for two classes is a linear model, with weights taken from counts rather than learned by descent.</p>
+</section>
+
+<section>
+  <h2>4. Learning is counting</h2>
+  <ul class="tight">
+    <li>The prior is the fraction of training emails in each class.</li>
+    <li>The chance of a word given a class is the number of emails of that class containing it, divided by the size of the class.</li>
+    <li><b>Smoothing.</b> A word never seen in spam would give probability 0 and veto everything. Laplace smoothing adds 1 to the count and 2 to the total: $p = \dfrac{n+1}{N+2}$.</li>
+    <li>A word that is absent counts too, with probability $1-p$. This version is called Bernoulli Naive Bayes. Another version counts how many times each word occurs.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>5. The same thing in code</h2>
+  <pre class="code"><span class="k">function</span> spamProbability(present, prior, counts, nSpam, nHam) {
+  <span class="k">let</span> z = Math.log(prior / (<span class="t">1</span> - prior));       <span class="c">// prior log-odds</span>
+  <span class="k">for</span> (<span class="k">const</span> w <span class="k">of</span> Object.keys(counts)) {
+    <span class="k">const</span> ps = (counts[w].spam + <span class="t">1</span>) / (nSpam + <span class="t">2</span>);  <span class="c">// smoothed P(word | spam)</span>
+    <span class="k">const</span> ph = (counts[w].ham  + <span class="t">1</span>) / (nHam  + <span class="t">2</span>);  <span class="c">// smoothed P(word | ham)</span>
+    z += present[w] ? Math.log(ps / ph)
+                    : Math.log((<span class="t">1</span> - ps) / (<span class="t">1</span> - ph));
+  }
+  <span class="k">return</span> <span class="t">1</span> / (<span class="t">1</span> + Math.exp(-z));                    <span class="c">// sigmoid</span>
+}</pre>
+</section>
+
+<section>
+  <h2>6. Strengths and limits</h2>
+  <div class="cards">
+    <div class="stat focal"><div class="eyebrow">Strength</div><div class="big">fast</div><p>One pass over the data to train. It copes well with thousands of features and little data.</p></div>
+    <div class="stat"><div class="eyebrow">Strength</div><div class="big">readable</div><p>Every feature has a clear contribution to the decision, like the bars above.</p></div>
+    <div class="stat"><div class="eyebrow">Limit</div><div class="big">correlated</div><p>Repeated, dependent clues get counted twice, so the probabilities are overconfident. Use the ranking, not the exact number.</p></div>
+  </div>
+  <p style="margin-top:20px">Compare with discriminative models in <a href="../ml-algorithm-groups/ml-algorithm-groups.html">Machine Learning Algorithm Groups</a>. Naive Bayes models how the data is produced, while <a href="../logistic-regression/logistic-regression.html">Logistic Regression</a> models the boundary directly.</p>
+</section>
+
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var NS = 'http://www.w3.org/2000/svg';
+  var $ = function (id) { return document.getElementById(id); };
+  var N_SPAM = 40, N_HAM = 60;
+  var WORDS = [
+    { w: 'free', s: 28, h: 4 }, { w: 'winner', s: 20, h: 1 }, { w: 'urgent', s: 22, h: 8 },
+    { w: 'invoice', s: 6, h: 14 }, { w: 'report', s: 3, h: 26 }, { w: 'meeting', s: 2, h: 30 }
+  ];
+  var present = {};
+
+  function el(name, attrs, parent) {
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function txt(parent, x, y, s, o) {
+    var t = el('text', Object.assign({ x: x, y: y, 'font-size': 12, fill: '#2d3142', 'font-family': 'Geist Mono, monospace' }, o || {}), parent);
+    t.textContent = s; return t;
+  }
+
+  // checkboxes
+  var box = $('words');
+  WORDS.forEach(function (d) {
+    var lab = document.createElement('label');
+    lab.style.cssText = 'display:inline-flex;align-items:center;gap:6px;margin:0 16px 8px 0;font-family:var(--mono);font-size:13px';
+    var cb = document.createElement('input');
+    cb.type = 'checkbox'; cb.id = 'w-' + d.w;
+    cb.addEventListener('change', function () { present[d.w] = cb.checked; render(); });
+    lab.appendChild(cb); lab.appendChild(document.createTextNode(d.w));
+    box.appendChild(lab); present[d.w] = false;
+  });
+
+  function setWords(list) {
+    WORDS.forEach(function (d) { present[d.w] = list.indexOf(d.w) >= 0; $('w-' + d.w).checked = present[d.w]; });
+    render();
+  }
+
+  function compute() {
+    var pr = +$('prior').value / 100;
+    var rows = [{ name: 'prior', v: Math.log(pr / (1 - pr)), note: 'P(spam)=' + pr.toFixed(2) }];
+    var z = rows[0].v;
+    WORDS.forEach(function (d) {
+      var ps = (d.s + 1) / (N_SPAM + 2), ph = (d.h + 1) / (N_HAM + 2);
+      var v = present[d.w] ? Math.log(ps / ph) : Math.log((1 - ps) / (1 - ph));
+      z += v;
+      rows.push({ name: d.w, on: present[d.w], v: v, note: (present[d.w] ? 'present' : 'absent') });
+    });
+    return { rows: rows, z: z, p: 1 / (1 + Math.exp(-z)) };
+  }
+
+  function render() {
+    $('o-prior').textContent = $('prior').value + '%';
+    var res = compute(), g = $('layer'); g.textContent = '';
+    var cx = 360, scale = 28, top = 26, rh = 38;
+    el('line', { x1: cx, x2: cx, y1: top - 10, y2: top + rh * 8 - 10, stroke: '#2d3142', 'stroke-width': 1.5 }, g);
+    txt(g, cx + 6, 16, 'spam', { fill: '#bf4520', 'font-weight': 600 });
+    txt(g, cx - 6, 16, 'normal', { fill: '#2e5aa8', 'font-weight': 600, 'text-anchor': 'end' });
+    res.rows.forEach(function (r, i) {
+      var y = top + i * rh, w = Math.min(Math.abs(r.v) * scale, 300);
+      txt(g, 14, y + 18, r.name, { 'font-weight': 600 });
+      txt(g, 100, y + 18, r.note, { fill: '#5a6580', 'font-size': 11 });
+      el('rect', { x: r.v >= 0 ? cx : cx - w, y: y + 2, width: Math.max(w, 1), height: 24, fill: r.v >= 0 ? '#bf4520' : '#2e5aa8', opacity: (r.on === false) ? 0.35 : 0.9, rx: 3 }, g);
+      txt(g, r.v >= 0 ? cx + w + 6 : cx - w - 6, y + 19, (r.v >= 0 ? '+' : '') + r.v.toFixed(2), { 'text-anchor': r.v >= 0 ? 'start' : 'end', 'font-size': 11 });
+    });
+    var yT = top + 7 * rh;
+    el('line', { x1: 14, x2: 706, y1: yT - 4, y2: yT - 4, stroke: 'rgba(45,49,66,.25)' }, g);
+    txt(g, 14, yT + 18, 'total', { 'font-weight': 600 });
+    var w = Math.min(Math.abs(res.z) * scale, 300);
+    el('rect', { x: res.z >= 0 ? cx : cx - w, y: yT + 2, width: Math.max(w, 1), height: 24, fill: res.z >= 0 ? '#bf4520' : '#2e5aa8', rx: 3 }, g);
+    txt(g, 706, yT + 19, 'log-odds ' + (res.z >= 0 ? '+' : '') + res.z.toFixed(2), { 'text-anchor': 'end', 'font-size': 11 });
+
+    var verdict = res.p >= 0.5 ? 'spam' : 'normal mail';
+    $('answer').textContent = (res.p * 100).toFixed(1) + '%';
+    $('answer').style.color = res.p >= 0.5 ? '#bf4520' : '#2e5aa8';
+    $('live').textContent = 'verdict: ' + verdict;
+    $('readout').textContent =
+      'trained on   = ' + N_SPAM + ' spam, ' + N_HAM + ' normal\n' +
+      'log-odds     = ' + res.z.toFixed(2) + '\n' +
+      'P(spam)      = ' + res.p.toFixed(3) + '\n' +
+      'verdict      = ' + verdict + '\n';
+    var tex = '\\sigma(' + res.z.toFixed(2) + ')=' + res.p.toFixed(3);
+    if (window.katex) window.katex.render(tex, $('calc'), { throwOnError: false });
+    else $('calc').textContent = tex;
+  }
+
+  $('prior').addEventListener('input', render);
+  $('clear').addEventListener('click', function () { setWords([]); });
+  $('demo').addEventListener('click', function () { setWords(['free', 'winner', 'urgent']); });
+  render();
+  if (window.renderMathInElement) {
+    window.renderMathInElement(document.body, {
+      delimiters: [{ left: '$$', right: '$$', display: true }, { left: '$', right: '$', display: false }],
+      ignoredTags: ['script', 'style', 'textarea', 'pre', 'code'],
+      throwOnError: false
+    });
+  }
+});
+</script>
+</body>
+</html>

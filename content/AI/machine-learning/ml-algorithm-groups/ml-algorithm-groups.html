@@ -163,10 +163,10 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
   <table class="ops">
     <thead><tr><th>Task</th><th>Family</th><th>Output</th><th>Example algorithms</th></tr></thead>
     <tbody>
-      <tr><td>Regression</td><td>Supervised</td><td>A number</td><td><a href="../linear-regression/linear-regression.html">Linear Regression</a>, decision trees, random forests</td></tr>
-      <tr><td>Classification</td><td>Supervised</td><td>A class label or probability</td><td><a href="../logistic-regression/logistic-regression.html">Logistic Regression</a>, <a href="../perceptron-learning-algorithm/perceptron-learning-algorithm.html">Perceptron</a>, SVM, k-NN</td></tr>
+      <tr><td>Regression</td><td>Supervised</td><td>A number</td><td><a href="../linear-regression/linear-regression.html">Linear Regression</a>, <a href="../decision-tree/decision-tree.html">decision trees</a>, random forests</td></tr>
+      <tr><td>Classification</td><td>Supervised</td><td>A class label or probability</td><td><a href="../logistic-regression/logistic-regression.html">Logistic Regression</a>, <a href="../perceptron-learning-algorithm/perceptron-learning-algorithm.html">Perceptron</a>, SVM, <a href="../k-nearest-neighbors/k-nearest-neighbors.html">k-NN</a>, <a href="../naive-bayes/naive-bayes.html">Naive Bayes</a></td></tr>
       <tr><td>Clustering</td><td>Unsupervised</td><td>A group id for each point</td><td><a href="../k-means-clustering/k-means-clustering.html">K-means</a>, DBSCAN, hierarchical</td></tr>
-      <tr><td>Dimensionality reduction</td><td>Unsupervised</td><td>Fewer coordinates per point</td><td>PCA, t-SNE, autoencoders</td></tr>
+      <tr><td>Dimensionality reduction</td><td>Unsupervised</td><td>Fewer coordinates per point</td><td><a href="../principal-component-analysis/principal-component-analysis.html">PCA</a>, t-SNE, autoencoders</td></tr>
       <tr><td>Control and decisions</td><td>Reinforcement</td><td>An action for each situation</td><td>Q-learning, policy gradients</td></tr>
     </tbody>
   </table>
@@ -181,8 +181,8 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
   <table class="ops">
     <thead><tr><th>Axis</th><th>One side</th><th>Other side</th></tr></thead>
     <tbody>
-      <tr><td>Model size</td><td><b>Parametric</b>: a fixed number of parameters, such as the weights of a line.</td><td><b>Non-parametric</b>: the model grows with the data, such as k-NN or decision trees.</td></tr>
-      <tr><td>What is modeled</td><td><b>Discriminative</b>: learns the boundary $P(y\mid x)$, such as logistic regression.</td><td><b>Generative</b>: learns how data is produced, $P(x, y)$, such as naive Bayes.</td></tr>
+      <tr><td>Model size</td><td><b>Parametric</b>: a fixed number of parameters, such as the weights of a line.</td><td><b>Non-parametric</b>: the model grows with the data, such as <a href="../k-nearest-neighbors/k-nearest-neighbors.html">k-NN</a> or <a href="../decision-tree/decision-tree.html">decision trees</a>.</td></tr>
+      <tr><td>What is modeled</td><td><b>Discriminative</b>: learns the boundary $P(y\mid x)$, such as logistic regression.</td><td><b>Generative</b>: learns how data is produced, $P(x, y)$, such as <a href="../naive-bayes/naive-bayes.html">naive Bayes</a>.</td></tr>
       <tr><td>Shape of the model</td><td><b>Linear</b>: a weighted sum of inputs, then maybe a squashing function.</td><td><b>Non-linear</b>: trees, kernels and neural networks bend the boundary.</td></tr>
       <tr><td>How it is trained</td><td><b>Closed form</b>: solve an equation once, such as least squares.</td><td><b>Iterative</b>: improve step by step with <a href="../gradient-descent/gradient-descent.html">Gradient Descent</a>.</td></tr>
     </tbody>
@@ -210,6 +210,10 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
     <div class="stat"><div class="eyebrow">Supervised · classification</div><div class="big"><a href="../perceptron-learning-algorithm/perceptron-learning-algorithm.html">Perceptron</a></div><p>Nudge a line every time it gets a point wrong.</p></div>
     <div class="stat"><div class="eyebrow">Unsupervised · clustering</div><div class="big"><a href="../k-means-clustering/k-means-clustering.html">K-means</a></div><p>Alternate between assigning points and moving centers.</p></div>
     <div class="stat"><div class="eyebrow">Optimization</div><div class="big"><a href="../gradient-descent/gradient-descent.html">Gradient Descent</a></div><p>Walk downhill on the loss to train almost any model.</p></div>
+    <div class="stat"><div class="eyebrow">Supervised · classification</div><div class="big"><a href="../k-nearest-neighbors/k-nearest-neighbors.html">k-NN</a></div><p>Let the closest known points vote on the label.</p></div>
+    <div class="stat"><div class="eyebrow">Supervised · classification</div><div class="big"><a href="../naive-bayes/naive-bayes.html">Naive Bayes</a></div><p>Multiply simple counted clues with Bayes' theorem.</p></div>
+    <div class="stat"><div class="eyebrow">Supervised · classification</div><div class="big"><a href="../decision-tree/decision-tree.html">Decision Tree</a></div><p>Learn a flowchart of yes or no questions.</p></div>
+    <div class="stat"><div class="eyebrow">Unsupervised · dimensionality</div><div class="big"><a href="../principal-component-analysis/principal-component-analysis.html">PCA</a></div><p>Keep the directions where the data varies most.</p></div>
   </div>
 </section>
 
@@ -224,15 +228,19 @@ document.addEventListener('DOMContentLoaded', function () {
   var PER = '../perceptron-learning-algorithm/perceptron-learning-algorithm.html';
   var KM = '../k-means-clustering/k-means-clustering.html';
   var GD = '../gradient-descent/gradient-descent.html';
+  var KNN = '../k-nearest-neighbors/k-nearest-neighbors.html';
+  var NB = '../naive-bayes/naive-bayes.html';
+  var DT = '../decision-tree/decision-tree.html';
+  var PCA = '../principal-component-analysis/principal-component-analysis.html';
 
   var TREE = [
     { id: 'supervised', name: 'Supervised', tasks: [
-      { name: 'Regression', algos: [['Linear Regression', LIN], ['Ridge / Lasso'], ['Decision Tree'], ['Random Forest'], ['Support Vector Regression']] },
-      { name: 'Classification', algos: [['Logistic Regression', LOG], ['Perceptron', PER], ['k-Nearest Neighbors'], ['Naive Bayes'], ['Decision Tree'], ['Support Vector Machine'], ['Neural Network']] }
+      { name: 'Regression', algos: [['Linear Regression', LIN], ['Ridge / Lasso'], ['Decision Tree', DT], ['Random Forest'], ['Support Vector Regression']] },
+      { name: 'Classification', algos: [['Logistic Regression', LOG], ['Perceptron', PER], ['k-Nearest Neighbors', KNN], ['Naive Bayes', NB], ['Decision Tree', DT], ['Support Vector Machine'], ['Neural Network']] }
     ] },
     { id: 'unsupervised', name: 'Unsupervised', tasks: [
       { name: 'Clustering', algos: [['K-means', KM], ['Hierarchical Clustering'], ['DBSCAN'], ['Gaussian Mixture']] },
-      { name: 'Dimensionality reduction', algos: [['PCA'], ['t-SNE'], ['Autoencoder']] },
+      { name: 'Dimensionality reduction', algos: [['PCA', PCA], ['t-SNE'], ['Autoencoder']] },
       { name: 'Association rules', algos: [['Apriori']] }
     ] },
     { id: 'semi', name: 'Semi-supervised', tasks: [
