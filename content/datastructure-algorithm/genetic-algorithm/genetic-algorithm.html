@@ -304,14 +304,14 @@ pop = [[random.randint(0, 1) <span class="k">for</span> _ <span class="k">in</sp
   <div class="pf"><p><b>Proof.</b> The elite individual is copied into generation $t+1$ unchanged, so that generation contains an individual of fitness $B_t$. The maximum over the generation is at least that. <span class="q">$\blacksquare$</span></p></div>
 
   <div class="thm"><span class="eyebrow">Theorem 2 · with mutation, it reaches the optimum</span>
-    <p>If $0<p<1$, $N\ge2$ and an optimum $x^*$ exists, then with $\delta=\min(p,1-p)^{\ell}>0$,</p>
-    <div class="formula">$$\Pr[\,B_t<f^*\,]\;\le\;(1-\delta)^{t}\;\xrightarrow{t\to\infty}\;0,\qquad \mathbb{E}[T]\le \frac1\delta$$</div>
+    <p>If $0&lt;p&lt;1$, $N\ge2$ and an optimum $x^*$ exists, then with $\delta=\min(p,1-p)^{\ell}&gt;0$,</p>
+    <div class="formula">$$\Pr[\,B_t&lt;f^*\,]\;\le\;(1-\delta)^{t}\;\xrightarrow{t\to\infty}\;0,\qquad \mathbb{E}[T]\le \frac1\delta$$</div>
     <p>where $T$ is the first generation that contains an optimum. So the best score converges to $f^*$ with probability 1.</p></div>
   <div class="pf">
     <p><b>Proof.</b> Fix any population. Whatever selection and crossover did, a child is $\text{mutate}(c)$ for some string $c$. Mutation produces $x^*$ from $c$ by keeping the bits where $c_i=x^*_i$ (probability $1-p$ each) and flipping the others (probability $p$ each). Hence</p>
     <div class="formula">$$\Pr[\text{child}=x^*\mid c]=\prod_{i=1}^{\ell}\begin{cases}1-p & c_i=x^*_i\\ p & c_i\ne x^*_i\end{cases}\;\ge\;\min(p,1-p)^{\ell}=\delta$$</div>
     <p>This bound does not depend on $c$, so it does not depend on the population. At least one child is produced each generation, so every generation contains an optimum with probability at least $\delta$, whatever came before. Mutation bits are fresh each generation, so the chance of failing $t$ generations in a row is at most $(1-\delta)^t$.</p>
-    <p>Once an optimum is in the population, $B_t=f^*$. By Theorem 1 the best score never drops again. Therefore $\Pr[B_t<f^*]\le\Pr[T>t]\le(1-\delta)^t$. The expected waiting time of a trial with success chance at least $\delta$ is at most $1/\delta$. <span class="q">$\blacksquare$</span></p></div>
+    <p>Once an optimum is in the population, $B_t=f^*$. By Theorem 1 the best score never drops again. Therefore $\Pr[B_t&lt;f^*]\le\Pr[T&gt;t]\le(1-\delta)^t$. The expected waiting time of a trial with success chance at least $\delta$ is at most $1/\delta$. <span class="q">$\blacksquare$</span></p></div>
   <p><b>What this does not say.</b> $1/\delta\ge 2^{\ell}$, which is no better than guessing strings at random. The theorem proves the search cannot get stuck forever. It says nothing about speed. Speed comes from selection and crossover, which the next result measures.</p>
 
   <div class="thm"><span class="eyebrow">Theorem 3 · without mutation, it can fail for good</span>
