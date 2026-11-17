@@ -654,7 +654,7 @@ const DOCS = [
   },
   {
     title: 'Aeron Transport',
-    path: 'content/architecture/aeron-transport/aeron-transport.html',
+    path: 'content/architecture/aeron/aeron-transport/aeron-transport.html',
     category: 'Architecture',
     topic: 'Messaging',
     order: 1,
@@ -665,7 +665,7 @@ const DOCS = [
   },
   {
     title: 'Aeron Channels and Streams',
-    path: 'content/architecture/aeron-channels/aeron-channels.html',
+    path: 'content/architecture/aeron/aeron-channels/aeron-channels.html',
     category: 'Architecture',
     topic: 'Messaging',
     order: 2,
@@ -676,7 +676,7 @@ const DOCS = [
   },
   {
     title: 'Aeron Reliability and Flow Control',
-    path: 'content/architecture/aeron-reliability/aeron-reliability.html',
+    path: 'content/architecture/aeron/aeron-reliability/aeron-reliability.html',
     category: 'Architecture',
     topic: 'Messaging',
     order: 3,
@@ -687,7 +687,7 @@ const DOCS = [
   },
   {
     title: 'Aeron Archive',
-    path: 'content/architecture/aeron-archive/aeron-archive.html',
+    path: 'content/architecture/aeron/aeron-archive/aeron-archive.html',
     category: 'Architecture',
     topic: 'Messaging',
     order: 4,
@@ -698,7 +698,7 @@ const DOCS = [
   },
   {
     title: 'Aeron Cluster',
-    path: 'content/architecture/aeron/aeron.html',
+    path: 'content/architecture/aeron/aeron/aeron.html',
     category: 'Architecture',
     topic: 'Messaging',
     order: 5,
