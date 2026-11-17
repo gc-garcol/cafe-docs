@@ -916,6 +916,17 @@ const DOCS = [
     summary: 'HA, disaster recovery, multi-region and cost optimization. Pick a recovery time and see the cheapest strategy.',
     related: ['AWS DevOps and IaC', 'AWS Fundamentals'],
   },
+  {
+    title: 'Kafka Use Cases',
+    path: 'content/architecture/kafka/kafka-use-cases/kafka-use-cases.html',
+    category: 'Architecture',
+    topic: 'Kafka',
+    order: 19,
+    level: 'Beginner',
+    tags: ['kafka', 'event streaming', 'event-driven', 'cdc', 'stream processing', 'kafka connect', 'debezium', 'logging'],
+    summary: 'Step an event through five Kafka use cases: data pipelines, event-driven services, stream processing, centralized logs and change data capture.',
+    related: ['Aeron Transport', 'AWS Load Balancing and Auto Scaling'],
+  },
 ];
 
 // ---------- helpers ----------
