@@ -1019,68 +1019,75 @@ function buildTree() {
 function renderMap() {
   const svg = $('#map');
   const root = buildTree();
-  // radial layout: root in the centre, categories / topics / docs on three rings.
-  // leaves share the full circle evenly; a parent sits at the mean angle of its children.
-  const RC = 120, RT = 205, RD = 350, SPAN = 62 * Math.PI / 180;
-  const leaves = [];
-  root.children.forEach(c => { const l = []; (function collect(n) { n.children.length ? n.children.forEach(collect) : l.push(n); })(c); c.leafs = l; });
-  // text stays horizontal, so leaves live on the left and right flanks only (no crowding at top / bottom);
-  // split the categories into two groups with about the same number of docs
-  const total = root.children.reduce((n, c) => n + c.leafs.length, 0);
-  let acc = 0, cut = 0, best = Infinity;
-  root.children.forEach((c, i) => { acc += c.leafs.length; const d = Math.abs(total / 2 - acc); if (i < root.children.length - 1 && d < best) { best = d; cut = i + 1; } });
-  const sides = [root.children.slice(0, cut), root.children.slice(cut)];
-  sides.forEach((cats, si) => {
-    const ls = cats.flatMap(c => c.leafs);
-    ls.forEach((l, j) => {
-      const t = (j + 0.5) / ls.length;   // 0 (top) .. 1 (bottom)
-      l.a = si === 0 ? -SPAN + 2 * SPAN * t : Math.PI + SPAN - 2 * SPAN * t;
-      leaves.push(l);
+  // two-sided mind map: root in the centre, categories / topics / docs in columns to its left and right.
+  // text is horizontal; leaves are one ROW apart and parents sit at the mean y of their children,
+  // so no two labels can overlap.
+  const ROW = 22, GAP = 40, RR = 44;
+  const tw = (t, k) => t.length * k + 2;                 // text width estimate
+  const catW = n => tw(n.label, 7) + 24;
+  const cats = root.children;
+  cats.forEach(c => { c.leafs = []; (function f(n) { n.children.length ? n.children.forEach(f) : c.leafs.push(n); })(c); });
+  const total = cats.reduce((n, c) => n + c.leafs.length, 0);
+  let acc = 0, cut = 1, best = Infinity;
+  cats.forEach((c, i) => { acc += c.leafs.length; const d = Math.abs(total / 2 - acc); if (i < cats.length - 1 && d < best) { best = d; cut = i + 1; } });
+  const sides = [cats.slice(0, cut), cats.slice(cut)];
+
+  const topics = cats.flatMap(c => c.children), docsAll = topics.flatMap(t => t.children);
+  const wCat = Math.max(...cats.map(catW)), wTop = Math.max(...topics.map(t => tw(t.label, 7))), wDoc = Math.max(...docsAll.map(d => tw(d.label, 6.4)));
+  const dc = RR + GAP + wCat / 2;                        // category column (centre)
+  const dt = dc + wCat / 2 + GAP;                        // topic dot
+  const dd = dt + 9 + wTop + GAP;                        // doc dot
+  const half = dd + 9 + wDoc + 16;
+  const rows = Math.max(...sides.map(cs => cs.reduce((n, c) => n + c.leafs.length, 0)));
+  const W = half * 2, H = rows * ROW + 50, ox = W / 2, oy = H / 2;
+  mapBox = { W, H };
+
+  sides.forEach((cs, si) => {
+    const sg = si === 0 ? 1 : -1, ls = cs.flatMap(c => c.leafs);
+    ls.forEach((l, j) => { l.y = oy + (j + 0.5 - ls.length / 2) * ROW; });
+    cs.forEach(c => {
+      c.sg = sg; c.x = ox + sg * dc;
+      c.children.forEach(t => {
+        t.sg = sg; t.x = ox + sg * dt;
+        t.children.forEach(d => { d.sg = sg; d.x = ox + sg * dd; });
+        t.y = t.children.reduce((m, d) => m + d.y, 0) / t.children.length;
+      });
+      c.y = c.children.reduce((m, t) => m + t.y, 0) / c.children.length;
     });
   });
-  (function place(n, depth) {
-    n.depth = depth;
-    n.r = [0, RC, RT, RD][depth];
-    if (n.children.length) { n.children.forEach(c => place(c, depth + 1)); n.a = n.children.reduce((s, c) => s + c.a, 0) / n.children.length; }
-  })(root, 0);
-  const txtW = t => t.length * 6.3;
-  const maxDoc = Math.max(...leaves.map(l => txtW(l.label)), 60);
-  const R = RD + 16 + maxDoc, W = R * 2 + 20, H = 2 * (RD * Math.sin(SPAN) + 40), ox = W / 2, oy = H / 2;
-  mapBox = { W, H };
-  const pt = (r, a) => [ox + r * Math.cos(a), oy + r * Math.sin(a)];
+  root.x = ox; root.y = oy;
 
   const live = new Set(visibleDocs().map(d => d.title));
   const alive = n => n.kind === 'doc' ? live.has(n.label) : n.children.some(alive);
-
-  // labels stay horizontal: docs sit beside their dot (outward), topics are centred on their node
-  const label = (n, cls) => {
-    const [x, y] = pt(n.r, n.a), right = Math.cos(n.a) >= 0;
-    if (n.kind === 'topic')
-      return `<text x="${x.toFixed(1)}" y="${(y + 4).toFixed(1)}" text-anchor="middle" class="nt topic">${esc(n.label)}</text>`;
-    return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.2" class="dot"/>` +
-      `<text x="${(x + (right ? 9 : -9)).toFixed(1)}" y="${(y + 3.5).toFixed(1)}" text-anchor="${right ? 'start' : 'end'}" class="nt doc">${esc(n.label)}</text>`;
+  // where an edge leaves a parent / enters a child
+  const outX = n => n.kind === 'root' ? null : n.kind === 'cat' ? n.x + n.sg * catW(n) / 2 : n.x + n.sg * (9 + tw(n.label, 7) + 4);
+  const edge = (n, c) => {
+    const x1 = n.kind === 'root' ? ox + c.sg * RR : outX(n);
+    const x2 = c.kind === 'cat' ? c.x - c.sg * catW(c) / 2 : c.x - c.sg * 3;
+    const mx = (x1 + x2) / 2;
+    return `<path d="M${x1.toFixed(1)},${n.y.toFixed(1)} C${mx.toFixed(1)},${n.y.toFixed(1)} ${mx.toFixed(1)},${c.y.toFixed(1)} ${x2.toFixed(1)},${c.y.toFixed(1)}" class="edge${alive(c) ? '' : ' off'}"/>`;
+  };
+  const label = (n, cls, k) => {
+    const x = n.x, y = n.y, anchor = n.sg > 0 ? 'start' : 'end';
+    return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.2" class="dot ${cls}"/>` +
+      `<text x="${(x + n.sg * 9).toFixed(1)}" y="${(y + 3.5).toFixed(1)}" text-anchor="${anchor}" class="nt ${cls}">${esc(n.label)}</text>`;
   };
 
   let edges = '', nodes = '';
   (function walk(n) {
-    n.children.forEach(c => {
-      const [x1, y1] = pt(n.r, n.a), [x2, y2] = pt(c.r, c.a), rm = (n.r + c.r) / 2;
-      const [m1x, m1y] = pt(rm, n.a), [m2x, m2y] = pt(rm, c.a);
-      edges += `<path d="M${x1.toFixed(1)},${y1.toFixed(1)} C${m1x.toFixed(1)},${m1y.toFixed(1)} ${m2x.toFixed(1)},${m2y.toFixed(1)} ${x2.toFixed(1)},${y2.toFixed(1)}" class="edge${alive(c) ? '' : ' off'}"/>`;
-      walk(c);
-    });
+    n.children.forEach(c => { edges += edge(n, c); walk(c); });
     const on = n.kind === 'root' || alive(n);
     if (n.kind === 'root') {
-      nodes += `<g class="g"><circle cx="${ox}" cy="${oy}" r="44" class="nd root"/><text x="${ox}" y="${oy + 4}" text-anchor="middle" class="nt root">${esc(n.label)}</text></g>`;
+      nodes += `<g class="g"><circle cx="${ox}" cy="${oy}" r="${RR}" class="nd root"/><text x="${ox}" y="${oy + 4}" text-anchor="middle" class="nt root">${esc(n.label)}</text></g>`;
     } else if (n.kind === 'cat') {
-      const [x, y] = pt(n.r, n.a), w = txtW(n.label) + 24;
+      const w = catW(n);
       nodes += `<g class="g${on ? '' : ' off'}" data-cat="${esc(n.cat)}" tabindex="0" role="button" aria-label="Filter by ${esc(n.label)}">` +
-        `<rect x="${(x - w / 2).toFixed(1)}" y="${(y - 14).toFixed(1)}" width="${w.toFixed(1)}" height="28" rx="14" class="nd cat"/>` +
-        `<text x="${x.toFixed(1)}" y="${(y + 4).toFixed(1)}" text-anchor="middle" class="nt cat">${esc(n.label)}</text></g>`;
+        `<rect x="${(n.x - w / 2).toFixed(1)}" y="${(n.y - 14).toFixed(1)}" width="${w.toFixed(1)}" height="28" rx="14" class="nd cat"/>` +
+        `<text x="${n.x.toFixed(1)}" y="${(n.y + 4).toFixed(1)}" text-anchor="middle" class="nt cat">${esc(n.label)}</text></g>`;
     } else if (n.kind === 'topic') {
-      nodes += `<g class="g${on ? '' : ' off'}">${label(n)}</g>`;
+      nodes += `<g class="g${on ? '' : ' off'}">${label(n, 'topic')}</g>`;
     } else {
-      nodes += `<a href="${esc(n.doc.path)}" class="g${on ? '' : ' off'}"><title>${esc(n.doc.summary)}</title>${label(n)}</a>`;
+      nodes += `<a href="${esc(n.doc.path)}" class="g${on ? '' : ' off'}"><title>${esc(n.doc.summary)}</title>${label(n, 'doc')}</a>`;
     }
   })(root);
   svg.innerHTML = `<g id="mapView">${edges}${nodes}</g>`;
