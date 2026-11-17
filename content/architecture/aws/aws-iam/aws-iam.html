@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AWS IAM Policies: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible,a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+a{color:var(--link)}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+
+.card{margin:24px 0 0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.scroll{overflow-x:auto;padding:0 8px}
+.scroll svg{display:block;height:auto}
+
+.controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;margin-top:16px;align-items:start}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:0 0 12px}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.btn:disabled{opacity:.4;cursor:not-allowed;background:transparent;color:var(--ink)}
+#readout{margin:0;padding:0;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink);border:0;background:none}
+
+.nodes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;padding:16px}
+.node{border:1px solid var(--rule-solid);border-radius:8px;padding:14px;background:#fff}
+.node.leader{border-color:var(--accent);background:var(--accent-tint)}
+.node.down{opacity:.45;border-style:dashed}
+.node h3{margin:0 0 2px;font-family:var(--serif);font-weight:400;font-size:22px}
+.role{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft)}
+.log{display:flex;flex-wrap:wrap;gap:4px;margin:12px 0;min-height:30px}
+.ent{font-family:var(--mono);font-size:11px;min-width:34px;padding:3px 5px;border:1px solid var(--ink);border-radius:4px;text-align:center;background:#fff}
+.ent.c{background:var(--ink);color:var(--paper)}
+.ent.u{border-style:dashed;color:var(--muted)}
+.state{font-family:var(--mono);font-size:12px;font-weight:600}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:8px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+
+pre{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .c2{color:var(--soft);font-style:italic}
+
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat p{font-size:14px;color:var(--muted);margin:6px 0 0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+
+table.ops{border-collapse:collapse;width:100%;max-width:860px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+table.ops td:first-child{white-space:nowrap}
+ul.tight,ol.toc{padding-left:22px;max-width:68ch}ul.tight li,ol.toc li{margin:6px 0}
+.src{font-size:14px;color:var(--muted)}
+
+@media (max-width:860px){.controls,.cards,.nodes{grid-template-columns:1fr}.page{padding:32px 16px 72px}table.ops td:first-child{white-space:normal}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+
+.cell{display:inline-block;width:26px;height:26px;margin:2px;border:1px solid var(--rule-solid);border-radius:4px;background:#fff;font:600 10px var(--mono);text-align:center;line-height:24px}
+.cell.w{background:var(--paper-2);border-color:var(--ink)}
+.cell.s{background:rgba(46,90,168,.18);border-color:var(--link)}
+.cell.r{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.cell.lost{background:#fff;border:1px dashed var(--accent);color:var(--accent)}
+.cell.pad{background:var(--paper-2);border:1px dotted var(--soft);color:var(--soft)}
+.cell.nak{background:var(--accent-tint);border-color:var(--accent)}
+.cell.cur{outline:2px solid var(--accent)}
+button.cell{cursor:pointer;padding:0}
+.term{display:flex;align-items:center;gap:8px;margin:6px 0;flex-wrap:wrap}
+.term .lbl{font-family:var(--mono);font-size:11px;color:var(--soft);width:96px}
+.bar{position:relative;height:30px;margin:14px 16px;background:var(--paper-2);border-radius:4px}
+.bar i{position:absolute;top:0;bottom:0;left:0;border-radius:4px}
+.lane{margin:6px 16px 0;font-family:var(--mono);font-size:11px;color:var(--muted)}
+label.f{display:flex;flex-direction:column;gap:4px;font-family:var(--mono);font-size:12px;font-weight:600;margin:0 0 12px}
+select,input[type=text]{min-height:40px;padding:0 10px;border:1px solid var(--rule-solid);border-radius:6px;font:500 14px var(--mono);color:var(--ink);background:#fff;max-width:100%}
+select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.uri{font-family:var(--mono);font-size:14px;word-break:break-all;padding:14px 16px;background:var(--ink);color:var(--paper);border-radius:6px;margin:0 0 12px}
+
+.pod{display:inline-flex;align-items:center;justify-content:center;min-width:64px;height:36px;margin:3px;padding:0 8px;border:1px solid var(--ink);border-radius:6px;background:#fff;font:600 11px var(--mono);color:var(--ink)}
+button.pod{cursor:pointer}
+.pod.new{background:var(--ink);color:var(--paper)}
+.pod.pend{border-style:dashed;color:var(--muted);background:var(--paper-2)}
+.pod.bad{border-color:var(--accent);color:var(--accent);background:var(--accent-tint)}
+.pod.off{opacity:.4;border-style:dashed}
+.pod.hit{outline:2px solid var(--accent)}
+.comp{border:1px solid var(--rule-solid);border-radius:8px;padding:12px 14px;background:#fff;font-size:14px}
+.comp.on{border-color:var(--accent);background:var(--accent-tint)}
+.comp b{font-family:var(--serif);font-weight:400;font-size:19px;display:block}
+.comp span{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.split{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;padding:16px}
+.split3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;padding:16px}
+.ok{color:#1f7a4d}.no{color:var(--accent)}
+@media (max-width:860px){.split,.split3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" style="margin-right:8px" href="../../../../index.html">&larr; Back to home</a>
+<a class="back back-cat" href="../../../../index.html#cat=Architecture">&larr; Back to Architecture</a>
+
+<header>
+  <div class="eyebrow">Architecture · AWS</div>
+  <h1>AWS IAM Policies</h1>
+  <p class="lede">Who may do what. Every request is checked against policies, and an explicit deny always wins over an allow.</p>
+</header>
+
+<section>
+  <h2>Evaluate a request</h2>
+  <p>Attach policies to a user, pick an action and a resource, and see the decision. An explicit deny beats every allow, and with no match the answer is deny.</p>
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">Policy evaluation</span></div>
+    <div class="split3" id="stm" role="group" aria-label="Policy statements"></div>
+    <div class="card-bottom"><span class="hint">matching statements are highlighted</span><span class="live" id="live"></span></div>
+  </figure>
+  <div class="controls">
+    <div class="panel">
+      <label class="f">Action <select id="act"><option>s3:GetObject</option><option>s3:PutObject</option><option>s3:DeleteObject</option></select></label>
+      <label class="f">Resource <select id="res"><option>arn:aws:s3:::shop/dev/a.txt</option><option>arn:aws:s3:::shop/prod/a.txt</option></select></label>
+      <div class="row">
+        <label><input type="checkbox" id="p1" checked> A: allow read</label>
+        <label><input type="checkbox" id="p2"> B: allow all S3</label>
+        <label><input type="checkbox" id="p3"> C: deny delete in prod</label>
+      </div>
+    </div>
+    <div class="panel"><pre id="readout" aria-live="polite"></pre></div>
+  </div>
+</section>
+
+<section>
+  <h2>Contents</h2>
+  <ol class="toc">
+    <li><a href="#who">Principals and policies</a></li>
+    <li><a href="#eval">How a decision is made</a></li>
+    <li><a href="#roles">Roles over long-lived keys</a></li>
+    <li><a href="#least">Least privilege</a></li>
+    <li><a href="#sources">Sources</a></li>
+  </ol>
+</section>
+
+<section id="who">
+  <h2>1. Principals and policies</h2>
+  <p>IAM answers one question: may this <b>principal</b> do this <b>action</b> on this <b>resource</b>? Principals are users, groups and roles. A <b>policy</b> is a JSON document with statements.</p>
+<pre>{
+  "Effect": "Allow",
+  "Action": "s3:GetObject",
+  "Resource": "arn:aws:s3:::shop/*"
+}</pre>
+</section>
+
+<section id="eval">
+  <h2>2. How a decision is made</h2>
+  <ol class="toc">
+    <li>Everything starts as an <b>implicit deny</b>.</li>
+    <li>If any statement that matches says <b>Deny</b>, the answer is deny. Nothing overrides it.</li>
+    <li>Otherwise, if any matching statement says <b>Allow</b>, the answer is allow.</li>
+    <li>If nothing matches, the implicit deny stands.</li>
+  </ol>
+  <p>Wildcards in <code>Action</code> and <code>Resource</code> let one statement cover many requests. Permissions boundaries, SCPs and session policies can only narrow what is allowed.</p>
+</section>
+
+<section id="roles">
+  <h2>3. Roles over long-lived keys</h2>
+  <p>A <b>role</b> has no password or key. A service or person <b>assumes</b> it and gets short-lived credentials. An EC2 instance or Lambda function runs with an attached role, so no secret is stored in code. Roles also give access across accounts.</p>
+</section>
+
+<section id="least">
+  <h2>4. Least privilege</h2>
+  <ul class="tight">
+    <li>Grant only the actions and resources a job needs. Start narrow and widen on evidence.</li>
+    <li>Use groups or roles, not per-user policies.</li>
+    <li>Do not use the root user for daily work. Protect it with MFA.</li>
+  </ul>
+</section>
+
+<section id="sources">
+  <h2>Sources</h2>
+  <p class="src">Written from the official <a href="https://docs.aws.amazon.com/">AWS documentation</a>. The text and the demo are original summaries. AWS and Amazon Web Services are trademarks of Amazon.com, Inc. or its affiliates.</p>
+</section>
+
+</main>
+
+<script>
+(function () {
+  function $(id) { return document.getElementById(id); }
+  var S = [
+    { id: 'p1', n: 'A', eff: 'Allow', act: 's3:GetObject', res: 'arn:aws:s3:::shop/*' },
+    { id: 'p2', n: 'B', eff: 'Allow', act: 's3:*', res: 'arn:aws:s3:::shop/*' },
+    { id: 'p3', n: 'C', eff: 'Deny', act: 's3:DeleteObject', res: 'arn:aws:s3:::shop/prod/*' }
+  ];
+  function wild(p, v) { return new RegExp('^' + p.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*') + '$').test(v); }
+  function draw() {
+    var a = $('act').value, r = $('res').value, h = '', allow = false, deny = false, any = false;
+    S.forEach(function (s) {
+      if (!$(s.id).checked) return;
+      any = true;
+      var m = wild(s.act, a) && wild(s.res, r);
+      if (m && s.eff === 'Allow') allow = true;
+      if (m && s.eff === 'Deny') deny = true;
+      h += '<div class="comp' + (m ? ' on' : '') + '"><b>Policy ' + s.n + ': ' + s.eff + '</b><span>' + s.act + '</span><br><span>' + s.res + '</span><br><span class="' + (m ? (s.eff === 'Allow' ? 'ok' : 'no') : '') + '">' + (m ? 'matches' : 'no match') + '</span></div>';
+    });
+    $('stm').innerHTML = h || '<div class="comp"><b>No policy attached</b><span>implicit deny</span></div>';
+    var d = deny ? 'DENIED (explicit deny)' : allow ? 'ALLOWED' : 'DENIED (implicit, no allow)';
+    $('live').textContent = d;
+    $('readout').textContent = a + ' on ' + r + '\n' + d + (deny && allow ? '\nAn allow matched, but the deny wins.' : '');
+  }
+  ['act', 'res', 'p1', 'p2', 'p3'].forEach(function (i) { $(i).addEventListener('change', draw); });
+  draw();
+})();
+</script>
+</body>
+</html>
