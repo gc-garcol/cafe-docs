@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ant Colony Optimization: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+a{color:var(--link)}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+
+.card{margin:24px 0 0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.scroll{overflow-x:auto;padding:0 8px;text-align:center}
+.scroll svg{display:inline-block;width:100%;max-width:720px;height:auto}
+
+.controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;margin-top:16px;align-items:start}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.row{display:grid;grid-template-columns:44px 1fr 56px;gap:12px;align-items:center;margin:0 0 12px}
+.row label{font-family:var(--mono);font-size:13px;font-weight:600}
+.row output{font-family:var(--mono);font-size:12px;text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);min-height:28px}
+.group-label{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);margin:16px 0 6px}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.big-answer{font-family:var(--serif);font-size:44px;line-height:1.1;margin:4px 0 8px;color:var(--accent)}
+#readout{margin:0;padding:0;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink);border:0;background:none}
+#calc{overflow-x:auto;margin-top:8px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:3px;border:1px solid var(--ink);display:inline-block}
+
+pre.code{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .t{color:var(--link)} .c{color:var(--soft);font-style:italic}
+
+.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;text-align:center;overflow-x:auto}
+.formula .katex{font-size:1.25em}
+.katex{color:var(--ink)}
+p .katex,td .katex,li .katex{font-size:1.05em}
+
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:30px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+ul.tight,ol.tight{padding-left:20px;max-width:68ch}ul.tight li,ol.tight li{margin:6px 0}
+
+@media (max-width:860px){.controls{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+
+
+
+
+.row{grid-template-columns:minmax(44px,max-content) 1fr 64px}
+.row.sel{grid-template-columns:minmax(44px,max-content) 1fr}
+select{min-height:36px;padding:0 10px;border:1px solid var(--rule-solid);border-radius:6px;font:500 13px var(--mono);color:var(--ink);background:#fff;max-width:100%}
+select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+table.ops{border-collapse:collapse;width:100%;max-width:860px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0}
+.chip{font:600 11px var(--mono);padding:2px 8px;border:1px solid var(--ink);border-radius:4px;background:#fff}
+.chip.on{background:var(--ink);color:var(--paper)}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;padding:16px}
+@media (max-width:860px){.two{grid-template-columns:1fr}}
+
+.doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}.doc-tags a{font:500 12px "Geist Mono",ui-monospace,monospace;padding:4px 10px;border:1px solid var(--rule-solid,#bfc0c0);border-radius:4px;background:#fff;color:var(--muted,#4f5d75);text-decoration:none}.doc-tags a:hover{border-color:var(--ink,#2d3142);color:var(--ink,#2d3142)}.doc-tags a:focus-visible{outline:2px solid var(--accent,#bf4520);outline-offset:2px}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" style="margin-right:8px" href="../../../index.html">&larr; Back to home</a>
+<a class="back back-cat" href="../../../index.html#cat=Algorithms">&larr; Back to Algorithms</a>
+
+<header>
+  <div class="eyebrow">Algorithms · Optimization</div>
+  <h1>Ant Colony Optimization</h1>
+  <p class="lede">Ants find short routes to food by leaving scent trails. Virtual ants can do the same on a map of cities, and the trail strength is the memory of the colony.</p>
+  <nav class="doc-tags" aria-label="Main tags"><a href="../../../index.html#tag=swarm">#swarm</a><a href="../../../index.html#tag=optimization">#optimization</a><a href="../../../index.html#tag=tsp">#tsp</a><a href="../../../index.html#tag=pheromone">#pheromone</a></nav>
+</header>
+
+<section>
+  <h2>Try it first</h2>
+  <p>Fourteen cities and a salesperson who must visit every one and return, by the shortest loop. Each iteration, every ant builds a tour, preferring short hops and strong trails. Then trails fade and good tours add fresh scent. Press Run 20 and see a few thick blue edges emerge, and compare the best tour with the greedy nearest-neighbor loop.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">Pheromone trails on a map of cities</span></div>
+    <div class="scroll">
+      <svg id="plot" viewBox="0 0 720 360" role="img" aria-labelledby="plot-title plot-desc">
+        <title id="plot-title">Pheromone trails on a map of cities</title>
+        <desc id="plot-desc">Fourteen dark dots are cities. Blue lines join every pair of cities, thicker where there is more pheromone. A dashed orange loop shows the shortest tour found so far.</desc>
+        <rect width="720" height="360" fill="#fff" stroke="rgba(45,49,66,.12)"/>
+        <g id="layer"></g>
+      </svg>
+    </div>
+    <div class="card-bottom"><span class="hint">thicker blue = more pheromone</span><span class="live" id="live"></span></div>
+  </figure>
+
+  <div class="controls">
+    <div class="panel">
+      <div class="row"><label for="ants">Ants</label><input type="range" id="ants" min="2" max="40" step="1" value="15"><output id="o-ants"></output></div><div class="row"><label for="al">$\alpha$ trail</label><input type="range" id="al" min="0" max="4" step="0.5" value="1"><output id="o-al"></output></div><div class="row"><label for="be">$\beta$ distance</label><input type="range" id="be" min="0" max="6" step="0.5" value="3"><output id="o-be"></output></div><div class="row"><label for="rho">$\rho$ evaporation</label><input type="range" id="rho" min="0.02" max="0.9" step="0.02" value="0.3"><output id="o-rho"></output></div><div class="btns"><button type="button" class="btn" id="one">Iterate</button><button type="button" class="btn" id="many">Run 20</button><button type="button" class="btn" id="reset">Reset</button><button type="button" class="btn" id="cities">New cities</button></div>
+    </div>
+    <div class="panel">
+      <div class="eyebrow">Readout</div>
+      <pre id="readout" aria-live="polite"></pre>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>1. Swarm intelligence from scent</h2>
+  <p>Real ants wander randomly until one finds food. On the way home it drops <b>pheromone</b>. Other ants prefer to follow stronger trails. A shorter path is walked more often per minute, so it collects scent faster, and more ants join it. Scent also evaporates, so old and poor routes fade. This indirect communication through the environment is called <b>stigmergy</b>.</p>
+  <p><b>Ant Colony Optimization</b> (ACO), introduced by Marco Dorigo in the early 1990s, copies this on graph problems such as the Traveling Salesman Problem.</p>
+</section>
+
+<section>
+  <h2>2. Building a tour</h2>
+  <p>An ant at city $i$ picks the next unvisited city $j$ with probability</p>
+  <div class="formula">$$p_{ij}=\frac{\tau_{ij}^{\alpha}\,\eta_{ij}^{\beta}}{\sum_{k\in\text{allowed}}\tau_{ik}^{\alpha}\,\eta_{ik}^{\beta}},\qquad \eta_{ij}=\frac{1}{d_{ij}}$$</div>
+  <ul class="tight">
+    <li>$\tau_{ij}$ is the pheromone on edge $i\to j$: what the colony has learned.</li>
+    <li>$\eta_{ij}$ is the <b>heuristic</b>: closer cities look better.</li>
+    <li>$\alpha$ and $\beta$ set how much to trust the trail against plain distance. With $\alpha=0$ the ants are greedy and never learn. With $\beta=0$ they follow trails only and can lock in early.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>3. Updating the trails</h2>
+  <p>After all ants finish a tour, two things happen to every edge:</p>
+  <div class="formula">$$\tau_{ij}\leftarrow(1-\rho)\,\tau_{ij}+\sum_{\text{ants}}\Delta\tau_{ij}^{k},\qquad \Delta\tau_{ij}^{k}=\begin{cases}Q/L_k & \text{if ant }k\text{ used edge }ij\\ 0 & \text{otherwise}\end{cases}$$</div>
+  <ul class="tight">
+    <li><b>Evaporation</b> $\rho$ shrinks every trail, so the colony forgets. Too low and early mistakes stay forever. Too high and nothing is learned.</li>
+    <li><b>Deposit</b> of $Q/L_k$ rewards each edge of a tour in proportion to how short the tour $L_k$ is. Shorter tours leave more scent.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>4. Variants</h2>
+  <table class="ops">
+    <thead><tr><th>Variant</th><th>Change</th></tr></thead>
+    <tbody>
+      <tr><td>Ant System</td><td>the basic scheme above, every ant deposits</td></tr>
+      <tr><td>Elitist</td><td>the best-so-far tour gets an extra deposit</td></tr>
+      <tr><td>MAX-MIN</td><td>only the best ant deposits, and trail values are bounded to avoid early lock-in</td></tr>
+      <tr><td>Ant Colony System</td><td>local trail updates while building, and a greedy-leaning choice rule</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>5. Uses and limits</h2>
+  <ul class="tight">
+    <li>Routing, vehicle routing, job scheduling, network packet routing and any problem that can be written as choosing a path through a graph.</li>
+    <li>It finds good, not provably best, tours, and its quality depends on $\alpha$, $\beta$, $\rho$.</li>
+    <li>Pheromone matrices grow with the square of the number of nodes.</li>
+    <li>Dynamic problems suit it, since evaporation lets the colony adapt when the map changes.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>6. Related</h2>
+  <p>Compare with <a href="../genetic-algorithm/genetic-algorithm.html">Genetic Algorithm</a> and <a href="../particle-swarm-optimization/particle-swarm-optimization.html">Particle Swarm Optimization</a>, other population-based searches. Path finding with a known goal is the job of <a href="../a-star/a-star.html">A* Search</a>.</p>
+</section>
+
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+  var NS = 'http://www.w3.org/2000/svg';
+  var $ = function (id) { return document.getElementById(id); };
+  function el(name, attrs, parent) {
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function rng(seed) {
+    var a = seed >>> 0;
+    return function () {
+      a = (a + 0x6D2B79F5) >>> 0;
+      var t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function gauss(r) { var u = 1 - r(), v = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+  function clamp(v, a, b) { return Math.min(b, Math.max(a, v)); }
+  function txt(parent, x, y, s, extra) {
+    var a = { x: x, y: y, 'font-family': 'Geist Mono, monospace', 'font-size': 11, fill: '#4f5d75' };
+    for (var k in extra || {}) a[k] = extra[k];
+    var t = el('text', a, parent); t.textContent = s; return t;
+  }
+  function bindOut(ids) { ids.forEach(function (i) { var o = $('o-' + i); if (o) o.textContent = $(i).value; }); }
+
+
+  var W = 720, H = 360, SC = 3.6, n = 14;
+  var S = { cities: [], tau: null, best: null, bestL: 1e9, bestIt: 0, it: 0, r: null, hist: [], lnn: 0, seed: 7 };
+  function dist(a, b) { return Math.hypot(S.cities[a].x - S.cities[b].x, S.cities[a].y - S.cities[b].y); }
+  function tourLen(t) { var s = 0; for (var i = 0; i < t.length; i++) s += dist(t[i], t[(i + 1) % t.length]); return s; }
+  function make(seed) {
+    var r = rng(seed); S.cities = [];
+    for (var i = 0; i < n; i++) S.cities.push({ x: 10 + r() * 180, y: 8 + r() * 84 });
+    var vis = [0], cur = 0, left = []; for (i = 1; i < n; i++) left.push(i);
+    while (left.length) { var b = 0; for (var k = 1; k < left.length; k++) if (dist(cur, left[k]) < dist(cur, left[b])) b = k; cur = left.splice(b, 1)[0]; vis.push(cur); }
+    S.lnn = tourLen(vis);
+  }
+  function reset(newCities) {
+    if (newCities) S.seed = Math.floor(Math.random() * 100000) + 1;
+    make(S.seed); S.r = rng(11); S.tau = []; for (var i = 0; i < n; i++) { S.tau.push(new Array(n).fill(1)); }
+    S.best = null; S.bestL = 1e9; S.bestIt = 0; S.it = 0; S.hist = []; render();
+  }
+  function construct(al, be) {
+    var start = Math.floor(S.r() * n), tour = [start], seen = {}; seen[start] = 1;
+    while (tour.length < n) {
+      var cur = tour[tour.length - 1], w = [], tot = 0, i;
+      for (i = 0; i < n; i++) { var v = seen[i] ? 0 : Math.pow(S.tau[cur][i], al) * Math.pow(1 / dist(cur, i), be); w.push(v); tot += v; }
+      var u = S.r() * tot, c = 0, pick = -1;
+      for (i = 0; i < n; i++) { c += w[i]; if (w[i] > 0 && u <= c) { pick = i; break; } }
+      if (pick < 0) for (i = 0; i < n; i++) if (!seen[i]) pick = i;
+      tour.push(pick); seen[pick] = 1;
+    }
+    return tour;
+  }
+  function iterate(m) {
+    var A = +$('ants').value, al = +$('al').value, be = +$('be').value, rho = +$('rho').value;
+    for (var t = 0; t < m; t++) {
+      var tours = [], i, j;
+      for (i = 0; i < A; i++) { var tr = construct(al, be), L = tourLen(tr); tours.push([tr, L]); if (L < S.bestL - 1e-9) { S.bestL = L; S.best = tr; S.bestIt = S.it + 1; } }
+      for (i = 0; i < n; i++) for (j = 0; j < n; j++) S.tau[i][j] *= (1 - rho);
+      tours.forEach(function (o) { var d = S.lnn / o[1]; for (var k = 0; k < n; k++) { var a = o[0][k], b = o[0][(k + 1) % n]; S.tau[a][b] += d; S.tau[b][a] += d; } });
+      S.it++; S.hist.push(S.bestL);
+    }
+    render();
+  }
+  function render() {
+    bindOut(['ants', 'al', 'be', 'rho']);
+    var g = $('layer'); g.textContent = '';
+    var mx = 0, i, j; for (i = 0; i < n; i++) for (j = i + 1; j < n; j++) mx = Math.max(mx, S.tau[i][j]);
+    for (i = 0; i < n; i++) for (j = i + 1; j < n; j++) {
+      var a = S.tau[i][j] / mx;
+      el('line', { x1: S.cities[i].x * SC, y1: H - S.cities[i].y * SC, x2: S.cities[j].x * SC, y2: H - S.cities[j].y * SC, stroke: '#2e5aa8', 'stroke-width': 0.5 + a * 7, opacity: S.it ? 0.08 + a * 0.5 : 0.08 }, g);
+    }
+    if (S.best) {
+      var pts = S.best.map(function (c) { return S.cities[c].x * SC + ',' + (H - S.cities[c].y * SC); }); pts.push(pts[0]);
+      el('polyline', { points: pts.join(' '), fill: 'none', stroke: '#bf4520', 'stroke-width': 2.5, 'stroke-dasharray': '6 4' }, g);
+    }
+    S.cities.forEach(function (c) { el('circle', { cx: c.x * SC, cy: H - c.y * SC, r: 7, fill: '#2d3142', stroke: '#fff', 'stroke-width': 2 }, g); });
+    $('live').textContent = 'iteration ' + S.it + ' · best tour ' + (S.best ? S.bestL.toFixed(1) : '-');
+    $('readout').textContent = 'iteration       = ' + S.it + '\nbest tour       = ' + (S.best ? S.bestL.toFixed(1) : 'none yet') + (S.best ? ' (found at iteration ' + S.bestIt + ')' : '') + '\nnearest neighbor = ' + S.lnn.toFixed(1) + '  (greedy baseline)\n' + (S.best ? 'vs greedy        = ' + ((S.bestL / S.lnn - 1) * 100).toFixed(1) + '%\n' : '') + '\nBlue line thickness is the pheromone. The dashed orange loop is the best tour so far.';
+  }
+  $('one').addEventListener('click', function () { iterate(1); });
+  $('many').addEventListener('click', function () { iterate(20); });
+  $('reset').addEventListener('click', function () { reset(false); });
+  $('cities').addEventListener('click', function () { reset(true); });
+  ['ants', 'al', 'be', 'rho'].forEach(function (i) { $(i).addEventListener('input', render); });
+  reset(false);
+
+
+  if (window.renderMathInElement) {
+    window.renderMathInElement(document.body, {
+      delimiters: [{ left: '$$', right: '$$', display: true }, { left: '$', right: '$', display: false }],
+      ignoredTags: ['script', 'style', 'textarea', 'pre', 'code'],
+      throwOnError: false
+    });
+  }
+
+});
+</script>
+</body>
+</html>

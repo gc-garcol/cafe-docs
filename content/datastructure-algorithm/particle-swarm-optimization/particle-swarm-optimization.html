@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Particle Swarm Optimization: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+a{color:var(--link)}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+
+.card{margin:24px 0 0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.scroll{overflow-x:auto;padding:0 8px;text-align:center}
+.scroll svg{display:inline-block;width:100%;max-width:720px;height:auto}
+
+.controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;margin-top:16px;align-items:start}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.row{display:grid;grid-template-columns:44px 1fr 56px;gap:12px;align-items:center;margin:0 0 12px}
+.row label{font-family:var(--mono);font-size:13px;font-weight:600}
+.row output{font-family:var(--mono);font-size:12px;text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);min-height:28px}
+.group-label{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);margin:16px 0 6px}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.big-answer{font-family:var(--serif);font-size:44px;line-height:1.1;margin:4px 0 8px;color:var(--accent)}
+#readout{margin:0;padding:0;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink);border:0;background:none}
+#calc{overflow-x:auto;margin-top:8px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:3px;border:1px solid var(--ink);display:inline-block}
+
+pre.code{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .t{color:var(--link)} .c{color:var(--soft);font-style:italic}
+
+.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;text-align:center;overflow-x:auto}
+.formula .katex{font-size:1.25em}
+.katex{color:var(--ink)}
+p .katex,td .katex,li .katex{font-size:1.05em}
+
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:30px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+ul.tight,ol.tight{padding-left:20px;max-width:68ch}ul.tight li,ol.tight li{margin:6px 0}
+
+@media (max-width:860px){.controls{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+
+
+
+
+.row{grid-template-columns:minmax(44px,max-content) 1fr 64px}
+.row.sel{grid-template-columns:minmax(44px,max-content) 1fr}
+select{min-height:36px;padding:0 10px;border:1px solid var(--rule-solid);border-radius:6px;font:500 13px var(--mono);color:var(--ink);background:#fff;max-width:100%}
+select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+table.ops{border-collapse:collapse;width:100%;max-width:860px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0}
+.chip{font:600 11px var(--mono);padding:2px 8px;border:1px solid var(--ink);border-radius:4px;background:#fff}
+.chip.on{background:var(--ink);color:var(--paper)}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;padding:16px}
+@media (max-width:860px){.two{grid-template-columns:1fr}}
+
+.doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}.doc-tags a{font:500 12px "Geist Mono",ui-monospace,monospace;padding:4px 10px;border:1px solid var(--rule-solid,#bfc0c0);border-radius:4px;background:#fff;color:var(--muted,#4f5d75);text-decoration:none}.doc-tags a:hover{border-color:var(--ink,#2d3142);color:var(--ink,#2d3142)}.doc-tags a:focus-visible{outline:2px solid var(--accent,#bf4520);outline-offset:2px}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" style="margin-right:8px" href="../../../index.html">&larr; Back to home</a>
+<a class="back back-cat" href="../../../index.html#cat=Algorithms">&larr; Back to Algorithms</a>
+
+<header>
+  <div class="eyebrow">Algorithms · Optimization</div>
+  <h1>Particle Swarm Optimization</h1>
+  <p class="lede">A flock of simple searchers, each pulled toward its own best find and toward the best find of the whole flock. No gradient needed.</p>
+  <nav class="doc-tags" aria-label="Main tags"><a href="../../../index.html#tag=swarm">#swarm</a><a href="../../../index.html#tag=optimization">#optimization</a><a href="../../../index.html#tag=heuristic">#heuristic</a><a href="../../../index.html#tag=population">#population</a></nav>
+</header>
+
+<section>
+  <h2>Try it first</h2>
+  <p>Thirty particles search a landscape for its lowest point. Darker is higher. Press Step and watch the swarm gather around the red cross, the best spot found so far. On the bumpy Rastrigin surface, try a low inertia and see the swarm freeze in a local dip, then raise it.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">A swarm looking for the minimum</span></div>
+    <div class="scroll">
+      <svg id="plot" viewBox="0 0 720 360" role="img" aria-labelledby="plot-title plot-desc">
+        <title id="plot-title">A swarm looking for the minimum</title>
+        <desc id="plot-desc">A shaded landscape with thirty blue particles, each with a short line showing its velocity, and a red cross marking the best position found by any particle.</desc>
+        <rect width="720" height="360" fill="#fff" stroke="rgba(45,49,66,.12)"/>
+        <g id="layer"></g>
+      </svg>
+    </div>
+    <div class="card-bottom"><span class="hint">darker background = higher value</span><span class="live" id="live"></span></div>
+  </figure>
+
+  <div class="controls">
+    <div class="panel">
+      <div class="row sel"><label for="fn">Landscape</label><select id="fn"><option value="sphere">Sphere (one bowl)</option><option value="rastrigin">Rastrigin (many dips)</option><option value="himmelblau">Himmelblau (four minima)</option></select></div><div class="row"><label for="w">Inertia $w$</label><input type="range" id="w" min="0" max="1.2" step="0.05" value="0.7"><output id="o-w"></output></div><div class="row"><label for="c1">Own best $c_1$</label><input type="range" id="c1" min="0" max="3" step="0.1" value="1.5"><output id="o-c1"></output></div><div class="row"><label for="c2">Swarm best $c_2$</label><input type="range" id="c2" min="0" max="3" step="0.1" value="1.5"><output id="o-c2"></output></div><div class="row sel"><label for="seed">Start</label><select id="seed"><option value="1">Layout 1</option><option value="2">Layout 2</option><option value="3">Layout 3</option></select></div><div class="btns"><button type="button" class="btn" id="one">Step</button><button type="button" class="btn" id="many">Run 20</button><button type="button" class="btn" id="reset">Reset</button></div>
+    </div>
+    <div class="panel">
+      <div class="eyebrow">Readout</div>
+      <pre id="readout" aria-live="polite"></pre>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>1. Borrowing from birds and fish</h2>
+  <p><b>Particle Swarm Optimization</b> (PSO) was proposed in 1995 by Kennedy and Eberhart. It treats each candidate solution as a <b>particle</b> flying through the search space. A particle remembers the best place it has ever been, and it can see the best place found by the swarm. It steers between its own experience and the group's.</p>
+</section>
+
+<section>
+  <h2>2. The update rule</h2>
+  <p>Each particle $i$ has a position $x_i$ and a velocity $v_i$. On every step:</p>
+  <div class="formula">$$v_i \leftarrow w\,v_i + c_1 r_1\,(p_i - x_i) + c_2 r_2\,(g - x_i)$$</div>
+  <div class="formula">$$x_i \leftarrow x_i + v_i$$</div>
+  <ul class="tight">
+    <li>$p_i$ is the best position particle $i$ has visited (its <b>personal best</b>), and $g$ is the best found by the swarm (the <b>global best</b>).</li>
+    <li>$r_1,r_2$ are fresh random numbers in $[0,1]$. They make the motion exploratory.</li>
+    <li>$w$ keeps some of the old velocity: <b>inertia</b>.</li>
+    <li>$c_1$ is the pull toward the personal best (<b>cognitive</b>). $c_2$ is the pull toward the swarm best (<b>social</b>).</li>
+  </ul>
+  <p>After the move, evaluate the function. Update $p_i$ and $g$ if the new point is better. Repeat for a fixed number of steps or until progress stalls.</p>
+</section>
+
+<section>
+  <h2>3. What the knobs do</h2>
+  <table class="ops">
+    <thead><tr><th>Setting</th><th>Low</th><th>High</th></tr></thead>
+    <tbody>
+      <tr><td>Inertia $w$</td><td>particles stop quickly and exploit what they know</td><td>particles overshoot and keep exploring</td></tr>
+      <tr><td>$c_1$</td><td>swarm follows the leader</td><td>each particle trusts its own memory</td></tr>
+      <tr><td>$c_2$</td><td>independent searchers</td><td>fast, tight convergence, and a risk of premature convergence</td></tr>
+      <tr><td>Swarm size</td><td>cheap, may miss the optimum</td><td>more coverage, more cost</td></tr>
+    </tbody>
+  </table>
+  <p>A common recipe starts with $w\approx0.9$ and lowers it to about $0.4$ so the swarm explores first, then settles. Clamping the velocity to a maximum prevents particles flying out of the space.</p>
+</section>
+
+<section>
+  <h2>4. Neighborhoods</h2>
+  <p>In the <b>global-best</b> version every particle follows one leader, which converges fast but can lock onto a local optimum. In the <b>local-best</b> version each particle only listens to a few neighbors, for example on a ring. Information then spreads slowly, so the swarm keeps several explorers alive longer.</p>
+</section>
+
+<section>
+  <h2>5. Strengths and limits</h2>
+  <ul class="tight">
+    <li>Needs only function values, no gradient, so it works on noisy or non-differentiable problems.</li>
+    <li>Few parameters, and easy to code in a few lines.</li>
+    <li>No guarantee of reaching the global optimum, and it can stall in a local one. Rastrigin shows this.</li>
+    <li>Weaker than gradient methods on smooth, high-dimensional problems, such as neural network training.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>6. Related</h2>
+  <p>A sibling of the <a href="../genetic-algorithm/genetic-algorithm.html">Genetic Algorithm</a>, also a population search without gradients. The next page, <a href="../ant-colony-optimization/ant-colony-optimization.html">Ant Colony Optimization</a>, searches discrete problems. For gradient-based search see <a href="../../AI/machine-learning/gradient-descent/gradient-descent.html">Gradient Descent</a>.</p>
+</section>
+
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+  var NS = 'http://www.w3.org/2000/svg';
+  var $ = function (id) { return document.getElementById(id); };
+  function el(name, attrs, parent) {
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function rng(seed) {
+    var a = seed >>> 0;
+    return function () {
+      a = (a + 0x6D2B79F5) >>> 0;
+      var t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function gauss(r) { var u = 1 - r(), v = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+  function clamp(v, a, b) { return Math.min(b, Math.max(a, v)); }
+  function txt(parent, x, y, s, extra) {
+    var a = { x: x, y: y, 'font-family': 'Geist Mono, monospace', 'font-size': 11, fill: '#4f5d75' };
+    for (var k in extra || {}) a[k] = extra[k];
+    var t = el('text', a, parent); t.textContent = s; return t;
+  }
+  function bindOut(ids) { ids.forEach(function (i) { var o = $('o-' + i); if (o) o.textContent = $(i).value; }); }
+
+
+  var W = 720, H = 360, SCL = 45, N = 30, XM = 8, YM = 4;
+  var FN = {
+    sphere: function (x, y) { return x * x + y * y; },
+    rastrigin: function (x, y) { return 20 + x * x - 10 * Math.cos(2 * Math.PI * x) + y * y - 10 * Math.cos(2 * Math.PI * y); },
+    himmelblau: function (x, y) { return Math.pow(x * x + y - 11, 2) + Math.pow(x + y * y - 7, 2); }
+  };
+  var S = { P: [], gb: null, gv: 1e9, it: 0, r: null, heat: null, hf: '' };
+  function X(v) { return W / 2 + v * SCL; } function Y(v) { return H / 2 - v * SCL; }
+  function reset() {
+    S.r = rng(+$('seed').value || 1); S.P = []; S.gb = null; S.gv = 1e9; S.it = 0;
+    var f = FN[$('fn').value];
+    for (var i = 0; i < N; i++) {
+      var x = (S.r() * 2 - 1) * XM, y = (S.r() * 2 - 1) * YM, v = f(x, y);
+      S.P.push({ x: x, y: y, vx: (S.r() - 0.5), vy: (S.r() - 0.5), bx: x, by: y, bv: v });
+      if (v < S.gv) { S.gv = v; S.gb = [x, y]; }
+    }
+    render();
+  }
+  function step(m) {
+    var w = +$('w').value, c1 = +$('c1').value, c2 = +$('c2').value, f = FN[$('fn').value], vmax = 2;
+    for (var t = 0; t < m; t++) {
+      S.P.forEach(function (p) {
+        var r1 = S.r(), r2 = S.r();
+        p.vx = clamp(w * p.vx + c1 * r1 * (p.bx - p.x) + c2 * r2 * (S.gb[0] - p.x), -vmax, vmax);
+        p.vy = clamp(w * p.vy + c1 * S.r() * (p.by - p.y) + c2 * S.r() * (S.gb[1] - p.y), -vmax, vmax);
+        p.x = clamp(p.x + p.vx, -XM, XM); p.y = clamp(p.y + p.vy, -YM, YM);
+        var v = f(p.x, p.y);
+        if (v < p.bv) { p.bv = v; p.bx = p.x; p.by = p.y; }
+        if (v < S.gv) { S.gv = v; S.gb = [p.x, p.y]; }
+      });
+      S.it++;
+    }
+    render();
+  }
+  function heat(g) {
+    var f = FN[$('fn').value], mx = 0, cells = [];
+    for (var gx = -XM; gx < XM; gx += 0.4) for (var gy = -YM; gy < YM; gy += 0.4) { var v = Math.log(1 + f(gx + 0.2, gy + 0.2)); mx = Math.max(mx, v); cells.push([gx, gy, v]); }
+    cells.forEach(function (c) { var a = c[2] / mx; el('rect', { x: X(c[0]), y: Y(c[1] + 0.4), width: 0.4 * SCL + 0.6, height: 0.4 * SCL + 0.6, fill: 'rgb(' + Math.round(250 - a * 110) + ',' + Math.round(248 - a * 100) + ',' + Math.round(245 - a * 70) + ')' }, g); });
+  }
+  function render() {
+    bindOut(['w', 'c1', 'c2']);
+    var g = $('layer'); g.textContent = ''; heat(g);
+    var spread = 0;
+    S.P.forEach(function (p) {
+      el('line', { x1: X(p.x), y1: Y(p.y), x2: X(p.x + p.vx * 2), y2: Y(p.y + p.vy * 2), stroke: '#2e5aa8', 'stroke-width': 1.5 }, g);
+      el('circle', { cx: X(p.x), cy: Y(p.y), r: 4.5, fill: '#2e5aa8', stroke: '#fff', 'stroke-width': 1 }, g);
+      spread += Math.hypot(p.x - S.gb[0], p.y - S.gb[1]) / N;
+    });
+    el('path', { d: 'M' + (X(S.gb[0]) - 9) + ',' + Y(S.gb[1]) + ' h18 M' + X(S.gb[0]) + ',' + (Y(S.gb[1]) - 9) + ' v18', stroke: '#bf4520', 'stroke-width': 4 }, g);
+    $('live').textContent = 'iteration ' + S.it + ' · best ' + S.gv.toFixed(4);
+    $('readout').textContent = 'iteration       = ' + S.it + '\nbest value      = ' + S.gv.toFixed(5) + '\nbest position   = (' + S.gb[0].toFixed(3) + ', ' + S.gb[1].toFixed(3) + ')\nswarm spread    = ' + spread.toFixed(3) + '\n\nBlue: particles with their velocity. Red cross: the best point any particle has found. Darker background means a higher value.';
+  }
+  $('one').addEventListener('click', function () { step(1); });
+  $('many').addEventListener('click', function () { step(20); });
+  $('reset').addEventListener('click', reset);
+  $('fn').addEventListener('change', reset);
+  ['w', 'c1', 'c2'].forEach(function (i) { $(i).addEventListener('input', render); });
+  $('seed').addEventListener('change', reset);
+  reset();
+
+
+  if (window.renderMathInElement) {
+    window.renderMathInElement(document.body, {
+      delimiters: [{ left: '$$', right: '$$', display: true }, { left: '$', right: '$', display: false }],
+      ignoredTags: ['script', 'style', 'textarea', 'pre', 'code'],
+      throwOnError: false
+    });
+  }
+
+});
+</script>
+</body>
+</html>
