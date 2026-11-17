@@ -7,6 +7,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
 <style>
 :root{
   --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
@@ -100,6 +103,16 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
 
 
 .doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}.doc-tags a{font:500 12px "Geist Mono",ui-monospace,monospace;padding:4px 10px;border:1px solid var(--rule-solid,#bfc0c0);border-radius:4px;background:#fff;color:var(--muted,#4f5d75);text-decoration:none}.doc-tags a:hover{border-color:var(--ink,#2d3142);color:var(--ink,#2d3142)}.doc-tags a:focus-visible{outline:2px solid var(--accent,#bf4520);outline-offset:2px}
+.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;text-align:center;overflow-x:auto}
+.formula .katex{font-size:1.25em}
+.katex{color:var(--ink)}
+p .katex,td .katex,li .katex{font-size:1.05em}
+.thm{background:#fff;border:1px solid var(--rule-solid);border-left:3px solid var(--accent);border-radius:6px;padding:14px 18px;margin:18px 0;max-width:72ch}
+.thm .eyebrow{display:block;margin-bottom:4px}
+.thm p{margin:0 0 8px}
+.pf{border-left:2px solid var(--rule-solid);padding:2px 0 2px 16px;margin:10px 0 22px;max-width:70ch}
+.pf p{margin:0 0 8px}
+.pf .q{display:block;text-align:right;color:var(--soft)}
 </style>
 </head>
 <body>
@@ -283,7 +296,64 @@ pop = [[random.randint(0, 1) <span class="k">for</span> _ <span class="k">in</sp
 </section>
 
 <section>
-  <h2>6. Cost</h2>
+  <h2>6. Why it works: the math</h2>
+  <p>The page so far showed that the algorithm works. This section proves <i>when</i> it works, with the exact setting of the code above. Throughout, a candidate is a bit string $x\in\{0,1\}^{\ell}$ with fitness $f(x)$, and $f^*=\max_x f(x)$ is the best possible score. A generation keeps the best individual, then fills the other $N-1\ge 1$ places with <code>mutate(crossover(tournament, tournament))</code>. Mutation flips each bit independently with probability $p$.</p>
+
+  <div class="thm"><span class="eyebrow">Theorem 1 · elitism never loses ground</span>
+    <p>Let $B_t$ be the best fitness in generation $t$. Then $B_{t+1}\ge B_t$ for every $t$.</p></div>
+  <div class="pf"><p><b>Proof.</b> The elite individual is copied into generation $t+1$ unchanged, so that generation contains an individual of fitness $B_t$. The maximum over the generation is at least that. <span class="q">$\blacksquare$</span></p></div>
+
+  <div class="thm"><span class="eyebrow">Theorem 2 · with mutation, it reaches the optimum</span>
+    <p>If $0<p<1$, $N\ge2$ and an optimum $x^*$ exists, then with $\delta=\min(p,1-p)^{\ell}>0$,</p>
+    <div class="formula">$$\Pr[\,B_t<f^*\,]\;\le\;(1-\delta)^{t}\;\xrightarrow{t\to\infty}\;0,\qquad \mathbb{E}[T]\le \frac1\delta$$</div>
+    <p>where $T$ is the first generation that contains an optimum. So the best score converges to $f^*$ with probability 1.</p></div>
+  <div class="pf">
+    <p><b>Proof.</b> Fix any population. Whatever selection and crossover did, a child is $\text{mutate}(c)$ for some string $c$. Mutation produces $x^*$ from $c$ by keeping the bits where $c_i=x^*_i$ (probability $1-p$ each) and flipping the others (probability $p$ each). Hence</p>
+    <div class="formula">$$\Pr[\text{child}=x^*\mid c]=\prod_{i=1}^{\ell}\begin{cases}1-p & c_i=x^*_i\\ p & c_i\ne x^*_i\end{cases}\;\ge\;\min(p,1-p)^{\ell}=\delta$$</div>
+    <p>This bound does not depend on $c$, so it does not depend on the population. At least one child is produced each generation, so every generation contains an optimum with probability at least $\delta$, whatever came before. Mutation bits are fresh each generation, so the chance of failing $t$ generations in a row is at most $(1-\delta)^t$.</p>
+    <p>Once an optimum is in the population, $B_t=f^*$. By Theorem 1 the best score never drops again. Therefore $\Pr[B_t<f^*]\le\Pr[T>t]\le(1-\delta)^t$. The expected waiting time of a trial with success chance at least $\delta$ is at most $1/\delta$. <span class="q">$\blacksquare$</span></p></div>
+  <p><b>What this does not say.</b> $1/\delta\ge 2^{\ell}$, which is no better than guessing strings at random. The theorem proves the search cannot get stuck forever. It says nothing about speed. Speed comes from selection and crossover, which the next result measures.</p>
+
+  <div class="thm"><span class="eyebrow">Theorem 3 · without mutation, it can fail for good</span>
+    <p>If $p=0$, an optimum may be unreachable: $\Pr[B_t=f^*]=0$ for all $t$.</p></div>
+  <div class="pf">
+    <p><b>Proof.</b> With $p=0$ every gene of a child is copied from a parent at the same position. So the set of values present at position $i$ can only shrink. Suppose the target has a 1 at position $i$ but all $N$ starting individuals have 0 there. Then every later individual has 0 there too, and the target never appears. <span class="q">$\blacksquare$</span></p>
+    <p>How likely is a bad start? For a random population of $N$ strings and a single target, the chance that some position lacks the needed bit is $1-(1-2^{-N})^{\ell}$. With the bench settings $N=6$, $\ell=12$ that is about $17\%$. This is why the bench often freezes at 0% mutation. Drift can also remove a value that was present at the start, so the real risk is higher.</p></div>
+
+  <div class="thm"><span class="eyebrow">Theorem 4 · speed on the bench problem</span>
+    <p>For the matching problem $f(x)=\#\{i: x_i=x^*_i\}$, an elitist search that mutates one parent with $p=1/\ell$ reaches $x^*$ in expected time at most</p>
+    <div class="formula">$$\mathbb{E}[T]\;\le\;e\,\ell\,H_{\ell}\;\le\;e\,\ell\,(\ln\ell+1),\qquad H_\ell=\sum_{k=1}^{\ell}\frac1k$$</div>
+    <p>evaluations. For $\ell=12$ the bound is about $101$. Simulation averages about $63$, because the bound assumes the worst start.</p></div>
+  <div class="pf">
+    <p><b>Proof.</b> Use the <i>fitness-level</i> method. Say the current best has $k$ wrong bits. It improves if one wrong bit is flipped and all other bits stay. For one chosen wrong bit that has probability $\frac1\ell\left(1-\frac1\ell\right)^{\ell-1}\ge\frac1{e\ell}$, since $(1-\frac1\ell)^{\ell-1}\ge e^{-1}$. There are $k$ wrong bits to choose from, so the improvement chance is at least $\frac{k}{e\ell}$. By elitism the number of wrong bits never rises, and a level is left at the first success, so the expected time spent at level $k$ is at most $\frac{e\ell}{k}$. Summing over levels:</p>
+    <div class="formula">$$\mathbb{E}[T]\le\sum_{k=1}^{\ell}\frac{e\,\ell}{k}=e\,\ell\,H_\ell$$</div>
+    <p>and $H_\ell\le\ln\ell+1$. <span class="q">$\blacksquare$</span></p></div>
+  <p>So the cost grows like $\ell\log\ell$, not $2^{\ell}$. Selection is what turns the hopeless $1/\delta$ of Theorem 2 into this.</p>
+
+  <div class="thm"><span class="eyebrow">Theorem 5 · the schema theorem (Holland)</span>
+    <p>A <i>schema</i> $H$ is a pattern such as <code>1*0**1</code>, where <code>*</code> matches either bit. Let $o(H)$ be the number of fixed positions and $d(H)$ the distance between the first and last fixed position. With fitness-proportionate selection, one-point crossover at rate $p_c$ and bit-flip mutation at rate $p$, the expected number of members $m(H,t)$ obeys</p>
+    <div class="formula">$$\mathbb{E}\big[m(H,t+1)\big]\;\ge\;m(H,t)\cdot\frac{f(H)}{\bar f}\cdot\Big(1-p_c\frac{d(H)}{\ell-1}\Big)\cdot(1-p)^{o(H)}$$</div>
+    <p>where $f(H)$ is the mean fitness of the members and $\bar f$ the mean fitness of the population.</p></div>
+  <div class="pf">
+    <p><b>Proof.</b> Follow one generation in three steps.</p>
+    <p><b>Selection.</b> Each of the $N$ draws picks a member of $H$ with probability $\dfrac{m\,f(H)}{N\bar f}$. Over $N$ draws, the expected number of selected members is $m\,f(H)/\bar f$.</p>
+    <p><b>Crossover.</b> A selected member survives intact unless the cut falls between its first and last fixed positions. There are $\ell-1$ possible cuts and $d(H)$ of them are inside, and crossover happens with probability $p_c$. So it is broken with probability at most $p_c\,d(H)/(\ell-1)$, and survives with at least the complement.</p>
+    <p><b>Mutation.</b> All $o(H)$ fixed bits must stay unflipped, which has probability $(1-p)^{o(H)}$.</p>
+    <p>Multiply the three factors. The product is a lower bound because it ignores new members that crossover or mutation create from outside $H$. <span class="q">$\blacksquare$</span></p></div>
+  <p><b>Meaning.</b> A schema that is <b>short</b> (small $d$), <b>low order</b> (small $o$) and <b>above average</b> ($f(H)>\bar f$) is expected to gain members, and when the product of the factors stays above 1 it grows geometrically. These are the "building blocks" that crossover glues together.</p>
+
+  <div class="callout">Elitism plus mutation proves it cannot fail forever. Selection explains why it is fast. Neither proves a good answer in a short, fixed time.</div>
+  <p><b>Limits of the theory.</b></p>
+  <ul class="tight">
+    <li>Theorem 2 gives a guarantee only in the limit. The bound $1/\delta$ is exponential in $\ell$.</li>
+    <li>Without elitism there is no convergence. Every population stays reachable from every other, the chain keeps a positive probability of drifting away from the optimum, and the best score can fall (Rudolph, 1994). The code above keeps the best on purpose.</li>
+    <li>The schema theorem is only a lower bound on the <i>expected</i> count. It says nothing about variance or about how the schemata interact, and it is silent when fitness depends on combinations of genes, as it does for hard problems.</li>
+    <li>The code uses tournament selection, not fitness-proportionate. The same argument works with a different selection intensity in place of $f(H)/\bar f$.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>7. Cost</h2>
   <div class="cards">
     <div class="stat"><div class="eyebrow">Per generation</div><div class="big">O(P · F)</div><p>P individuals, each scored once by a fitness function costing F.</p></div>
     <div class="stat focal"><div class="eyebrow">Total</div><div class="big">G · P · F</div><p>G generations. The fitness function usually dominates.</p></div>
@@ -292,7 +362,7 @@ pop = [[random.randint(0, 1) <span class="k">for</span> _ <span class="k">in</sp
 </section>
 
 <section>
-  <h2>7. When to use it</h2>
+  <h2>8. When to use it</h2>
   <ul class="tight">
     <li>Use it when you can score an answer but cannot solve for one: scheduling, layout, tuning parameters, routing.</li>
     <li>Skip it when a direct algorithm exists. Shortest paths and sorting do not need evolution.</li>
@@ -519,6 +589,18 @@ pop = [[random.randint(0, 1) <span class="k">for</span> _ <span class="k">in</sp
   update();
 })();
 
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  renderMathInElement(document.body, {
+    delimiters: [
+      { left: '$$', right: '$$', display: true },
+      { left: '$', right: '$', display: false }
+    ],
+    ignoredTags: ['script', 'style', 'textarea', 'pre', 'code'],
+    throwOnError: false
+  });
+});
 </script>
 </body>
 </html>

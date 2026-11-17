@@ -197,8 +197,8 @@ const DOCS = [
     topic: 'Optimization',
     order: 5,
     level: 'Beginner',
-    tags: ['evolution', 'heuristic', 'crossover', 'mutation', 'selection', 'probabilistic'],
-    summary: 'Search by evolution: select the fittest candidates, cross them over, mutate a little, and repeat until a good answer appears.',
+    tags: ['evolution', 'heuristic', 'crossover', 'mutation', 'selection', 'probabilistic', 'proof', 'convergence', 'schema theorem'],
+    summary: 'Search by evolution: select the fittest candidates, cross them over, mutate a little, and repeat. Includes proofs of convergence, the failure without mutation, a running-time bound and the schema theorem.',
     related: ['Particle Swarm Optimization', 'Ant Colony Optimization'],
   },
   {
