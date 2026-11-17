@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Policy Gradients: REINFORCE and PPO: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+a{color:var(--link)}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+
+.card{margin:24px 0 0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.scroll{overflow-x:auto;padding:0 8px;text-align:center}
+.scroll svg{display:inline-block;width:100%;max-width:720px;height:auto}
+
+.controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;margin-top:16px;align-items:start}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.row{display:grid;grid-template-columns:44px 1fr 56px;gap:12px;align-items:center;margin:0 0 12px}
+.row label{font-family:var(--mono);font-size:13px;font-weight:600}
+.row output{font-family:var(--mono);font-size:12px;text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);min-height:28px}
+.group-label{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);margin:16px 0 6px}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.big-answer{font-family:var(--serif);font-size:44px;line-height:1.1;margin:4px 0 8px;color:var(--accent)}
+#readout{margin:0;padding:0;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink);border:0;background:none}
+#calc{overflow-x:auto;margin-top:8px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:3px;border:1px solid var(--ink);display:inline-block}
+
+pre.code{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .t{color:var(--link)} .c{color:var(--soft);font-style:italic}
+
+.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;text-align:center;overflow-x:auto}
+.formula .katex{font-size:1.25em}
+.katex{color:var(--ink)}
+p .katex,td .katex,li .katex{font-size:1.05em}
+
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:30px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+ul.tight,ol.tight{padding-left:20px;max-width:68ch}ul.tight li,ol.tight li{margin:6px 0}
+
+@media (max-width:860px){.controls{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+
+
+
+
+.row{grid-template-columns:minmax(44px,max-content) 1fr 64px}
+.row.sel{grid-template-columns:minmax(44px,max-content) 1fr}
+select{min-height:36px;padding:0 10px;border:1px solid var(--rule-solid);border-radius:6px;font:500 13px var(--mono);color:var(--ink);background:#fff;max-width:100%}
+select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+table.ops{border-collapse:collapse;width:100%;max-width:860px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0}
+.chip{font:600 11px var(--mono);padding:2px 8px;border:1px solid var(--ink);border-radius:4px;background:#fff}
+.chip.on{background:var(--ink);color:var(--paper)}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;padding:16px}
+@media (max-width:860px){.two{grid-template-columns:1fr}}
+
+.doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}.doc-tags a{font:500 12px "Geist Mono",ui-monospace,monospace;padding:4px 10px;border:1px solid var(--rule-solid,#bfc0c0);border-radius:4px;background:#fff;color:var(--muted,#4f5d75);text-decoration:none}.doc-tags a:hover{border-color:var(--ink,#2d3142);color:var(--ink,#2d3142)}.doc-tags a:focus-visible{outline:2px solid var(--accent,#bf4520);outline-offset:2px}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" style="margin-right:8px" href="../../../../index.html">&larr; Back to home</a>
+<a class="back back-cat" href="../../../../index.html#cat=AI">&larr; Back to AI</a>
+
+<header>
+  <div class="eyebrow">AI · Reinforcement learning</div>
+  <h1>Policy Gradients: REINFORCE and PPO</h1>
+  <p class="lede">Skip the value table. Make the policy itself a function with knobs, and turn the knobs so that actions that earned more reward become more likely.</p>
+  <nav class="doc-tags" aria-label="Main tags"><a href="../../../../index.html#tag=reinforcement%20learning">#reinforcement learning</a><a href="../../../../index.html#tag=policy%20gradient">#policy gradient</a><a href="../../../../index.html#tag=reinforce">#reinforce</a><a href="../../../../index.html#tag=ppo">#ppo</a></nav>
+</header>
+
+<section>
+  <h2>Try it first</h2>
+  <p>A four-armed bandit: each arm pays a noisy reward with a different average, and arm 3 is best. The policy is a softmax over four numbers. Press Update to run a batch of 16 pulls and nudge the policy. Compare plain REINFORCE, REINFORCE with a baseline, and PPO, which limits how far one batch can push.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">Learn which arm to pull</span></div>
+    <div class="scroll">
+      <svg id="plot" viewBox="0 0 720 300" role="img" aria-labelledby="plot-title plot-desc">
+        <title id="plot-title">Learn which arm to pull</title>
+        <desc id="plot-desc">Four bars show the probability of each arm with dashed markers at their true average rewards. A line chart shows expected reward rising over updates.</desc>
+        <rect width="720" height="300" fill="#fff" stroke="rgba(45,49,66,.12)"/>
+        <g id="layer"></g>
+      </svg>
+    </div>
+    <div class="card-bottom"><span class="hint">dashed marker = true mean reward of the arm</span><span class="live" id="live"></span></div>
+  </figure>
+
+  <div class="controls">
+    <div class="panel">
+      <div class="row sel"><label for="algo">Method</label><select id="algo"><option value="plain">REINFORCE</option><option value="base">REINFORCE + baseline</option><option value="ppo">PPO (clipped)</option></select></div><div class="row"><label for="lr">Step size</label><input type="range" id="lr" min="0.01" max="1" step="0.01" value="0.3"><output id="o-lr"></output></div><div class="row"><label for="clip">Clip $\varepsilon$</label><input type="range" id="clip" min="0.05" max="0.5" step="0.05" value="0.2"><output id="o-clip"></output></div><div class="btns"><button type="button" class="btn" id="u1">Update</button><button type="button" class="btn" id="u20">Update ×20</button><button type="button" class="btn" id="reset">Reset</button></div>
+    </div>
+    <div class="panel">
+      <div class="eyebrow">Readout</div>
+      <pre id="readout" aria-live="polite"></pre>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>1. Learn the policy directly</h2>
+  <p>Value methods such as <a href="../q-learning/q-learning.html">Q-learning</a> learn how good each action is and then pick the best. <b>Policy gradient</b> methods skip that step. A policy $\pi_\theta(a\mid s)$ with parameters $\theta$ outputs action probabilities, and training adjusts $\theta$ to raise the expected total reward $J(\theta)$.</p>
+  <p>This handles continuous actions and stochastic policies naturally.</p>
+</section>
+
+<section>
+  <h2>2. REINFORCE</h2>
+  <p>The policy gradient theorem gives a simple, sampled gradient:</p>
+  <div class="formula">$$\nabla_\theta J=\mathbb{E}\Big[\,G\;\nabla_\theta\log\pi_\theta(a\mid s)\Big]$$</div>
+  <p>Take an action, see the return $G$, and then push up the log-probability of that action in proportion to $G$. Good outcomes make their actions likelier, bad ones less so. For a softmax, $\nabla\log\pi$ for the chosen action is "one minus its probability" and for others minus their probabilities.</p>
+  <p>It is unbiased but <b>noisy</b>. Run it without a baseline and watch the reward curve wobble.</p>
+</section>
+
+<section>
+  <h2>3. Baseline: less noise, same answer</h2>
+  <p>Replace $G$ by $G-b$, where $b$ is something that does not depend on the action, usually the average return. The expected gradient does not change, but the variance drops sharply. The difference $A=G-b$ is called the <b>advantage</b>: how much better this action was than usual.</p>
+</section>
+
+<section>
+  <h2>4. PPO: do not step too far</h2>
+  <p>One bad, large update can wreck a policy, and fresh data is expensive. <b>Proximal Policy Optimization</b> reuses each batch for several small steps, but keeps the new policy close to the old one. With the probability ratio $r=\pi_\theta/\pi_{\theta_\text{old}}$ it maximizes</p>
+  <div class="formula">$$L=\mathbb{E}\Big[\min\big(r\,A,\;\operatorname{clip}(r,\,1-\varepsilon,\,1+\varepsilon)\,A\big)\Big]$$</div>
+  <p>Once the ratio leaves $[1-\varepsilon,1+\varepsilon]$ in the direction that helps, the gradient goes flat and the update stops pushing. The picture below shows the two cases.</p>
+<svg id="clip2" viewBox="0 0 720 215" role="img" aria-labelledby="c2t c2d" style="width:100%;max-width:720px;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;margin-top:12px"><title id="c2t">PPO clipped objective</title><desc id="c2d">Two lines against the probability ratio. For positive advantage the objective rises with the ratio and flattens above one plus epsilon. For negative advantage it flattens below one minus epsilon. Dashed lines show the unclipped objective.</desc></svg></section>
+
+<section>
+  <h2>5. Where it is used</h2>
+  <ul class="tight">
+    <li>PPO is a default for robotics and games, and was a core step in training language models from human feedback (RLHF).</li>
+    <li>Actor-critic methods combine a policy (the actor) with a learned value (the critic) that serves as the baseline.</li>
+    <li>Compared with <a href="../deep-q-network/deep-q-network.html">DQN</a>, policy gradients are more stable and allow continuous actions, but need more samples.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>6. Related</h2>
+  <p>Value-based cousins: <a href="../q-learning/q-learning.html">Q-learning and Dyna-Q</a> and <a href="../deep-q-network/deep-q-network.html">Deep Q-Network</a>. Training the network behind the policy uses <a href="../../deep-learning/backpropagation/backpropagation.html">Backpropagation</a>. See the full map in <a href="../ml-algorithm-groups/ml-algorithm-groups.html">Machine Learning Algorithm Groups</a>.</p>
+</section>
+
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+  var NS = 'http://www.w3.org/2000/svg';
+  var $ = function (id) { return document.getElementById(id); };
+  function el(name, attrs, parent) {
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function rng(seed) {
+    var a = seed >>> 0;
+    return function () {
+      a = (a + 0x6D2B79F5) >>> 0;
+      var t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function gauss(r) { var u = 1 - r(), v = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+  function clamp(v, a, b) { return Math.min(b, Math.max(a, v)); }
+  function txt(parent, x, y, s, extra) {
+    var a = { x: x, y: y, 'font-family': 'Geist Mono, monospace', 'font-size': 11, fill: '#4f5d75' };
+    for (var k in extra || {}) a[k] = extra[k];
+    var t = el('text', a, parent); t.textContent = s; return t;
+  }
+  function bindOut(ids) { ids.forEach(function (i) { var o = $('o-' + i); if (o) o.textContent = $(i).value; }); }
+
+
+  var W = 720, H = 300, MU = [0.2, 0.5, 0.8, 0.4], NA = 4;
+  var S = { th: null, hist: [], upd: 0, r: null };
+  function soft(th) { var m = Math.max.apply(null, th), e = th.map(function (v) { return Math.exp(v - m); }), s = e.reduce(function (a, b) { return a + b; }, 0); return e.map(function (v) { return v / s; }); }
+  function J(p) { return p.reduce(function (a, v, i) { return a + v * MU[i]; }, 0); }
+  function reset() { S.th = [0, 0, 0, 0]; S.hist = [J(soft(S.th))]; S.upd = 0; S.r = rng(17); render(); }
+  function sample(p) { var u = S.r(), c = 0; for (var i = 0; i < NA; i++) { c += p[i]; if (u < c) return i; } return NA - 1; }
+  function update() {
+    var mode = $('algo').value, lr = +$('lr').value, eps = +$('clip').value, B = 16, p = soft(S.th), acts = [], R = [], i, k;
+    for (i = 0; i < B; i++) { var a = sample(p); acts.push(a); R.push(MU[a] + 0.5 * gauss(S.r)); }
+    var mean = R.reduce(function (a, b) { return a + b; }, 0) / B;
+    if (mode === 'plain' || mode === 'base') {
+      var g = [0, 0, 0, 0];
+      for (i = 0; i < B; i++) { var adv = R[i] - (mode === 'base' ? mean : 0); for (k = 0; k < NA; k++) g[k] += adv * ((k === acts[i] ? 1 : 0) - p[k]) / B; }
+      for (k = 0; k < NA; k++) S.th[k] += lr * g[k];
+    } else {
+      var sd = Math.sqrt(R.reduce(function (a, v) { return a + (v - mean) * (v - mean); }, 0) / B) + 1e-8, A = R.map(function (v) { return (v - mean) / sd; }), old = p.slice();
+      for (var ep = 0; ep < 4; ep++) {
+        var q = soft(S.th), g2 = [0, 0, 0, 0];
+        for (i = 0; i < B; i++) {
+          var ratio = q[acts[i]] / old[acts[i]], clipped = (A[i] > 0 && ratio > 1 + eps) || (A[i] < 0 && ratio < 1 - eps);
+          if (clipped) continue;
+          for (k = 0; k < NA; k++) g2[k] += A[i] * ratio * ((k === acts[i] ? 1 : 0) - q[k]) / B;
+        }
+        for (k = 0; k < NA; k++) S.th[k] += lr * g2[k];
+      }
+    }
+    S.upd++; S.hist.push(J(soft(S.th)));
+  }
+  function render() {
+    bindOut(['lr', 'clip']);
+    var g = $('layer'); g.textContent = '';
+    var p = soft(S.th), x0 = 40, bw = 60, gap = 24, base = 250, sc = 190;
+    txt(g, x0, 22, 'probability of each arm (marker = its true mean reward)', { 'font-weight': 600, fill: '#2d3142' });
+    el('line', { x1: x0 - 10, y1: base, x2: x0 + 4 * (bw + gap), y2: base, stroke: '#2d3142' }, g);
+    p.forEach(function (v, i) {
+      var x = x0 + i * (bw + gap), h = v * sc;
+      el('rect', { x: x, y: base - h, width: bw, height: h, fill: i === 2 ? '#bf4520' : '#2e5aa8', opacity: 0.85 }, g);
+      txt(g, x + bw / 2, base - h - 5, v.toFixed(2), { 'text-anchor': 'middle', 'font-size': 10 });
+      txt(g, x + bw / 2, base + 16, 'arm ' + (i + 1), { 'text-anchor': 'middle', 'font-size': 10 });
+      el('path', { d: 'M' + (x - 3) + ',' + (base - MU[i] * sc) + ' h' + (bw + 6), stroke: '#2d3142', 'stroke-width': 2, 'stroke-dasharray': '3 3' }, g);
+    });
+    var cx = 440, cw = 250, ch = 190, cy = 40;
+    txt(g, cx, 22, 'expected reward over updates', { 'font-weight': 600, fill: '#2d3142' });
+    el('rect', { x: cx, y: cy, width: cw, height: ch, fill: 'none', stroke: 'rgba(45,49,66,.2)' }, g);
+    var n = Math.max(S.hist.length - 1, 40), pts = S.hist.map(function (v, i) { return (cx + i / n * cw) + ',' + (cy + ch - (v - 0.2) / 0.6 * ch); }).join(' ');
+    el('polyline', { points: pts, fill: 'none', stroke: '#bf4520', 'stroke-width': 2 }, g);
+    el('line', { x1: cx, y1: cy, x2: cx + cw, y2: cy, stroke: '#5a6580', 'stroke-dasharray': '2 4' }, g);
+    txt(g, cx + cw, cy - 4, 'best arm 0.8', { 'text-anchor': 'end', 'font-size': 10 });
+    // PPO clip
+    var c2 = $('clip2'); if (c2) {
+      c2.textContent = '';
+      var eps = +$('clip').value, X = function (v) { return 40 + (v - 0.4) / 1.2 * 640; }, Y = function (v) { return 190 - (v + 0.8) / 2.6 * 170; };
+      el('line', { x1: 40, y1: Y(0), x2: 680, y2: Y(0), stroke: '#2d3142' }, c2); txt(c2, 684, Y(0) + 4, '0', { 'font-size': 10 });
+      el('rect', { x: X(1 - eps), y: 10, width: X(1 + eps) - X(1 - eps), height: 180, fill: 'rgba(191,69,32,.06)' }, c2);
+      [[1, '#1f7a4d', 'A > 0'], [-1, '#bf4520', 'A < 0']].forEach(function (a) {
+        var pts = []; for (var r = 0.4; r <= 1.6001; r += 0.02) { var v = a[0] * Math.min(r * 1, 1e9); var clipped = a[0] > 0 ? Math.min(r, 1 + eps) : Math.max(r, 1 - eps); pts.push(X(r) + ',' + Y(a[0] * clipped)); }
+        el('polyline', { points: pts.join(' '), fill: 'none', stroke: a[1], 'stroke-width': 3 }, c2);
+        var raw = []; for (r = 0.4; r <= 1.6001; r += 0.02) raw.push(X(r) + ',' + Y(a[0] * r));
+        el('polyline', { points: raw.join(' '), fill: 'none', stroke: a[1], 'stroke-width': 1, 'stroke-dasharray': '3 3', opacity: 0.6 }, c2);
+        txt(c2, a[0] > 0 ? X(1.45) : X(1.45), a[0] > 0 ? Y(1.5) : Y(-1.5), a[2], { fill: a[1], 'font-weight': 600 });
+      });
+      txt(c2, X(1), 205, 'probability ratio r = new / old', { 'text-anchor': 'middle' });
+    }
+    $('live').textContent = S.upd + ' updates · expected reward ' + J(p).toFixed(3);
+    $('readout').textContent = 'method          = ' + ({ plain: 'REINFORCE', base: 'REINFORCE + baseline', ppo: 'PPO (clipped)' })[$('algo').value] + '\nupdates         = ' + S.upd + '\nbest arm prob   = ' + p[2].toFixed(2) + '\nexpected reward = ' + J(p).toFixed(3) + ' (max 0.800)\n\nEach update uses a batch of 16 pulls.';
+  }
+  $('u1').addEventListener('click', function () { update(); render(); });
+  $('u20').addEventListener('click', function () { for (var i = 0; i < 20; i++) update(); render(); });
+  $('reset').addEventListener('click', reset);
+  ['lr', 'clip'].forEach(function (i) { $(i).addEventListener('input', render); });
+  $('algo').addEventListener('change', reset);
+  reset();
+
+
+  if (window.renderMathInElement) {
+    window.renderMathInElement(document.body, {
+      delimiters: [{ left: '$$', right: '$$', display: true }, { left: '$', right: '$', display: false }],
+      ignoredTags: ['script', 'style', 'textarea', 'pre', 'code'],
+      throwOnError: false
+    });
+  }
+
+});
+</script>
+</body>
+</html>

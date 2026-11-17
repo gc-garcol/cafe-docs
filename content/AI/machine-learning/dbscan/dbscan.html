@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DBSCAN: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+a{color:var(--link)}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+
+.card{margin:24px 0 0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.scroll{overflow-x:auto;padding:0 8px;text-align:center}
+.scroll svg{display:inline-block;width:100%;max-width:720px;height:auto}
+
+.controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;margin-top:16px;align-items:start}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.row{display:grid;grid-template-columns:44px 1fr 56px;gap:12px;align-items:center;margin:0 0 12px}
+.row label{font-family:var(--mono);font-size:13px;font-weight:600}
+.row output{font-family:var(--mono);font-size:12px;text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);min-height:28px}
+.group-label{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);margin:16px 0 6px}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.big-answer{font-family:var(--serif);font-size:44px;line-height:1.1;margin:4px 0 8px;color:var(--accent)}
+#readout{margin:0;padding:0;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink);border:0;background:none}
+#calc{overflow-x:auto;margin-top:8px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:3px;border:1px solid var(--ink);display:inline-block}
+
+pre.code{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .t{color:var(--link)} .c{color:var(--soft);font-style:italic}
+
+.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;text-align:center;overflow-x:auto}
+.formula .katex{font-size:1.25em}
+.katex{color:var(--ink)}
+p .katex,td .katex,li .katex{font-size:1.05em}
+
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:30px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+ul.tight,ol.tight{padding-left:20px;max-width:68ch}ul.tight li,ol.tight li{margin:6px 0}
+
+@media (max-width:860px){.controls{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+
+
+
+
+.row{grid-template-columns:minmax(44px,max-content) 1fr 64px}
+.row.sel{grid-template-columns:minmax(44px,max-content) 1fr}
+select{min-height:36px;padding:0 10px;border:1px solid var(--rule-solid);border-radius:6px;font:500 13px var(--mono);color:var(--ink);background:#fff;max-width:100%}
+select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+table.ops{border-collapse:collapse;width:100%;max-width:860px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0}
+.chip{font:600 11px var(--mono);padding:2px 8px;border:1px solid var(--ink);border-radius:4px;background:#fff}
+.chip.on{background:var(--ink);color:var(--paper)}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;padding:16px}
+@media (max-width:860px){.two{grid-template-columns:1fr}}
+
+.doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}.doc-tags a{font:500 12px "Geist Mono",ui-monospace,monospace;padding:4px 10px;border:1px solid var(--rule-solid,#bfc0c0);border-radius:4px;background:#fff;color:var(--muted,#4f5d75);text-decoration:none}.doc-tags a:hover{border-color:var(--ink,#2d3142);color:var(--ink,#2d3142)}.doc-tags a:focus-visible{outline:2px solid var(--accent,#bf4520);outline-offset:2px}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" style="margin-right:8px" href="../../../../index.html">&larr; Back to home</a>
+<a class="back back-cat" href="../../../../index.html#cat=AI">&larr; Back to AI</a>
+
+<header>
+  <div class="eyebrow">AI · Clustering</div>
+  <h1>DBSCAN</h1>
+  <p class="lede">Clusters are crowds, not circles. Grow a cluster outward from any point that has enough close neighbors, and leave lonely points as noise.</p>
+  <nav class="doc-tags" aria-label="Main tags"><a href="../../../../index.html#tag=unsupervised">#unsupervised</a><a href="../../../../index.html#tag=clustering">#clustering</a><a href="../../../../index.html#tag=density">#density</a><a href="../../../../index.html#tag=noise">#noise</a></nav>
+</header>
+
+<section>
+  <h2>Try it first</h2>
+  <p>Two half-moons, one blob and scattered noise. K-means would cut the moons wrongly, since they are not round. Tune the radius $\varepsilon$ and the neighbor count. Click any point to draw its $\varepsilon$-ball and see how many neighbors it has.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">Density-based clusters</span></div>
+    <div class="scroll">
+      <svg id="plot" viewBox="0 0 720 360" role="img" aria-labelledby="plot-title plot-desc">
+        <title id="plot-title">Density-based clusters</title>
+        <desc id="plot-desc">A scatter of points. Filled dots are core points, hollow dots are border points of a cluster, and grey crosses are noise. Colors mark clusters. Clicking a point draws its neighborhood circle.</desc>
+        <rect width="720" height="360" fill="#fff" stroke="rgba(45,49,66,.12)"/>
+        <g id="layer"></g>
+      </svg>
+    </div>
+    <div class="card-bottom"><span class="hint">click a point to see its neighborhood</span><span class="live" id="live"></span></div>
+  </figure>
+
+  <div class="controls">
+    <div class="panel">
+      <div class="row"><label for="eps">$\varepsilon$</label><input type="range" id="eps" min="2" max="20" step="0.5" value="6"><output id="o-eps"></output></div><div class="row"><label for="mp">minPts</label><input type="range" id="mp" min="2" max="12" step="1" value="4"><output id="o-mp"></output></div><div class="btns"><button type="button" class="btn" id="data">New data</button></div><div class="legend" aria-label="Legend"><span><i class="sw" style="background:#bf4520"></i>core point</span><span><i class="sw" style="background:#fff"></i>border point (hollow)</span><span><i class="sw" style="background:#5a6580"></i>noise (cross)</span></div>
+    </div>
+    <div class="panel">
+      <div class="eyebrow">Readout</div>
+      <pre id="readout" aria-live="polite"></pre>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>1. Density, not distance to a center</h2>
+  <p>DBSCAN, short for Density-Based Spatial Clustering of Applications with Noise, calls a region a cluster when it is dense enough. It needs two settings: a radius $\varepsilon$ and a count minPts. It does <b>not</b> need the number of clusters, and clusters can have any shape.</p>
+</section>
+
+<section>
+  <h2>2. Three kinds of point</h2>
+  <table class="ops">
+    <thead><tr><th>Kind</th><th>Rule</th></tr></thead>
+    <tbody>
+      <tr><td>Core</td><td>at least minPts points, itself included, lie within $\varepsilon$</td></tr>
+      <tr><td>Border</td><td>not core, but within $\varepsilon$ of a core point</td></tr>
+      <tr><td>Noise</td><td>neither. It belongs to no cluster.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>3. The algorithm</h2>
+  <p>Scan the points. Take an unvisited core point and start a new cluster. Put all its $\varepsilon$-neighbors in the cluster. Any neighbor that is itself core adds its own neighbors, and so on, until the cluster stops growing. Border points join but do not spread. Repeat with the next unvisited core point.</p>
+  <p>Two core points within $\varepsilon$ of each other always end in the same cluster, so clusters are chains of overlapping balls.</p>
+</section>
+
+<section>
+  <h2>4. Choosing the settings</h2>
+  <ul class="tight">
+    <li>Raise $\varepsilon$ and clusters merge, and noise disappears. Lower it and clusters split into pieces and more points turn to noise.</li>
+    <li>minPts is often set near $2\times$ the number of dimensions, and at least 3.</li>
+    <li>To pick $\varepsilon$, sort every point's distance to its $k$-th nearest neighbor. The "knee" of that curve is a good value.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>5. Strengths and limits</h2>
+  <ul class="tight">
+    <li>Finds odd shapes and marks outliers by itself.</li>
+    <li>One $\varepsilon$ cannot fit clusters of very different densities. <b>HDBSCAN</b> removes that limit.</li>
+    <li>Distances lose meaning in many dimensions, so it works best on a few.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>6. Related</h2>
+  <p>Compare with <a href="../k-means-clustering/k-means-clustering.html">K-means</a> and <a href="../hierarchical-clustering/hierarchical-clustering.html">Hierarchical Clustering</a>. Finding neighbors fast uses a spatial index such as a <a href="../../../datastructure-algorithm/quad-tree/quad-tree.html">Quad Tree</a>. See the full map in <a href="../ml-algorithm-groups/ml-algorithm-groups.html">Machine Learning Algorithm Groups</a>.</p>
+</section>
+
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+  var NS = 'http://www.w3.org/2000/svg';
+  var $ = function (id) { return document.getElementById(id); };
+  function el(name, attrs, parent) {
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function rng(seed) {
+    var a = seed >>> 0;
+    return function () {
+      a = (a + 0x6D2B79F5) >>> 0;
+      var t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function gauss(r) { var u = 1 - r(), v = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+  function clamp(v, a, b) { return Math.min(b, Math.max(a, v)); }
+  function txt(parent, x, y, s, extra) {
+    var a = { x: x, y: y, 'font-family': 'Geist Mono, monospace', 'font-size': 11, fill: '#4f5d75' };
+    for (var k in extra || {}) a[k] = extra[k];
+    var t = el('text', a, parent); t.textContent = s; return t;
+  }
+  function bindOut(ids) { ids.forEach(function (i) { var o = $('o-' + i); if (o) o.textContent = $(i).value; }); }
+
+
+  var W = 720, H = 360, SC = 3.6, COLS = ['#bf4520', '#2e5aa8', '#1f7a4d', '#8c5ab4', '#bf8a20'];
+  var state = { seed: 51, probe: -1 };
+  function data(seed) {
+    var r = rng(seed), pts = [], i, a;
+    for (i = 0; i < 45; i++) { a = Math.PI * (i / 44); pts.push({ x: 40 + 32 * Math.cos(a) + gauss(r) * 1.6, y: 32 + 32 * Math.sin(a) + gauss(r) * 1.6 }); }
+    for (i = 0; i < 45; i++) { a = Math.PI * (i / 44); pts.push({ x: 72 + 32 * Math.cos(a + Math.PI) * -1 + 0 + gauss(r) * 1.6, y: 68 - 32 * Math.sin(a) + gauss(r) * 1.6 }); }
+    for (i = 0; i < 30; i++) pts.push({ x: 150 + gauss(r) * 8, y: 55 + gauss(r) * 8 });
+    for (i = 0; i < 14; i++) pts.push({ x: 4 + r() * 192, y: 4 + r() * 92 });
+    pts.forEach(function (q) { q.x = clamp(q.x, 2, 198); q.y = clamp(q.y, 2, 98); });
+    return pts;
+  }
+  function dbscan(pts, eps, minPts) {
+    var n = pts.length, lab = new Array(n).fill(-2), core = new Array(n).fill(false), cid = 0, i;
+    function nb(i) { var o = []; for (var j = 0; j < n; j++) if (Math.hypot(pts[i].x - pts[j].x, pts[i].y - pts[j].y) <= eps) o.push(j); return o; }
+    var N = pts.map(function (_, i) { return nb(i); });
+    for (i = 0; i < n; i++) core[i] = N[i].length >= minPts;
+    for (i = 0; i < n; i++) {
+      if (lab[i] !== -2 || !core[i]) continue;
+      var q = [i]; lab[i] = cid;
+      while (q.length) { var u = q.pop(); if (!core[u]) continue; N[u].forEach(function (v) { if (lab[v] === -2 || lab[v] === -1) { if (lab[v] === -2) q.push(v); lab[v] = cid; } }); }
+      cid++;
+    }
+    for (i = 0; i < n; i++) if (lab[i] === -2) lab[i] = -1;
+    return { lab: lab, core: core, k: cid, N: N };
+  }
+  function render() {
+    bindOut(['eps', 'mp']);
+    var eps = +$('eps').value, mp = +$('mp').value, pts = data(state.seed), res = dbscan(pts, eps, mp);
+    var g = $('layer'); g.textContent = '';
+    if (state.probe >= 0) { var pr = pts[state.probe]; el('circle', { cx: pr.x * SC, cy: H - pr.y * SC, r: eps * SC, fill: 'rgba(45,49,66,.06)', stroke: '#2d3142', 'stroke-dasharray': '4 4' }, g); }
+    var noise = 0, cores = 0, borders = 0;
+    pts.forEach(function (q, i) {
+      var l = res.lab[i], cx = q.x * SC, cy = H - q.y * SC;
+      if (l === -1) { noise++; el('path', { d: 'M' + (cx - 4) + ',' + (cy - 4) + ' L' + (cx + 4) + ',' + (cy + 4) + ' M' + (cx + 4) + ',' + (cy - 4) + ' L' + (cx - 4) + ',' + (cy + 4), stroke: '#5a6580', 'stroke-width': 2 }, g); }
+      else if (res.core[i]) { cores++; el('circle', { cx: cx, cy: cy, r: 5, fill: COLS[l % 5], stroke: '#fff', 'stroke-width': 1 }, g); }
+      else { borders++; el('circle', { cx: cx, cy: cy, r: 5, fill: '#fff', stroke: COLS[l % 5], 'stroke-width': 2.2 }, g); }
+    });
+    var info = '';
+    if (state.probe >= 0) { var c = res.N[state.probe].length; info = '\nprobe point: ' + c + ' points within eps -> ' + (c >= mp ? 'core' : res.lab[state.probe] === -1 ? 'noise' : 'border'); }
+    $('live').textContent = res.k + ' clusters · ' + noise + ' noise';
+    $('readout').textContent = 'eps = ' + eps + '   minPts = ' + mp + '\nclusters = ' + res.k + '\ncore     = ' + cores + '\nborder   = ' + borders + '\nnoise    = ' + noise + info;
+  }
+  $('plot').addEventListener('click', function (e) {
+    var b = $('plot').getBoundingClientRect(), x = (e.clientX - b.left) / b.width * W / SC, y = (H - (e.clientY - b.top) / b.height * H) / SC, pts = data(state.seed), best = -1, bd = 1e9;
+    pts.forEach(function (q, i) { var d = Math.hypot(q.x - x, q.y - y); if (d < bd) { bd = d; best = i; } });
+    state.probe = best; render();
+  });
+  ['eps', 'mp'].forEach(function (i) { $(i).addEventListener('input', render); });
+  $('data').addEventListener('click', function () { state.seed = Math.floor(Math.random() * 100000) + 1; state.probe = -1; render(); });
+  render();
+
+
+  if (window.renderMathInElement) {
+    window.renderMathInElement(document.body, {
+      delimiters: [{ left: '$$', right: '$$', display: true }, { left: '$', right: '$', display: false }],
+      ignoredTags: ['script', 'style', 'textarea', 'pre', 'code'],
+      throwOnError: false
+    });
+  }
+
+});
+</script>
+</body>
+</html>

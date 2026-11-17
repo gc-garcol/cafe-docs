@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Support Vector Machine: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+a{color:var(--link)}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+
+.card{margin:24px 0 0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.scroll{overflow-x:auto;padding:0 8px;text-align:center}
+.scroll svg{display:inline-block;width:100%;max-width:720px;height:auto}
+
+.controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;margin-top:16px;align-items:start}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.row{display:grid;grid-template-columns:44px 1fr 56px;gap:12px;align-items:center;margin:0 0 12px}
+.row label{font-family:var(--mono);font-size:13px;font-weight:600}
+.row output{font-family:var(--mono);font-size:12px;text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);min-height:28px}
+.group-label{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);margin:16px 0 6px}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.big-answer{font-family:var(--serif);font-size:44px;line-height:1.1;margin:4px 0 8px;color:var(--accent)}
+#readout{margin:0;padding:0;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink);border:0;background:none}
+#calc{overflow-x:auto;margin-top:8px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:3px;border:1px solid var(--ink);display:inline-block}
+
+pre.code{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .t{color:var(--link)} .c{color:var(--soft);font-style:italic}
+
+.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;text-align:center;overflow-x:auto}
+.formula .katex{font-size:1.25em}
+.katex{color:var(--ink)}
+p .katex,td .katex,li .katex{font-size:1.05em}
+
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:30px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+ul.tight,ol.tight{padding-left:20px;max-width:68ch}ul.tight li,ol.tight li{margin:6px 0}
+
+@media (max-width:860px){.controls{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+
+
+
+
+.row{grid-template-columns:minmax(44px,max-content) 1fr 64px}
+.row.sel{grid-template-columns:minmax(44px,max-content) 1fr}
+select{min-height:36px;padding:0 10px;border:1px solid var(--rule-solid);border-radius:6px;font:500 13px var(--mono);color:var(--ink);background:#fff;max-width:100%}
+select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+table.ops{border-collapse:collapse;width:100%;max-width:860px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0}
+.chip{font:600 11px var(--mono);padding:2px 8px;border:1px solid var(--ink);border-radius:4px;background:#fff}
+.chip.on{background:var(--ink);color:var(--paper)}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;padding:16px}
+@media (max-width:860px){.two{grid-template-columns:1fr}}
+
+.doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}.doc-tags a{font:500 12px "Geist Mono",ui-monospace,monospace;padding:4px 10px;border:1px solid var(--rule-solid,#bfc0c0);border-radius:4px;background:#fff;color:var(--muted,#4f5d75);text-decoration:none}.doc-tags a:hover{border-color:var(--ink,#2d3142);color:var(--ink,#2d3142)}.doc-tags a:focus-visible{outline:2px solid var(--accent,#bf4520);outline-offset:2px}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" style="margin-right:8px" href="../../../../index.html">&larr; Back to home</a>
+<a class="back back-cat" href="../../../../index.html#cat=AI">&larr; Back to AI</a>
+
+<header>
+  <div class="eyebrow">AI · Classification</div>
+  <h1>Support Vector Machine</h1>
+  <p class="lede">Do not just separate the classes. Separate them with the widest possible street, and let only the points on the curb decide where it goes.</p>
+  <nav class="doc-tags" aria-label="Main tags"><a href="../../../../index.html#tag=supervised">#supervised</a><a href="../../../../index.html#tag=svm">#svm</a><a href="../../../../index.html#tag=margin">#margin</a><a href="../../../../index.html#tag=kernel">#kernel</a></nav>
+</header>
+
+<section>
+  <h2>Try it first</h2>
+  <p>Pick the data and the penalty $C$. Points with a dark outline are the <b>support vectors</b>. Move any other point and the boundary does not change. On the ring data a straight line fails, until you add one extra feature, the squared distance from the center. That is the idea behind kernels.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">Maximum margin boundary</span></div>
+    <div class="scroll">
+      <svg id="plot" viewBox="0 0 720 360" role="img" aria-labelledby="plot-title plot-desc">
+        <title id="plot-title">Maximum margin boundary</title>
+        <desc id="plot-desc">A scatter of orange and blue points, with a tinted background for each side of the boundary and a lighter band for the margin. Support vectors are drawn larger with a dark outline.</desc>
+        <rect width="720" height="360" fill="#fff" stroke="rgba(45,49,66,.12)"/>
+        <g id="layer"></g>
+      </svg>
+    </div>
+    <div class="card-bottom"><span class="hint">outlined points = support vectors</span><span class="live" id="live"></span></div>
+  </figure>
+
+  <div class="controls">
+    <div class="panel">
+      <div class="row sel"><label for="kind">Data</label><select id="kind"><option value="blobs">Two blobs (linear)</option><option value="ring">Ring around a core</option></select></div><div class="row"><label for="C">$C$</label><input type="range" id="C" min="0" max="4" step="1" value="2"><output id="o-C"></output></div><label style="display:block;margin:6px 0"><input type="checkbox" id="rfeat"> Add feature $x^2+y^2$ (kernel idea)</label><div class="btns"><button type="button" class="btn" id="data">New data</button></div><div class="legend" aria-label="Legend"><span><i class="sw" style="background:#bf4520"></i>class A</span><span><i class="sw" style="background:#2e5aa8"></i>class B</span></div><p class="hint" style="margin-top:8px">$C$ steps: 0.01, 0.1, 1, 10, 100.</p>
+    </div>
+    <div class="panel">
+      <div class="eyebrow">Readout</div>
+      <pre id="readout" aria-live="polite"></pre>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>1. The widest street</h2>
+  <p>Many lines can separate two classes. The SVM picks the one with the largest <b>margin</b>, the gap to the nearest point on each side. A wide margin is less sensitive to small changes, which tends to generalize better.</p>
+<div class="callout">Only the points on the margin matter. Delete all the others and the boundary stays put.</div>
+</section>
+
+<section>
+  <h2>2. The math</h2>
+  <p>Label classes $y_i\in\{-1,+1\}$. The boundary is $w^\top x+b=0$, and the margin width is $2/\|w\|$. Maximizing it means minimizing $\|w\|$ while keeping every point on its side:</p>
+  <div class="formula">$$\min_{w,b}\; \tfrac12\|w\|^2 \quad \text{s.t.}\quad y_i\,(w^\top x_i+b)\ge 1$$</div>
+  <p>Real data overlaps, so the <b>soft margin</b> lets points break the rule at a price. With slack $\xi_i\ge0$:</p>
+  <div class="formula">$$\min_{w,b}\; \tfrac12\|w\|^2 + C\sum_{i}\xi_i \quad\text{s.t.}\quad y_i\,(w^\top x_i+b)\ge 1-\xi_i$$</div>
+  <p>The same objective is the <b>hinge loss</b> $\max(0,\,1-y_i f(x_i))$ plus a penalty on $\|w\|$.</p>
+</section>
+
+<section>
+  <h2>3. The knob C</h2>
+  <table class="ops">
+    <thead><tr><th>$C$</th><th>Effect</th></tr></thead>
+    <tbody>
+      <tr><td>small</td><td>Wide margin, many violations allowed. Simple model, may underfit.</td></tr>
+      <tr><td>large</td><td>Narrow margin, few violations. Fits the training data closely, may overfit.</td></tr>
+    </tbody>
+  </table>
+  <p>Try the ring data with the extra feature off and a small $C$, then on.</p>
+</section>
+
+<section>
+  <h2>4. Kernels</h2>
+  <p>A straight boundary in a richer feature space can be curved in the original one. The ring is not separable by a line, but with the extra feature $x^2+y^2$ the inner class sits low and the outer class high, and a flat plane splits them.</p>
+  <p>The <b>kernel trick</b> gets this without computing the new features. The training only needs inner products, which a kernel supplies directly, such as the RBF kernel</p>
+  <div class="formula">$$K(x,x')=\exp\!\big(-\gamma\|x-x'\|^2\big)$$</div>
+  <p>RBF corresponds to infinitely many features. Its width $\gamma$ plays the role of a second knob, next to $C$.</p>
+</section>
+
+<section>
+  <h2>5. Support Vector Regression</h2>
+  <p>SVR turns the idea around. It fits a function and ignores any error smaller than $\varepsilon$, a tube around the line. Points inside the tube cost nothing. Only points on or outside it, the support vectors, shape the fit:</p>
+  <div class="formula">$$\min_{w,b}\; \tfrac12\|w\|^2 + C\sum_i \max\!\big(0,\;|y_i-f(x_i)|-\varepsilon\big)$$</div>
+</section>
+
+<section>
+  <h2>6. Practical notes</h2>
+  <ul class="tight">
+    <li>Standardize features. Distance and margin depend on scale.</li>
+    <li>Training scales poorly beyond tens of thousands of rows. For large linear problems use a linear SVM or logistic regression.</li>
+    <li>Outputs are scores, not probabilities. Calibrate if you need probabilities.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>7. Related</h2>
+  <p>A linear SVM competes with <a href="../logistic-regression/logistic-regression.html">Logistic Regression</a> and the <a href="../perceptron-learning-algorithm/perceptron-learning-algorithm.html">Perceptron</a>, which also draw lines, but they care about all points, not just the margin. See the full map in <a href="../ml-algorithm-groups/ml-algorithm-groups.html">Machine Learning Algorithm Groups</a>.</p>
+</section>
+
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+  var NS = 'http://www.w3.org/2000/svg';
+  var $ = function (id) { return document.getElementById(id); };
+  function el(name, attrs, parent) {
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function rng(seed) {
+    var a = seed >>> 0;
+    return function () {
+      a = (a + 0x6D2B79F5) >>> 0;
+      var t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function gauss(r) { var u = 1 - r(), v = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+  function clamp(v, a, b) { return Math.min(b, Math.max(a, v)); }
+  function txt(parent, x, y, s, extra) {
+    var a = { x: x, y: y, 'font-family': 'Geist Mono, monospace', 'font-size': 11, fill: '#4f5d75' };
+    for (var k in extra || {}) a[k] = extra[k];
+    var t = el('text', a, parent); t.textContent = s; return t;
+  }
+  function bindOut(ids) { ids.forEach(function (i) { var o = $('o-' + i); if (o) o.textContent = $(i).value; }); }
+
+
+  var W = 720, H = 360, SC = 3.6, COL = ['#bf4520', '#2e5aa8'];
+  var state = { seed: 31 };
+  function data(kind, seed) {
+    var r = rng(seed), pts = [], i;
+    if (kind === 'blobs') {
+      for (i = 0; i < 70; i++) { var c = i % 2; pts.push({ x: clamp((c ? 130 : 70) + gauss(r) * 20, 2, 198), y: clamp((c ? 40 : 60) + gauss(r) * 17, 2, 98), c: c }); }
+    } else {
+      for (i = 0; i < 70; i++) {
+        var cc = i % 2, a = r() * 2 * Math.PI, rad = cc ? 38 + gauss(r) * 3 : Math.abs(gauss(r)) * 11;
+        pts.push({ x: clamp(100 + rad * 1.6 * Math.cos(a), 2, 198), y: clamp(50 + rad * 0.8 * Math.sin(a), 2, 98), c: cc });
+      }
+    }
+    return pts;
+  }
+  function feat(x, y, useR) { var u = (x - 100) / 50, v = (y - 50) / 25, f = [u, v]; if (useR) f.push((u * u + v * v) / 2); f.push(1); return f; }
+  function train(pts, useR, C) {
+    var X = pts.map(function (q) { return feat(q.x, q.y, useR); }), Y = pts.map(function (q) { return q.c ? -1 : 1; });
+    var d = X[0].length, w = new Array(d).fill(0), al = new Array(pts.length).fill(0), it, i, j;
+    var Q = X.map(function (x) { var s = 0; x.forEach(function (v) { s += v * v; }); return s; });
+    for (it = 0; it < 400; it++) {
+      for (i = 0; i < X.length; i++) {
+        var f = 0; for (j = 0; j < d; j++) f += w[j] * X[i][j];
+        var G = Y[i] * f - 1, na = clamp(al[i] - G / Q[i], 0, C), da = na - al[i];
+        if (da !== 0) { for (j = 0; j < d; j++) w[j] += da * Y[i] * X[i][j]; al[i] = na; }
+      }
+    }
+    return { w: w, al: al, X: X, Y: Y };
+  }
+  function score(m, x, y, useR) { var f = feat(x, y, useR), s = 0; for (var j = 0; j < f.length; j++) s += m.w[j] * f[j]; return s; }
+  function render() {
+    var Cs = [0.01, 0.1, 1, 10, 100], C = Cs[+$('C').value];
+    $('o-C').textContent = C;
+    var kind = $('kind').value, useR = $('rfeat').checked, pts = data(kind, state.seed), m = train(pts, useR, C);
+    var g = $('layer'); g.textContent = '';
+    for (var gx = 0; gx < 200; gx += 4) for (var gy = 0; gy < 100; gy += 4) {
+      var s = score(m, gx + 2, gy + 2, useR);
+      el('rect', { x: gx * SC, y: H - (gy + 4) * SC, width: 4 * SC, height: 4 * SC, fill: s >= 0 ? COL[0] : COL[1], opacity: Math.abs(s) < 1 ? 0.04 : 0.16 }, g);
+    }
+    var nsv = 0, ok = 0;
+    pts.forEach(function (q, i) {
+      var sv = m.al[i] > 1e-6; if (sv) nsv++;
+      if ((score(m, q.x, q.y, useR) >= 0 ? 0 : 1) === q.c) ok++;
+      el('circle', { cx: q.x * SC, cy: H - q.y * SC, r: sv ? 7 : 4.5, fill: COL[q.c], stroke: sv ? '#2d3142' : '#fff', 'stroke-width': sv ? 2 : 1 }, g);
+    });
+    var wn = Math.hypot(m.w[0], m.w[1], useR ? m.w[2] : 0);
+    $('live').textContent = nsv + ' support vectors · ' + (ok / pts.length * 100).toFixed(0) + '% train acc';
+    $('readout').textContent = 'C              = ' + C + '\nsupport vectors = ' + nsv + ' of ' + pts.length + '\ntrain accuracy = ' + (ok / pts.length * 100).toFixed(1) + '%\n' + (useR ? 'features       = x, y, x^2+y^2 (the boundary can curve)' : 'features       = x, y (straight boundary)') + '\nmargin width   = ' + (2 / wn).toFixed(2) + ' (in feature units)\n\nOutlined points are the support vectors. The lighter band is the margin.';
+  }
+  ['C', 'kind', 'rfeat'].forEach(function (i) { $(i).addEventListener('input', render); $(i).addEventListener('change', render); });
+  $('data').addEventListener('click', function () { state.seed = Math.floor(Math.random() * 100000) + 1; render(); });
+  render();
+
+
+  if (window.renderMathInElement) {
+    window.renderMathInElement(document.body, {
+      delimiters: [{ left: '$$', right: '$$', display: true }, { left: '$', right: '$', display: false }],
+      ignoredTags: ['script', 'style', 'textarea', 'pre', 'code'],
+      throwOnError: false
+    });
+  }
+
+});
+</script>
+</body>
+</html>

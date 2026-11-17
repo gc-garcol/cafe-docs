@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Semi-Supervised Learning: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+a{color:var(--link)}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+
+.card{margin:24px 0 0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.scroll{overflow-x:auto;padding:0 8px;text-align:center}
+.scroll svg{display:inline-block;width:100%;max-width:720px;height:auto}
+
+.controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;margin-top:16px;align-items:start}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.row{display:grid;grid-template-columns:44px 1fr 56px;gap:12px;align-items:center;margin:0 0 12px}
+.row label{font-family:var(--mono);font-size:13px;font-weight:600}
+.row output{font-family:var(--mono);font-size:12px;text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);min-height:28px}
+.group-label{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);margin:16px 0 6px}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.big-answer{font-family:var(--serif);font-size:44px;line-height:1.1;margin:4px 0 8px;color:var(--accent)}
+#readout{margin:0;padding:0;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink);border:0;background:none}
+#calc{overflow-x:auto;margin-top:8px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:3px;border:1px solid var(--ink);display:inline-block}
+
+pre.code{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .t{color:var(--link)} .c{color:var(--soft);font-style:italic}
+
+.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;text-align:center;overflow-x:auto}
+.formula .katex{font-size:1.25em}
+.katex{color:var(--ink)}
+p .katex,td .katex,li .katex{font-size:1.05em}
+
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:30px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+ul.tight,ol.tight{padding-left:20px;max-width:68ch}ul.tight li,ol.tight li{margin:6px 0}
+
+@media (max-width:860px){.controls{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+
+
+
+
+.row{grid-template-columns:minmax(44px,max-content) 1fr 64px}
+.row.sel{grid-template-columns:minmax(44px,max-content) 1fr}
+select{min-height:36px;padding:0 10px;border:1px solid var(--rule-solid);border-radius:6px;font:500 13px var(--mono);color:var(--ink);background:#fff;max-width:100%}
+select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+table.ops{border-collapse:collapse;width:100%;max-width:860px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0}
+.chip{font:600 11px var(--mono);padding:2px 8px;border:1px solid var(--ink);border-radius:4px;background:#fff}
+.chip.on{background:var(--ink);color:var(--paper)}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;padding:16px}
+@media (max-width:860px){.two{grid-template-columns:1fr}}
+
+.doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}.doc-tags a{font:500 12px "Geist Mono",ui-monospace,monospace;padding:4px 10px;border:1px solid var(--rule-solid,#bfc0c0);border-radius:4px;background:#fff;color:var(--muted,#4f5d75);text-decoration:none}.doc-tags a:hover{border-color:var(--ink,#2d3142);color:var(--ink,#2d3142)}.doc-tags a:focus-visible{outline:2px solid var(--accent,#bf4520);outline-offset:2px}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" style="margin-right:8px" href="../../../../index.html">&larr; Back to home</a>
+<a class="back back-cat" href="../../../../index.html#cat=AI">&larr; Back to AI</a>
+
+<header>
+  <div class="eyebrow">AI · Semi-supervised</div>
+  <h1>Semi-Supervised Learning</h1>
+  <p class="lede">Labels cost money, raw data is cheap. Use a handful of labeled examples to name the points, and the shape of the unlabeled data to spread those names.</p>
+  <nav class="doc-tags" aria-label="Main tags"><a href="../../../../index.html#tag=semi-supervised">#semi-supervised</a><a href="../../../../index.html#tag=self-training">#self-training</a><a href="../../../../index.html#tag=co-training">#co-training</a><a href="../../../../index.html#tag=label%20propagation">#label propagation</a></nav>
+</header>
+
+<section>
+  <h2>Try it first</h2>
+  <p>Two interleaved half-moons, 120 points, only <b>four</b> of them labeled (large, outlined). A model that sees only those four labels draws a straight boundary and gets many points wrong. Press Step to let the unlabeled points help. Compare self-training, which is fooled by its own early mistakes, with label propagation, which follows the shape of the data.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">Four labels, one hundred and sixteen points to name</span></div>
+    <div class="scroll">
+      <svg id="plot" viewBox="0 0 720 360" role="img" aria-labelledby="plot-title plot-desc">
+        <title id="plot-title">Four labels, one hundred and sixteen points to name</title>
+        <desc id="plot-desc">Two interleaved crescent shaped groups of points. Four are large and labeled. The rest are grey until the model labels them with a class color.</desc>
+        <rect width="720" height="360" fill="#fff" stroke="rgba(45,49,66,.12)"/>
+        <g id="layer"></g>
+      </svg>
+    </div>
+    <div class="card-bottom"><span class="hint">large outlined dots carry the true labels</span><span class="live" id="live"></span></div>
+  </figure>
+
+  <div class="controls">
+    <div class="panel">
+      <div class="row sel"><label for="mode">Method</label><select id="mode"><option value="self">Self-training</option><option value="prop">Label propagation</option></select></div><div class="btns"><button type="button" class="btn" id="step">Step</button><button type="button" class="btn" id="run">Run</button><button type="button" class="btn" id="reset">Reset</button></div><div class="legend" aria-label="Legend"><span><i class="sw" style="background:#bf4520"></i>class A</span><span><i class="sw" style="background:#2e5aa8"></i>class B</span><span><i class="sw" style="background:#bfc0c0"></i>not yet labeled</span></div>
+    </div>
+    <div class="panel">
+      <div class="eyebrow">Readout</div>
+      <pre id="readout" aria-live="polite"></pre>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>1. The setting</h2>
+  <p>In <b>semi-supervised</b> learning you have a few labeled examples and many unlabeled ones. It sits between supervised and unsupervised learning. It pays off when the unlabeled data tells you something about how the classes are shaped.</p>
+  <p>The key assumptions: points close together probably share a label (smoothness), and class boundaries pass through low-density gaps (cluster assumption).</p>
+</section>
+
+<section>
+  <h2>2. Self-training</h2>
+  <p>Train a model on the labeled data. Predict the unlabeled points, keep only the predictions the model is most sure about, treat them as true labels, retrain, and repeat. Here the model is a nearest-centroid classifier.</p>
+  <ul class="tight">
+    <li>Simple, and works with any model.</li>
+    <li>A confident mistake becomes a training label and is reinforced. This is called <b>confirmation bias</b>. Try it on the moons.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>3. Co-training</h2>
+  <p>Suppose each example has two independent <b>views</b>, such as a web page's text and the text of links pointing to it. Train one model per view. Each model labels the points it is sure about and hands them to the other as training data. Because the views are independent, one model's confident answers are fresh information to the other.</p>
+</section>
+
+<section>
+  <h2>4. Label propagation</h2>
+  <p>Build a graph where each point links to its nearest neighbors, with heavier edges for closer points. Labels then flow along the edges, and each point takes a weighted mix of its neighbors' labels, while the labeled points stay pinned. With normalized weights $S$, the update is</p>
+  <div class="formula">$$F \leftarrow \alpha\,S\,F + (1-\alpha)\,Y$$</div>
+  <p>where $Y$ holds the known labels. Labels travel along the crescent, so each moon gets one color even though the nearest labeled point of the other class may be closer in a straight line.</p>
+</section>
+
+<section>
+  <h2>5. Choosing</h2>
+  <ul class="tight">
+    <li>Self-training is a quick baseline. Watch for confirmation bias, and use a confidence threshold.</li>
+    <li>Label propagation is strong when the data lie on curved shapes, and gets expensive for large graphs.</li>
+    <li>Modern deep methods pair this with augmentation and consistency. They ask for the same prediction on two noisy copies of an input.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>6. Related</h2>
+  <p>Compare with fully supervised methods like <a href="../k-nearest-neighbors/k-nearest-neighbors.html">k-NN</a>, and with the unsupervised <a href="../dbscan/dbscan.html">DBSCAN</a>, which also follows the shape of the data. See the full map in <a href="../ml-algorithm-groups/ml-algorithm-groups.html">Machine Learning Algorithm Groups</a>.</p>
+</section>
+
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+  var NS = 'http://www.w3.org/2000/svg';
+  var $ = function (id) { return document.getElementById(id); };
+  function el(name, attrs, parent) {
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function rng(seed) {
+    var a = seed >>> 0;
+    return function () {
+      a = (a + 0x6D2B79F5) >>> 0;
+      var t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function gauss(r) { var u = 1 - r(), v = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+  function clamp(v, a, b) { return Math.min(b, Math.max(a, v)); }
+  function txt(parent, x, y, s, extra) {
+    var a = { x: x, y: y, 'font-family': 'Geist Mono, monospace', 'font-size': 11, fill: '#4f5d75' };
+    for (var k in extra || {}) a[k] = extra[k];
+    var t = el('text', a, parent); t.textContent = s; return t;
+  }
+  function bindOut(ids) { ids.forEach(function (i) { var o = $('o-' + i); if (o) o.textContent = $(i).value; }); }
+
+
+  var W = 720, H = 360, SC = 3.6, COL = ['#bf4520', '#2e5aa8'];
+  var n = 120, pts = [], K = 7;
+  (function () {
+    var r = rng(12);
+    for (var i = 0; i < n; i++) {
+      var c = i % 2, th = Math.PI * r(), u, v;
+      if (c === 0) { u = Math.cos(th); v = Math.sin(th); } else { u = 1 - Math.cos(th); v = 0.5 - Math.sin(th); }
+      u += gauss(r) * 0.07; v += gauss(r) * 0.07;
+      pts.push({ x: 10 + (u + 1.2) * 52, y: 8 + (v + 0.7) * 44, c: c, th: th });
+    }
+  })();
+  var lab = [];
+  (function () {
+    [0, 1].forEach(function (c) { var cand = pts.map(function (p, i) { return { p: p, i: i }; }).filter(function (o) { return o.p.c === c; }).sort(function (a, b) { return Math.abs(a.p.th - Math.PI * 0.5) - Math.abs(b.p.th - Math.PI * 0.5); }); lab.push(cand[0].i, cand[1].i); });
+  })();
+  var isLab = pts.map(function (_, i) { return lab.indexOf(i) >= 0; });
+  var Wm = null, F = null, st = { mode: 'self', pseudo: null, it: 0 };
+  function dist(a, b) { return Math.hypot(pts[a].x - pts[b].x, pts[a].y - pts[b].y); }
+  function graph() {
+    var A = pts.map(function () { return new Array(n).fill(0); }), i, j, sig = 6;
+    for (i = 0; i < n; i++) {
+      var ds = []; for (j = 0; j < n; j++) if (j !== i) ds.push({ j: j, d: dist(i, j) });
+      ds.sort(function (a, b) { return a.d - b.d; }); ds.slice(0, K).forEach(function (o) { var w = Math.exp(-o.d * o.d / (2 * sig * sig)); A[i][o.j] = w; A[o.j][i] = w; });
+    }
+    var deg = A.map(function (r) { return r.reduce(function (a, b) { return a + b; }, 0) || 1; });
+    return A.map(function (r, i) { return r.map(function (w, j) { return w / Math.sqrt(deg[i] * deg[j]); }); });
+  }
+  Wm = graph();
+  function centroids(assign) {
+    var c = [[0, 0, 0], [0, 0, 0]]; pts.forEach(function (p, i) { if (assign[i] >= 0) { c[assign[i]][0] += p.x; c[assign[i]][1] += p.y; c[assign[i]][2]++; } });
+    return c.map(function (v) { return [v[0] / v[2], v[1] / v[2]]; });
+  }
+  function reset() {
+    st.mode = $('mode').value; st.it = 0;
+    st.pseudo = pts.map(function (p, i) { return isLab[i] ? p.c : -1; });
+    F = pts.map(function (p, i) { return isLab[i] ? (p.c === 0 ? [1, 0] : [0, 1]) : [0, 0]; });
+    render();
+  }
+  function selfStep() {
+    var c = centroids(st.pseudo), cand = [];
+    pts.forEach(function (p, i) { if (st.pseudo[i] >= 0) return; var d0 = Math.hypot(p.x - c[0][0], p.y - c[0][1]), d1 = Math.hypot(p.x - c[1][0], p.y - c[1][1]); cand.push({ i: i, m: Math.abs(d0 - d1), c: d0 < d1 ? 0 : 1 }); });
+    cand.sort(function (a, b) { return b.m - a.m; }); cand.slice(0, 10).forEach(function (o) { st.pseudo[o.i] = o.c; });
+  }
+  function propStep(m) {
+    for (var t = 0; t < m; t++) {
+      var NF = pts.map(function (_, i) { var a = [0, 0]; for (var j = 0; j < n; j++) if (Wm[i][j]) { a[0] += Wm[i][j] * F[j][0]; a[1] += Wm[i][j] * F[j][1]; } var y = isLab[i] ? (pts[i].c === 0 ? [1, 0] : [0, 1]) : [0, 0]; return [0.99 * a[0] + 0.01 * y[0], 0.99 * a[1] + 0.01 * y[1]]; });
+      F = NF; st.it++;
+    }
+  }
+  function predict(i) { if (isLab[i]) return pts[i].c; if (st.mode === 'self') return st.pseudo[i]; var s = F[i][0] + F[i][1]; return s < 1e-9 ? -1 : (F[i][0] >= F[i][1] ? 0 : 1); }
+  function render() {
+    var g = $('layer'); g.textContent = '';
+    var base = centroids(pts.map(function (_, i) { return isLab[i] ? pts[i].c : -1; })), correctB = 0, ok = 0, un = 0, i;
+    pts.forEach(function (p, i) {
+      if (isLab[i]) return; un++;
+      var d0 = Math.hypot(p.x - base[0][0], p.y - base[0][1]), d1 = Math.hypot(p.x - base[1][0], p.y - base[1][1]);
+      if ((d0 < d1 ? 0 : 1) === p.c) correctB++;
+    });
+    var cs = st.mode === 'self' ? centroids(st.pseudo) : null, covered = 0;
+    pts.forEach(function (p, i) {
+      var pr = predict(i), cx = p.x * SC, cy = H - p.y * SC;
+      if (!isLab[i]) { if (pr >= 0) covered++; if (pr === p.c) ok++; }
+      if (isLab[i]) el('circle', { cx: cx, cy: cy, r: 9, fill: COL[p.c], stroke: '#2d3142', 'stroke-width': 3 }, g);
+      else if (pr < 0) el('circle', { cx: cx, cy: cy, r: 4.5, fill: '#bfc0c0', stroke: '#fff' }, g);
+      else el('circle', { cx: cx, cy: cy, r: 4.5, fill: COL[pr], stroke: '#fff', 'stroke-width': 1 }, g);
+    });
+    $('live').textContent = 'accuracy on unlabeled: ' + (ok / un * 100).toFixed(0) + '% (labels only: ' + (correctB / un * 100).toFixed(0) + '%)';
+    $('readout').textContent = 'mode                = ' + (st.mode === 'self' ? 'self-training' : 'label propagation') + '\nlabeled points      = 4 of ' + n + '\nlabeled only        = ' + (correctB / un * 100).toFixed(0) + '% accurate\nwith unlabeled data = ' + (ok / un * 100).toFixed(0) + '% accurate\nlabeled by the model = ' + covered + ' of ' + un + '\n' + (st.mode === 'self' ? 'rounds              = ' + st.it : 'iterations          = ' + st.it);
+  }
+  $('step').addEventListener('click', function () { if (st.mode === 'self') { selfStep(); st.it++; } else propStep(8); render(); });
+  $('run').addEventListener('click', function () { if (st.mode === 'self') { for (var i = 0; i < 12; i++) selfStep(); st.it += 12; } else propStep(60); render(); });
+  $('mode').addEventListener('change', reset);
+  $('reset').addEventListener('click', reset);
+  reset();
+
+
+  if (window.renderMathInElement) {
+    window.renderMathInElement(document.body, {
+      delimiters: [{ left: '$$', right: '$$', display: true }, { left: '$', right: '$', display: false }],
+      ignoredTags: ['script', 'style', 'textarea', 'pre', 'code'],
+      throwOnError: false
+    });
+  }
+
+});
+</script>
+</body>
+</html>

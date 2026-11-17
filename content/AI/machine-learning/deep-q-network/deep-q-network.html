@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Deep Q-Network: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+a{color:var(--link)}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+
+.card{margin:24px 0 0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.scroll{overflow-x:auto;padding:0 8px;text-align:center}
+.scroll svg{display:inline-block;width:100%;max-width:720px;height:auto}
+
+.controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;margin-top:16px;align-items:start}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.row{display:grid;grid-template-columns:44px 1fr 56px;gap:12px;align-items:center;margin:0 0 12px}
+.row label{font-family:var(--mono);font-size:13px;font-weight:600}
+.row output{font-family:var(--mono);font-size:12px;text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);min-height:28px}
+.group-label{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);margin:16px 0 6px}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.big-answer{font-family:var(--serif);font-size:44px;line-height:1.1;margin:4px 0 8px;color:var(--accent)}
+#readout{margin:0;padding:0;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink);border:0;background:none}
+#calc{overflow-x:auto;margin-top:8px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:3px;border:1px solid var(--ink);display:inline-block}
+
+pre.code{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .t{color:var(--link)} .c{color:var(--soft);font-style:italic}
+
+.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;text-align:center;overflow-x:auto}
+.formula .katex{font-size:1.25em}
+.katex{color:var(--ink)}
+p .katex,td .katex,li .katex{font-size:1.05em}
+
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:30px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+ul.tight,ol.tight{padding-left:20px;max-width:68ch}ul.tight li,ol.tight li{margin:6px 0}
+
+@media (max-width:860px){.controls{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+
+
+
+
+.row{grid-template-columns:minmax(44px,max-content) 1fr 64px}
+.row.sel{grid-template-columns:minmax(44px,max-content) 1fr}
+select{min-height:36px;padding:0 10px;border:1px solid var(--rule-solid);border-radius:6px;font:500 13px var(--mono);color:var(--ink);background:#fff;max-width:100%}
+select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+table.ops{border-collapse:collapse;width:100%;max-width:860px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0}
+.chip{font:600 11px var(--mono);padding:2px 8px;border:1px solid var(--ink);border-radius:4px;background:#fff}
+.chip.on{background:var(--ink);color:var(--paper)}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;padding:16px}
+@media (max-width:860px){.two{grid-template-columns:1fr}}
+
+.doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}.doc-tags a{font:500 12px "Geist Mono",ui-monospace,monospace;padding:4px 10px;border:1px solid var(--rule-solid,#bfc0c0);border-radius:4px;background:#fff;color:var(--muted,#4f5d75);text-decoration:none}.doc-tags a:hover{border-color:var(--ink,#2d3142);color:var(--ink,#2d3142)}.doc-tags a:focus-visible{outline:2px solid var(--accent,#bf4520);outline-offset:2px}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" style="margin-right:8px" href="../../../../index.html">&larr; Back to home</a>
+<a class="back back-cat" href="../../../../index.html#cat=AI">&larr; Back to AI</a>
+
+<header>
+  <div class="eyebrow">AI · Reinforcement learning</div>
+  <h1>Deep Q-Network</h1>
+  <p class="lede">Q-learning with a neural network in place of the table, plus two tricks that keep it from falling apart while it learns.</p>
+  <nav class="doc-tags" aria-label="Main tags"><a href="../../../../index.html#tag=reinforcement%20learning">#reinforcement learning</a><a href="../../../../index.html#tag=dqn">#dqn</a><a href="../../../../index.html#tag=experience%20replay">#experience replay</a><a href="../../../../index.html#tag=target%20network">#target network</a></nav>
+</header>
+
+<section>
+  <h2>Try it first</h2>
+  <p>A corridor of eight cells. Reaching the right end pays +1, the left end pays nothing, and the discount shrinks the value of far-away reward. A small network reads the cell and outputs a value for going left and right. Press Run and bars should climb toward the dark markers. Then switch off the replay buffer or the target network and watch learning get shakier.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">A network learns action values</span></div>
+    <div class="scroll">
+      <svg id="plot" viewBox="0 0 720 360" role="img" aria-labelledby="plot-title plot-desc">
+        <title id="plot-title">A network learns action values</title>
+        <desc id="plot-desc">Bar pairs for each corridor cell. The orange bar is the learned value of going left and the blue bar of going right. A dark marker shows the true optimal value.</desc>
+        <rect width="720" height="360" fill="#fff" stroke="rgba(45,49,66,.12)"/>
+        <g id="layer"></g>
+      </svg>
+    </div>
+    <div class="card-bottom"><span class="hint">sync every 1 step is the same as no target network</span><span class="live" id="live"></span></div>
+  </figure>
+
+  <div class="controls">
+    <div class="panel">
+      <label style="display:block;margin:6px 0"><input type="checkbox" id="rb" checked> Experience replay</label><div class="row"><label for="sync">Target sync every</label><input type="range" id="sync" min="1" max="200" step="1" value="50"><output id="o-sync"></output></div><div class="btns"><button type="button" class="btn" id="run">Run 200 steps</button><button type="button" class="btn" id="reset">Reset</button></div>
+    </div>
+    <div class="panel">
+      <div class="eyebrow">Readout</div>
+      <pre id="readout" aria-live="polite"></pre>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>1. When a table is too small</h2>
+  <p>A Q table needs one row per state. A game screen has astronomically many states. A <b>Deep Q-Network</b> (DQN) replaces the table with a neural network $Q_\theta(s,a)$, which generalizes between similar states. DeepMind used it to play Atari games from raw pixels.</p>
+</section>
+
+<section>
+  <h2>2. The learning target</h2>
+  <p>Treat Q-learning as regression. For a transition $(s,a,r,s')$ the network should output</p>
+  <div class="formula">$$y=r+\gamma\max_{a'}Q_{\theta^-}(s',a')$$</div>
+  <p>and the loss is $(y-Q_\theta(s,a))^2$, minimized by gradient descent, just as in <a href="../../deep-learning/backpropagation/backpropagation.html">Backpropagation</a>. Unlike ordinary supervised learning, the target $y$ itself depends on the network, so the goal keeps moving. Two tricks tame that.</p>
+</section>
+
+<section>
+  <h2>3. Trick 1: experience replay</h2>
+  <p>Consecutive steps are nearly identical and strongly correlated, which makes gradient descent unstable. DQN stores the last transitions in a <b>replay buffer</b> and trains on small random batches from it. This breaks the correlation and lets each experience be reused many times.</p>
+</section>
+
+<section>
+  <h2>4. Trick 2: the target network</h2>
+  <p>In the target $y$, the max uses a <b>frozen copy</b> $\theta^-$ of the network, refreshed only every $C$ steps. Without it, each update shifts its own target and the values can chase each other and diverge. Set sync to 1 above to see the effect.</p>
+</section>
+
+<section>
+  <h2>5. Improvements</h2>
+  <table class="ops">
+    <thead><tr><th>Variant</th><th>Fix</th></tr></thead>
+    <tbody>
+      <tr><td>Double DQN</td><td>one network picks the action and the other scores it, which curbs over-estimated values</td></tr>
+      <tr><td>Prioritized replay</td><td>replay surprising transitions more often</td></tr>
+      <tr><td>Dueling</td><td>separate state value from action advantage</td></tr>
+      <tr><td>Rainbow</td><td>combines these and more</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>6. Limits</h2>
+  <ul class="tight">
+    <li>Discrete actions only. For continuous control use actor-critic methods.</li>
+    <li>Value-based learning can be unstable and sample hungry.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>7. Related</h2>
+  <p>Foundation: <a href="../q-learning/q-learning.html">Q-learning and Dyna-Q</a>. Alternative that learns the policy directly: <a href="../policy-gradient/policy-gradient.html">Policy Gradients</a>. See the full map in <a href="../ml-algorithm-groups/ml-algorithm-groups.html">Machine Learning Algorithm Groups</a>.</p>
+</section>
+
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+  var NS = 'http://www.w3.org/2000/svg';
+  var $ = function (id) { return document.getElementById(id); };
+  function el(name, attrs, parent) {
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function rng(seed) {
+    var a = seed >>> 0;
+    return function () {
+      a = (a + 0x6D2B79F5) >>> 0;
+      var t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function gauss(r) { var u = 1 - r(), v = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+  function clamp(v, a, b) { return Math.min(b, Math.max(a, v)); }
+  function txt(parent, x, y, s, extra) {
+    var a = { x: x, y: y, 'font-family': 'Geist Mono, monospace', 'font-size': 11, fill: '#4f5d75' };
+    for (var k in extra || {}) a[k] = extra[k];
+    var t = el('text', a, parent); t.textContent = s; return t;
+  }
+  function bindOut(ids) { ids.forEach(function (i) { var o = $('o-' + i); if (o) o.textContent = $(i).value; }); }
+
+
+  function MLP(sizes, acts, seed) {
+    var r = rng(seed), L = sizes.length - 1;
+    this.sizes = sizes; this.acts = acts; this.W = []; this.b = []; this.m = []; this.v = []; this.t = 0;
+    for (var l = 0; l < L; l++) {
+      var w = [], s = Math.sqrt(2 / (sizes[l] + sizes[l + 1]));
+      for (var j = 0; j < sizes[l + 1]; j++) { var row = []; for (var i = 0; i < sizes[l]; i++) row.push(gauss(r) * s); w.push(row); }
+      this.W.push(w); this.b.push(new Array(sizes[l + 1]).fill(0));
+    }
+    this.zero();
+  }
+  MLP.prototype.zero = function () {
+    var self = this; this.m = []; this.v = []; this.t = 0;
+    this.W.forEach(function (w, l) {
+      self.m.push({ W: w.map(function (r) { return r.map(function () { return 0; }); }), b: self.b[l].map(function () { return 0; }) });
+      self.v.push({ W: w.map(function (r) { return r.map(function () { return 0; }); }), b: self.b[l].map(function () { return 0; }) });
+    });
+  };
+  MLP.prototype.copy = function (o) {
+    this.W = o.W.map(function (w) { return w.map(function (r) { return r.slice(); }); });
+    this.b = o.b.map(function (b) { return b.slice(); });
+  };
+  function act(a, z) { return a === 'tanh' ? Math.tanh(z) : z; }
+  function dact(a, y) { return a === 'tanh' ? 1 - y * y : 1; }
+  MLP.prototype.forward = function (x) {
+    var A = [x];
+    for (var l = 0; l < this.W.length; l++) {
+      var o = [], prev = A[l];
+      for (var j = 0; j < this.W[l].length; j++) {
+        var z = this.b[l][j], w = this.W[l][j];
+        for (var i = 0; i < prev.length; i++) z += w[i] * prev[i];
+        o.push(act(this.acts[l], z));
+      }
+      A.push(o);
+    }
+    return A;
+  };
+  MLP.prototype.step = function (X, dOutFn, lr) {
+    var L = this.W.length, gW = [], gb = [], l, j, i;
+    for (l = 0; l < L; l++) { gW.push(this.W[l].map(function (r) { return r.map(function () { return 0; }); })); gb.push(this.b[l].map(function () { return 0; })); }
+    for (var n = 0; n < X.length; n++) {
+      var A = this.forward(X[n]), d = dOutFn(n, A[L]);
+      for (l = L - 1; l >= 0; l--) {
+        var dz = d.map(function (v, k) { return v * dact(this.acts[l], A[l + 1][k]); }, this), nd = new Array(A[l].length).fill(0);
+        for (j = 0; j < dz.length; j++) {
+          gb[l][j] += dz[j];
+          for (i = 0; i < A[l].length; i++) { gW[l][j][i] += dz[j] * A[l][i]; nd[i] += dz[j] * this.W[l][j][i]; }
+        }
+        d = nd;
+      }
+    }
+    this.t++;
+    var b1 = 0.9, b2 = 0.999, c1 = 1 - Math.pow(b1, this.t), c2 = 1 - Math.pow(b2, this.t);
+    for (l = 0; l < L; l++) {
+      for (j = 0; j < this.W[l].length; j++) {
+        for (i = 0; i < this.W[l][j].length; i++) {
+          var g = gW[l][j][i], m = this.m[l].W[j][i] = b1 * this.m[l].W[j][i] + (1 - b1) * g, v = this.v[l].W[j][i] = b2 * this.v[l].W[j][i] + (1 - b2) * g * g;
+          this.W[l][j][i] -= lr * (m / c1) / (Math.sqrt(v / c2) + 1e-8);
+        }
+        var gg = gb[l][j], mb = this.m[l].b[j] = b1 * this.m[l].b[j] + (1 - b1) * gg, vb = this.v[l].b[j] = b2 * this.v[l].b[j] + (1 - b2) * gg * gg;
+        this.b[l][j] -= lr * (mb / c1) / (Math.sqrt(vb / c2) + 1e-8);
+      }
+    }
+  };
+
+  var W = 720, H = 360, NS_ = 8, GA = 0.9;
+  var S = { net: null, tgt: null, buf: [], steps: 0, loss: 0, s: 3, r: null, syncs: 0 };
+  function oh(s) { var v = new Array(NS_).fill(0); v[s] = 1; return v; }
+  function reset() {
+    S.net = new MLP([NS_, 12, 2], ['tanh', 'lin'], 3); S.tgt = new MLP([NS_, 12, 2], ['tanh', 'lin'], 3); S.tgt.copy(S.net);
+    S.buf = []; S.steps = 0; S.loss = 0; S.s = 3; S.r = rng(9); S.syncs = 0; render();
+  }
+  function q(net, s) { return net.forward(oh(s))[2]; }
+  function envStep(s, a) { var s2 = s + (a === 1 ? 1 : -1); return { s2: s2, r: s2 === NS_ - 1 ? 1 : 0, done: s2 === NS_ - 1 || s2 === 0 }; }
+  function train(count) {
+    var useBuf = $('rb').checked, C = +$('sync').value;
+    for (var t = 0; t < count; t++) {
+      var s = S.s, qs = q(S.net, s), a = S.r() < 0.3 ? Math.floor(S.r() * 2) : (qs[1] >= qs[0] ? 1 : 0), e = envStep(s, a);
+      var tr = { s: s, a: a, r: e.r, s2: e.s2, d: e.done }; S.buf.push(tr); if (S.buf.length > 300) S.buf.shift();
+      var batch = [];
+      if (useBuf) { for (var i = 0; i < 16; i++) batch.push(S.buf[Math.floor(S.r() * S.buf.length)]); } else batch = [tr];
+      var X = batch.map(function (b) { return oh(b.s); }), tl = 0;
+      var Y = batch.map(function (b) { return b.r + (b.d ? 0 : GA * Math.max.apply(null, q(S.tgt, b.s2))); });
+      S.net.step(X, function (k, out) { var d = [0, 0], err = out[batch[k].a] - Y[k]; d[batch[k].a] = 2 * err / batch.length; tl += err * err / batch.length; return d; }, 0.01);
+      S.loss = tl; S.steps++;
+      if (S.steps % C === 0) { S.tgt.copy(S.net); S.syncs++; }
+      S.s = e.done ? 1 + Math.floor(S.r() * (NS_ - 2)) : e.s2;
+    }
+    render();
+  }
+  function opt(s, a) { if (s === 0 || s === NS_ - 1) return 0; if (a === 1) return Math.pow(GA, NS_ - 2 - s); return s === 1 ? 0 : Math.pow(GA, NS_ - 2 - (s - 1) + 1); }
+  function render() {
+    bindOut(['sync']);
+    var g = $('layer'); g.textContent = '';
+    var bw = 70, x0 = 40, base = 260, sc = 200, err = 0, cnt = 0;
+    txt(g, x0, 22, 'Q-values per state: orange = go left, blue = go right, marker = true value', { 'font-weight': 600, fill: '#2d3142' });
+    el('line', { x1: x0 - 10, y1: base, x2: x0 + NS_ * bw, y2: base, stroke: '#2d3142' }, g);
+    for (var s = 0; s < NS_; s++) {
+      var x = x0 + s * bw, term = s === 0 || s === NS_ - 1;
+      if (term) { el('rect', { x: x + 4, y: base - 70, width: bw - 8, height: 70, fill: s ? 'rgba(31,122,77,.25)' : 'rgba(45,49,66,.12)' }, g); txt(g, x + bw / 2, base - 30, s ? 'goal +1' : 'end', { 'text-anchor': 'middle' }); }
+      else {
+        var qs = q(S.net, s);
+        [0, 1].forEach(function (a) {
+          var v = qs[a], h = clamp(v, 0, 1.2) * sc, xx = x + 8 + a * 28;
+          el('rect', { x: xx, y: base - h, width: 24, height: h, fill: a ? '#2e5aa8' : '#bf4520', opacity: 0.85 }, g);
+          var o = opt(s, a); el('path', { d: 'M' + (xx - 2) + ',' + (base - o * sc) + ' h28', stroke: '#2d3142', 'stroke-width': 2 }, g);
+          err += Math.abs(v - o); cnt++;
+        });
+        txt(g, x + bw / 2, base + 16, qs[1] >= qs[0] ? 'right' : 'left', { 'text-anchor': 'middle', 'font-size': 10 });
+      }
+      txt(g, x + bw / 2, base + 32, 's' + s, { 'text-anchor': 'middle', 'font-size': 10 });
+    }
+    var mae = err / cnt;
+    $('live').textContent = S.steps + ' steps · mean error ' + mae.toFixed(3);
+    $('readout').textContent = 'steps            = ' + S.steps + '\nreplay buffer    = ' + S.buf.length + (S.buf.length ? '' : '') + ' transitions\ntarget syncs     = ' + S.syncs + '\nlast batch loss  = ' + S.loss.toFixed(4) + '\nmean |Q - Q*|    = ' + mae.toFixed(3) + '\n\nTry: replay off, or sync every 1 step, and compare how steady the bars are.';
+  }
+  $('run').addEventListener('click', function () { train(200); });
+  $('reset').addEventListener('click', reset);
+  ['rb', 'sync'].forEach(function (i) { $(i).addEventListener('input', render); });
+  reset();
+
+
+  if (window.renderMathInElement) {
+    window.renderMathInElement(document.body, {
+      delimiters: [{ left: '$$', right: '$$', display: true }, { left: '$', right: '$', display: false }],
+      ignoredTags: ['script', 'style', 'textarea', 'pre', 'code'],
+      throwOnError: false
+    });
+  }
+
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gaussian Mixture Models: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+a{color:var(--link)}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+
+.card{margin:24px 0 0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.scroll{overflow-x:auto;padding:0 8px;text-align:center}
+.scroll svg{display:inline-block;width:100%;max-width:720px;height:auto}
+
+.controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;margin-top:16px;align-items:start}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.row{display:grid;grid-template-columns:44px 1fr 56px;gap:12px;align-items:center;margin:0 0 12px}
+.row label{font-family:var(--mono);font-size:13px;font-weight:600}
+.row output{font-family:var(--mono);font-size:12px;text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);min-height:28px}
+.group-label{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);margin:16px 0 6px}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.big-answer{font-family:var(--serif);font-size:44px;line-height:1.1;margin:4px 0 8px;color:var(--accent)}
+#readout{margin:0;padding:0;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink);border:0;background:none}
+#calc{overflow-x:auto;margin-top:8px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:3px;border:1px solid var(--ink);display:inline-block}
+
+pre.code{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .t{color:var(--link)} .c{color:var(--soft);font-style:italic}
+
+.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;text-align:center;overflow-x:auto}
+.formula .katex{font-size:1.25em}
+.katex{color:var(--ink)}
+p .katex,td .katex,li .katex{font-size:1.05em}
+
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:30px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+ul.tight,ol.tight{padding-left:20px;max-width:68ch}ul.tight li,ol.tight li{margin:6px 0}
+
+@media (max-width:860px){.controls{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+
+
+
+
+.row{grid-template-columns:minmax(44px,max-content) 1fr 64px}
+.row.sel{grid-template-columns:minmax(44px,max-content) 1fr}
+select{min-height:36px;padding:0 10px;border:1px solid var(--rule-solid);border-radius:6px;font:500 13px var(--mono);color:var(--ink);background:#fff;max-width:100%}
+select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+table.ops{border-collapse:collapse;width:100%;max-width:860px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0}
+.chip{font:600 11px var(--mono);padding:2px 8px;border:1px solid var(--ink);border-radius:4px;background:#fff}
+.chip.on{background:var(--ink);color:var(--paper)}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;padding:16px}
+@media (max-width:860px){.two{grid-template-columns:1fr}}
+
+.doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}.doc-tags a{font:500 12px "Geist Mono",ui-monospace,monospace;padding:4px 10px;border:1px solid var(--rule-solid,#bfc0c0);border-radius:4px;background:#fff;color:var(--muted,#4f5d75);text-decoration:none}.doc-tags a:hover{border-color:var(--ink,#2d3142);color:var(--ink,#2d3142)}.doc-tags a:focus-visible{outline:2px solid var(--accent,#bf4520);outline-offset:2px}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" style="margin-right:8px" href="../../../../index.html">&larr; Back to home</a>
+<a class="back back-cat" href="../../../../index.html#cat=AI">&larr; Back to AI</a>
+
+<header>
+  <div class="eyebrow">AI · Clustering</div>
+  <h1>Gaussian Mixture Models</h1>
+  <p class="lede">K-means gives every point to one cluster. A Gaussian mixture says how much each point belongs to each one, and lets clusters be stretched and tilted.</p>
+  <nav class="doc-tags" aria-label="Main tags"><a href="../../../../index.html#tag=unsupervised">#unsupervised</a><a href="../../../../index.html#tag=clustering">#clustering</a><a href="../../../../index.html#tag=em">#em</a><a href="../../../../index.html#tag=expectation%20maximization">#expectation maximization</a></nav>
+</header>
+
+<section>
+  <h2>Try it first</h2>
+  <p>The data come from three Gaussians with different shapes. Start from a bad guess and press Step. Each step has two halves: points are softly assigned to the current ellipses, then the ellipses are refit to those soft assignments. The log-likelihood only goes up.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">Expectation-Maximization in action</span></div>
+    <div class="scroll">
+      <svg id="plot" viewBox="0 0 720 360" role="img" aria-labelledby="plot-title plot-desc">
+        <title id="plot-title">Expectation-Maximization in action</title>
+        <desc id="plot-desc">A scatter of points, each shaded by a blend of the component colors according to its soft membership. Ellipses mark one and two standard deviations of each fitted Gaussian, with a cross at its mean.</desc>
+        <rect width="720" height="360" fill="#fff" stroke="rgba(45,49,66,.12)"/>
+        <g id="layer"></g>
+      </svg>
+    </div>
+    <div class="card-bottom"><span class="hint">dashed ellipse = 2 standard deviations</span><span class="live" id="live"></span></div>
+  </figure>
+
+  <div class="controls">
+    <div class="panel">
+      <div class="row sel"><label for="K">Components</label><select id="K"><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option></select></div><div class="btns"><button type="button" class="btn" id="step">Step</button><button type="button" class="btn" id="run">Run 10</button><button type="button" class="btn" id="reset">Reset</button><button type="button" class="btn" id="data">New data</button></div>
+    </div>
+    <div class="panel">
+      <div class="eyebrow">Readout</div>
+      <pre id="readout" aria-live="polite"></pre>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>1. A weighted sum of Gaussians</h2>
+  <p>A Gaussian mixture models the data as coming from $K$ bell-shaped clouds, each with a weight $\pi_k$, a mean $\mu_k$ and a covariance $\Sigma_k$:</p>
+  <div class="formula">$$p(x)=\sum_{k=1}^{K}\pi_k\,\mathcal{N}(x\mid\mu_k,\Sigma_k)$$</div>
+  <p>The covariance controls the shape and tilt of each cloud. That is the key difference from <a href="../k-means-clustering/k-means-clustering.html">K-means</a>, whose clusters are always round.</p>
+</section>
+
+<section>
+  <h2>2. Fitting it: Expectation-Maximization</h2>
+  <p>We do not know which cloud made each point, so we alternate:</p>
+  <ul class="tight">
+    <li><b>E step.</b> For each point, compute the <b>responsibility</b> of each component: the probability that component $k$ made it.</li>
+    <li><b>M step.</b> Re-estimate each component from the points, each point counted by its responsibility.</li>
+  </ul>
+  <div class="formula">$$r_{ik}=\frac{\pi_k\,\mathcal{N}(x_i\mid\mu_k,\Sigma_k)}{\sum_j \pi_j\,\mathcal{N}(x_i\mid\mu_j,\Sigma_j)}$$</div>
+  <div class="formula">$$N_k=\sum_i r_{ik},\quad \mu_k=\frac{1}{N_k}\sum_i r_{ik}\,x_i,\quad \pi_k=\frac{N_k}{n}$$</div>
+  <p>The covariance update is the responsibility-weighted scatter around the new mean. Each round never lowers the likelihood, but it can stop at a local peak. That is why results depend on the start.</p>
+</section>
+
+<section>
+  <h2>3. Relation to K-means</h2>
+  <p>If every cluster is a round Gaussian with the same tiny variance, the responsibilities become 0 or 1 and EM becomes K-means. So K-means is the hard, round special case.</p>
+</section>
+
+<section>
+  <h2>4. Choosing K</h2>
+  <p>More components always fit better, so pick $K$ with a criterion that charges for complexity, such as <b>BIC</b> or <b>AIC</b>, or by held-out likelihood. Guard against a component collapsing onto a single point, which makes its variance zero and the likelihood infinite. Adding a small value to the covariance diagonal prevents it.</p>
+</section>
+
+<section>
+  <h2>5. Uses</h2>
+  <ul class="tight">
+    <li>Soft clustering and clusters of different shapes.</li>
+    <li>Density estimation and anomaly detection: a point with very low $p(x)$ is unusual.</li>
+    <li>Generating new samples from the fitted model.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>6. Related</h2>
+  <p>Related: <a href="../k-means-clustering/k-means-clustering.html">K-means</a>, <a href="../dbscan/dbscan.html">DBSCAN</a> and <a href="../naive-bayes/naive-bayes.html">Naive Bayes</a>, which also models data with distributions. See the full map in <a href="../ml-algorithm-groups/ml-algorithm-groups.html">Machine Learning Algorithm Groups</a>.</p>
+</section>
+
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+  var NS = 'http://www.w3.org/2000/svg';
+  var $ = function (id) { return document.getElementById(id); };
+  function el(name, attrs, parent) {
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function rng(seed) {
+    var a = seed >>> 0;
+    return function () {
+      a = (a + 0x6D2B79F5) >>> 0;
+      var t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function gauss(r) { var u = 1 - r(), v = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+  function clamp(v, a, b) { return Math.min(b, Math.max(a, v)); }
+  function txt(parent, x, y, s, extra) {
+    var a = { x: x, y: y, 'font-family': 'Geist Mono, monospace', 'font-size': 11, fill: '#4f5d75' };
+    for (var k in extra || {}) a[k] = extra[k];
+    var t = el('text', a, parent); t.textContent = s; return t;
+  }
+  function bindOut(ids) { ids.forEach(function (i) { var o = $('o-' + i); if (o) o.textContent = $(i).value; }); }
+
+
+  var W = 720, H = 360, SC = 3.6;
+  var RGB = [[191, 69, 32], [46, 90, 168], [31, 122, 77], [140, 90, 180]];
+  var state = { seed: 61, it: 0, K: 3, comps: null, R: null, ll: 0 };
+  function data(seed) {
+    var r = rng(seed), pts = [], spec = [[45, 65, 14, 7, 0.6], [100, 35, 8, 15, -0.3], [155, 62, 12, 10, 0.5]];
+    for (var i = 0; i < 150; i++) {
+      var s = spec[i % 3], a = gauss(r), b = gauss(r);
+      pts.push({ x: clamp(s[0] + s[2] * a, 2, 198), y: clamp(s[1] + s[3] * (s[4] * a + Math.sqrt(1 - s[4] * s[4]) * b), 2, 98) });
+    }
+    return pts;
+  }
+  function init(pts, K, seed) {
+    var r = rng(seed + 3), comps = [], used = {};
+    while (comps.length < K) { var i = Math.floor(r() * pts.length); if (used[i]) continue; used[i] = 1; comps.push({ w: 1 / K, mx: pts[i].x, my: pts[i].y, sxx: 500, sxy: 0, syy: 500 }); }
+    return comps;
+  }
+  function pdf(c, x, y) {
+    var det = c.sxx * c.syy - c.sxy * c.sxy, dx = x - c.mx, dy = y - c.my;
+    var q = (c.syy * dx * dx - 2 * c.sxy * dx * dy + c.sxx * dy * dy) / det;
+    return Math.exp(-0.5 * q) / (2 * Math.PI * Math.sqrt(det));
+  }
+  function estep(pts, comps) {
+    var R = [], ll = 0;
+    pts.forEach(function (q) {
+      var p = comps.map(function (c) { return c.w * pdf(c, q.x, q.y); }), s = p.reduce(function (a, b) { return a + b; }, 0) + 1e-300;
+      ll += Math.log(s); R.push(p.map(function (v) { return v / s; }));
+    });
+    return { R: R, ll: ll };
+  }
+  function mstep(pts, R, comps) {
+    return comps.map(function (_, k) {
+      var Nk = 0, mx = 0, my = 0; pts.forEach(function (q, i) { Nk += R[i][k]; mx += R[i][k] * q.x; my += R[i][k] * q.y; });
+      mx /= Nk; my /= Nk;
+      var sxx = 0, sxy = 0, syy = 0; pts.forEach(function (q, i) { var d1 = q.x - mx, d2 = q.y - my; sxx += R[i][k] * d1 * d1; sxy += R[i][k] * d1 * d2; syy += R[i][k] * d2 * d2; });
+      return { w: Nk / pts.length, mx: mx, my: my, sxx: sxx / Nk + 1, sxy: sxy / Nk, syy: syy / Nk + 1 };
+    });
+  }
+  function reset() { state.K = +$('K').value; var pts = data(state.seed); state.comps = init(pts, state.K, state.seed); var e = estep(pts, state.comps); state.R = e.R; state.ll = e.ll; state.it = 0; render(); }
+  function step(n) {
+    var pts = data(state.seed);
+    for (var i = 0; i < n; i++) { state.comps = mstep(pts, state.R, state.comps); var e = estep(pts, state.comps); state.R = e.R; state.ll = e.ll; state.it++; }
+    render();
+  }
+  function ellipse(g, c, col) {
+    var a = c.sxx, b = c.sxy, d = c.syy, t = (a + d) / 2, s = Math.sqrt(((a - d) / 2) * ((a - d) / 2) + b * b), l1 = t + s, l2 = Math.max(t - s, 1e-6), ang = 0.5 * Math.atan2(2 * b, a - d);
+    [1, 2].forEach(function (m) {
+      el('ellipse', { cx: c.mx * SC, cy: H - c.my * SC, rx: m * Math.sqrt(l1) * SC, ry: m * Math.sqrt(l2) * SC, transform: 'rotate(' + (-ang * 180 / Math.PI) + ' ' + (c.mx * SC) + ' ' + (H - c.my * SC) + ')', fill: m === 1 ? 'rgba(' + col + ',.12)' : 'none', stroke: 'rgb(' + col + ')', 'stroke-width': 2, 'stroke-dasharray': m === 2 ? '5 4' : '0' }, g);
+    });
+    el('path', { d: 'M' + (c.mx * SC - 7) + ',' + (H - c.my * SC) + ' h14 M' + (c.mx * SC) + ',' + (H - c.my * SC - 7) + ' v14', stroke: '#2d3142', 'stroke-width': 3 }, g);
+  }
+  function render() {
+    var pts = data(state.seed), g = $('layer'); g.textContent = '';
+    pts.forEach(function (q, i) {
+      var rr = 0, gg = 0, bb = 0; state.R[i].forEach(function (p, k) { rr += p * RGB[k][0]; gg += p * RGB[k][1]; bb += p * RGB[k][2]; });
+      el('circle', { cx: q.x * SC, cy: H - q.y * SC, r: 4.5, fill: 'rgb(' + Math.round(rr) + ',' + Math.round(gg) + ',' + Math.round(bb) + ')', stroke: '#fff', 'stroke-width': 1 }, g);
+    });
+    state.comps.forEach(function (c, k) { ellipse(g, c, RGB[k].join(',')); });
+    $('live').textContent = 'iteration ' + state.it + ' · log-likelihood ' + state.ll.toFixed(1);
+    $('readout').textContent = 'iteration       = ' + state.it + '\nlog-likelihood  = ' + state.ll.toFixed(2) + '\n\n' + state.comps.map(function (c, k) { return 'component ' + (k + 1) + ': weight ' + c.w.toFixed(2) + '  mean (' + c.mx.toFixed(0) + ', ' + c.my.toFixed(0) + ')'; }).join('\n') + '\n\nEach point is shaded by its soft membership.';
+  }
+  $('step').addEventListener('click', function () { step(1); });
+  $('run').addEventListener('click', function () { step(10); });
+  $('reset').addEventListener('click', reset);
+  $('K').addEventListener('change', reset);
+  $('data').addEventListener('click', function () { state.seed = Math.floor(Math.random() * 100000) + 1; reset(); });
+  reset();
+
+
+  if (window.renderMathInElement) {
+    window.renderMathInElement(document.body, {
+      delimiters: [{ left: '$$', right: '$$', display: true }, { left: '$', right: '$', display: false }],
+      ignoredTags: ['script', 'style', 'textarea', 'pre', 'code'],
+      throwOnError: false
+    });
+  }
+
+});
+</script>
+</body>
+</html>

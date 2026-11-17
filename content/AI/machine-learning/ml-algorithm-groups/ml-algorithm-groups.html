@@ -222,6 +222,21 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
     <div class="stat"><div class="eyebrow">Supervised · classification</div><div class="big"><a href="../naive-bayes/naive-bayes.html">Naive Bayes</a></div><p>Multiply simple counted clues with Bayes' theorem.</p></div>
     <div class="stat"><div class="eyebrow">Supervised · classification</div><div class="big"><a href="../decision-tree/decision-tree.html">Decision Tree</a></div><p>Learn a flowchart of yes or no questions.</p></div>
     <div class="stat"><div class="eyebrow">Unsupervised · dimensionality</div><div class="big"><a href="../principal-component-analysis/principal-component-analysis.html">PCA</a></div><p>Keep the directions where the data varies most.</p></div>
+    <div class="stat"><div class="eyebrow">Supervised · regression</div><div class="big"><a href="../ridge-lasso-regression/ridge-lasso-regression.html">Ridge and Lasso</a></div><p>Linear regression with a penalty that keeps weights small.</p></div>
+    <div class="stat"><div class="eyebrow">Optimization</div><div class="big"><a href="../optimizers-sgd-adam-newton/optimizers-sgd-adam-newton.html">SGD, Adam, Newton</a></div><p>Adapt the step to the shape of the loss.</p></div>
+    <div class="stat"><div class="eyebrow">Supervised · classification</div><div class="big"><a href="../random-forest/random-forest.html">Random Forest</a></div><p>Many different trees vote and cancel each other's noise.</p></div>
+    <div class="stat"><div class="eyebrow">Supervised · classification</div><div class="big"><a href="../support-vector-machine/support-vector-machine.html">Support Vector Machine</a></div><p>The widest street between two classes, set by the points on the curb.</p></div>
+    <div class="stat"><div class="eyebrow">Unsupervised · clustering</div><div class="big"><a href="../hierarchical-clustering/hierarchical-clustering.html">Hierarchical Clustering</a></div><p>Merge the closest groups into a tree, then cut it.</p></div>
+    <div class="stat"><div class="eyebrow">Unsupervised · clustering</div><div class="big"><a href="../dbscan/dbscan.html">DBSCAN</a></div><p>Grow clusters from dense crowds and leave loners as noise.</p></div>
+    <div class="stat"><div class="eyebrow">Unsupervised · clustering</div><div class="big"><a href="../gaussian-mixture-models/gaussian-mixture-models.html">Gaussian Mixture</a></div><p>Soft membership in stretched, tilted clusters, fit with EM.</p></div>
+    <div class="stat"><div class="eyebrow">Unsupervised · dimensionality</div><div class="big"><a href="../t-sne/t-sne.html">t-SNE</a></div><p>A 2D map that keeps neighbors together.</p></div>
+    <div class="stat"><div class="eyebrow">Unsupervised · dimensionality</div><div class="big"><a href="../autoencoder/autoencoder.html">Autoencoder</a></div><p>Copy the input through a narrow code to find what matters.</p></div>
+    <div class="stat"><div class="eyebrow">Unsupervised · association</div><div class="big"><a href="../apriori/apriori.html">Apriori</a></div><p>Find items that appear together without counting every set.</p></div>
+    <div class="stat"><div class="eyebrow">Semi-supervised</div><div class="big"><a href="../semi-supervised-learning/semi-supervised-learning.html">Semi-Supervised Learning</a></div><p>Self-training, co-training and label propagation.</p></div>
+    <div class="stat"><div class="eyebrow">Reinforcement</div><div class="big"><a href="../q-learning/q-learning.html">Q-learning and Dyna-Q</a></div><p>Score each action in each state, and learn from imagined steps too.</p></div>
+    <div class="stat"><div class="eyebrow">Reinforcement</div><div class="big"><a href="../deep-q-network/deep-q-network.html">Deep Q-Network</a></div><p>Q-learning with a network, replay and a target network.</p></div>
+    <div class="stat"><div class="eyebrow">Reinforcement</div><div class="big"><a href="../policy-gradient/policy-gradient.html">REINFORCE and PPO</a></div><p>Learn the policy directly, and do not step too far.</p></div>
+    <div class="stat"><div class="eyebrow">Reinforcement</div><div class="big"><a href="../monte-carlo-tree-search/monte-carlo-tree-search.html">Monte Carlo Tree Search</a></div><p>Search with random playouts and steer toward promising moves.</p></div>
   </div>
 </section>
 
@@ -240,28 +255,44 @@ document.addEventListener('DOMContentLoaded', function () {
   var NB = '../naive-bayes/naive-bayes.html';
   var DT = '../decision-tree/decision-tree.html';
   var PCA = '../principal-component-analysis/principal-component-analysis.html';
+  var RL = '../ridge-lasso-regression/ridge-lasso-regression.html';
+  var RF = '../random-forest/random-forest.html';
+  var SVM = '../support-vector-machine/support-vector-machine.html';
+  var HC = '../hierarchical-clustering/hierarchical-clustering.html';
+  var DB = '../dbscan/dbscan.html';
+  var GMM = '../gaussian-mixture-models/gaussian-mixture-models.html';
+  var TSNE = '../t-sne/t-sne.html';
+  var AE = '../autoencoder/autoencoder.html';
+  var APR = '../apriori/apriori.html';
+  var SEMI = '../semi-supervised-learning/semi-supervised-learning.html';
+  var QL = '../q-learning/q-learning.html';
+  var DQN = '../deep-q-network/deep-q-network.html';
+  var PG = '../policy-gradient/policy-gradient.html';
+  var MCTS = '../monte-carlo-tree-search/monte-carlo-tree-search.html';
+  var OPT = '../optimizers-sgd-adam-newton/optimizers-sgd-adam-newton.html';
+  var NN = '../../deep-learning/deep-learning-overview/deep-learning-overview.html';
 
   var TREE = [
     { id: 'supervised', name: 'Supervised', tasks: [
-      { name: 'Regression', algos: [['Linear Regression', LIN], ['Ridge / Lasso'], ['Decision Tree', DT], ['Random Forest'], ['Support Vector Regression']] },
-      { name: 'Classification', algos: [['Logistic Regression', LOG], ['Perceptron', PER], ['k-Nearest Neighbors', KNN], ['Naive Bayes', NB], ['Decision Tree', DT], ['Support Vector Machine'], ['Neural Network']] }
+      { name: 'Regression', algos: [['Linear Regression', LIN], ['Ridge / Lasso', RL], ['Decision Tree', DT], ['Random Forest', RF], ['Support Vector Regression', SVM]] },
+      { name: 'Classification', algos: [['Logistic Regression', LOG], ['Perceptron', PER], ['k-Nearest Neighbors', KNN], ['Naive Bayes', NB], ['Decision Tree', DT], ['Support Vector Machine', SVM], ['Neural Network', NN]] }
     ] },
     { id: 'unsupervised', name: 'Unsupervised', tasks: [
-      { name: 'Clustering', algos: [['K-means', KM], ['Hierarchical Clustering'], ['DBSCAN'], ['Gaussian Mixture']] },
-      { name: 'Dimensionality reduction', algos: [['PCA', PCA], ['t-SNE'], ['Autoencoder']] },
-      { name: 'Association rules', algos: [['Apriori']] }
+      { name: 'Clustering', algos: [['K-means', KM], ['Hierarchical Clustering', HC], ['DBSCAN', DB], ['Gaussian Mixture', GMM]] },
+      { name: 'Dimensionality reduction', algos: [['PCA', PCA], ['t-SNE', TSNE], ['Autoencoder', AE]] },
+      { name: 'Association rules', algos: [['Apriori', APR]] }
     ] },
     { id: 'semi', name: 'Semi-supervised', tasks: [
-      { name: 'Pseudo-labeling', algos: [['Self-training'], ['Co-training']] },
-      { name: 'Graph based', algos: [['Label Propagation']] }
+      { name: 'Pseudo-labeling', algos: [['Self-training', SEMI], ['Co-training', SEMI]] },
+      { name: 'Graph based', algos: [['Label Propagation', SEMI]] }
     ] },
     { id: 'reinforcement', name: 'Reinforcement', tasks: [
-      { name: 'Value based', algos: [['Q-learning'], ['Deep Q-Network']] },
-      { name: 'Policy based', algos: [['REINFORCE'], ['PPO']] },
-      { name: 'Model based', algos: [['Monte Carlo Tree Search'], ['Dyna-Q']] }
+      { name: 'Value based', algos: [['Q-learning', QL], ['Deep Q-Network', DQN]] },
+      { name: 'Policy based', algos: [['REINFORCE', PG], ['PPO', PG]] },
+      { name: 'Model based', algos: [['Monte Carlo Tree Search', MCTS], ['Dyna-Q', QL]] }
     ] },
     { id: 'optimization', name: 'Optimization', tasks: [
-      { name: 'Training methods', algos: [['Gradient Descent', GD], ['Stochastic GD'], ['Adam'], ['Newton\'s Method']] }
+      { name: 'Training methods', algos: [['Gradient Descent', GD], ['Stochastic GD', OPT], ['Adam', OPT], ['Newton\'s Method', OPT]] }
     ] }
   ];
 

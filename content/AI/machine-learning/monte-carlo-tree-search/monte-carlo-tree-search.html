@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Monte Carlo Tree Search: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+a{color:var(--link)}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+
+.card{margin:24px 0 0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.scroll{overflow-x:auto;padding:0 8px;text-align:center}
+.scroll svg{display:inline-block;width:100%;max-width:720px;height:auto}
+
+.controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;margin-top:16px;align-items:start}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.row{display:grid;grid-template-columns:44px 1fr 56px;gap:12px;align-items:center;margin:0 0 12px}
+.row label{font-family:var(--mono);font-size:13px;font-weight:600}
+.row output{font-family:var(--mono);font-size:12px;text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);min-height:28px}
+.group-label{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);margin:16px 0 6px}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.big-answer{font-family:var(--serif);font-size:44px;line-height:1.1;margin:4px 0 8px;color:var(--accent)}
+#readout{margin:0;padding:0;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink);border:0;background:none}
+#calc{overflow-x:auto;margin-top:8px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:3px;border:1px solid var(--ink);display:inline-block}
+
+pre.code{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .t{color:var(--link)} .c{color:var(--soft);font-style:italic}
+
+.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;text-align:center;overflow-x:auto}
+.formula .katex{font-size:1.25em}
+.katex{color:var(--ink)}
+p .katex,td .katex,li .katex{font-size:1.05em}
+
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:30px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+ul.tight,ol.tight{padding-left:20px;max-width:68ch}ul.tight li,ol.tight li{margin:6px 0}
+
+@media (max-width:860px){.controls{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+
+
+
+
+.row{grid-template-columns:minmax(44px,max-content) 1fr 64px}
+.row.sel{grid-template-columns:minmax(44px,max-content) 1fr}
+select{min-height:36px;padding:0 10px;border:1px solid var(--rule-solid);border-radius:6px;font:500 13px var(--mono);color:var(--ink);background:#fff;max-width:100%}
+select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+table.ops{border-collapse:collapse;width:100%;max-width:860px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0}
+.chip{font:600 11px var(--mono);padding:2px 8px;border:1px solid var(--ink);border-radius:4px;background:#fff}
+.chip.on{background:var(--ink);color:var(--paper)}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;padding:16px}
+@media (max-width:860px){.two{grid-template-columns:1fr}}
+
+.doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}.doc-tags a{font:500 12px "Geist Mono",ui-monospace,monospace;padding:4px 10px;border:1px solid var(--rule-solid,#bfc0c0);border-radius:4px;background:#fff;color:var(--muted,#4f5d75);text-decoration:none}.doc-tags a:hover{border-color:var(--ink,#2d3142);color:var(--ink,#2d3142)}.doc-tags a:focus-visible{outline:2px solid var(--accent,#bf4520);outline-offset:2px}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" style="margin-right:8px" href="../../../../index.html">&larr; Back to home</a>
+<a class="back back-cat" href="../../../../index.html#cat=AI">&larr; Back to AI</a>
+
+<header>
+  <div class="eyebrow">AI · Reinforcement learning</div>
+  <h1>Monte Carlo Tree Search</h1>
+  <p class="lede">Find a good move without knowing a good evaluation. Play thousands of random games, and steer more of them toward the moves that look promising.</p>
+  <nav class="doc-tags" aria-label="Main tags"><a href="../../../../index.html#tag=reinforcement%20learning">#reinforcement learning</a><a href="../../../../index.html#tag=mcts">#mcts</a><a href="../../../../index.html#tag=uct">#uct</a><a href="../../../../index.html#tag=tree%20search">#tree search</a></nav>
+</header>
+
+<section>
+  <h2>Try it first</h2>
+  <p>Tic-tac-toe, with X to move. Pick a position, press Run, and the board fills with each move's visit count and win rate. Search effort piles up on the strongest move, and the most visited one is chosen. Try the "win now" position with only 20 simulations, then with 1000.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">Search results on a tic-tac-toe board</span></div>
+    <div class="two">
+      <div>
+        <div class="eyebrow">X to move · choose a position</div>
+        <div id="board" style="display:grid;grid-template-columns:repeat(3,92px);gap:6px;margin-top:10px" role="group" aria-label="Tic-tac-toe board"></div>
+      </div>
+      <div>
+        <div class="eyebrow">Search tree at the root</div>
+        <div id="stats" style="margin-top:10px;font-family:var(--mono);font-size:12px"></div>
+      </div>
+    </div>
+    <div class="card-bottom"><span class="hint">orange outline = most visited move</span><span class="live" id="live"></span></div>
+  </figure>
+
+  <div class="controls">
+    <div class="panel">
+      <div class="row sel"><label for="pos">Position</label><select id="pos"><option value="win">X can win now</option><option value="block">X must block O</option><option value="fork">Mid-game</option><option value="empty">Empty board</option></select></div><div class="row"><label for="it">Simulations</label><input type="range" id="it" min="10" max="3000" step="10" value="300"><output id="o-it"></output></div><div class="row"><label for="c">Exploration $c$</label><input type="range" id="c" min="0" max="2.5" step="0.1" value="1.4"><output id="o-c"></output></div><div class="btns"><button type="button" class="btn" id="run">Run</button><button type="button" class="btn" id="reset">Reset search</button></div>
+    </div>
+    <div class="panel">
+      <div class="eyebrow">Readout</div>
+      <pre id="readout" aria-live="polite"></pre>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>1. Search with samples instead of knowledge</h2>
+  <p>A classic game program needs an evaluation function: a score for any board. For Go and many other games, nobody could write a good one. <b>Monte Carlo Tree Search</b> (MCTS) replaces it with simulation: to judge a move, play many random games to the end and count wins.</p>
+  <p>Pure random playouts waste time on bad moves. MCTS grows a tree and spends more playouts on promising branches.</p>
+</section>
+
+<section>
+  <h2>2. Four steps, repeated</h2>
+  <p><ol class="tight"><li><b>Select.</b> From the root, repeatedly go to the child with the best score until you reach a node that still has untried moves.</li><li><b>Expand.</b> Add one new child for an untried move.</li><li><b>Simulate.</b> From the new node, play random moves to the end of the game.</li><li><b>Backpropagate.</b> Add the result to every node on the path back up: a visit, and a win if it was a win for the player who moved there.</li></ol></p>
+  <p>After many rounds, play the root child with the most visits. Visits are a steadier signal than raw win rate.</p>
+</section>
+
+<section>
+  <h2>3. How to select: UCT</h2>
+  <p>Always choosing the highest win rate would stop exploring. Always exploring wastes effort. UCB1 balances them with a score for each child:</p>
+  <div class="formula">$$\text{UCT}=\frac{w_i}{n_i}+c\sqrt{\frac{\ln N}{n_i}}$$</div>
+  <p>Here $w_i/n_i$ is the win rate (<b>exploit</b>), $n_i$ the child's visits, and $N$ the parent's visits. The second term grows for rarely tried children (<b>explore</b>). The constant $c$ sets the balance, often near $\sqrt2$. Set it to 0 and watch search lock on early.</p>
+</section>
+
+<section>
+  <h2>4. Properties</h2>
+  <ul class="tight">
+    <li>It is <b>anytime</b>: stop whenever you like and use the current best.</li>
+    <li>It needs only the rules, no hand-made evaluation, and works for large branching.</li>
+    <li>The result improves with more simulations, and converges to optimal play.</li>
+    <li>Random playouts are weak in tactical positions. AlphaGo and AlphaZero replace them with a neural network for position value and move priors, and keep the tree search.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>5. Related</h2>
+  <p>MCTS is a planner that needs a model of the game. Compare with the model-free <a href="../q-learning/q-learning.html">Q-learning</a> and the model-based Dyna-Q in that page, and <a href="../policy-gradient/policy-gradient.html">Policy Gradients</a>. See the full map in <a href="../ml-algorithm-groups/ml-algorithm-groups.html">Machine Learning Algorithm Groups</a>.</p>
+</section>
+
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+  var NS = 'http://www.w3.org/2000/svg';
+  var $ = function (id) { return document.getElementById(id); };
+  function el(name, attrs, parent) {
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function rng(seed) {
+    var a = seed >>> 0;
+    return function () {
+      a = (a + 0x6D2B79F5) >>> 0;
+      var t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function gauss(r) { var u = 1 - r(), v = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+  function clamp(v, a, b) { return Math.min(b, Math.max(a, v)); }
+  function txt(parent, x, y, s, extra) {
+    var a = { x: x, y: y, 'font-family': 'Geist Mono, monospace', 'font-size': 11, fill: '#4f5d75' };
+    for (var k in extra || {}) a[k] = extra[k];
+    var t = el('text', a, parent); t.textContent = s; return t;
+  }
+  function bindOut(ids) { ids.forEach(function (i) { var o = $('o-' + i); if (o) o.textContent = $(i).value; }); }
+
+
+  var LINES = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+  var PRESET = { win: 'XX.OO....', block: 'XO..O...X', empty: '.........', fork: 'X...O.X.O' };
+  var S = { root: null, r: rng(4), n: 0 };
+  function winner(b) { for (var i = 0; i < 8; i++) { var l = LINES[i]; if (b[l[0]] && b[l[0]] === b[l[1]] && b[l[0]] === b[l[2]]) return b[l[0]]; } return b.every(function (c) { return c; }) ? 3 : 0; }
+  function parse(s) { return s.split('').map(function (c) { return c === 'X' ? 1 : c === 'O' ? 2 : 0; }); }
+  function node(b, player, parent, move) {
+    var moves = []; if (!winner(b)) b.forEach(function (c, i) { if (!c) moves.push(i); });
+    return { b: b, player: player, parent: parent, move: move, ch: [], un: moves, N: 0, W: 0 };
+  }
+  function reset() { S.root = node(parse(PRESET[$('pos').value]), 1, null, -1); S.r = rng(4); S.n = 0; render(); }
+  function playout(b, player) {
+    b = b.slice();
+    while (true) { var w = winner(b); if (w) return w; var e = []; b.forEach(function (c, i) { if (!c) e.push(i); }); b[e[Math.floor(S.r() * e.length)]] = player; player = 3 - player; }
+  }
+  function iterate(c) {
+    var nd = S.root;
+    while (!nd.un.length && nd.ch.length) {
+      var best = null, bv = -1e9;
+      nd.ch.forEach(function (k) { var v = k.W / k.N + c * Math.sqrt(Math.log(nd.N) / k.N); if (v > bv) { bv = v; best = k; } });
+      nd = best;
+    }
+    if (nd.un.length) {
+      var m = nd.un.splice(Math.floor(S.r() * nd.un.length), 1)[0], b = nd.b.slice(); b[m] = nd.player;
+      var k = node(b, 3 - nd.player, nd, m); nd.ch.push(k); nd = k;
+    }
+    var w = winner(nd.b) || playout(nd.b, nd.player);
+    while (nd) { nd.N++; var mover = nd.parent ? nd.parent.player : 0; if (w === 3) nd.W += 0.5; else if (w === mover) nd.W += 1; nd = nd.parent; }
+  }
+  function render() {
+    bindOut(['it', 'c']);
+    var root = S.root, bd = $('board'); bd.textContent = '';
+    var by = {}; root.ch.forEach(function (k) { by[k.move] = k; });
+    var bestN = -1, bestM = -1; root.ch.forEach(function (k) { if (k.N > bestN) { bestN = k.N; bestM = k.move; } });
+    var html = '';
+    root.b.forEach(function (c, i) {
+      var k = by[i], lab = c === 1 ? 'X' : c === 2 ? 'O' : '', sub = k ? k.N + ' · ' + Math.round(k.W / k.N * 100) + '%' : '', hot = i === bestM;
+      html += '<div style="height:92px;border:2px solid ' + (hot ? '#bf4520' : '#bfc0c0') + ';border-radius:8px;background:' + (hot ? 'rgba(191,69,32,.1)' : '#fff') + ';display:flex;flex-direction:column;align-items:center;justify-content:center"><div style="font:600 34px var(--serif)">' + lab + '</div><div style="font:11px var(--mono);color:#4f5d75">' + sub + '</div></div>';
+    });
+    bd.innerHTML = html;
+    var rows = root.ch.slice().sort(function (a, b) { return b.N - a.N; });
+    $('stats').innerHTML = rows.length ? rows.map(function (k) { return '<div>cell ' + (k.move + 1) + ': ' + k.N + ' visits, win rate ' + Math.round(k.W / k.N * 100) + '%</div>'; }).join('') : '<div>No simulations yet. Press Run.</div>';
+    $('live').textContent = S.n + ' simulations' + (bestM >= 0 ? ' · best: cell ' + (bestM + 1) : '');
+    $('readout').textContent = 'simulations = ' + S.n + '\nbest move   = ' + (bestM >= 0 ? 'cell ' + (bestM + 1) + ' (most visited)' : 'none yet') + '\nexploration = ' + $('c').value + '\n\nCell label: visits · win rate for X.';
+  }
+  $('run').addEventListener('click', function () { var m = +$('it').value, c = +$('c').value; for (var i = 0; i < m; i++) iterate(c); S.n += m; render(); });
+  $('pos').addEventListener('change', reset);
+  $('reset').addEventListener('click', reset);
+  ['it', 'c'].forEach(function (i) { $(i).addEventListener('input', function () { bindOut(['it', 'c']); }); });
+  reset();
+
+
+  if (window.renderMathInElement) {
+    window.renderMathInElement(document.body, {
+      delimiters: [{ left: '$$', right: '$$', display: true }, { left: '$', right: '$', display: false }],
+      ignoredTags: ['script', 'style', 'textarea', 'pre', 'code'],
+      throwOnError: false
+    });
+  }
+
+});
+</script>
+</body>
+</html>

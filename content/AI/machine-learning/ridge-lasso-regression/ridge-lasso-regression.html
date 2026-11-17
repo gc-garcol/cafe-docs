@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ridge and Lasso Regression: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+a{color:var(--link)}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+
+.card{margin:24px 0 0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.scroll{overflow-x:auto;padding:0 8px;text-align:center}
+.scroll svg{display:inline-block;width:100%;max-width:720px;height:auto}
+
+.controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;margin-top:16px;align-items:start}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.row{display:grid;grid-template-columns:44px 1fr 56px;gap:12px;align-items:center;margin:0 0 12px}
+.row label{font-family:var(--mono);font-size:13px;font-weight:600}
+.row output{font-family:var(--mono);font-size:12px;text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);min-height:28px}
+.group-label{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);margin:16px 0 6px}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.big-answer{font-family:var(--serif);font-size:44px;line-height:1.1;margin:4px 0 8px;color:var(--accent)}
+#readout{margin:0;padding:0;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink);border:0;background:none}
+#calc{overflow-x:auto;margin-top:8px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:3px;border:1px solid var(--ink);display:inline-block}
+
+pre.code{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .t{color:var(--link)} .c{color:var(--soft);font-style:italic}
+
+.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;text-align:center;overflow-x:auto}
+.formula .katex{font-size:1.25em}
+.katex{color:var(--ink)}
+p .katex,td .katex,li .katex{font-size:1.05em}
+
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:30px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+ul.tight,ol.tight{padding-left:20px;max-width:68ch}ul.tight li,ol.tight li{margin:6px 0}
+
+@media (max-width:860px){.controls{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+
+
+
+
+.row{grid-template-columns:minmax(44px,max-content) 1fr 64px}
+.row.sel{grid-template-columns:minmax(44px,max-content) 1fr}
+select{min-height:36px;padding:0 10px;border:1px solid var(--rule-solid);border-radius:6px;font:500 13px var(--mono);color:var(--ink);background:#fff;max-width:100%}
+select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+table.ops{border-collapse:collapse;width:100%;max-width:860px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0}
+.chip{font:600 11px var(--mono);padding:2px 8px;border:1px solid var(--ink);border-radius:4px;background:#fff}
+.chip.on{background:var(--ink);color:var(--paper)}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;padding:16px}
+@media (max-width:860px){.two{grid-template-columns:1fr}}
+
+.doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}.doc-tags a{font:500 12px "Geist Mono",ui-monospace,monospace;padding:4px 10px;border:1px solid var(--rule-solid,#bfc0c0);border-radius:4px;background:#fff;color:var(--muted,#4f5d75);text-decoration:none}.doc-tags a:hover{border-color:var(--ink,#2d3142);color:var(--ink,#2d3142)}.doc-tags a:focus-visible{outline:2px solid var(--accent,#bf4520);outline-offset:2px}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" style="margin-right:8px" href="../../../../index.html">&larr; Back to home</a>
+<a class="back back-cat" href="../../../../index.html#cat=AI">&larr; Back to AI</a>
+
+<header>
+  <div class="eyebrow">AI · Regression</div>
+  <h1>Ridge and Lasso Regression</h1>
+  <p class="lede">Linear regression with a leash. Add a penalty on the size of the weights and the model trades a little bias for much less variance.</p>
+  <nav class="doc-tags" aria-label="Main tags"><a href="../../../../index.html#tag=regression">#regression</a><a href="../../../../index.html#tag=regularization">#regularization</a><a href="../../../../index.html#tag=ridge">#ridge</a><a href="../../../../index.html#tag=lasso">#lasso</a></nav>
+</header>
+
+<section>
+  <h2>Try it first</h2>
+  <p>Six features, only three of which matter, and just 40 training points. Slide $\lambda$ from zero upward. At $\lambda=0$ the fit chases the noise. Ridge shrinks every weight smoothly. Lasso pushes the useless ones to exactly zero.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">Coefficients and error as lambda grows</span></div>
+    <div class="scroll">
+      <svg id="plot" viewBox="0 0 720 360" role="img" aria-labelledby="plot-title plot-desc">
+        <title id="plot-title">Coefficients and error as lambda grows</title>
+        <desc id="plot-desc">Left: bars for six coefficients with dashed marks at their true values. Right: training and test error curves against lambda, with a marker at the current value.</desc>
+        <rect width="720" height="360" fill="#fff" stroke="rgba(45,49,66,.12)"/>
+        <g id="layer"></g>
+      </svg>
+    </div>
+    <div class="card-bottom"><span class="hint">test error is measured on 400 fresh points</span><span class="live" id="live"></span></div>
+  </figure>
+
+  <div class="controls">
+    <div class="panel">
+      <div class="row sel"><label for="method">Penalty</label><select id="method"><option value="ridge">Ridge (L2)</option><option value="lasso">Lasso (L1)</option></select></div><div class="row"><label for="lam">$\lambda$</label><input type="range" id="lam" min="0" max="100" step="1" value="30"><output id="o-lam"></output></div><p class="hint" style="margin-top:8px">The slider is logarithmic.</p><div class="legend" aria-label="Legend"><span><i class="sw" style="background:#bf4520"></i>relevant feature</span><span><i class="sw" style="background:#5a6580"></i>irrelevant feature</span></div>
+    </div>
+    <div class="panel">
+      <div class="eyebrow">Readout</div>
+      <pre id="readout" aria-live="polite"></pre>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>1. The problem with plain least squares</h2>
+  <p>Ordinary least squares picks the weights with the smallest training error. With few points, many features or features that move together, it will use large weights of opposite signs to fit noise. The model then looks great on training data and does badly on new data. That is <b>overfitting</b>.</p>
+  <p>Regularization adds a price for large weights, so the model only keeps a weight if it earns its place.</p>
+</section>
+
+<section>
+  <h2>2. Ridge: penalize squared weights</h2>
+  <p>Ridge adds the sum of squared weights to the loss:</p>
+  <div class="formula">$$\min_{w}\; \frac{1}{2n}\sum_{i=1}^{n}\big(y_i - w^\top x_i\big)^2 \;+\; \frac{\lambda}{2}\sum_{j=1}^{d} w_j^2$$</div>
+  <p>It still has a closed form, $w=(X^	op X/n+\lambda I)^{-1}X^	op y/n$. Adding $\lambda I$ also makes the matrix invertible when features are correlated. Ridge shrinks all weights toward zero but rarely makes one exactly zero.</p>
+</section>
+
+<section>
+  <h2>3. Lasso: penalize absolute weights</h2>
+  <p>Lasso swaps the square for the absolute value:</p>
+  <div class="formula">$$\min_{w}\; \frac{1}{2n}\sum_{i=1}^{n}\big(y_i - w^\top x_i\big)^2 \;+\; \lambda\sum_{j=1}^{d} |w_j|$$</div>
+  <p>The sharp corner of $|w|$ at zero lets weights land exactly on zero, so Lasso also does <b>feature selection</b>. There is no closed form, so it is solved by coordinate descent. Each step applies the soft threshold $S(z,\lambda)=\operatorname{sign}(z)\max(|z|-\lambda,0)$ to one weight.</p>
+</section>
+
+<section>
+  <h2>4. Choosing lambda</h2>
+  <p>The right-hand curve is the story. Training error only rises with $\lambda$. Test error falls first, as variance drops, then rises, as the model becomes too stiff. Pick the $\lambda$ at the bottom of the test curve, using cross-validation rather than a test set you will reuse.</p>
+  <ul class="tight">
+    <li><b>Standardize features first.</b> The penalty treats all weights alike, so their scales must match.</li>
+    <li><b>Do not penalize the intercept.</b></li>
+    <li><b>Elastic Net</b> mixes both penalties. It helps when correlated features should be kept or dropped together.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>5. Comparison</h2>
+  <table class="ops">
+    <thead><tr><th></th><th>Ridge</th><th>Lasso</th></tr></thead>
+    <tbody>
+      <tr><td>Penalty</td><td>sum of $w_j^2$</td><td>sum of $|w_j|$</td></tr>
+      <tr><td>Weights</td><td>small, rarely zero</td><td>many exactly zero</td></tr>
+      <tr><td>Correlated features</td><td>shares weight among them</td><td>tends to keep one</td></tr>
+      <tr><td>Solution</td><td>closed form</td><td>iterative</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>6. Related</h2>
+  <p>The unpenalized version is <a href="../linear-regression/linear-regression.html">Linear Regression</a>. The same idea of limiting model freedom for neural networks is in <a href="../../deep-learning/overfitting-regularization/overfitting-regularization.html">Overfitting and Regularization</a>. See the full map in <a href="../ml-algorithm-groups/ml-algorithm-groups.html">Machine Learning Algorithm Groups</a>.</p>
+</section>
+
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+  var NS = 'http://www.w3.org/2000/svg';
+  var $ = function (id) { return document.getElementById(id); };
+  function el(name, attrs, parent) {
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function rng(seed) {
+    var a = seed >>> 0;
+    return function () {
+      a = (a + 0x6D2B79F5) >>> 0;
+      var t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function gauss(r) { var u = 1 - r(), v = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+  function clamp(v, a, b) { return Math.min(b, Math.max(a, v)); }
+  function txt(parent, x, y, s, extra) {
+    var a = { x: x, y: y, 'font-family': 'Geist Mono, monospace', 'font-size': 11, fill: '#4f5d75' };
+    for (var k in extra || {}) a[k] = extra[k];
+    var t = el('text', a, parent); t.textContent = s; return t;
+  }
+  function bindOut(ids) { ids.forEach(function (i) { var o = $('o-' + i); if (o) o.textContent = $(i).value; }); }
+
+
+  var W = 720, H = 360, p = 6, n = 40, NT = 400;
+  var BT = [3, -2, 1.5, 0, 0, 0], NOISE = 2.5;
+  function gen(m, seed) {
+    var r = rng(seed), X = [], y = [];
+    for (var i = 0; i < m; i++) {
+      var z = []; for (var j = 0; j < p; j++) z.push(gauss(r));
+      var x = z.map(function (v, j) { return v + 0.5 * z[(j + 1) % p]; });
+      var t = 0; for (j = 0; j < p; j++) t += BT[j] * x[j];
+      X.push(x); y.push(t + NOISE * gauss(r));
+    }
+    return { X: X, y: y };
+  }
+  var tr = gen(n, 5), te = gen(NT, 99), mu = [], sd = [], ym = 0;
+  for (var j = 0; j < p; j++) {
+    var m = 0; tr.X.forEach(function (x) { m += x[j]; }); m /= n;
+    var v = 0; tr.X.forEach(function (x) { v += (x[j] - m) * (x[j] - m); }); v = Math.sqrt(v / n);
+    mu.push(m); sd.push(v);
+  }
+  tr.y.forEach(function (v) { ym += v; }); ym /= n;
+  function std(X) { return X.map(function (x) { return x.map(function (v, j) { return (v - mu[j]) / sd[j]; }); }); }
+  var Xt = std(tr.X), Xe = std(te.X), yt = tr.y.map(function (v) { return v - ym; }), ye = te.y.map(function (v) { return v - ym; });
+  function solve(A, b) {
+    var N = b.length, M = A.map(function (r, i) { return r.concat([b[i]]); }), i, j, k;
+    for (i = 0; i < N; i++) {
+      var piv = i; for (k = i + 1; k < N; k++) if (Math.abs(M[k][i]) > Math.abs(M[piv][i])) piv = k;
+      var tmp = M[i]; M[i] = M[piv]; M[piv] = tmp;
+      for (k = i + 1; k < N; k++) { var f = M[k][i] / M[i][i]; for (j = i; j <= N; j++) M[k][j] -= f * M[i][j]; }
+    }
+    var x = new Array(N).fill(0);
+    for (i = N - 1; i >= 0; i--) { var s = M[i][N]; for (j = i + 1; j < N; j++) s -= M[i][j] * x[j]; x[i] = s / M[i][i]; }
+    return x;
+  }
+  function ridge(lam) {
+    var A = [], b = [], i, j, k;
+    for (i = 0; i < p; i++) { A.push([]); var s = 0; for (k = 0; k < n; k++) s += Xt[k][i] * yt[k]; b.push(s / n); for (j = 0; j < p; j++) { var t = 0; for (k = 0; k < n; k++) t += Xt[k][i] * Xt[k][j]; A[i].push(t / n + (i === j ? lam : 0)); } }
+    return solve(A, b);
+  }
+  function soft(z, g) { return z > g ? z - g : z < -g ? z + g : 0; }
+  function lasso(lam) {
+    var b = new Array(p).fill(0), it, j, i;
+    for (it = 0; it < 300; it++) {
+      for (j = 0; j < p; j++) {
+        var r = 0;
+        for (i = 0; i < n; i++) { var pr = 0; for (var q = 0; q < p; q++) if (q !== j) pr += b[q] * Xt[i][q]; r += Xt[i][j] * (yt[i] - pr); }
+        b[j] = soft(r / n, lam);
+      }
+    }
+    return b;
+  }
+  function mse(X, y, b) { var s = 0; X.forEach(function (x, i) { var f = 0; for (var j = 0; j < p; j++) f += x[j] * b[j]; s += (y[i] - f) * (y[i] - f); }); return s / X.length; }
+  function lamOf(s) { return s === 0 ? 0 : 0.002 * Math.pow(10, s / 25); }
+  function fit(method, lam) { return method === 'lasso' ? lasso(lam) : ridge(lam); }
+  var curve = {};
+  function curveFor(method) {
+    if (curve[method]) return curve[method];
+    var c = []; for (var s = 0; s <= 100; s += 2) { var l = lamOf(s), b = fit(method, l); c.push({ s: s, te: mse(Xe, ye, b), tr: mse(Xt, yt, b) }); }
+    return (curve[method] = c);
+  }
+  function render() {
+    bindOut(['lam']);
+    var s = +$('lam').value, lam = lamOf(s), method = $('method').value, b = fit(method, lam);
+    $('o-lam').textContent = lam.toFixed(3);
+    var g = $('layer'); g.textContent = '';
+    var x0 = 40, bw = 36, gap = 14, zero = 190, sc = 28;
+    txt(g, x0, 22, 'coefficients (standardized features)', { 'font-weight': 600, fill: '#2d3142' });
+    el('line', { x1: x0 - 10, y1: zero, x2: x0 + 6 * (bw + gap), y2: zero, stroke: '#2d3142' }, g);
+    for (var j = 0; j < p; j++) {
+      var bx = x0 + j * (bw + gap), h = b[j] * sc, tv = BT[j] * sd[j] * sc;
+      el('rect', { x: bx, y: h >= 0 ? zero - h : zero, width: bw, height: Math.abs(h), fill: BT[j] === 0 ? '#5a6580' : '#bf4520', opacity: 0.85 }, g);
+      el('path', { d: 'M' + (bx - 4) + ',' + (zero - tv) + ' L' + (bx + bw + 4) + ',' + (zero - tv), stroke: '#2d3142', 'stroke-width': 2, 'stroke-dasharray': '3 3' }, g);
+      txt(g, bx + bw / 2, zero + 112, 'x' + (j + 1), { 'text-anchor': 'middle' });
+      txt(g, bx + bw / 2, h >= 0 ? zero - h - 5 : zero - h + 14, b[j].toFixed(2), { 'text-anchor': 'middle', 'font-size': 10 });
+    }
+    txt(g, x0, 345, 'dashed = true coefficient · grey bars are truly zero', { 'font-size': 10 });
+    var cx = 400, cw = 290, ch = 230, cy = 70, c = curveFor(method), mx = 0;
+    c.forEach(function (d) { mx = Math.max(mx, d.te, d.tr); });
+    mx = Math.max(mx, 12);
+    txt(g, cx, 22, 'error vs lambda (' + method + ')', { 'font-weight': 600, fill: '#2d3142' });
+    el('rect', { x: cx, y: cy, width: cw, height: ch, fill: 'none', stroke: 'rgba(45,49,66,.2)' }, g);
+    [['tr', '#2e5aa8'], ['te', '#bf4520']].forEach(function (kv) {
+      var pts = c.map(function (d) { return (cx + d.s / 100 * cw) + ',' + (cy + ch - d[kv[0]] / mx * ch); }).join(' ');
+      el('polyline', { points: pts, fill: 'none', stroke: kv[1], 'stroke-width': 2 }, g);
+    });
+    var fl = cy + ch - NOISE * NOISE / mx * ch;
+    el('line', { x1: cx, y1: fl, x2: cx + cw, y2: fl, stroke: '#5a6580', 'stroke-dasharray': '2 4' }, g);
+    txt(g, cx + cw - 2, fl - 4, 'noise floor', { 'text-anchor': 'end', 'font-size': 10 });
+    el('line', { x1: cx + s / 100 * cw, y1: cy, x2: cx + s / 100 * cw, y2: cy + ch, stroke: '#2d3142', 'stroke-width': 1.5 }, g);
+    txt(g, cx, cy + ch + 18, 'small lambda', { 'font-size': 10 }); txt(g, cx + cw, cy + ch + 18, 'large lambda', { 'text-anchor': 'end', 'font-size': 10 });
+    txt(g, cx + 6, cy + 14, 'test', { fill: '#bf4520', 'font-weight': 600 }); txt(g, cx + 6, cy + 28, 'train', { fill: '#2e5aa8', 'font-weight': 600 });
+    var nz = b.filter(function (v) { return Math.abs(v) > 1e-9; }).length;
+    $('live').textContent = nz + ' of ' + p + ' coefficients non-zero';
+    $('readout').textContent = 'lambda      = ' + lam.toFixed(3) + '\ntrain MSE   = ' + mse(Xt, yt, b).toFixed(2) + '\ntest MSE    = ' + mse(Xe, ye, b).toFixed(2) + '\nnoise floor = ' + (NOISE * NOISE).toFixed(2) + '\nnon-zero    = ' + nz + ' / ' + p;
+  }
+  ['lam', 'method'].forEach(function (i) { $(i).addEventListener('input', render); $(i).addEventListener('change', render); });
+  render();
+
+
+  if (window.renderMathInElement) {
+    window.renderMathInElement(document.body, {
+      delimiters: [{ left: '$$', right: '$$', display: true }, { left: '$', right: '$', display: false }],
+      ignoredTags: ['script', 'style', 'textarea', 'pre', 'code'],
+      throwOnError: false
+    });
+  }
+
+});
+</script>
+</body>
+</html>

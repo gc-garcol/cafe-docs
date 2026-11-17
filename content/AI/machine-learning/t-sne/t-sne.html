@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>t-SNE: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+a{color:var(--link)}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+
+.card{margin:24px 0 0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.scroll{overflow-x:auto;padding:0 8px;text-align:center}
+.scroll svg{display:inline-block;width:100%;max-width:720px;height:auto}
+
+.controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;margin-top:16px;align-items:start}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.row{display:grid;grid-template-columns:44px 1fr 56px;gap:12px;align-items:center;margin:0 0 12px}
+.row label{font-family:var(--mono);font-size:13px;font-weight:600}
+.row output{font-family:var(--mono);font-size:12px;text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);min-height:28px}
+.group-label{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);margin:16px 0 6px}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.big-answer{font-family:var(--serif);font-size:44px;line-height:1.1;margin:4px 0 8px;color:var(--accent)}
+#readout{margin:0;padding:0;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink);border:0;background:none}
+#calc{overflow-x:auto;margin-top:8px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:3px;border:1px solid var(--ink);display:inline-block}
+
+pre.code{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .t{color:var(--link)} .c{color:var(--soft);font-style:italic}
+
+.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;text-align:center;overflow-x:auto}
+.formula .katex{font-size:1.25em}
+.katex{color:var(--ink)}
+p .katex,td .katex,li .katex{font-size:1.05em}
+
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:30px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+ul.tight,ol.tight{padding-left:20px;max-width:68ch}ul.tight li,ol.tight li{margin:6px 0}
+
+@media (max-width:860px){.controls{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+
+
+
+
+.row{grid-template-columns:minmax(44px,max-content) 1fr 64px}
+.row.sel{grid-template-columns:minmax(44px,max-content) 1fr}
+select{min-height:36px;padding:0 10px;border:1px solid var(--rule-solid);border-radius:6px;font:500 13px var(--mono);color:var(--ink);background:#fff;max-width:100%}
+select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+table.ops{border-collapse:collapse;width:100%;max-width:860px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0}
+.chip{font:600 11px var(--mono);padding:2px 8px;border:1px solid var(--ink);border-radius:4px;background:#fff}
+.chip.on{background:var(--ink);color:var(--paper)}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;padding:16px}
+@media (max-width:860px){.two{grid-template-columns:1fr}}
+
+.doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}.doc-tags a{font:500 12px "Geist Mono",ui-monospace,monospace;padding:4px 10px;border:1px solid var(--rule-solid,#bfc0c0);border-radius:4px;background:#fff;color:var(--muted,#4f5d75);text-decoration:none}.doc-tags a:hover{border-color:var(--ink,#2d3142);color:var(--ink,#2d3142)}.doc-tags a:focus-visible{outline:2px solid var(--accent,#bf4520);outline-offset:2px}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" style="margin-right:8px" href="../../../../index.html">&larr; Back to home</a>
+<a class="back back-cat" href="../../../../index.html#cat=AI">&larr; Back to AI</a>
+
+<header>
+  <div class="eyebrow">AI · Dimensionality reduction</div>
+  <h1>t-SNE</h1>
+  <p class="lede">Squash many dimensions onto a flat map so that points that were neighbors stay neighbors. Built for looking at data, not for modeling it.</p>
+  <nav class="doc-tags" aria-label="Main tags"><a href="../../../../index.html#tag=unsupervised">#unsupervised</a><a href="../../../../index.html#tag=visualization">#visualization</a><a href="../../../../index.html#tag=embedding">#embedding</a><a href="../../../../index.html#tag=perplexity">#perplexity</a></nav>
+</header>
+
+<section>
+  <h2>Try it first</h2>
+  <p>Forty-five points live in five dimensions, in three groups. Press Run to let t-SNE move them around a plane. The colors are used only for painting, never for learning. Change the perplexity to change how much of the neighborhood each point looks at.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">A 2D map of 5D data</span></div>
+    <div class="scroll">
+      <svg id="plot" viewBox="0 0 720 360" role="img" aria-labelledby="plot-title plot-desc">
+        <title id="plot-title">A 2D map of 5D data</title>
+        <desc id="plot-desc">A scatter of 45 colored points that starts as a tight blob and spreads into clusters as the optimization runs.</desc>
+        <rect width="720" height="360" fill="#fff" stroke="rgba(45,49,66,.12)"/>
+        <g id="layer"></g>
+      </svg>
+    </div>
+    <div class="card-bottom"><span class="hint">colors are not used by the algorithm</span><span class="live" id="live"></span></div>
+  </figure>
+
+  <div class="controls">
+    <div class="panel">
+      <div class="row"><label for="perp">Perplexity</label><input type="range" id="perp" min="2" max="30" step="1" value="10"><output id="o-perp"></output></div><div class="btns"><button type="button" class="btn" id="run">Run 100 iterations</button><button type="button" class="btn" id="reset">Reset</button></div><div class="legend" aria-label="Legend"><span><i class="sw" style="background:#bf4520"></i>group 1</span><span><i class="sw" style="background:#2e5aa8"></i>group 2</span><span><i class="sw" style="background:#1f7a4d"></i>group 3</span></div>
+    </div>
+    <div class="panel">
+      <div class="eyebrow">Readout</div>
+      <pre id="readout" aria-live="polite"></pre>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>1. The goal</h2>
+  <p><a href="../principal-component-analysis/principal-component-analysis.html">PCA</a> keeps directions of largest variance, which are linear. Curved or tangled structure gets lost. t-SNE, t-distributed Stochastic Neighbor Embedding, instead tries to preserve <b>who is near whom</b>.</p>
+</section>
+
+<section>
+  <h2>2. Step 1: neighbor probabilities in high dimension</h2>
+  <p>For each point $i$, turn distances into the probability that $j$ is its neighbor, using a Gaussian centered on $i$:</p>
+  <div class="formula">$$p_{j\mid i}=\frac{\exp(-\|x_i-x_j\|^2/2\sigma_i^2)}{\sum_{k\ne i}\exp(-\|x_i-x_k\|^2/2\sigma_i^2)}$$</div>
+  <p>The width $\sigma_i$ is chosen per point so that the distribution has a set <b>perplexity</b>, roughly the effective number of neighbors. Dense areas get small $\sigma_i$, sparse ones large. The result is symmetrized into $p_{ij}$.</p>
+</section>
+
+<section>
+  <h2>3. Step 2: the same in 2D, with heavy tails</h2>
+  <p>Place points $y_i$ on the plane and define similarity with a Student-t curve, which has far fatter tails than a Gaussian:</p>
+  <div class="formula">$$q_{ij}=\frac{(1+\|y_i-y_j\|^2)^{-1}}{\sum_{k\ne l}(1+\|y_k-y_l\|^2)^{-1}}$$</div>
+  <p>The fat tail lets moderately distant points sit far apart in 2D, which fixes the "crowding" problem of squeezing high dimensions into two.</p>
+</section>
+
+<section>
+  <h2>4. Step 3: make the two agree</h2>
+  <p>Move the $y_i$ by gradient descent to minimize the mismatch between $P$ and $Q$, measured by KL divergence:</p>
+  <div class="formula">$$C=\sum_{i\ne j}p_{ij}\log\frac{p_{ij}}{q_{ij}}$$</div>
+  <p>It punishes placing true neighbors far apart much more than the reverse. A trick called early exaggeration scales $p_{ij}$ up at the start so clusters form first.</p>
+</section>
+
+<section>
+  <h2>5. How to read a t-SNE plot</h2>
+  <ul class="tight">
+    <li><b>Clusters are meaningful. Distances between clusters and cluster sizes are not.</b></li>
+    <li>Run it with several perplexities, typically 5 to 50. Different values can show different structure.</li>
+    <li>Results change with the random start. A cluster that appears in every run is more trustworthy.</li>
+    <li>It does not give a function for new points. For that, use <a href="../principal-component-analysis/principal-component-analysis.html">PCA</a> or an <a href="../autoencoder/autoencoder.html">Autoencoder</a>. UMAP is a faster relative.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>6. Related</h2>
+  <p>Linear alternative: <a href="../principal-component-analysis/principal-component-analysis.html">PCA</a>. Learned alternative: <a href="../autoencoder/autoencoder.html">Autoencoder</a>. See the full map in <a href="../ml-algorithm-groups/ml-algorithm-groups.html">Machine Learning Algorithm Groups</a>.</p>
+</section>
+
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+  var NS = 'http://www.w3.org/2000/svg';
+  var $ = function (id) { return document.getElementById(id); };
+  function el(name, attrs, parent) {
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function rng(seed) {
+    var a = seed >>> 0;
+    return function () {
+      a = (a + 0x6D2B79F5) >>> 0;
+      var t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function gauss(r) { var u = 1 - r(), v = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+  function clamp(v, a, b) { return Math.min(b, Math.max(a, v)); }
+  function txt(parent, x, y, s, extra) {
+    var a = { x: x, y: y, 'font-family': 'Geist Mono, monospace', 'font-size': 11, fill: '#4f5d75' };
+    for (var k in extra || {}) a[k] = extra[k];
+    var t = el('text', a, parent); t.textContent = s; return t;
+  }
+  function bindOut(ids) { ids.forEach(function (i) { var o = $('o-' + i); if (o) o.textContent = $(i).value; }); }
+
+
+  var W = 720, H = 360, COLS = ['#bf4520', '#2e5aa8', '#1f7a4d'];
+  var n = 45, X = [], cls = [], S = { P: null, Y: null, V: null, it: 0, kl: 0 };
+  (function () {
+    var r = rng(8), C = [];
+    for (var k = 0; k < 3; k++) { var c = []; for (var d = 0; d < 5; d++) c.push(gauss(r) * 4); C.push(c); }
+    for (var i = 0; i < n; i++) { var k2 = i % 3, x = []; for (d = 0; d < 5; d++) x.push(C[k2][d] + gauss(r) * 1.3); X.push(x); cls.push(k2); }
+  })();
+  var D2 = X.map(function (a) { return X.map(function (b) { var s = 0; for (var d = 0; d < 5; d++) s += (a[d] - b[d]) * (a[d] - b[d]); return s; }); });
+  function affin(perp) {
+    var P = [], i, j, target = Math.log(perp);
+    for (i = 0; i < n; i++) {
+      var lo = 1e-10, hi = 1e10, beta = 1, row = null;
+      for (var it = 0; it < 60; it++) {
+        var s = 0, Hh = 0, pr = [];
+        for (j = 0; j < n; j++) { var v = j === i ? 0 : Math.exp(-D2[i][j] * beta); pr.push(v); s += v; }
+        s = s || 1e-12; for (j = 0; j < n; j++) pr[j] /= s;
+        for (j = 0; j < n; j++) if (pr[j] > 1e-12) Hh -= pr[j] * Math.log(pr[j]);
+        row = pr; if (Math.abs(Hh - target) < 1e-5) break;
+        if (Hh > target) { lo = beta; beta = hi >= 1e10 ? beta * 2 : (beta + hi) / 2; } else { hi = beta; beta = (beta + lo) / 2; }
+      }
+      P.push(row);
+    }
+    var Q = []; for (i = 0; i < n; i++) { Q.push([]); for (j = 0; j < n; j++) Q[i].push(Math.max((P[i][j] + P[j][i]) / (2 * n), 1e-12)); }
+    return Q;
+  }
+  function reset() {
+    S.P = affin(+$('perp').value); var r = rng(77); S.Y = []; S.V = [];
+    for (var i = 0; i < n; i++) { S.Y.push([gauss(r) * 1e-2, gauss(r) * 1e-2]); S.V.push([0, 0]); }
+    S.it = 0; S.kl = 0; render();
+  }
+  function iterate(m) {
+    for (var t = 0; t < m; t++) {
+      var ex = S.it < 50 ? 4 : 1, mom = S.it < 50 ? 0.5 : 0.8, i, j, num = [], Z = 0;
+      for (i = 0; i < n; i++) { num.push([]); for (j = 0; j < n; j++) { var q = i === j ? 0 : 1 / (1 + Math.pow(S.Y[i][0] - S.Y[j][0], 2) + Math.pow(S.Y[i][1] - S.Y[j][1], 2)); num[i].push(q); Z += q; } }
+      var kl = 0;
+      for (i = 0; i < n; i++) {
+        var gx = 0, gy = 0;
+        for (j = 0; j < n; j++) { if (i === j) continue; var qq = num[i][j] / Z, pp = S.P[i][j] * ex; gx += (pp - qq) * num[i][j] * (S.Y[i][0] - S.Y[j][0]); gy += (pp - qq) * num[i][j] * (S.Y[i][1] - S.Y[j][1]); if (ex === 1) kl += S.P[i][j] * Math.log(S.P[i][j] / Math.max(qq, 1e-12)); }
+        S.V[i][0] = mom * S.V[i][0] - 100 * 4 * gx; S.V[i][1] = mom * S.V[i][1] - 100 * 4 * gy;
+      }
+      for (i = 0; i < n; i++) { S.Y[i][0] += S.V[i][0]; S.Y[i][1] += S.V[i][1]; }
+      var mx = 0, my = 0; S.Y.forEach(function (y) { mx += y[0] / n; my += y[1] / n; }); S.Y.forEach(function (y) { y[0] -= mx; y[1] -= my; });
+      S.it++; S.kl = kl;
+    }
+    render();
+  }
+  function render() {
+    bindOut(['perp']);
+    var g = $('layer'); g.textContent = '';
+    var minx = 1e9, maxx = -1e9, miny = 1e9, maxy = -1e9;
+    S.Y.forEach(function (y) { minx = Math.min(minx, y[0]); maxx = Math.max(maxx, y[0]); miny = Math.min(miny, y[1]); maxy = Math.max(maxy, y[1]); });
+    var sc = Math.min(600 / Math.max(maxx - minx, 1e-6), 300 / Math.max(maxy - miny, 1e-6));
+    S.Y.forEach(function (y, i) {
+      el('circle', { cx: W / 2 + (y[0] - (minx + maxx) / 2) * sc, cy: H / 2 - (y[1] - (miny + maxy) / 2) * sc, r: 6, fill: COLS[cls[i]], stroke: '#fff', 'stroke-width': 1.5 }, g);
+    });
+    // neighbor purity in 2D
+    var pure = 0, i, j;
+    for (i = 0; i < n; i++) {
+      var best = 1e9, bj = -1;
+      for (j = 0; j < n; j++) { if (i === j) continue; var d = Math.pow(S.Y[i][0] - S.Y[j][0], 2) + Math.pow(S.Y[i][1] - S.Y[j][1], 2); if (d < best) { best = d; bj = j; } }
+      if (cls[bj] === cls[i]) pure++;
+    }
+    $('live').textContent = 'iteration ' + S.it;
+    $('readout').textContent = 'iteration     = ' + S.it + '\nperplexity    = ' + $('perp').value + '\nKL divergence = ' + (S.it > 50 ? S.kl.toFixed(3) : 'warming up') + '\nnearest neighbor in same class = ' + (pure / n * 100).toFixed(0) + '%\n\nThe data are 45 points in 5 dimensions, in 3 groups. The plot is learned with no use of the colours.';
+  }
+  $('run').addEventListener('click', function () { iterate(100); });
+  $('perp').addEventListener('change', reset);
+  $('perp').addEventListener('input', function () { bindOut(['perp']); });
+  $('reset').addEventListener('click', reset);
+  reset();
+
+
+  if (window.renderMathInElement) {
+    window.renderMathInElement(document.body, {
+      delimiters: [{ left: '$$', right: '$$', display: true }, { left: '$', right: '$', display: false }],
+      ignoredTags: ['script', 'style', 'textarea', 'pre', 'code'],
+      throwOnError: false
+    });
+  }
+
+});
+</script>
+</body>
+</html>

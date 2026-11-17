@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Q-learning and Dyna-Q: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+a{color:var(--link)}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+
+.card{margin:24px 0 0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.scroll{overflow-x:auto;padding:0 8px;text-align:center}
+.scroll svg{display:inline-block;width:100%;max-width:720px;height:auto}
+
+.controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;margin-top:16px;align-items:start}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.row{display:grid;grid-template-columns:44px 1fr 56px;gap:12px;align-items:center;margin:0 0 12px}
+.row label{font-family:var(--mono);font-size:13px;font-weight:600}
+.row output{font-family:var(--mono);font-size:12px;text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);min-height:28px}
+.group-label{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);margin:16px 0 6px}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.big-answer{font-family:var(--serif);font-size:44px;line-height:1.1;margin:4px 0 8px;color:var(--accent)}
+#readout{margin:0;padding:0;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink);border:0;background:none}
+#calc{overflow-x:auto;margin-top:8px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:3px;border:1px solid var(--ink);display:inline-block}
+
+pre.code{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .t{color:var(--link)} .c{color:var(--soft);font-style:italic}
+
+.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;text-align:center;overflow-x:auto}
+.formula .katex{font-size:1.25em}
+.katex{color:var(--ink)}
+p .katex,td .katex,li .katex{font-size:1.05em}
+
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:30px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+ul.tight,ol.tight{padding-left:20px;max-width:68ch}ul.tight li,ol.tight li{margin:6px 0}
+
+@media (max-width:860px){.controls{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+
+
+
+
+.row{grid-template-columns:minmax(44px,max-content) 1fr 64px}
+.row.sel{grid-template-columns:minmax(44px,max-content) 1fr}
+select{min-height:36px;padding:0 10px;border:1px solid var(--rule-solid);border-radius:6px;font:500 13px var(--mono);color:var(--ink);background:#fff;max-width:100%}
+select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+table.ops{border-collapse:collapse;width:100%;max-width:860px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0}
+.chip{font:600 11px var(--mono);padding:2px 8px;border:1px solid var(--ink);border-radius:4px;background:#fff}
+.chip.on{background:var(--ink);color:var(--paper)}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;padding:16px}
+@media (max-width:860px){.two{grid-template-columns:1fr}}
+
+.doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}.doc-tags a{font:500 12px "Geist Mono",ui-monospace,monospace;padding:4px 10px;border:1px solid var(--rule-solid,#bfc0c0);border-radius:4px;background:#fff;color:var(--muted,#4f5d75);text-decoration:none}.doc-tags a:hover{border-color:var(--ink,#2d3142);color:var(--ink,#2d3142)}.doc-tags a:focus-visible{outline:2px solid var(--accent,#bf4520);outline-offset:2px}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" style="margin-right:8px" href="../../../../index.html">&larr; Back to home</a>
+<a class="back back-cat" href="../../../../index.html#cat=AI">&larr; Back to AI</a>
+
+<header>
+  <div class="eyebrow">AI · Reinforcement learning</div>
+  <h1>Q-learning and Dyna-Q</h1>
+  <p class="lede">An agent learns by trying. It keeps a score for every action in every state, and nudges that score toward what it just saw.</p>
+  <nav class="doc-tags" aria-label="Main tags"><a href="../../../../index.html#tag=reinforcement%20learning">#reinforcement learning</a><a href="../../../../index.html#tag=q-learning">#q-learning</a><a href="../../../../index.html#tag=dyna-q">#dyna-q</a><a href="../../../../index.html#tag=temporal%20difference">#temporal difference</a></nav>
+</header>
+
+<section>
+  <h2>Try it first</h2>
+  <p>A small grid. The agent starts at S, wants the green cell worth +1, and must avoid the red cell worth -1. Each step costs a little. It knows nothing at first. Run episodes and watch values spread backward from the goal and arrows appear. Then raise the planning steps to turn plain Q-learning into Dyna-Q and compare how few episodes it needs.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">Learning a path in a grid</span></div>
+    <div class="scroll">
+      <svg id="plot" viewBox="0 0 720 360" role="img" aria-labelledby="plot-title plot-desc">
+        <title id="plot-title">Learning a path in a grid</title>
+        <desc id="plot-desc">A grid of cells with dark walls, a green goal cell, a red pit cell and a start cell marked S. Cells are shaded by their best learned value and show an arrow for the best action.</desc>
+        <rect width="720" height="360" fill="#fff" stroke="rgba(45,49,66,.12)"/>
+        <g id="layer"></g>
+      </svg>
+    </div>
+    <div class="card-bottom"><span class="hint">plan n above 0 turns on Dyna-Q</span><span class="live" id="live"></span></div>
+  </figure>
+
+  <div class="controls">
+    <div class="panel">
+      <div class="row"><label for="al">$\alpha$</label><input type="range" id="al" min="0.05" max="1" step="0.05" value="0.5"><output id="o-al"></output></div><div class="row"><label for="ga">$\gamma$</label><input type="range" id="ga" min="0" max="0.99" step="0.01" value="0.9"><output id="o-ga"></output></div><div class="row"><label for="ep">$\varepsilon$</label><input type="range" id="ep" min="0" max="0.5" step="0.05" value="0.2"><output id="o-ep"></output></div><div class="row"><label for="np">Plan n</label><input type="range" id="np" min="0" max="30" step="1" value="0"><output id="o-np"></output></div><div class="btns"><button type="button" class="btn" id="one">Run 1 episode</button><button type="button" class="btn" id="many">Run 20</button><button type="button" class="btn" id="reset">Reset</button></div>
+    </div>
+    <div class="panel">
+      <div class="eyebrow">Readout</div>
+      <pre id="readout" aria-live="polite"></pre>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>1. The setting</h2>
+  <p>In reinforcement learning an <b>agent</b> in a <b>state</b> picks an <b>action</b>, gets a <b>reward</b> and lands in a new state. The goal is a policy that collects the most total reward. Nobody gives the right answers. The agent finds them by acting.</p>
+</section>
+
+<section>
+  <h2>2. The Q table</h2>
+  <p>$Q(s,a)$ estimates how much total future reward you get by taking action $a$ in state $s$, then acting well. If you know $Q$, the best policy is simply "pick the action with the highest $Q$".</p>
+</section>
+
+<section>
+  <h2>3. The update</h2>
+  <p>After each step $(s,a,r,s')$, move $Q(s,a)$ toward a better estimate, the reward plus the discounted best value of the next state:</p>
+  <div class="formula">$$Q(s,a)\leftarrow Q(s,a)+\alpha\Big[r+\gamma\max_{a'}Q(s',a')-Q(s,a)\Big]$$</div>
+  <ul class="tight">
+    <li>$\alpha$ is the learning rate, how far to move.</li>
+    <li>$\gamma$ discounts the future. Near 1 the agent plans far ahead.</li>
+    <li>The bracket is the <b>temporal-difference error</b>: how wrong the old guess was.</li>
+    <li>Because of the $\max$, it learns the best policy even while exploring. It is called <b>off-policy</b>.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>4. Explore or exploit</h2>
+  <p>If the agent always takes its best-known action it may never find better ones. <b>Epsilon-greedy</b> picks a random action with probability $\varepsilon$ and the best one otherwise. A common plan starts with a high $\varepsilon$ and lowers it over time.</p>
+</section>
+
+<section>
+  <h2>5. Dyna-Q: learn from imagination</h2>
+  <p>Q-learning throws away each real experience after one update. <b>Dyna-Q</b> also records it in a small <b>model</b>: "in state $s$, action $a$ gave reward $r$ and led to $s'$". After every real step it replays $n$ random remembered transitions as extra updates.</p>
+  <p>Real steps are expensive and imagined ones are free, so values spread across the grid much faster. Set Plan n to 20 and compare steps needed per episode. This is the simplest <b>model-based</b> method.</p>
+</section>
+
+<section>
+  <h2>6. Limits</h2>
+  <ul class="tight">
+    <li>A table needs one entry per state. For huge or continuous states, replace it with a neural network, as in <a href="../deep-q-network/deep-q-network.html">Deep Q-Network</a>.</li>
+    <li>A learned model can be wrong. Planning on a wrong model reinforces mistakes. Dyna-Q assumes a fixed world.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>7. Related</h2>
+  <p>Next: <a href="../deep-q-network/deep-q-network.html">Deep Q-Network</a> replaces the table with a network. <a href="../policy-gradient/policy-gradient.html">Policy Gradients</a> learn the policy directly. <a href="../monte-carlo-tree-search/monte-carlo-tree-search.html">Monte Carlo Tree Search</a> plans with a model. See the full map in <a href="../ml-algorithm-groups/ml-algorithm-groups.html">Machine Learning Algorithm Groups</a>.</p>
+</section>
+
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+  var NS = 'http://www.w3.org/2000/svg';
+  var $ = function (id) { return document.getElementById(id); };
+  function el(name, attrs, parent) {
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function rng(seed) {
+    var a = seed >>> 0;
+    return function () {
+      a = (a + 0x6D2B79F5) >>> 0;
+      var t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function gauss(r) { var u = 1 - r(), v = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+  function clamp(v, a, b) { return Math.min(b, Math.max(a, v)); }
+  function txt(parent, x, y, s, extra) {
+    var a = { x: x, y: y, 'font-family': 'Geist Mono, monospace', 'font-size': 11, fill: '#4f5d75' };
+    for (var k in extra || {}) a[k] = extra[k];
+    var t = el('text', a, parent); t.textContent = s; return t;
+  }
+  function bindOut(ids) { ids.forEach(function (i) { var o = $('o-' + i); if (o) o.textContent = $(i).value; }); }
+
+
+  var W = 720, H = 360, R = 4, C = 6, CELL = 90, ACT = [[-1, 0], [1, 0], [0, -1], [0, 1]], AN = ['up', 'down', 'left', 'right'];
+  var WALLS = { '1,1': 1, '1,2': 1, '2,4': 1 }, GOAL = '0,5', PIT = '1,5', START = [3, 0];
+  var S = { Q: null, model: null, episodes: 0, steps: 0, last: 0, hist: [], r: null };
+  function sid(r, c) { return r * C + c; }
+  function reset() { S.Q = []; for (var i = 0; i < R * C; i++) S.Q.push([0, 0, 0, 0]); S.model = {}; S.episodes = 0; S.steps = 0; S.last = 0; S.hist = []; S.r = rng(5); render(); }
+  function move(r, c, a) {
+    var nr = r + ACT[a][0], nc = c + ACT[a][1];
+    if (nr < 0 || nr >= R || nc < 0 || nc >= C || WALLS[nr + ',' + nc]) { nr = r; nc = c; }
+    var k = nr + ',' + nc, term = k === GOAL || k === PIT;
+    return { r: nr, c: nc, rew: k === GOAL ? 1 : k === PIT ? -1 : -0.04, done: term };
+  }
+  function best(s) { var q = S.Q[s], b = 0; for (var a = 1; a < 4; a++) if (q[a] > q[b]) b = a; return b; }
+  function maxq(s) { return Math.max.apply(null, S.Q[s]); }
+  function update(s, a, rew, s2, done, al, ga) { S.Q[s][a] += al * (rew + (done ? 0 : ga * maxq(s2)) - S.Q[s][a]); }
+  function episode() {
+    var al = +$('al').value, ga = +$('ga').value, ep = +$('ep').value, np = +$('np').value, r = START[0], c = START[1], n = 0;
+    while (n < 200) {
+      var s = sid(r, c), a = S.r() < ep ? Math.floor(S.r() * 4) : (function () { var q = S.Q[s], m = Math.max.apply(null, q), o = []; q.forEach(function (v, i) { if (v === m) o.push(i); }); return o[Math.floor(S.r() * o.length)]; })();
+      var t = move(r, c, a), s2 = sid(t.r, t.c);
+      update(s, a, t.rew, s2, t.done, al, ga);
+      S.model[s * 4 + a] = [t.rew, s2, t.done];
+      var keys = Object.keys(S.model);
+      for (var i = 0; i < np; i++) { var kk = +keys[Math.floor(S.r() * keys.length)], m = S.model[kk]; update(Math.floor(kk / 4), kk % 4, m[0], m[1], m[2], al, ga); }
+      r = t.r; c = t.c; n++; S.steps++;
+      if (t.done) break;
+    }
+    S.episodes++; S.last = n; S.hist.push(n); if (S.hist.length > 10) S.hist.shift();
+  }
+  function render() {
+    bindOut(['al', 'ga', 'ep', 'np']);
+    var g = $('layer'); g.textContent = '';
+    var ox = 90;
+    for (var r = 0; r < R; r++) for (var c = 0; c < C; c++) {
+      var k = r + ',' + c, x = ox + c * CELL, y = r * CELL, s = sid(r, c);
+      if (WALLS[k]) { el('rect', { x: x, y: y, width: CELL, height: CELL, fill: '#2d3142' }, g); continue; }
+      var v = maxq(s), term = k === GOAL || k === PIT;
+      var fill = term ? (k === GOAL ? 'rgba(31,122,77,.35)' : 'rgba(191,69,32,.35)') : v >= 0 ? 'rgba(31,122,77,' + Math.min(0.5, v * 0.5) + ')' : 'rgba(191,69,32,' + Math.min(0.5, -v * 0.5) + ')';
+      el('rect', { x: x, y: y, width: CELL, height: CELL, fill: fill, stroke: 'rgba(45,49,66,.2)' }, g);
+      if (term) { txt(g, x + CELL / 2, y + CELL / 2 + 6, k === GOAL ? '+1' : '-1', { 'text-anchor': 'middle', 'font-size': 20, 'font-weight': 600, fill: '#2d3142' }); continue; }
+      var b = best(s), has = S.Q[s].some(function (q) { return q !== 0; });
+      if (has) {
+        var cx = x + CELL / 2, cy = y + CELL / 2, d = ACT[b], px = d[1], py = d[0];
+        el('path', { d: 'M' + (cx - px * 22) + ',' + (cy - py * 22) + ' L' + (cx + px * 22) + ',' + (cy + py * 22), stroke: '#2d3142', 'stroke-width': 3 }, g);
+        el('path', { d: 'M' + (cx + px * 22) + ',' + (cy + py * 22) + ' l' + (-px * 9 + py * 7) + ',' + (-py * 9 - px * 7) + ' M' + (cx + px * 22) + ',' + (cy + py * 22) + ' l' + (-px * 9 - py * 7) + ',' + (-py * 9 + px * 7), stroke: '#2d3142', 'stroke-width': 3 }, g);
+        txt(g, x + 5, y + 14, v.toFixed(2), { 'font-size': 10 });
+      }
+      if (r === START[0] && c === START[1]) txt(g, x + CELL - 8, y + CELL - 8, 'S', { 'text-anchor': 'end', 'font-size': 14, 'font-weight': 600, fill: '#bf4520' });
+    }
+    var avg = S.hist.length ? S.hist.reduce(function (a, b) { return a + b; }, 0) / S.hist.length : 0;
+    $('live').textContent = S.episodes + ' episodes · last ' + S.last + ' steps';
+    $('readout').textContent = 'episodes         = ' + S.episodes + '\nreal steps       = ' + S.steps + '\nlast episode     = ' + S.last + ' steps\navg last 10      = ' + avg.toFixed(1) + ' steps\nplanning steps   = ' + $('np').value + (+$('np').value > 0 ? ' (Dyna-Q)' : ' (plain Q-learning)') + '\n\nNumbers: best value in each cell. Arrow: the greedy action.';
+  }
+  function run(m) { for (var i = 0; i < m; i++) episode(); render(); }
+  $('one').addEventListener('click', function () { run(1); });
+  $('many').addEventListener('click', function () { run(20); });
+  $('reset').addEventListener('click', reset);
+  ['al', 'ga', 'ep', 'np'].forEach(function (i) { $(i).addEventListener('input', render); });
+  reset();
+
+
+  if (window.renderMathInElement) {
+    window.renderMathInElement(document.body, {
+      delimiters: [{ left: '$$', right: '$$', display: true }, { left: '$', right: '$', display: false }],
+      ignoredTags: ['script', 'style', 'textarea', 'pre', 'code'],
+      throwOnError: false
+    });
+  }
+
+});
+</script>
+</body>
+</html>
