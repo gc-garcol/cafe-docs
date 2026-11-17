@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Kubernetes Services and Networking: a visual guide</title>
+<title>Kubernetes Networking: a visual guide</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -101,6 +101,7 @@ select,input[type=text]{min-height:40px;padding:0 10px;border:1px solid var(--ru
 select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .uri{font-family:var(--mono);font-size:14px;word-break:break-all;padding:14px 16px;background:var(--ink);color:var(--paper);border-radius:6px;margin:0 0 12px}
 
+
 .pod{display:inline-flex;align-items:center;justify-content:center;min-width:64px;height:36px;margin:3px;padding:0 8px;border:1px solid var(--ink);border-radius:6px;background:#fff;font:600 11px var(--mono);color:var(--ink)}
 button.pod{cursor:pointer}
 .pod.new{background:var(--ink);color:var(--paper)}
@@ -116,6 +117,12 @@ button.pod{cursor:pointer}
 .split3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;padding:16px}
 .ok{color:#1f7a4d}.no{color:var(--accent)}
 @media (max-width:860px){.split,.split3{grid-template-columns:1fr}}
+
+.check{list-style:none;padding:0;margin:12px 0 0;max-width:640px}
+.check li{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--rule)}
+.check input{width:18px;height:18px;accent-color:var(--accent)}
+.check li.done a{color:var(--soft);text-decoration:line-through}
+.prog{font-family:var(--mono);font-size:12px;color:var(--soft)}
 .doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}.doc-tags a{font:500 12px "Geist Mono",ui-monospace,monospace;padding:4px 10px;border:1px solid var(--rule-solid,#bfc0c0);border-radius:4px;background:#fff;color:var(--muted,#4f5d75);text-decoration:none}.doc-tags a:hover{border-color:var(--ink,#2d3142);color:var(--ink,#2d3142)}.doc-tags a:focus-visible{outline:2px solid var(--accent,#bf4520);outline-offset:2px}
 </style>
 </head>
@@ -127,9 +134,9 @@ button.pod{cursor:pointer}
 
 <header>
   <div class="eyebrow">Architecture · Kubernetes</div>
-  <h1>Kubernetes Services and Networking</h1>
-  <p class="lede">How Pods find each other. A Service gives a changing set of Pods one stable address, and only ready Pods receive traffic.</p>
-  <nav class="doc-tags" aria-label="Main tags"><a href="../../../../index.html#tag=kubernetes">#kubernetes</a><a href="../../../../index.html#tag=k8s">#k8s</a><a href="../../../../index.html#tag=service">#service</a><a href="../../../../index.html#tag=endpoints">#endpoints</a></nav>
+  <h1>Kubernetes Networking</h1>
+  <p class="lede">How Pods find and reach each other and the outside world. Services, DNS, ingress, the CNI plugin and the rules that enforce it all.</p>
+  <nav class="doc-tags" aria-label="Main tags"><a href="../../../../index.html#tag=kubernetes">#kubernetes</a><a href="../../../../index.html#tag=k8s">#k8s</a><a href="../../../../index.html#tag=service">#service</a><a href="../../../../index.html#tag=coredns">#coredns</a></nav>
 </header>
 
 <section>
@@ -152,45 +159,76 @@ button.pod{cursor:pointer}
 
 <section>
   <h2>Contents</h2>
-  <ol class="toc">
-    <li><a href="#why">Why Services exist</a></li>
-    <li><a href="#types">Service types</a></li>
-    <li><a href="#proxy">How traffic is routed</a></li>
-    <li><a href="#ingress">Ingress and DNS</a></li>
-    <li><a href="#sources">Sources</a></li>
+  <div class="prog" id="prog" aria-live="polite"></div>
+  <ol class="check">
+    <li><input type="checkbox" id="c-podnet" aria-label="Mark Pod Networking as done"><a href="#podnet">Pod Networking</a></li>
+    <li><input type="checkbox" id="c-svc" aria-label="Mark ClusterIP / NodePort / LoadBalancer as done"><a href="#svc">ClusterIP / NodePort / LoadBalancer</a></li>
+    <li><input type="checkbox" id="c-dns" aria-label="Mark CoreDNS as done"><a href="#dns">CoreDNS</a></li>
+    <li><input type="checkbox" id="c-ingress" aria-label="Mark Ingress Controller as done"><a href="#ingress">Ingress Controller</a></li>
+    <li><input type="checkbox" id="c-gateway" aria-label="Mark Gateway API as done"><a href="#gateway">Gateway API</a></li>
+    <li><input type="checkbox" id="c-cni" aria-label="Mark CNI as done"><a href="#cni">CNI</a></li>
+    <li><input type="checkbox" id="c-netpol" aria-label="Mark NetworkPolicy as done"><a href="#netpol">NetworkPolicy</a></li>
+    <li><input type="checkbox" id="c-proxy" aria-label="Mark kube-proxy / iptables / IPVS as done"><a href="#proxy">kube-proxy / iptables / IPVS</a></li>
   </ol>
 </section>
 
-<section id="why">
-  <h2>1. Why Services exist</h2>
-  <p>Pod IPs change every time a Pod is replaced. A <b>Service</b> gives a group of Pods one stable virtual IP and DNS name, and spreads traffic across the ready ones. Clients use the Service name, such as <code>web.default.svc</code>, and never track individual Pods.</p>
+<section id="podnet">
+  <h2>1. Pod Networking</h2>
+  <p>Every Pod gets its own IP. Any Pod can reach any other Pod by IP with no NAT, across nodes. Containers in one Pod share the network namespace and talk over <code>localhost</code>. The CNI plugin builds this flat network.</p>
+
 </section>
 
-<section id="types">
-  <h2>2. Service types</h2>
+<section id="svc">
+  <h2>2. ClusterIP / NodePort / LoadBalancer</h2>
   <table class="ops">
     <thead><tr><th>Type</th><th>Reachable from</th></tr></thead>
     <tbody>
       <tr><td>ClusterIP</td><td>Inside the cluster only. The default.</td></tr>
-      <tr><td>NodePort</td><td>A fixed port on every node, so outside traffic can enter.</td></tr>
-      <tr><td>LoadBalancer</td><td>An external load balancer from the cloud provider, in front of the NodePorts.</td></tr>
+      <tr><td>NodePort</td><td>A fixed port on every node.</td></tr>
+      <tr><td>LoadBalancer</td><td>An external load balancer from the cloud provider.</td></tr>
       <tr><td>ExternalName</td><td>A DNS alias to a name outside the cluster.</td></tr>
     </tbody>
-  </table>
+  </table>  <p>A Service has a stable virtual IP and picks ready Pods by label. A headless Service (<code>clusterIP: None</code>) skips the virtual IP and returns Pod IPs.</p>
+
 </section>
 
-<section id="proxy">
-  <h2>3. How traffic is routed</h2>
-  <p>The control plane keeps a list of endpoints for each Service. On every node, <b>kube-proxy</b> turns that list into iptables or IPVS rules. A packet to the Service IP is rewritten to one endpoint Pod. Selection is spread over the endpoints, not a strict round robin. There is no proxy process in the data path.</p>
+<section id="dns">
+  <h2>3. CoreDNS</h2>
+  <p>CoreDNS is the cluster DNS server. A Service <code>web</code> in namespace <code>shop</code> is <code>web.shop.svc.cluster.local</code>. Inside the same namespace the short name <code>web</code> works because of the search list in each Pod's <code>/etc/resolv.conf</code>.</p>
+
 </section>
 
 <section id="ingress">
-  <h2>4. Ingress and DNS</h2>
-  <ul class="tight">
-    <li><b>Ingress</b> routes outside HTTP and HTTPS traffic to Services by host and path. An ingress controller, such as NGINX, does the work. The newer Gateway API covers the same ground with more roles.</li>
-    <li><b>Cluster DNS</b> gives each Service a name. Pods find each other by name with no IP lists.</li>
-    <li><b>NetworkPolicy</b> limits which Pods may talk to which. Without one, all Pods can reach all Pods.</li>
-  </ul>
+  <h2>4. Ingress Controller</h2>
+  <p>An <b>Ingress</b> routes outside HTTP and HTTPS traffic to Services by host and path, and terminates TLS. It does nothing alone. An <b>ingress controller</b> such as NGINX or Traefik watches Ingress objects and does the routing.</p>
+
+</section>
+
+<section id="gateway">
+  <h2>5. Gateway API</h2>
+  <p>The successor to Ingress with roles split across objects: a <b>GatewayClass</b> (the implementation), a <b>Gateway</b> (listeners, owned by platform teams) and <b>HTTPRoute</b> (rules, owned by app teams). It also supports TCP, gRPC, header matching and traffic splitting without vendor annotations.</p>
+
+</section>
+
+<section id="cni">
+  <h2>6. CNI</h2>
+  <p>The Container Network Interface is the plugin contract the kubelet uses to wire up a Pod. The plugin assigns the IP and sets up routes. Common choices are Calico, Cilium (eBPF) and Flannel. Many also enforce NetworkPolicy. Without a CNI, nodes stay <code>NotReady</code>.</p>
+
+</section>
+
+<section id="netpol">
+  <h2>7. NetworkPolicy</h2>
+  <p>By default all Pods can talk to all Pods. A NetworkPolicy selects Pods and lists allowed ingress and egress. Once a Pod is selected, anything not allowed is dropped. The CNI must support it.</p>
+<pre>kind: NetworkPolicy
+spec:
+  podSelector: {}           <span class="c2"># every Pod in the namespace</span>
+  policyTypes: [Ingress]    <span class="c2"># no rules = deny all ingress</span></pre>
+</section>
+
+<section id="proxy">
+  <h2>8. kube-proxy / iptables / IPVS</h2>
+  <p>On every node, kube-proxy turns the Service and endpoint lists into kernel rules. In <b>iptables</b> mode a packet to the Service IP is rewritten to one endpoint, and rule lookup grows with the number of Services. <b>IPVS</b> mode uses hash tables and scales better. No proxy process sits in the data path. Some CNIs, such as Cilium, replace kube-proxy with eBPF.</p>
+
 </section>
 
 <section id="sources">
@@ -235,6 +273,21 @@ button.pod{cursor:pointer}
   $('sel').addEventListener('change', function () { last = -1; draw('Selector changed. Endpoints are recomputed from labels and readiness.'); });
   $('reset').addEventListener('click', reset);
   reset();
+})();
+</script>
+<script>
+(function () {
+  var key = 'k8s-check:' + location.pathname, saved = {};
+  try { saved = JSON.parse(localStorage.getItem(key) || '{}'); } catch (e) {}
+  var boxes = document.querySelectorAll('.check input'), out = document.getElementById('prog');
+  function upd() {
+    var n = 0, o = {};
+    boxes.forEach(function (b) { if (b.checked) { n++; o[b.id] = 1; } b.closest('li').classList.toggle('done', b.checked); });
+    out.textContent = n + '/' + boxes.length + ' completed';
+    try { localStorage.setItem(key, JSON.stringify(o)); } catch (e) {}
+  }
+  boxes.forEach(function (b) { b.checked = !!saved[b.id]; b.addEventListener('change', upd); });
+  upd();
 })();
 </script>
 </body>

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Kubernetes Architecture: a visual guide</title>
+<title>Kubernetes Configuration and Security: a visual guide</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -101,6 +101,7 @@ select,input[type=text]{min-height:40px;padding:0 10px;border:1px solid var(--ru
 select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .uri{font-family:var(--mono);font-size:14px;word-break:break-all;padding:14px 16px;background:var(--ink);color:var(--paper);border-radius:6px;margin:0 0 12px}
 
+
 .pod{display:inline-flex;align-items:center;justify-content:center;min-width:64px;height:36px;margin:3px;padding:0 8px;border:1px solid var(--ink);border-radius:6px;background:#fff;font:600 11px var(--mono);color:var(--ink)}
 button.pod{cursor:pointer}
 .pod.new{background:var(--ink);color:var(--paper)}
@@ -116,6 +117,12 @@ button.pod{cursor:pointer}
 .split3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;padding:16px}
 .ok{color:#1f7a4d}.no{color:var(--accent)}
 @media (max-width:860px){.split,.split3{grid-template-columns:1fr}}
+
+.check{list-style:none;padding:0;margin:12px 0 0;max-width:640px}
+.check li{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--rule)}
+.check input{width:18px;height:18px;accent-color:var(--accent)}
+.check li.done a{color:var(--soft);text-decoration:line-through}
+.prog{font-family:var(--mono);font-size:12px;color:var(--soft)}
 .doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}.doc-tags a{font:500 12px "Geist Mono",ui-monospace,monospace;padding:4px 10px;border:1px solid var(--rule-solid,#bfc0c0);border-radius:4px;background:#fff;color:var(--muted,#4f5d75);text-decoration:none}.doc-tags a:hover{border-color:var(--ink,#2d3142);color:var(--ink,#2d3142)}.doc-tags a:focus-visible{outline:2px solid var(--accent,#bf4520);outline-offset:2px}
 </style>
 </head>
@@ -127,23 +134,25 @@ button.pod{cursor:pointer}
 
 <header>
   <div class="eyebrow">Architecture · Kubernetes</div>
-  <h1>Kubernetes Architecture</h1>
-  <p class="lede">What runs a cluster. A control plane stores desired state and a set of controllers, a scheduler and node agents make it real.</p>
-  <nav class="doc-tags" aria-label="Main tags"><a href="../../../../index.html#tag=kubernetes">#kubernetes</a><a href="../../../../index.html#tag=k8s">#k8s</a><a href="../../../../index.html#tag=control%20plane">#control plane</a><a href="../../../../index.html#tag=api%20server">#api server</a></nav>
+  <h1>Kubernetes Configuration and Security</h1>
+  <p class="lede">Keeping config out of images and access under control. ConfigMaps and Secrets, RBAC, identities, Pod hardening, admission and TLS.</p>
+  <nav class="doc-tags" aria-label="Main tags"><a href="../../../../index.html#tag=kubernetes">#kubernetes</a><a href="../../../../index.html#tag=k8s">#k8s</a><a href="../../../../index.html#tag=configmap">#configmap</a><a href="../../../../index.html#tag=secret">#secret</a></nav>
 </header>
 
 <section>
-  <h2>Apply a Deployment and follow it</h2>
-  <p>One <code>kubectl apply</code> touches every component. Step through it and watch which part acts at each moment.</p>
+  <h2>Can this ServiceAccount do that?</h2>
+  <p>An RBAC check needs a rule in a Role and a binding that gives the role to the subject. Change the binding and the request, and see which part allows or blocks it.</p>
   <figure class="card">
-    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">From manifest to running Pod</span></div>
-    <div class="split3" id="comps" role="group" aria-label="Cluster components"></div>
-    <div class="card-bottom"><span class="hint">control plane on the top row, worker node below</span><span class="live" id="live"></span></div>
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">RBAC check</span></div>
+    <div class="split3" id="rb" role="group" aria-label="RBAC evaluation"></div>
+    <div class="card-bottom"><span class="hint">Role pod-reader allows get and list on pods</span><span class="live" id="live"></span></div>
   </figure>
   <div class="controls">
     <div class="panel">
-      <div class="row"><button class="btn" id="next">Next step</button><button class="btn" id="reset">Reset</button></div>
-      <p class="src">Desired state: a Deployment with 1 replica of <code>web:1.0</code>.</p>
+      <label class="f">Binding <select id="bind"><option value="none">none</option><option value="rb" selected>RoleBinding in dev</option><option value="crb">ClusterRoleBinding</option></select></label>
+      <label class="f">Verb <select id="verb"><option>get</option><option>list</option><option>delete</option></select></label>
+      <label class="f">Resource <select id="resrc"><option>pods</option><option>secrets</option></select></label>
+      <label class="f">Namespace <select id="ns"><option>dev</option><option>prod</option></select></label>
     </div>
     <div class="panel"><pre id="readout" aria-live="polite"></pre></div>
   </div>
@@ -151,52 +160,72 @@ button.pod{cursor:pointer}
 
 <section>
   <h2>Contents</h2>
-  <ol class="toc">
-    <li><a href="#plane">Control plane and nodes</a></li>
-    <li><a href="#loop">The reconcile loop</a></li>
-    <li><a href="#watch">Components talk only to the API server</a></li>
-    <li><a href="#nodes">What a node adds</a></li>
-    <li><a href="#sources">Sources</a></li>
+  <div class="prog" id="prog" aria-live="polite"></div>
+  <ol class="check">
+    <li><input type="checkbox" id="c-config" aria-label="Mark ConfigMap / Secret as done"><a href="#config">ConfigMap / Secret</a></li>
+    <li><input type="checkbox" id="c-rbac" aria-label="Mark RBAC as done"><a href="#rbac">RBAC</a></li>
+    <li><input type="checkbox" id="c-sa" aria-label="Mark ServiceAccount as done"><a href="#sa">ServiceAccount</a></li>
+    <li><input type="checkbox" id="c-secctx" aria-label="Mark SecurityContext as done"><a href="#secctx">SecurityContext</a></li>
+    <li><input type="checkbox" id="c-pss" aria-label="Mark Pod Security Standards as done"><a href="#pss">Pod Security Standards</a></li>
+    <li><input type="checkbox" id="c-admission" aria-label="Mark Admission Controller as done"><a href="#admission">Admission Controller</a></li>
+    <li><input type="checkbox" id="c-oidc" aria-label="Mark OIDC / TLS as done"><a href="#oidc">OIDC / TLS</a></li>
   </ol>
 </section>
 
-<section id="plane">
-  <h2>1. Control plane and nodes</h2>
-  <p>A cluster has two halves. The <b>control plane</b> decides what should run. <b>Worker nodes</b> run it.</p>
-  <table class="ops">
-    <thead><tr><th>Component</th><th>Job</th></tr></thead>
-    <tbody>
-      <tr><td>kube-apiserver</td><td>The front door. Every client and every component talks to the cluster through this REST API. It validates requests and stores them.</td></tr>
-      <tr><td>etcd</td><td>A consistent key-value store. It holds all cluster state. Only the API server talks to it.</td></tr>
-      <tr><td>kube-scheduler</td><td>Picks a node for each Pod that has none.</td></tr>
-      <tr><td>controller manager</td><td>Runs control loops that push actual state toward desired state.</td></tr>
-      <tr><td>kubelet</td><td>The agent on each node. It starts the containers of Pods assigned to its node and reports status.</td></tr>
-      <tr><td>kube-proxy</td><td>Programs node networking rules so Services reach their Pods.</td></tr>
-      <tr><td>container runtime</td><td>Pulls images and runs containers, for example containerd.</td></tr>
-    </tbody>
-  </table>
+<section id="config">
+  <h2>1. ConfigMap / Secret</h2>
+  <p>A <b>ConfigMap</b> holds non-secret settings. A <b>Secret</b> holds sensitive values. Both are injected as environment variables or mounted files. Mounted files update in place. Environment variables do not.</p>
+  <p>Secret values are only base64 encoded, not encrypted. Turn on encryption at rest for etcd, restrict who can read Secrets, and consider an external store through the Secrets Store CSI driver.</p>
+
 </section>
 
-<section id="loop">
-  <h2>2. The reconcile loop</h2>
-  <p class="callout">Declare what you want. Controllers keep making it true.</p>
-  <p>You never tell Kubernetes to start a container. You store an object that describes the desired state. A controller watches objects of its kind, compares them with the real world, and acts on the difference. It repeats forever, so a crashed Pod is replaced with no human step.</p>
+<section id="rbac">
+  <h2>2. RBAC</h2>
+  <p>A <b>Role</b> lists allowed verbs on resources in one namespace. A <b>ClusterRole</b> does the same cluster-wide or for non-namespaced objects. A <b>RoleBinding</b> or <b>ClusterRoleBinding</b> grants it to users, groups or ServiceAccounts. Rules only allow. There is no deny.</p>
+<pre>kubectl auth can-i list pods -n dev --as system:serviceaccount:dev:app</pre>
 </section>
 
-<section id="watch">
-  <h2>3. Components talk only to the API server</h2>
-  <p>The scheduler, controllers and kubelets never call each other. Each one <b>watches</b> the API server for objects it cares about and writes its result back. The scheduler sets a Pod's <code>nodeName</code>. The kubelet sees a Pod bound to its node and starts it. This keeps every part replaceable and lets the control plane run several copies.</p>
-<pre>kubectl apply -f deploy.yaml   <span class="c2"># API server validates, writes to etcd</span>
-kubectl get pods -w            <span class="c2"># watch the Pods appear and change</span></pre>
+<section id="sa">
+  <h2>3. ServiceAccount</h2>
+  <p>The identity of a Pod, as opposed to a person. Each namespace has a <code>default</code> one. Pods get a short-lived, audience-bound token projected into the container, not a long-lived secret. Give each workload its own ServiceAccount and bind only what it needs. Set <code>automountServiceAccountToken: false</code> when a Pod never calls the API.</p>
+
 </section>
 
-<section id="nodes">
-  <h2>4. What a node adds</h2>
+<section id="secctx">
+  <h2>4. SecurityContext</h2>
   <ul class="tight">
-    <li>The kubelet registers the node, sends heartbeats, and runs liveness and readiness probes.</li>
-    <li>If heartbeats stop, the node controller marks the node unreachable and its Pods are rescheduled.</li>
-    <li>Add-ons such as cluster DNS run as ordinary Pods in the <code>kube-system</code> namespace.</li>
+    <li><code>runAsNonRoot: true</code> and a fixed <code>runAsUser</code>.</li>
+    <li><code>allowPrivilegeEscalation: false</code>.</li>
+    <li><code>readOnlyRootFilesystem: true</code>.</li>
+    <li><code>capabilities: drop: [ALL]</code>, then add back only what is needed.</li>
+    <li><code>seccompProfile: RuntimeDefault</code>.</li>
   </ul>
+</section>
+
+<section id="pss">
+  <h2>5. Pod Security Standards</h2>
+  <table class="ops">
+    <thead><tr><th>Level</th><th>What it allows</th></tr></thead>
+    <tbody>
+      <tr><td>privileged</td><td>No restrictions.</td></tr>
+      <tr><td>baseline</td><td>Blocks known privilege escalations such as host namespaces and privileged containers.</td></tr>
+      <tr><td>restricted</td><td>Current hardening best practice: non-root, no escalation, dropped capabilities.</td></tr>
+    </tbody>
+  </table>  <p>The built-in Pod Security Admission applies a level per namespace with labels, in <code>enforce</code>, <code>audit</code> or <code>warn</code> mode.</p>
+
+</section>
+
+<section id="admission">
+  <h2>6. Admission Controller</h2>
+  <p>After authentication and authorization, a request passes admission. <b>Mutating</b> controllers may change the object, such as adding defaults or sidecars. Then <b>validating</b> controllers accept or reject it. Built-in ones include LimitRanger and ResourceQuota. <code>ValidatingAdmissionPolicy</code> lets you write rules in CEL with no webhook server.</p>
+
+</section>
+
+<section id="oidc">
+  <h2>7. OIDC / TLS</h2>
+  <p>Users usually sign in through <b>OIDC</b> with an identity provider. The API server checks the ID token and maps claims to a user and groups, which RBAC then uses.</p>
+  <p><b>TLS</b> protects every component link. The API server, etcd and kubelets use certificates, and kubeadm rotates them. cert-manager issues certificates for Ingress and in-cluster use.</p>
+
 </section>
 
 <section id="sources">
@@ -209,37 +238,39 @@ kubectl get pods -w            <span class="c2"># watch the Pods appear and chan
 <script>
 (function () {
   function $(id) { return document.getElementById(id); }
-  var comps = [
-    ['kubectl', 'client'], ['API server', 'kube-apiserver'], ['etcd', 'state store'],
-    ['Controllers', 'controller manager'], ['Scheduler', 'kube-scheduler'], ['Kubelet', 'worker node']
-  ];
-  var steps = [
-    { on: [0, 1], t: 'kubectl sends the Deployment to the API server. It authenticates and validates the object.' },
-    { on: [1, 2], t: 'The API server writes the Deployment to etcd. Desired state is now stored. No Pod exists yet.' },
-    { on: [3, 1], t: 'The Deployment controller sees the new Deployment and creates a ReplicaSet. The ReplicaSet controller then creates 1 Pod object with no node.' },
-    { on: [4, 1], t: 'The scheduler sees a Pod with no node. It filters and scores nodes, then binds the Pod to node-1.' },
-    { on: [5, 1], t: 'The kubelet on node-1 sees a Pod bound to it. It asks the runtime to pull web:1.0 and start the container.' },
-    { on: [5, 1, 2], t: 'The kubelet reports status Running. The API server stores it. Actual state now equals desired state.' }
-  ];
-  var i = -1;
-  var box = $('comps');
-  comps.forEach(function (c) {
-    var d = document.createElement('div'); d.className = 'comp';
-    d.innerHTML = '<b>' + c[0] + '</b><span>' + c[1] + '</span>';
-    box.appendChild(d);
-  });
   function draw() {
-    var kids = box.children;
-    for (var k = 0; k < kids.length; k++) {
-      kids[k].classList.toggle('on', i >= 0 && steps[i].on.indexOf(k) >= 0);
-    }
-    $('live').textContent = i < 0 ? 'idle' : 'step ' + (i + 1) + ' of ' + steps.length;
-    $('readout').textContent = i < 0 ? 'Press Next step to apply the Deployment.' : steps.slice(0, i + 1).map(function (s, n) { return (n + 1) + '. ' + s.t; }).join('\n\n');
-    $('next').disabled = i >= steps.length - 1;
+    var b = $('bind').value, v = $('verb').value, r = $('resrc').value, ns = $('ns').value;
+    var rule = r === 'pods' && (v === 'get' || v === 'list');
+    var scope = b === 'crb' || (b === 'rb' && ns === 'dev');
+    var ok = rule && scope && b !== 'none';
+    var cards = [
+      ['Binding', b !== 'none', b === 'none' ? 'nothing grants the role to the ServiceAccount' : (b === 'rb' ? 'RoleBinding applies in dev only' : 'ClusterRoleBinding applies in every namespace')],
+      ['Scope', scope, scope ? ns + ' is covered' : ns + ' is not covered by this binding'],
+      ['Rule', rule, rule ? v + ' ' + r + ' is in the role' : v + ' ' + r + ' is not in the role']
+    ];
+    var h = '';
+    cards.forEach(function (c) { h += '<div class="comp' + (c[1] ? ' on' : '') + '"><b>' + c[0] + '</b><span class="' + (c[1] ? 'ok' : 'no') + '">' + (c[1] ? 'pass' : 'no') + '</span><br><span>' + c[2] + '</span></div>'; });
+    $('rb').innerHTML = h;
+    $('live').textContent = ok ? 'ALLOWED' : 'DENIED';
+    $('readout').textContent = (ok ? 'Allowed. ' : 'Denied. ') + 'RBAC is additive: access exists only if some binding grants it, and there are no deny rules.';
   }
-  $('next').addEventListener('click', function () { i++; draw(); });
-  $('reset').addEventListener('click', function () { i = -1; draw(); });
+  ['bind', 'verb', 'resrc', 'ns'].forEach(function (i) { $(i).addEventListener('change', draw); });
   draw();
+})();
+</script>
+<script>
+(function () {
+  var key = 'k8s-check:' + location.pathname, saved = {};
+  try { saved = JSON.parse(localStorage.getItem(key) || '{}'); } catch (e) {}
+  var boxes = document.querySelectorAll('.check input'), out = document.getElementById('prog');
+  function upd() {
+    var n = 0, o = {};
+    boxes.forEach(function (b) { if (b.checked) { n++; o[b.id] = 1; } b.closest('li').classList.toggle('done', b.checked); });
+    out.textContent = n + '/' + boxes.length + ' completed';
+    try { localStorage.setItem(key, JSON.stringify(o)); } catch (e) {}
+  }
+  boxes.forEach(function (b) { b.checked = !!saved[b.id]; b.addEventListener('change', upd); });
+  upd();
 })();
 </script>
 </body>

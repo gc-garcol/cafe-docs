@@ -708,55 +708,99 @@ const DOCS = [
     related: ['Aeron Transport', 'Aeron Archive', 'Aeron Reliability and Flow Control'],
   },
   {
-    title: 'Kubernetes Architecture',
-    path: 'content/architecture/k8s/k8s-architecture/k8s-architecture.html',
+    title: 'Kubernetes Fundamentals',
+    path: 'content/architecture/k8s/k8s-fundamentals/k8s-fundamentals.html',
     category: 'Architecture',
     topic: 'Kubernetes',
     order: 6,
     level: 'Beginner',
-    tags: ['kubernetes', 'k8s', 'control plane', 'api server', 'etcd', 'kubelet', 'controller', 'reconcile'],
-    summary: 'Follow one kubectl apply through the API server, etcd, controllers, scheduler and kubelet, and see why the cluster keeps converging on desired state.',
-    related: ['Kubernetes Pods and Deployments', 'Kubernetes Scheduling'],
+    tags: ['kubernetes', 'k8s', 'cluster', 'pod', 'namespace', 'labels', 'kubectl', 'yaml', 'reconciliation'],
+    summary: 'Cluster architecture, control plane and nodes, Pods and Namespaces, labels, kubectl, manifests and the reconcile loop. Step one kubectl apply through every component.',
+    related: ['Kubernetes Workloads', 'Kubernetes Networking'],
   },
   {
-    title: 'Kubernetes Pods and Deployments',
+    title: 'Kubernetes Workloads',
     path: 'content/architecture/k8s/k8s-workloads/k8s-workloads.html',
     category: 'Architecture',
     topic: 'Kubernetes',
     order: 7,
     level: 'Beginner',
-    tags: ['kubernetes', 'k8s', 'pod', 'replicaset', 'deployment', 'rolling update', 'rollback', 'statefulset'],
-    summary: 'Step through a rolling update with maxSurge and maxUnavailable, break the new image on purpose, and roll back.',
-    related: ['Kubernetes Architecture', 'Kubernetes Services and Networking'],
+    tags: ['kubernetes', 'k8s', 'replicaset', 'deployment', 'statefulset', 'daemonset', 'job', 'cronjob', 'rolling update'],
+    summary: 'ReplicaSet, Deployment, StatefulSet, DaemonSet, Job and sidecars. Step through a rolling update, break the image on purpose, and roll back.',
+    related: ['Kubernetes Fundamentals', 'Kubernetes Scheduling and Scaling'],
   },
   {
-    title: 'Kubernetes Services and Networking',
+    title: 'Kubernetes Networking',
     path: 'content/architecture/k8s/k8s-networking/k8s-networking.html',
     category: 'Architecture',
     topic: 'Kubernetes',
     order: 8,
     level: 'Intermediate',
-    tags: ['kubernetes', 'k8s', 'service', 'endpoints', 'kube-proxy', 'ingress', 'dns', 'label selector'],
-    summary: 'Flip Pod readiness and watch a Service rebuild its endpoints from labels, then send requests across them.',
-    related: ['Kubernetes Pods and Deployments', 'Kubernetes Scheduling'],
+    tags: ['kubernetes', 'k8s', 'service', 'coredns', 'ingress', 'gateway api', 'cni', 'networkpolicy', 'kube-proxy'],
+    summary: 'Pod networking, Services, DNS, Ingress, Gateway API, CNI, NetworkPolicy and kube-proxy. Flip Pod readiness and watch a Service rebuild its endpoints.',
+    related: ['Kubernetes Workloads', 'Kubernetes Configuration and Security'],
   },
   {
-    title: 'Kubernetes Scheduling',
-    path: 'content/architecture/k8s/k8s-scheduling/k8s-scheduling.html',
+    title: 'Kubernetes Storage',
+    path: 'content/architecture/k8s/k8s-storage/k8s-storage.html',
     category: 'Architecture',
     topic: 'Kubernetes',
     order: 9,
     level: 'Intermediate',
-    tags: ['kubernetes', 'k8s', 'scheduler', 'filter', 'score', 'taint', 'toleration', 'requests', 'limits'],
-    summary: 'Set CPU and memory requests, selectors and tolerations, and see which nodes the scheduler filters out and which one wins.',
-    related: ['Kubernetes Architecture', 'Kubernetes Services and Networking'],
+    tags: ['kubernetes', 'k8s', 'volume', 'pv', 'pvc', 'storageclass', 'csi', 'access modes', 'statefulset'],
+    summary: 'Volumes, PV and PVC, StorageClass, CSI and access modes. Make a claim and see it bind to a volume or trigger dynamic provisioning.',
+    related: ['Kubernetes Workloads', 'Kubernetes Scheduling and Scaling'],
+  },
+  {
+    title: 'Kubernetes Configuration and Security',
+    path: 'content/architecture/k8s/k8s-security/k8s-security.html',
+    category: 'Architecture',
+    topic: 'Kubernetes',
+    order: 10,
+    level: 'Intermediate',
+    tags: ['kubernetes', 'k8s', 'configmap', 'secret', 'rbac', 'serviceaccount', 'securitycontext', 'pod security', 'admission', 'oidc', 'tls'],
+    summary: 'ConfigMap and Secret, RBAC, ServiceAccount, SecurityContext, Pod Security Standards, admission and OIDC. Check who may do what.',
+    related: ['Kubernetes Networking', 'Kubernetes DevOps and Advanced'],
+  },
+  {
+    title: 'Kubernetes Scheduling and Scaling',
+    path: 'content/architecture/k8s/k8s-scheduling-scaling/k8s-scheduling-scaling.html',
+    category: 'Architecture',
+    topic: 'Kubernetes',
+    order: 11,
+    level: 'Intermediate',
+    tags: ['kubernetes', 'k8s', 'requests', 'limits', 'qos', 'affinity', 'taints', 'probes', 'hpa', 'vpa', 'keda', 'pdb'],
+    summary: 'Requests and limits, QoS, affinity, taints, probes, HPA, VPA, KEDA and PDB. See how the scheduler filters and scores nodes.',
+    related: ['Kubernetes Workloads', 'Kubernetes Observability'],
+  },
+  {
+    title: 'Kubernetes Observability',
+    path: 'content/architecture/k8s/k8s-observability/k8s-observability.html',
+    category: 'Architecture',
+    topic: 'Kubernetes',
+    order: 12,
+    level: 'Intermediate',
+    tags: ['kubernetes', 'k8s', 'prometheus', 'grafana', 'logging', 'opentelemetry', 'tracing', 'alertmanager', 'sli', 'slo'],
+    summary: 'Prometheus, Grafana, logging, OpenTelemetry, tracing, Alertmanager and SLOs. Spend an error budget and see what is left.',
+    related: ['Kubernetes Scheduling and Scaling', 'Kubernetes DevOps and Advanced'],
+  },
+  {
+    title: 'Kubernetes DevOps and Advanced',
+    path: 'content/architecture/k8s/k8s-devops-advanced/k8s-devops-advanced.html',
+    category: 'Architecture',
+    topic: 'Kubernetes',
+    order: 13,
+    level: 'Advanced',
+    tags: ['kubernetes', 'k8s', 'helm', 'kustomize', 'argo cd', 'gitops', 'etcd', 'informer', 'crd', 'operator', 'webhook', 'troubleshooting', 'disaster recovery'],
+    summary: 'Helm, Kustomize, GitOps, etcd, scheduler internals, informers, CRDs and operators, webhooks, troubleshooting and HA. Watch GitOps catch drift.',
+    related: ['Kubernetes Observability', 'Kubernetes Configuration and Security'],
   },
   {
     title: 'AWS Regions and Availability Zones',
     path: 'content/architecture/aws/aws-regions-azs/aws-regions-azs.html',
     category: 'Architecture',
     topic: 'AWS',
-    order: 10,
+    order: 14,
     level: 'Beginner',
     tags: ['aws', 'region', 'availability zone', 'high availability', 'fault tolerance', 'resilience'],
     summary: 'Spread instances over zones, then fail a zone and see how much capacity survives.',
@@ -767,7 +811,7 @@ const DOCS = [
     path: 'content/architecture/aws/aws-vpc/aws-vpc.html',
     category: 'Architecture',
     topic: 'AWS',
-    order: 11,
+    order: 15,
     level: 'Intermediate',
     tags: ['aws', 'vpc', 'subnet', 'route table', 'internet gateway', 'nat gateway', 'security group'],
     summary: 'Change routes, public addresses and security groups to see when an instance can reach the internet or be reached from it.',
@@ -778,7 +822,7 @@ const DOCS = [
     path: 'content/architecture/aws/aws-iam/aws-iam.html',
     category: 'Architecture',
     topic: 'AWS',
-    order: 12,
+    order: 16,
     level: 'Intermediate',
     tags: ['aws', 'iam', 'policy', 'role', 'least privilege', 'explicit deny', 'permissions'],
     summary: 'Attach allow and deny policies, pick an action and a resource, and see why an explicit deny always wins.',
@@ -789,7 +833,7 @@ const DOCS = [
     path: 'content/architecture/aws/aws-load-balancing-scaling/aws-load-balancing-scaling.html',
     category: 'Architecture',
     topic: 'AWS',
-    order: 13,
+    order: 17,
     level: 'Intermediate',
     tags: ['aws', 'elb', 'alb', 'nlb', 'auto scaling', 'target tracking', 'scaling policy'],
     summary: 'Move the load and step time to watch target tracking add and remove instances to hold CPU near a target.',
@@ -891,6 +935,11 @@ function renderTags() {
   const shown = all.filter(t => !q || norm(t).includes(q));
   $('#tagTotal').textContent = q ? `${shown.length}/${all.length}` : `(${all.length})`;
   $('#clearTag').hidden = !state.tag;
+  const at = $('#activeTags');
+  at.hidden = !state.tag;
+  at.innerHTML = state.tag
+    ? `<span class="lbl">Filtering by tag:</span><button type="button" class="tag" data-tag="${esc(state.tag)}" aria-pressed="true" aria-label="Remove tag filter ${esc(state.tag)}">#${esc(state.tag)}<span class="x" aria-hidden="true">×</span></button>`
+    : '';
   $('#tags').innerHTML = shown.map(t =>
     `<button type="button" class="tag" data-tag="${esc(t)}" aria-pressed="${state.tag === t}">#${esc(t)}<span class="n">${tagCount[t]}</span></button>`).join('')
     || '<span class="tag-none">No tag matches.</span>';
@@ -959,38 +1008,116 @@ function buildTree() {
 function renderMap() {
   const svg = $('#map');
   const root = buildTree();
-  const COLX = [24, 168, 336, 528], W = 700, ROW = 38, NH = 28;
-  const widths = { root: 108, cat: 140, topic: 160, doc: 160 };
-  let row = 0;
+  // radial layout: root in the centre, categories / topics / docs on three rings.
+  // leaves share the full circle evenly; a parent sits at the mean angle of its children.
+  const RC = 120, RT = 205, RD = 350, SPAN = 62 * Math.PI / 180;
+  const leaves = [];
+  root.children.forEach(c => { const l = []; (function collect(n) { n.children.length ? n.children.forEach(collect) : l.push(n); })(c); c.leafs = l; });
+  // text stays horizontal, so leaves live on the left and right flanks only (no crowding at top / bottom);
+  // split the categories into two groups with about the same number of docs
+  const total = root.children.reduce((n, c) => n + c.leafs.length, 0);
+  let acc = 0, cut = 0, best = Infinity;
+  root.children.forEach((c, i) => { acc += c.leafs.length; const d = Math.abs(total / 2 - acc); if (i < root.children.length - 1 && d < best) { best = d; cut = i + 1; } });
+  const sides = [root.children.slice(0, cut), root.children.slice(cut)];
+  sides.forEach((cats, si) => {
+    const ls = cats.flatMap(c => c.leafs);
+    ls.forEach((l, j) => {
+      const t = (j + 0.5) / ls.length;   // 0 (top) .. 1 (bottom)
+      l.a = si === 0 ? -SPAN + 2 * SPAN * t : Math.PI + SPAN - 2 * SPAN * t;
+      leaves.push(l);
+    });
+  });
   (function place(n, depth) {
     n.depth = depth;
-    n.x = COLX[depth];
-    if (!n.children.length) { n.y = row++ * ROW + 30; return; }
-    n.children.forEach(c => place(c, depth + 1));
-    n.y = (n.children[0].y + n.children[n.children.length - 1].y) / 2;
+    n.r = [0, RC, RT, RD][depth];
+    if (n.children.length) { n.children.forEach(c => place(c, depth + 1)); n.a = n.children.reduce((s, c) => s + c.a, 0) / n.children.length; }
   })(root, 0);
-  const H = Math.max(row * ROW + 40, 120);
-  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  const txtW = t => t.length * 6.3;
+  const maxDoc = Math.max(...leaves.map(l => txtW(l.label)), 60);
+  const R = RD + 16 + maxDoc, W = R * 2 + 20, H = 2 * (RD * Math.sin(SPAN) + 40), ox = W / 2, oy = H / 2;
+  mapBox = { W, H };
+  const pt = (r, a) => [ox + r * Math.cos(a), oy + r * Math.sin(a)];
 
   const live = new Set(visibleDocs().map(d => d.title));
   const alive = n => n.kind === 'doc' ? live.has(n.label) : n.children.some(alive);
 
+  // labels stay horizontal: docs sit beside their dot (outward), topics are centred on their node
+  const label = (n, cls) => {
+    const [x, y] = pt(n.r, n.a), right = Math.cos(n.a) >= 0;
+    if (n.kind === 'topic')
+      return `<text x="${x.toFixed(1)}" y="${(y + 4).toFixed(1)}" text-anchor="middle" class="nt topic">${esc(n.label)}</text>`;
+    return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.2" class="dot"/>` +
+      `<text x="${(x + (right ? 9 : -9)).toFixed(1)}" y="${(y + 3.5).toFixed(1)}" text-anchor="${right ? 'start' : 'end'}" class="nt doc">${esc(n.label)}</text>`;
+  };
+
   let edges = '', nodes = '';
   (function walk(n) {
     n.children.forEach(c => {
-      const x1 = n.x + widths[n.kind], y1 = n.y, x2 = c.x, y2 = c.y, mx = (x1 + x2) / 2;
-      edges += `<path d="M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}" class="edge${alive(c) ? '' : ' off'}"/>`;
+      const [x1, y1] = pt(n.r, n.a), [x2, y2] = pt(c.r, c.a), rm = (n.r + c.r) / 2;
+      const [m1x, m1y] = pt(rm, n.a), [m2x, m2y] = pt(rm, c.a);
+      edges += `<path d="M${x1.toFixed(1)},${y1.toFixed(1)} C${m1x.toFixed(1)},${m1y.toFixed(1)} ${m2x.toFixed(1)},${m2y.toFixed(1)} ${x2.toFixed(1)},${y2.toFixed(1)}" class="edge${alive(c) ? '' : ' off'}"/>`;
       walk(c);
     });
     const on = n.kind === 'root' || alive(n);
-    const w = widths[n.kind];
-    const body = `<rect x="${n.x}" y="${n.y - NH / 2}" width="${w}" height="${NH}" rx="6" class="nd ${n.kind}"/>` +
-      `<text x="${n.x + w / 2}" y="${n.y + 4}" text-anchor="middle" class="nt ${n.kind}">${esc(n.label)}</text>`;
-    if (n.kind === 'doc') nodes += `<a href="${esc(n.doc.path)}" class="g${on ? '' : ' off'}"><title>${esc(n.doc.summary)}</title>${body}</a>`;
-    else if (n.kind === 'cat') nodes += `<g class="g${on ? '' : ' off'}" data-cat="${esc(n.cat)}" tabindex="0" role="button" aria-label="Filter by ${esc(n.label)}">${body}</g>`;
-    else nodes += `<g class="g${on ? '' : ' off'}">${body}</g>`;
+    if (n.kind === 'root') {
+      nodes += `<g class="g"><circle cx="${ox}" cy="${oy}" r="44" class="nd root"/><text x="${ox}" y="${oy + 4}" text-anchor="middle" class="nt root">${esc(n.label)}</text></g>`;
+    } else if (n.kind === 'cat') {
+      const [x, y] = pt(n.r, n.a), w = txtW(n.label) + 24;
+      nodes += `<g class="g${on ? '' : ' off'}" data-cat="${esc(n.cat)}" tabindex="0" role="button" aria-label="Filter by ${esc(n.label)}">` +
+        `<rect x="${(x - w / 2).toFixed(1)}" y="${(y - 14).toFixed(1)}" width="${w.toFixed(1)}" height="28" rx="14" class="nd cat"/>` +
+        `<text x="${x.toFixed(1)}" y="${(y + 4).toFixed(1)}" text-anchor="middle" class="nt cat">${esc(n.label)}</text></g>`;
+    } else if (n.kind === 'topic') {
+      nodes += `<g class="g${on ? '' : ' off'}">${label(n)}</g>`;
+    } else {
+      nodes += `<a href="${esc(n.doc.path)}" class="g${on ? '' : ' off'}"><title>${esc(n.doc.summary)}</title>${label(n)}</a>`;
+    }
   })(root);
-  svg.innerHTML = edges + nodes;
+  svg.innerHTML = `<g id="mapView">${edges}${nodes}</g>`;
+  if (!mapView.set) fitMap(); else applyMap();
+}
+
+// ---------- mindmap pan / zoom ----------
+const VW = 900, VH = 700;
+let mapBox = { W: 700, H: 200 };
+const mapView = { k: 1, x: 0, y: 0, set: false };
+function applyMap() { const g = $('#mapView'); if (g) g.setAttribute('transform', `translate(${mapView.x} ${mapView.y}) scale(${mapView.k})`); }
+function fitMap() {
+  // scale the whole tree into the frame and centre it (the root sits mid-height)
+  const k = Math.min(VW / (mapBox.W + 20), VH / (mapBox.H + 20), 1.4);
+  Object.assign(mapView, { k, x: (VW - mapBox.W * k) / 2, y: (VH - mapBox.H * k) / 2, set: true });
+  applyMap();
+}
+function centerMap() {
+  // keep the current zoom, just bring the root to the middle of the frame
+  mapView.x = VW / 2 - (mapBox.W / 2) * mapView.k;
+  mapView.y = VH / 2 - (mapBox.H / 2) * mapView.k;
+  applyMap();
+}
+function zoomMap(f, cx = VW / 2, cy = VH / 2) {
+  const k = Math.min(4, Math.max(0.3, mapView.k * f)), r = k / mapView.k;
+  mapView.x = cx - (cx - mapView.x) * r; mapView.y = cy - (cy - mapView.y) * r; mapView.k = k;
+  applyMap();
+}
+function initMapControls() {
+  const svg = $('#map');
+  const pt = e => { const b = svg.getBoundingClientRect(), s = Math.min(b.width / VW, b.height / VH);
+    return [(e.clientX - b.left - (b.width - VW * s) / 2) / s, (e.clientY - b.top - (b.height - VH * s) / 2) / s, s]; };
+  svg.addEventListener('wheel', e => { e.preventDefault(); const [x, y] = pt(e); zoomMap(e.deltaY < 0 ? 1.12 : 1 / 1.12, x, y); }, { passive: false });
+  let drag = null, moved = false;
+  svg.addEventListener('pointerdown', e => { if (e.button) return; const [, , s] = pt(e); drag = { sx: e.clientX, sy: e.clientY, x: mapView.x, y: mapView.y, s }; moved = false; });
+  window.addEventListener('pointermove', e => {
+    if (!drag) return;
+    const dx = e.clientX - drag.sx, dy = e.clientY - drag.sy;
+    if (!moved && Math.hypot(dx, dy) < 4) return;
+    moved = true; svg.classList.add('panning');
+    mapView.x = drag.x + dx / drag.s; mapView.y = drag.y + dy / drag.s; applyMap();
+  });
+  window.addEventListener('pointerup', () => { drag = null; svg.classList.remove('panning'); });
+  // a drag must not count as a click on a node
+  svg.addEventListener('click', e => { if (moved) { e.preventDefault(); e.stopPropagation(); moved = false; } }, true);
+  $('#mapIn').addEventListener('click', () => zoomMap(1.25));
+  $('#mapOut').addEventListener('click', () => zoomMap(1 / 1.25));
+  $('#mapFit').addEventListener('click', centerMap);
 }
 
 // ---------- orchestration ----------
@@ -1020,6 +1147,7 @@ function init() {
   $('#q').value = state.q;
   render(true);
   setView(sessionStorage.getItem('view') || 'list');
+  initMapControls();
 
   $('#q').addEventListener('input', e => { state.q = e.target.value; render(false); });
   $('#tagq').addEventListener('input', e => { state.tagq = e.target.value; renderTags(); });

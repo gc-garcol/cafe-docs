@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Kubernetes Scheduling: a visual guide</title>
+<title>Kubernetes Scheduling and Scaling: a visual guide</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -101,6 +101,7 @@ select,input[type=text]{min-height:40px;padding:0 10px;border:1px solid var(--ru
 select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .uri{font-family:var(--mono);font-size:14px;word-break:break-all;padding:14px 16px;background:var(--ink);color:var(--paper);border-radius:6px;margin:0 0 12px}
 
+
 .pod{display:inline-flex;align-items:center;justify-content:center;min-width:64px;height:36px;margin:3px;padding:0 8px;border:1px solid var(--ink);border-radius:6px;background:#fff;font:600 11px var(--mono);color:var(--ink)}
 button.pod{cursor:pointer}
 .pod.new{background:var(--ink);color:var(--paper)}
@@ -116,6 +117,12 @@ button.pod{cursor:pointer}
 .split3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;padding:16px}
 .ok{color:#1f7a4d}.no{color:var(--accent)}
 @media (max-width:860px){.split,.split3{grid-template-columns:1fr}}
+
+.check{list-style:none;padding:0;margin:12px 0 0;max-width:640px}
+.check li{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--rule)}
+.check input{width:18px;height:18px;accent-color:var(--accent)}
+.check li.done a{color:var(--soft);text-decoration:line-through}
+.prog{font-family:var(--mono);font-size:12px;color:var(--soft)}
 .doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}.doc-tags a{font:500 12px "Geist Mono",ui-monospace,monospace;padding:4px 10px;border:1px solid var(--rule-solid,#bfc0c0);border-radius:4px;background:#fff;color:var(--muted,#4f5d75);text-decoration:none}.doc-tags a:hover{border-color:var(--ink,#2d3142);color:var(--ink,#2d3142)}.doc-tags a:focus-visible{outline:2px solid var(--accent,#bf4520);outline-offset:2px}
 </style>
 </head>
@@ -127,9 +134,9 @@ button.pod{cursor:pointer}
 
 <header>
   <div class="eyebrow">Architecture · Kubernetes</div>
-  <h1>Kubernetes Scheduling</h1>
-  <p class="lede">How a Pod gets its node. The scheduler filters out nodes that cannot run it, then scores the rest and binds the winner.</p>
-  <nav class="doc-tags" aria-label="Main tags"><a href="../../../../index.html#tag=kubernetes">#kubernetes</a><a href="../../../../index.html#tag=k8s">#k8s</a><a href="../../../../index.html#tag=scheduler">#scheduler</a><a href="../../../../index.html#tag=filter">#filter</a></nav>
+  <h1>Kubernetes Scheduling and Scaling</h1>
+  <p class="lede">Where Pods run and how many there are. Requests and limits, placement rules, health probes and automatic scaling.</p>
+  <nav class="doc-tags" aria-label="Main tags"><a href="../../../../index.html#tag=kubernetes">#kubernetes</a><a href="../../../../index.html#tag=k8s">#k8s</a><a href="../../../../index.html#tag=requests">#requests</a><a href="../../../../index.html#tag=limits">#limits</a></nav>
 </header>
 
 <section>
@@ -155,46 +162,81 @@ button.pod{cursor:pointer}
 
 <section>
   <h2>Contents</h2>
-  <ol class="toc">
-    <li><a href="#queue">The scheduling cycle</a></li>
-    <li><a href="#filter">Filter</a></li>
-    <li><a href="#score">Score</a></li>
-    <li><a href="#requests">Requests and limits</a></li>
-    <li><a href="#sources">Sources</a></li>
+  <div class="prog" id="prog" aria-live="polite"></div>
+  <ol class="check">
+    <li><input type="checkbox" id="c-reqlim" aria-label="Mark Requests / Limits as done"><a href="#reqlim">Requests / Limits</a></li>
+    <li><input type="checkbox" id="c-qos" aria-label="Mark QoS as done"><a href="#qos">QoS</a></li>
+    <li><input type="checkbox" id="c-affinity" aria-label="Mark Affinity / Anti-Affinity as done"><a href="#affinity">Affinity / Anti-Affinity</a></li>
+    <li><input type="checkbox" id="c-taints" aria-label="Mark Taints / Tolerations as done"><a href="#taints">Taints / Tolerations</a></li>
+    <li><input type="checkbox" id="c-probes" aria-label="Mark Probes as done"><a href="#probes">Probes</a></li>
+    <li><input type="checkbox" id="c-hpa" aria-label="Mark HPA / VPA as done"><a href="#hpa">HPA / VPA</a></li>
+    <li><input type="checkbox" id="c-keda" aria-label="Mark KEDA as done"><a href="#keda">KEDA</a></li>
+    <li><input type="checkbox" id="c-pdb" aria-label="Mark PDB as done"><a href="#pdb">PDB</a></li>
   </ol>
 </section>
 
-<section id="queue">
-  <h2>1. The scheduling cycle</h2>
-  <p>The scheduler watches for Pods with no node. For each one it picks a node, then writes the choice to the API server as a binding. The kubelet takes it from there. If no node fits, the Pod stays <code>Pending</code> and the scheduler retries when the cluster changes.</p>
-</section>
-
-<section id="filter">
-  <h2>2. Filter</h2>
-  <p>A node must pass every check.</p>
-  <ul class="tight">
-    <li><b>Resources:</b> the free CPU and memory must cover the Pod's <b>requests</b>. Requests are what the scheduler counts. Limits are enforced later by the runtime.</li>
-    <li><b>nodeSelector and affinity:</b> the node's labels must match what the Pod asks for.</li>
-    <li><b>Taints:</b> a tainted node repels Pods unless they carry a matching toleration.</li>
-    <li><b>Ports, volumes, topology:</b> other constraints such as zone spread.</li>
-  </ul>
-</section>
-
-<section id="score">
-  <h2>3. Score</h2>
-  <p>Each surviving node gets a score from several plugins. The defaults favor balance. A node with more free resources after placement scores higher, so load spreads out. The highest score wins and ties break at random. This demo uses free CPU plus free memory share as a simple stand-in.</p>
-</section>
-
-<section id="requests">
-  <h2>4. Requests and limits</h2>
+<section id="reqlim">
+  <h2>1. Requests / Limits</h2>
   <table class="ops">
     <thead><tr><th>Field</th><th>Effect</th></tr></thead>
     <tbody>
-      <tr><td><code>requests</code></td><td>Reserved on the node for scheduling. Sets the Pod's quality of service class.</td></tr>
-      <tr><td><code>limits</code></td><td>The ceiling. CPU over the limit is throttled. Memory over the limit gets the container killed.</td></tr>
+      <tr><td>requests</td><td>Reserved on the node for scheduling.</td></tr>
+      <tr><td>limits</td><td>The ceiling. CPU over the limit is throttled. Memory over the limit gets the container killed (OOMKilled).</td></tr>
+    </tbody>
+  </table>  <p>Set requests close to real use. Too low and nodes overcommit. Too high and capacity is wasted.</p>
+
+</section>
+
+<section id="qos">
+  <h2>2. QoS</h2>
+  <table class="ops">
+    <thead><tr><th>Class</th><th>When</th><th>Eviction</th></tr></thead>
+    <tbody>
+      <tr><td>Guaranteed</td><td>Requests equal limits for CPU and memory in every container.</td><td>Last</td></tr>
+      <tr><td>Burstable</td><td>At least one request or limit set.</td><td>Middle</td></tr>
+      <tr><td>BestEffort</td><td>No requests or limits.</td><td>First</td></tr>
     </tbody>
   </table>
-  <p>Set requests close to real use. Too low and nodes overcommit. Too high and capacity is wasted.</p>
+</section>
+
+<section id="affinity">
+  <h2>3. Affinity / Anti-Affinity</h2>
+  <p><b>nodeAffinity</b> attracts a Pod to nodes by label, as a hard <code>required</code> rule or a soft <code>preferred</code> one. <b>podAffinity</b> places Pods near others, for example with a cache. <b>podAntiAffinity</b> spreads them, for example one replica per zone. <code>topologySpreadConstraints</code> spread more evenly.</p>
+
+</section>
+
+<section id="taints">
+  <h2>4. Taints / Tolerations</h2>
+  <p>A <b>taint</b> on a node repels Pods. A <b>toleration</b> on a Pod lets it in. Effects are <code>NoSchedule</code>, <code>PreferNoSchedule</code> and <code>NoExecute</code>, which also evicts running Pods. A toleration only permits placement. To force it, add affinity too.</p>
+
+</section>
+
+<section id="probes">
+  <h2>5. Probes</h2>
+  <ul class="tight">
+    <li><b>Startup:</b> waits for slow starts. Other probes are held until it passes.</li>
+    <li><b>Readiness:</b> failing removes the Pod from Service endpoints. The container is not restarted.</li>
+    <li><b>Liveness:</b> failing restarts the container. Use it only for deadlocks, never for dependency checks.</li>
+  </ul>
+</section>
+
+<section id="hpa">
+  <h2>6. HPA / VPA</h2>
+  <p>The <b>Horizontal Pod Autoscaler</b> changes replica count. Each cycle it multiplies the current replicas by the ratio of the observed metric to the target and rounds up. It needs metrics-server for CPU and memory, and has a stabilization window to avoid flapping.</p>
+  <p>The <b>Vertical Pod Autoscaler</b> adjusts requests and limits. Do not drive HPA and VPA from the same metric.</p>
+
+</section>
+
+<section id="keda">
+  <h2>7. KEDA</h2>
+  <p>Event-driven autoscaling. KEDA reads external signals such as queue length, Kafka lag or a Prometheus query, and feeds them to an HPA. It can scale a workload down to zero and back up when events arrive.</p>
+
+</section>
+
+<section id="pdb">
+  <h2>8. PDB</h2>
+  <p>A PodDisruptionBudget limits how many Pods of an app may be down during <b>voluntary</b> disruptions such as a node drain or upgrade. Set <code>minAvailable</code> or <code>maxUnavailable</code>. It does not protect against crashes or node failure.</p>
+
 </section>
 
 <section id="sources">
@@ -252,6 +294,21 @@ button.pod{cursor:pointer}
   ['cpu', 'mem', 'ssd', 'tol'].forEach(function (i) { $(i).addEventListener('change', function () { log = 'Inputs changed. Filter results updated.'; draw(null, null); }); });
   $('reset').addEventListener('click', reset);
   reset();
+})();
+</script>
+<script>
+(function () {
+  var key = 'k8s-check:' + location.pathname, saved = {};
+  try { saved = JSON.parse(localStorage.getItem(key) || '{}'); } catch (e) {}
+  var boxes = document.querySelectorAll('.check input'), out = document.getElementById('prog');
+  function upd() {
+    var n = 0, o = {};
+    boxes.forEach(function (b) { if (b.checked) { n++; o[b.id] = 1; } b.closest('li').classList.toggle('done', b.checked); });
+    out.textContent = n + '/' + boxes.length + ' completed';
+    try { localStorage.setItem(key, JSON.stringify(o)); } catch (e) {}
+  }
+  boxes.forEach(function (b) { b.checked = !!saved[b.id]; b.addEventListener('change', upd); });
+  upd();
 })();
 </script>
 </body>

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Kubernetes Pods and Deployments: a visual guide</title>
+<title>Kubernetes Workloads: a visual guide</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -101,6 +101,7 @@ select,input[type=text]{min-height:40px;padding:0 10px;border:1px solid var(--ru
 select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .uri{font-family:var(--mono);font-size:14px;word-break:break-all;padding:14px 16px;background:var(--ink);color:var(--paper);border-radius:6px;margin:0 0 12px}
 
+
 .pod{display:inline-flex;align-items:center;justify-content:center;min-width:64px;height:36px;margin:3px;padding:0 8px;border:1px solid var(--ink);border-radius:6px;background:#fff;font:600 11px var(--mono);color:var(--ink)}
 button.pod{cursor:pointer}
 .pod.new{background:var(--ink);color:var(--paper)}
@@ -116,6 +117,12 @@ button.pod{cursor:pointer}
 .split3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;padding:16px}
 .ok{color:#1f7a4d}.no{color:var(--accent)}
 @media (max-width:860px){.split,.split3{grid-template-columns:1fr}}
+
+.check{list-style:none;padding:0;margin:12px 0 0;max-width:640px}
+.check li{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--rule)}
+.check input{width:18px;height:18px;accent-color:var(--accent)}
+.check li.done a{color:var(--soft);text-decoration:line-through}
+.prog{font-family:var(--mono);font-size:12px;color:var(--soft)}
 .doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}.doc-tags a{font:500 12px "Geist Mono",ui-monospace,monospace;padding:4px 10px;border:1px solid var(--rule-solid,#bfc0c0);border-radius:4px;background:#fff;color:var(--muted,#4f5d75);text-decoration:none}.doc-tags a:hover{border-color:var(--ink,#2d3142);color:var(--ink,#2d3142)}.doc-tags a:focus-visible{outline:2px solid var(--accent,#bf4520);outline-offset:2px}
 </style>
 </head>
@@ -127,9 +134,9 @@ button.pod{cursor:pointer}
 
 <header>
   <div class="eyebrow">Architecture · Kubernetes</div>
-  <h1>Kubernetes Pods and Deployments</h1>
-  <p class="lede">Pods run containers, ReplicaSets keep the count, and a Deployment changes versions without downtime. Step through a rolling update and break it on purpose.</p>
-  <nav class="doc-tags" aria-label="Main tags"><a href="../../../../index.html#tag=kubernetes">#kubernetes</a><a href="../../../../index.html#tag=k8s">#k8s</a><a href="../../../../index.html#tag=pod">#pod</a><a href="../../../../index.html#tag=replicaset">#replicaset</a></nav>
+  <h1>Kubernetes Workloads</h1>
+  <p class="lede">How applications run. ReplicaSets keep the count, Deployments change versions, and other kinds cover state, per-node agents and batch work.</p>
+  <nav class="doc-tags" aria-label="Main tags"><a href="../../../../index.html#tag=kubernetes">#kubernetes</a><a href="../../../../index.html#tag=k8s">#k8s</a><a href="../../../../index.html#tag=replicaset">#replicaset</a><a href="../../../../index.html#tag=deployment">#deployment</a></nav>
 </header>
 
 <section>
@@ -154,52 +161,64 @@ button.pod{cursor:pointer}
 
 <section>
   <h2>Contents</h2>
-  <ol class="toc">
-    <li><a href="#pod">Pod</a></li>
-    <li><a href="#rs">ReplicaSet</a></li>
-    <li><a href="#deploy">Deployment</a></li>
-    <li><a href="#other">Other workload types</a></li>
-    <li><a href="#sources">Sources</a></li>
+  <div class="prog" id="prog" aria-live="polite"></div>
+  <ol class="check">
+    <li><input type="checkbox" id="c-replicaset" aria-label="Mark ReplicaSet as done"><a href="#replicaset">ReplicaSet</a></li>
+    <li><input type="checkbox" id="c-deployment" aria-label="Mark Deployment as done"><a href="#deployment">Deployment</a></li>
+    <li><input type="checkbox" id="c-statefulset" aria-label="Mark StatefulSet as done"><a href="#statefulset">StatefulSet</a></li>
+    <li><input type="checkbox" id="c-daemonset" aria-label="Mark DaemonSet as done"><a href="#daemonset">DaemonSet</a></li>
+    <li><input type="checkbox" id="c-job" aria-label="Mark Job / CronJob as done"><a href="#job">Job / CronJob</a></li>
+    <li><input type="checkbox" id="c-init" aria-label="Mark Init / Sidecar Container as done"><a href="#init">Init / Sidecar Container</a></li>
+    <li><input type="checkbox" id="c-rolling" aria-label="Mark Rolling Update / Rollback as done"><a href="#rolling">Rolling Update / Rollback</a></li>
   </ol>
 </section>
 
-<section id="pod">
-  <h2>1. Pod</h2>
-  <p>A Pod is the smallest unit you deploy. It holds one or more containers that share a network address and volumes. Pods are disposable. When one dies, nothing brings back <i>that</i> Pod. A controller makes a new one.</p>
+<section id="replicaset">
+  <h2>1. ReplicaSet</h2>
+  <p>A ReplicaSet keeps a set number of identical Pods running. It selects Pods by label and creates or deletes Pods until the count matches. You rarely write one directly, because a Deployment owns it.</p>
+
 </section>
 
-<section id="rs">
-  <h2>2. ReplicaSet</h2>
-  <p>A ReplicaSet keeps a set number of identical Pods running. It selects Pods by label and creates or deletes Pods until the count matches. You rarely create one directly.</p>
+<section id="deployment">
+  <h2>2. Deployment</h2>
+  <p>A Deployment manages <b>ReplicaSets</b> and so manages change. A new image makes a new ReplicaSet. The old one is scaled down but kept, which is what makes rollback possible.</p>
+<pre>kubectl create deployment web --image=web:1.0 --replicas=4
+kubectl scale deploy/web --replicas=6</pre>
 </section>
 
-<section id="deploy">
-  <h2>3. Deployment</h2>
-  <p>A Deployment owns ReplicaSets and manages change. A new image makes a <b>new ReplicaSet</b>. The Deployment scales the new one up and the old one down, so you can roll back by scaling the old one up again.</p>
-  <table class="ops">
-    <thead><tr><th>Setting</th><th>Meaning</th></tr></thead>
-    <tbody>
-      <tr><td><code>maxSurge</code></td><td>How many Pods above the desired count may exist during a rollout.</td></tr>
-      <tr><td><code>maxUnavailable</code></td><td>How many Pods below the desired count may be not ready.</td></tr>
-      <tr><td>readiness probe</td><td>A Pod counts as available only after it passes. A broken version never does, so the rollout stalls and old Pods stay.</td></tr>
-    </tbody>
-  </table>
-<pre>kubectl set image deploy/web web=web:2.0
-kubectl rollout status deploy/web
+<section id="statefulset">
+  <h2>3. StatefulSet</h2>
+  <p>For apps that need identity. Pods get stable names (<code>db-0</code>, <code>db-1</code>), start and stop in order, and each keeps its own volume across restarts. A headless Service gives each Pod a stable DNS name. Use it for databases and brokers.</p>
+
+</section>
+
+<section id="daemonset">
+  <h2>4. DaemonSet</h2>
+  <p>Runs one Pod on every node, or on a chosen set of nodes. New nodes get the Pod automatically. Typical uses are log collectors, monitoring agents and CNI plugins.</p>
+
+</section>
+
+<section id="job">
+  <h2>5. Job / CronJob</h2>
+  <p>A <b>Job</b> runs Pods until a set number complete, retrying failures up to <code>backoffLimit</code>. It can run Pods in parallel. A <b>CronJob</b> creates a Job on a cron schedule.</p>
+<pre>schedule: "0 2 * * *"       <span class="c2"># every day at 02:00</span>
+concurrencyPolicy: Forbid</pre>
+</section>
+
+<section id="init">
+  <h2>6. Init / Sidecar Container</h2>
+  <ul class="tight">
+    <li><b>Init containers</b> run to completion, one at a time, before the app starts. Use them for migrations or waiting on a dependency.</li>
+    <li><b>Sidecars</b> run beside the app for the life of the Pod, for example a log shipper or a proxy. Native sidecars are init containers with <code>restartPolicy: Always</code>, so they start first and stop last.</li>
+  </ul>
+</section>
+
+<section id="rolling">
+  <h2>7. Rolling Update / Rollback</h2>
+  <p>The default strategy replaces Pods in small steps. <code>maxSurge</code> allows extra Pods above the desired count. <code>maxUnavailable</code> allows fewer ready Pods than desired. A readiness probe decides when a new Pod counts, so a broken version stalls while old Pods keep serving.</p>
+<pre>kubectl rollout status deploy/web
+kubectl rollout history deploy/web
 kubectl rollout undo deploy/web</pre>
-</section>
-
-<section id="other">
-  <h2>4. Other workload types</h2>
-  <table class="ops">
-    <thead><tr><th>Kind</th><th>Use it for</th></tr></thead>
-    <tbody>
-      <tr><td>StatefulSet</td><td>Pods that need a stable name and their own storage, such as a database.</td></tr>
-      <tr><td>DaemonSet</td><td>One Pod on every node, such as a log collector.</td></tr>
-      <tr><td>Job</td><td>Run to completion, then stop.</td></tr>
-      <tr><td>CronJob</td><td>A Job on a schedule.</td></tr>
-    </tbody>
-  </table>
 </section>
 
 <section id="sources">
@@ -257,6 +276,21 @@ kubectl rollout undo deploy/web</pre>
   $('reset').addEventListener('click', reset);
   ['rep', 'sur', 'una', 'bad'].forEach(function (i) { $(i).addEventListener('change', reset); });
   reset();
+})();
+</script>
+<script>
+(function () {
+  var key = 'k8s-check:' + location.pathname, saved = {};
+  try { saved = JSON.parse(localStorage.getItem(key) || '{}'); } catch (e) {}
+  var boxes = document.querySelectorAll('.check input'), out = document.getElementById('prog');
+  function upd() {
+    var n = 0, o = {};
+    boxes.forEach(function (b) { if (b.checked) { n++; o[b.id] = 1; } b.closest('li').classList.toggle('done', b.checked); });
+    out.textContent = n + '/' + boxes.length + ' completed';
+    try { localStorage.setItem(key, JSON.stringify(o)); } catch (e) {}
+  }
+  boxes.forEach(function (b) { b.checked = !!saved[b.id]; b.addEventListener('change', upd); });
+  upd();
 })();
 </script>
 </body>
