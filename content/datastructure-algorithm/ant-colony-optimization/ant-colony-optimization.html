@@ -116,14 +116,14 @@ table.ops tr:last-child td{border-bottom:0}
 
 <section>
   <h2>Try it first</h2>
-  <p>Fourteen cities and a salesperson who must visit every one and return, by the shortest loop. Each iteration, every ant builds a tour, preferring short hops and strong trails. Then trails fade and good tours add fresh scent. Press Run 20 and see a few thick blue edges emerge, and compare the best tour with the greedy nearest-neighbor loop.</p>
+  <p>A set of cities (14 to start, up to 30 with the slider) and a salesperson who must visit every one and return, by the shortest loop. Each iteration, every ant builds a tour, preferring short hops and strong trails. Then trails fade and good tours add fresh scent. Press Run 20 and see a few thick blue edges emerge, and compare the best tour with the greedy nearest-neighbor loop.</p>
 
   <figure class="card">
     <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">Pheromone trails on a map of cities</span></div>
     <div class="scroll">
       <svg id="plot" viewBox="0 0 720 360" role="img" aria-labelledby="plot-title plot-desc">
         <title id="plot-title">Pheromone trails on a map of cities</title>
-        <desc id="plot-desc">Fourteen dark dots are cities. Blue lines join every pair of cities, thicker where there is more pheromone. A dashed orange loop shows the shortest tour found so far.</desc>
+        <desc id="plot-desc">Dark dots are cities. Blue lines join every pair of cities, thicker where there is more pheromone. A dashed orange loop shows the shortest tour found so far.</desc>
         <rect width="720" height="360" fill="#fff" stroke="rgba(45,49,66,.12)"/>
         <g id="layer"></g>
       </svg>
@@ -133,6 +133,7 @@ table.ops tr:last-child td{border-bottom:0}
 
   <div class="controls">
     <div class="panel">
+      <div class="row"><label for="nc">Cities</label><input type="range" id="nc" min="5" max="30" step="1" value="14"><output id="o-nc"></output></div>
       <div class="row"><label for="ants">Ants</label><input type="range" id="ants" min="2" max="40" step="1" value="15"><output id="o-ants"></output></div><div class="row"><label for="al">$\alpha$ trail</label><input type="range" id="al" min="0" max="4" step="0.5" value="1"><output id="o-al"></output></div><div class="row"><label for="be">$\beta$ distance</label><input type="range" id="be" min="0" max="6" step="0.5" value="3"><output id="o-be"></output></div><div class="row"><label for="rho">$\rho$ evaporation</label><input type="range" id="rho" min="0.02" max="0.9" step="0.02" value="0.3"><output id="o-rho"></output></div><div class="btns"><button type="button" class="btn" id="one">Iterate</button><button type="button" class="btn" id="many">Run 20</button><button type="button" class="btn" id="reset">Reset</button><button type="button" class="btn" id="cities">New cities</button></div>
     </div>
     <div class="panel">
@@ -242,6 +243,7 @@ document.addEventListener('DOMContentLoaded', function () {
     S.lnn = tourLen(vis);
   }
   function reset(newCities) {
+    n = +$('nc').value;
     if (newCities) S.seed = Math.floor(Math.random() * 100000) + 1;
     make(S.seed); S.r = rng(11); S.tau = []; for (var i = 0; i < n; i++) { S.tau.push(new Array(n).fill(1)); }
     S.best = null; S.bestL = 1e9; S.bestIt = 0; S.it = 0; S.hist = []; render();
@@ -270,7 +272,7 @@ document.addEventListener('DOMContentLoaded', function () {
     render();
   }
   function render() {
-    bindOut(['ants', 'al', 'be', 'rho']);
+    bindOut(['nc', 'ants', 'al', 'be', 'rho']);
     var g = $('layer'); g.textContent = '';
     var mx = 0, i, j; for (i = 0; i < n; i++) for (j = i + 1; j < n; j++) mx = Math.max(mx, S.tau[i][j]);
     for (i = 0; i < n; i++) for (j = i + 1; j < n; j++) {
@@ -289,6 +291,7 @@ document.addEventListener('DOMContentLoaded', function () {
   $('many').addEventListener('click', function () { iterate(20); });
   $('reset').addEventListener('click', function () { reset(false); });
   $('cities').addEventListener('click', function () { reset(true); });
+  $('nc').addEventListener('input', function () { reset(false); });
   ['ants', 'al', 'be', 'rho'].forEach(function (i) { $(i).addEventListener('input', render); });
   reset(false);
 

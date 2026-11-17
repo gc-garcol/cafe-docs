@@ -242,7 +242,7 @@ const DOCS = [
     order: 7,
     level: 'Intermediate',
     tags: ['swarm', 'optimization', 'tsp', 'pheromone', 'stigmergy', 'heuristic', 'routing'],
-    summary: 'Virtual ants build tours of 14 cities and leave pheromone on short ones. Tune trail, distance and evaporation and beat the greedy tour.',
+    summary: 'Virtual ants build tours of 5 to 30 cities (you choose) and leave pheromone on short ones. Tune trail, distance and evaporation and beat the greedy tour.',
     related: ['Genetic Algorithm', 'Particle Swarm Optimization', 'A* Search'],
   },
   {
