@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AWS Load Balancing and Auto Scaling: a visual guide</title>
+<title>AWS DevOps and IaC: a visual guide</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -101,6 +101,9 @@ select,input[type=text]{min-height:40px;padding:0 10px;border:1px solid var(--ru
 select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .uri{font-family:var(--mono);font-size:14px;word-break:break-all;padding:14px 16px;background:var(--ink);color:var(--paper);border-radius:6px;margin:0 0 12px}
 
+
+
+
 .pod{display:inline-flex;align-items:center;justify-content:center;min-width:64px;height:36px;margin:3px;padding:0 8px;border:1px solid var(--ink);border-radius:6px;background:#fff;font:600 11px var(--mono);color:var(--ink)}
 button.pod{cursor:pointer}
 .pod.new{background:var(--ink);color:var(--paper)}
@@ -117,7 +120,11 @@ button.pod{cursor:pointer}
 .ok{color:#1f7a4d}.no{color:var(--accent)}
 @media (max-width:860px){.split,.split3{grid-template-columns:1fr}}
 
-
+.check{list-style:none;padding:0;margin:12px 0 0;max-width:640px}
+.check li{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--rule)}
+.check input{width:18px;height:18px;accent-color:var(--accent)}
+.check li.done a{color:var(--soft);text-decoration:line-through}
+.prog{font-family:var(--mono);font-size:12px;color:var(--soft)}
 .doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}.doc-tags a{font:500 12px "Geist Mono",ui-monospace,monospace;padding:4px 10px;border:1px solid var(--rule-solid,#bfc0c0);border-radius:4px;background:#fff;color:var(--muted,#4f5d75);text-decoration:none}.doc-tags a:hover{border-color:var(--ink,#2d3142);color:var(--ink,#2d3142)}.doc-tags a:focus-visible{outline:2px solid var(--accent,#bf4520);outline-offset:2px}
 </style>
 </head>
@@ -129,27 +136,24 @@ button.pod{cursor:pointer}
 
 <header>
   <div class="eyebrow">Architecture · AWS</div>
-  <h1>AWS Load Balancing and Auto Scaling</h1>
-  <p class="lede">Spread requests over many instances and let the fleet grow and shrink with demand, holding CPU near a target.</p>
-  
-  
-  <nav class="doc-tags" aria-label="Main tags"><a href="../../../../index.html#tag=aws">#aws</a><a href="../../../../index.html#tag=elb">#elb</a><a href="../../../../index.html#tag=alb">#alb</a><a href="../../../../index.html#tag=nlb">#nlb</a></nav>
+  <h1>AWS DevOps and IaC</h1>
+  <p class="lede">Building and shipping infrastructure from code. Terraform, CloudFormation and a delivery pipeline.</p>
+  <nav class="doc-tags" aria-label="Main tags"><a href="../../../../index.html#tag=aws">#aws</a><a href="../../../../index.html#tag=terraform">#terraform</a><a href="../../../../index.html#tag=cloudformation">#cloudformation</a><a href="../../../../index.html#tag=codepipeline">#codepipeline</a></nav>
 </header>
 
 <section>
-  <h2>Scale with the load</h2>
-  <p>A load balancer spreads requests over instances, and an Auto Scaling group adds or removes instances to hold average CPU near a target. Move the load, then step time forward.</p>
+  <h2>Plan before you apply</h2>
+  <p>Infrastructure as code compares the config you wrote with what is really running, and shows a plan. Change the config, change the cloud by hand to cause drift, then apply.</p>
   <figure class="card">
-    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">Target tracking</span></div>
-    <div style="padding:16px" id="inst" role="group" aria-label="Instances"></div>
-    <div class="card-bottom"><span class="hint">each instance handles 100 requests per second at 100% CPU</span><span class="live" id="live"></span></div>
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">Config versus reality</span></div>
+    <div class="split" id="cmp" role="group" aria-label="Config and actual"></div>
+    <div class="card-bottom"><span class="hint">plan = the difference</span><span class="live" id="live"></span></div>
   </figure>
   <div class="controls">
     <div class="panel">
-      <label class="f">Load (requests per second) <input type="range" id="load" min="0" max="800" step="20" value="120"></label>
-      <label class="f">Target CPU <select id="tgt"><option>40</option><option selected>50</option><option>70</option></select></label>
-      <label class="f">Min / Max instances <select id="lim"><option value="1,6">1 to 6</option><option value="2,10" selected>2 to 10</option><option value="2,4">2 to 4</option></select></label>
-      <div class="row"><button class="btn" id="tick">Step one minute</button><button class="btn" id="reset">Reset</button></div>
+      <label class="f">Config: instance count <select id="cnt"><option>1</option><option selected>2</option><option>3</option></select></label>
+      <label class="f">Config: instance type <select id="typ"><option>t3.small</option><option>t3.large</option></select></label>
+      <div class="row"><button class="btn" id="apply">Apply</button><button class="btn" id="drift">Change in console</button><button class="btn" id="reset">Reset</button></div>
     </div>
     <div class="panel"><pre id="readout" aria-live="polite"></pre></div>
   </div>
@@ -157,46 +161,32 @@ button.pod{cursor:pointer}
 
 <section>
   <h2>Contents</h2>
-  <ol class="toc">
-    <li><a href="#elb">Elastic Load Balancing</a></li>
-    <li><a href="#asg">Auto Scaling groups</a></li>
-    <li><a href="#policies">Scaling policies</a></li>
-    <li><a href="#cost">Keep it stateless</a></li>
-    <li><a href="#sources">Sources</a></li>
+  <div class="prog" id="prog" aria-live="polite"></div>
+  <ol class="check">
+    <li><input type="checkbox" id="c-terraform" aria-label="Mark Terraform as done"><a href="#terraform">Terraform</a></li>
+    <li><input type="checkbox" id="c-cloudformation" aria-label="Mark CloudFormation as done"><a href="#cloudformation">CloudFormation</a></li>
+    <li><input type="checkbox" id="c-codepipeline" aria-label="Mark CodePipeline as done"><a href="#codepipeline">CodePipeline</a></li>
   </ol>
 </section>
 
-<section id="elb">
-  <h2>1. Elastic Load Balancing</h2>
-  <p>A load balancer gives clients one address and sends each request to a healthy <b>target</b>. It checks targets with a health probe and stops sending to ones that fail. It works across zones.</p>
-  <table class="ops">
-    <thead><tr><th>Type</th><th>Layer and use</th></tr></thead>
-    <tbody>
-      <tr><td>Application (ALB)</td><td>HTTP and HTTPS. Routes by host, path or header.</td></tr>
-      <tr><td>Network (NLB)</td><td>TCP, UDP and TLS. Very high throughput and a static IP per zone.</td></tr>
-      <tr><td>Gateway (GWLB)</td><td>Passes traffic through third-party network appliances.</td></tr>
-    </tbody>
-  </table>
+<section id="terraform">
+  <h2>1. Terraform</h2>
+  <p>Describe infrastructure in HCL files, and Terraform builds it through <b>providers</b>, such as the AWS provider. It keeps <b>state</b>, a record of what it manages. <code>plan</code> shows the difference between config, state and reality, and <code>apply</code> performs it. Reuse code with <b>modules</b>. Store state remotely, for example in S3 with locking, so a team shares it safely.</p>
+<pre>terraform init
+terraform plan
+terraform apply</pre>
 </section>
 
-<section id="asg">
-  <h2>2. Auto Scaling groups</h2>
-  <p>An Auto Scaling group keeps a fleet between a minimum and a maximum, spread over zones. A <b>launch template</b> says what to start. It also replaces any instance that fails its health check.</p>
+<section id="cloudformation">
+  <h2>2. CloudFormation</h2>
+  <p>AWS's own IaC service. A JSON or YAML <b>template</b> describes resources, and a <b>stack</b> is a deployed instance of it. <b>Change sets</b> preview an update. If a stack update fails, it rolls back. <b>Drift detection</b> finds manual changes. <b>StackSets</b> deploy to many accounts and Regions. The CDK lets you write in a programming language and generates the template.</p>
+
 </section>
 
-<section id="policies">
-  <h2>3. Scaling policies</h2>
-  <ul class="tight">
-    <li><b>Target tracking:</b> pick a metric and a value, such as 50% CPU. The group works out the size by itself.</li>
-    <li><b>Step scaling:</b> add or remove a set number as an alarm gets worse.</li>
-    <li><b>Scheduled:</b> change size at known times.</li>
-  </ul>
-  <p>The group scales out fast and scales in slowly. A cooldown and warm-up stop it from flapping while new instances start.</p>
-</section>
+<section id="codepipeline">
+  <h2>3. CodePipeline</h2>
+  <p>A managed release pipeline made of <b>stages</b>. A typical flow is source (a Git repo), build and test with CodeBuild, then deploy with CodeDeploy, CloudFormation or ECS. Add a manual approval before production. Pipelines can run Terraform too. GitHub Actions and similar tools can play the same role.</p>
 
-<section id="cost">
-  <h2>4. Keep it stateless</h2>
-  <p>Scaling in kills instances, so keep session and data outside them: in a database, a cache or S3. Then any instance can serve any request and a lost one costs nothing.</p>
 </section>
 
 <section id="sources">
@@ -209,30 +199,43 @@ button.pod{cursor:pointer}
 <script>
 (function () {
   function $(id) { return document.getElementById(id); }
-  var n, min, max, log;
-  function lim() { var l = $('lim').value.split(','); min = +l[0]; max = +l[1]; }
-  function cpu() { return Math.min(100, Math.round($('load').value / (n * 100) * 100)); }
-  function reset() { lim(); n = min; log = 'Fleet starts at the minimum. Move the load, then step.'; draw(); }
-  function draw() {
-    var c = cpu(), h = '';
-    for (var k = 0; k < n; k++) h += '<span class="pod' + (c >= 100 ? ' bad' : '') + '">i-' + (k + 1) + ' · ' + c + '%</span>';
-    $('inst').innerHTML = h;
-    $('live').textContent = n + ' instance(s) · CPU ' + c + '%';
-    $('readout').textContent = log;
+  var act, log;
+  function reset() { act = { n: 2, t: 't3.small' }; $('cnt').value = '2'; $('typ').value = 't3.small'; log = 'In sync.'; draw(); }
+  function plan() {
+    var c = { n: +$('cnt').value, t: $('typ').value }, p = [];
+    var keep = Math.min(c.n, act.n);
+    if (act.t !== c.t && keep) p.push('~ update in-place: ' + keep + ' instance(s) ' + act.t + ' -> ' + c.t);
+    if (c.n > act.n) p.push('+ create: ' + (c.n - act.n) + ' instance(s) of ' + c.t);
+    if (c.n < act.n) p.push('- destroy: ' + (act.n - c.n) + ' instance(s)');
+    return p;
   }
-  $('tick').addEventListener('click', function () {
-    lim(); var c = cpu(), t = +$('tgt').value, want = Math.ceil($('load').value / t) || min;
-    want = Math.max(min, Math.min(max, want));
-    if (want > n) { log = 'CPU ' + c + '% is above target ' + t + '%. Scale out from ' + n + ' to ' + want + '.'; n = want; }
-    else if (want < n && c < t * 0.8) { log = 'CPU ' + c + '% is well below target. Scale in by one, from ' + n + ' to ' + (n - 1) + '. Scale in is gradual.'; n--; }
-    else log = 'CPU ' + c + '% is close to target ' + t + '%. No change.' + (want >= max && c > t ? ' Already at the maximum.' : '');
-    draw();
-  });
-  $('load').addEventListener('input', draw);
-  $('tgt').addEventListener('change', draw);
-  $('lim').addEventListener('change', reset);
+  function inst(o) { var h = ''; for (var k = 0; k < o.n; k++) h += '<span class="pod">' + o.t + '</span>'; return h; }
+  function draw() {
+    var c = { n: +$('cnt').value, t: $('typ').value }, p = plan();
+    $('cmp').innerHTML = '<div class="comp on"><b>Config (code)</b><span>' + c.n + ' x ' + c.t + '</span><br>' + inst(c) + '</div><div class="comp' + (p.length ? '' : ' on') + '"><b>Actual (cloud)</b><span>' + act.n + ' x ' + act.t + '</span><br>' + inst(act) + '</div>';
+    $('live').textContent = p.length ? p.length + ' change(s) planned' : 'no changes';
+    $('readout').textContent = (p.length ? 'Plan:\n' + p.join('\n') : 'No changes. Infrastructure matches the configuration.') + '\n\n' + log;
+  }
+  $('apply').addEventListener('click', function () { var c = { n: +$('cnt').value, t: $('typ').value }; act = c; log = 'Apply complete. The cloud now matches the config.'; draw(); });
+  $('drift').addEventListener('click', function () { act = { n: act.n, t: 't3.micro' }; log = 'Someone resized instances in the console. Drift: the next plan will want to revert it.'; draw(); });
+  ['cnt', 'typ'].forEach(function (i) { $(i).addEventListener('change', function () { log = 'Config edited. Nothing changes until you apply.'; draw(); }); });
   $('reset').addEventListener('click', reset);
   reset();
+})();
+</script>
+<script>
+(function () {
+  var key = 'aws-check:' + location.pathname, saved = {};
+  try { saved = JSON.parse(localStorage.getItem(key) || '{}'); } catch (e) {}
+  var boxes = document.querySelectorAll('.check input'), out = document.getElementById('prog');
+  function upd() {
+    var n = 0, o = {};
+    boxes.forEach(function (b) { if (b.checked) { n++; o[b.id] = 1; } b.closest('li').classList.toggle('done', b.checked); });
+    out.textContent = n + '/' + boxes.length + ' completed';
+    try { localStorage.setItem(key, JSON.stringify(o)); } catch (e) {}
+  }
+  boxes.forEach(function (b) { b.checked = !!saved[b.id]; b.addEventListener('change', upd); });
+  upd();
 })();
 </script>
 </body>

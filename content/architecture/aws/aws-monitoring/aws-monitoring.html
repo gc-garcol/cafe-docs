@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AWS IAM Policies: a visual guide</title>
+<title>AWS Monitoring: a visual guide</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -101,6 +101,9 @@ select,input[type=text]{min-height:40px;padding:0 10px;border:1px solid var(--ru
 select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .uri{font-family:var(--mono);font-size:14px;word-break:break-all;padding:14px 16px;background:var(--ink);color:var(--paper);border-radius:6px;margin:0 0 12px}
 
+
+
+
 .pod{display:inline-flex;align-items:center;justify-content:center;min-width:64px;height:36px;margin:3px;padding:0 8px;border:1px solid var(--ink);border-radius:6px;background:#fff;font:600 11px var(--mono);color:var(--ink)}
 button.pod{cursor:pointer}
 .pod.new{background:var(--ink);color:var(--paper)}
@@ -117,7 +120,11 @@ button.pod{cursor:pointer}
 .ok{color:#1f7a4d}.no{color:var(--accent)}
 @media (max-width:860px){.split,.split3{grid-template-columns:1fr}}
 
-
+.check{list-style:none;padding:0;margin:12px 0 0;max-width:640px}
+.check li{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--rule)}
+.check input{width:18px;height:18px;accent-color:var(--accent)}
+.check li.done a{color:var(--soft);text-decoration:line-through}
+.prog{font-family:var(--mono);font-size:12px;color:var(--soft)}
 .doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}.doc-tags a{font:500 12px "Geist Mono",ui-monospace,monospace;padding:4px 10px;border:1px solid var(--rule-solid,#bfc0c0);border-radius:4px;background:#fff;color:var(--muted,#4f5d75);text-decoration:none}.doc-tags a:hover{border-color:var(--ink,#2d3142);color:var(--ink,#2d3142)}.doc-tags a:focus-visible{outline:2px solid var(--accent,#bf4520);outline-offset:2px}
 </style>
 </head>
@@ -129,30 +136,23 @@ button.pod{cursor:pointer}
 
 <header>
   <div class="eyebrow">Architecture · AWS</div>
-  <h1>AWS IAM Policies</h1>
-  <p class="lede">Who may do what. Every request is checked against policies, and an explicit deny always wins over an allow.</p>
-  
-  
-  <nav class="doc-tags" aria-label="Main tags"><a href="../../../../index.html#tag=aws">#aws</a><a href="../../../../index.html#tag=iam">#iam</a><a href="../../../../index.html#tag=policy">#policy</a><a href="../../../../index.html#tag=role">#role</a></nav>
+  <h1>AWS Monitoring</h1>
+  <p class="lede">Knowing what your system is doing and who changed it. Metrics and logs, an audit trail of API calls, and request tracing.</p>
+  <nav class="doc-tags" aria-label="Main tags"><a href="../../../../index.html#tag=aws">#aws</a><a href="../../../../index.html#tag=cloudwatch">#cloudwatch</a><a href="../../../../index.html#tag=cloudtrail">#cloudtrail</a><a href="../../../../index.html#tag=x-ray">#x-ray</a></nav>
 </header>
 
 <section>
-  <h2>Evaluate a request</h2>
-  <p>Attach policies to a user, pick an action and a resource, and see the decision. An explicit deny beats every allow, and with no match the answer is deny.</p>
+  <h2>When does an alarm fire?</h2>
+  <p>A CloudWatch alarm looks at the last N data points and fires when M of them breach the threshold. Add low and high readings and watch the state.</p>
   <figure class="card">
-    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">Policy evaluation</span></div>
-    <div class="split3" id="stm" role="group" aria-label="Policy statements"></div>
-    <div class="card-bottom"><span class="hint">matching statements are highlighted</span><span class="live" id="live"></span></div>
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">Alarm on CPU above 70%</span></div>
+    <div style="padding:16px" id="pts" role="group" aria-label="Data points"></div>
+    <div class="card-bottom"><span class="hint">evaluates the last 5 points</span><span class="live" id="live"></span></div>
   </figure>
   <div class="controls">
     <div class="panel">
-      <label class="f">Action <select id="act"><option>s3:GetObject</option><option>s3:PutObject</option><option>s3:DeleteObject</option></select></label>
-      <label class="f">Resource <select id="res"><option>arn:aws:s3:::shop/dev/a.txt</option><option>arn:aws:s3:::shop/prod/a.txt</option></select></label>
-      <div class="row">
-        <label><input type="checkbox" id="p1" checked> A: allow read</label>
-        <label><input type="checkbox" id="p2"> B: allow all S3</label>
-        <label><input type="checkbox" id="p3"> C: deny delete in prod</label>
-      </div>
+      <label class="f">Breaching points needed (M of 5) <select id="m"><option>1</option><option selected>3</option><option>5</option></select></label>
+      <div class="row"><button class="btn" id="lo">Add 35%</button><button class="btn" id="hi">Add 90%</button><button class="btn" id="reset">Reset</button></div>
     </div>
     <div class="panel"><pre id="readout" aria-live="polite"></pre></div>
   </div>
@@ -160,48 +160,30 @@ button.pod{cursor:pointer}
 
 <section>
   <h2>Contents</h2>
-  <ol class="toc">
-    <li><a href="#who">Principals and policies</a></li>
-    <li><a href="#eval">How a decision is made</a></li>
-    <li><a href="#roles">Roles over long-lived keys</a></li>
-    <li><a href="#least">Least privilege</a></li>
-    <li><a href="#sources">Sources</a></li>
+  <div class="prog" id="prog" aria-live="polite"></div>
+  <ol class="check">
+    <li><input type="checkbox" id="c-cloudwatch" aria-label="Mark CloudWatch as done"><a href="#cloudwatch">CloudWatch</a></li>
+    <li><input type="checkbox" id="c-cloudtrail" aria-label="Mark CloudTrail as done"><a href="#cloudtrail">CloudTrail</a></li>
+    <li><input type="checkbox" id="c-xray" aria-label="Mark X-Ray as done"><a href="#xray">X-Ray</a></li>
   </ol>
 </section>
 
-<section id="who">
-  <h2>1. Principals and policies</h2>
-  <p>IAM answers one question: may this <b>principal</b> do this <b>action</b> on this <b>resource</b>? Principals are users, groups and roles. A <b>policy</b> is a JSON document with statements.</p>
-<pre>{
-  "Effect": "Allow",
-  "Action": "s3:GetObject",
-  "Resource": "arn:aws:s3:::shop/*"
-}</pre>
+<section id="cloudwatch">
+  <h2>1. CloudWatch</h2>
+  <p>The core observability service. <b>Metrics</b> are time series from AWS services and your own code. <b>Logs</b> collect and search log lines, and Logs Insights queries them. <b>Alarms</b> watch a metric, and move between OK, ALARM and INSUFFICIENT_DATA, then notify SNS or trigger scaling. <b>Dashboards</b> show it all. Basic EC2 metrics arrive every 5 minutes, or every minute with detailed monitoring.</p>
+
 </section>
 
-<section id="eval">
-  <h2>2. How a decision is made</h2>
-  <ol class="toc">
-    <li>Everything starts as an <b>implicit deny</b>.</li>
-    <li>If any statement that matches says <b>Deny</b>, the answer is deny. Nothing overrides it.</li>
-    <li>Otherwise, if any matching statement says <b>Allow</b>, the answer is allow.</li>
-    <li>If nothing matches, the implicit deny stands.</li>
-  </ol>
-  <p>Wildcards in <code>Action</code> and <code>Resource</code> let one statement cover many requests. Permissions boundaries, SCPs and session policies can only narrow what is allowed.</p>
+<section id="cloudtrail">
+  <h2>2. CloudTrail</h2>
+  <p>Records AWS <b>API calls</b>: who did what, from where and when. Management events are kept in a searchable 90 day history by default. Create a <b>trail</b> to store events in S3 for longer, for all Regions, and optionally for a whole organization. Turn on data events for S3 objects or Lambda invocations when needed. It is the first stop for security and change investigations.</p>
+
 </section>
 
-<section id="roles">
-  <h2>3. Roles over long-lived keys</h2>
-  <p>A <b>role</b> has no password or key. A service or person <b>assumes</b> it and gets short-lived credentials. An EC2 instance or Lambda function runs with an attached role, so no secret is stored in code. Roles also give access across accounts.</p>
-</section>
+<section id="xray">
+  <h2>3. X-Ray</h2>
+  <p>Distributed tracing. A trace follows one request across services as <b>segments</b> and sub-segments, and X-Ray draws a service map with latency and errors. Instrument with the AWS Distro for OpenTelemetry or the X-Ray SDK. Use <b>sampling</b> to limit volume. Together the three answer different questions: CloudWatch says what is wrong, CloudTrail says who changed it, X-Ray says where the time goes.</p>
 
-<section id="least">
-  <h2>4. Least privilege</h2>
-  <ul class="tight">
-    <li>Grant only the actions and resources a job needs. Start narrow and widen on evidence.</li>
-    <li>Use groups or roles, not per-user policies.</li>
-    <li>Do not use the root user for daily work. Protect it with MFA.</li>
-  </ul>
 </section>
 
 <section id="sources">
@@ -214,29 +196,34 @@ button.pod{cursor:pointer}
 <script>
 (function () {
   function $(id) { return document.getElementById(id); }
-  var S = [
-    { id: 'p1', n: 'A', eff: 'Allow', act: 's3:GetObject', res: 'arn:aws:s3:::shop/*' },
-    { id: 'p2', n: 'B', eff: 'Allow', act: 's3:*', res: 'arn:aws:s3:::shop/*' },
-    { id: 'p3', n: 'C', eff: 'Deny', act: 's3:DeleteObject', res: 'arn:aws:s3:::shop/prod/*' }
-  ];
-  function wild(p, v) { return new RegExp('^' + p.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*') + '$').test(v); }
+  var pts, N = 5, T = 70;
   function draw() {
-    var a = $('act').value, r = $('res').value, h = '', allow = false, deny = false, any = false;
-    S.forEach(function (s) {
-      if (!$(s.id).checked) return;
-      any = true;
-      var m = wild(s.act, a) && wild(s.res, r);
-      if (m && s.eff === 'Allow') allow = true;
-      if (m && s.eff === 'Deny') deny = true;
-      h += '<div class="comp' + (m ? ' on' : '') + '"><b>Policy ' + s.n + ': ' + s.eff + '</b><span>' + s.act + '</span><br><span>' + s.res + '</span><br><span class="' + (m ? (s.eff === 'Allow' ? 'ok' : 'no') : '') + '">' + (m ? 'matches' : 'no match') + '</span></div>';
-    });
-    $('stm').innerHTML = h || '<div class="comp"><b>No policy attached</b><span>implicit deny</span></div>';
-    var d = deny ? 'DENIED (explicit deny)' : allow ? 'ALLOWED' : 'DENIED (implicit, no allow)';
-    $('live').textContent = d;
-    $('readout').textContent = a + ' on ' + r + '\n' + d + (deny && allow ? '\nAn allow matched, but the deny wins.' : '');
+    var last = pts.slice(-N), m = +$('m').value, br = last.filter(function (v) { return v > T; }).length, st;
+    if (last.length < N && br < m) st = 'INSUFFICIENT_DATA'; else st = br >= m ? 'ALARM' : 'OK';
+    $('pts').innerHTML = pts.length ? pts.map(function (v, i) { var inwin = i >= pts.length - N; return '<span class="pod' + (v > T ? ' bad' : '') + (inwin ? '' : ' off') + '">' + v + '%</span>'; }).join('') : '<span class="hint">no data points yet</span>';
+    $('live').textContent = st;
+    $('readout').textContent = 'Breaching in window: ' + br + ' of ' + last.length + ' (need ' + m + ').\nState: ' + st + (st === 'ALARM' ? '\nThe alarm can notify SNS, scale a group or run an action.' : st === 'INSUFFICIENT_DATA' ? '\nNot enough points yet to decide.' : '');
   }
-  ['act', 'res', 'p1', 'p2', 'p3'].forEach(function (i) { $(i).addEventListener('change', draw); });
-  draw();
+  $('lo').addEventListener('click', function () { pts.push(35); draw(); });
+  $('hi').addEventListener('click', function () { pts.push(90); draw(); });
+  $('m').addEventListener('change', draw);
+  $('reset').addEventListener('click', function () { pts = []; draw(); });
+  pts = []; draw();
+})();
+</script>
+<script>
+(function () {
+  var key = 'aws-check:' + location.pathname, saved = {};
+  try { saved = JSON.parse(localStorage.getItem(key) || '{}'); } catch (e) {}
+  var boxes = document.querySelectorAll('.check input'), out = document.getElementById('prog');
+  function upd() {
+    var n = 0, o = {};
+    boxes.forEach(function (b) { if (b.checked) { n++; o[b.id] = 1; } b.closest('li').classList.toggle('done', b.checked); });
+    out.textContent = n + '/' + boxes.length + ' completed';
+    try { localStorage.setItem(key, JSON.stringify(o)); } catch (e) {}
+  }
+  boxes.forEach(function (b) { b.checked = !!saved[b.id]; b.addEventListener('change', upd); });
+  upd();
 })();
 </script>
 </body>

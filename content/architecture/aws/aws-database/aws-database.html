@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AWS VPC Networking: a visual guide</title>
+<title>AWS Databases: a visual guide</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -101,6 +101,9 @@ select,input[type=text]{min-height:40px;padding:0 10px;border:1px solid var(--ru
 select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .uri{font-family:var(--mono);font-size:14px;word-break:break-all;padding:14px 16px;background:var(--ink);color:var(--paper);border-radius:6px;margin:0 0 12px}
 
+
+
+
 .pod{display:inline-flex;align-items:center;justify-content:center;min-width:64px;height:36px;margin:3px;padding:0 8px;border:1px solid var(--ink);border-radius:6px;background:#fff;font:600 11px var(--mono);color:var(--ink)}
 button.pod{cursor:pointer}
 .pod.new{background:var(--ink);color:var(--paper)}
@@ -117,7 +120,11 @@ button.pod{cursor:pointer}
 .ok{color:#1f7a4d}.no{color:var(--accent)}
 @media (max-width:860px){.split,.split3{grid-template-columns:1fr}}
 
-
+.check{list-style:none;padding:0;margin:12px 0 0;max-width:640px}
+.check li{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--rule)}
+.check input{width:18px;height:18px;accent-color:var(--accent)}
+.check li.done a{color:var(--soft);text-decoration:line-through}
+.prog{font-family:var(--mono);font-size:12px;color:var(--soft)}
 .doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}.doc-tags a{font:500 12px "Geist Mono",ui-monospace,monospace;padding:4px 10px;border:1px solid var(--rule-solid,#bfc0c0);border-radius:4px;background:#fff;color:var(--muted,#4f5d75);text-decoration:none}.doc-tags a:hover{border-color:var(--ink,#2d3142);color:var(--ink,#2d3142)}.doc-tags a:focus-visible{outline:2px solid var(--accent,#bf4520);outline-offset:2px}
 </style>
 </head>
@@ -129,72 +136,62 @@ button.pod{cursor:pointer}
 
 <header>
   <div class="eyebrow">Architecture · AWS</div>
-  <h1>AWS VPC Networking</h1>
-  <p class="lede">Your private network in the cloud. Subnets become public or private through route tables, and security groups decide who may connect.</p>
-  
-  
-  <nav class="doc-tags" aria-label="Main tags"><a href="../../../../index.html#tag=aws">#aws</a><a href="../../../../index.html#tag=vpc">#vpc</a><a href="../../../../index.html#tag=subnet">#subnet</a><a href="../../../../index.html#tag=route%20table">#route table</a></nav>
+  <h1>AWS Databases</h1>
+  <p class="lede">Managed data stores. Relational with RDS and Aurora, NoSQL with DynamoDB, and in-memory caching with ElastiCache.</p>
+  <nav class="doc-tags" aria-label="Main tags"><a href="../../../../index.html#tag=aws">#aws</a><a href="../../../../index.html#tag=rds">#rds</a><a href="../../../../index.html#tag=aurora">#aurora</a><a href="../../../../index.html#tag=dynamodb">#dynamodb</a></nav>
 </header>
 
 <section>
-  <h2>Can this instance reach the internet?</h2>
-  <p>Configure one instance in a VPC and test traffic in each direction. Reachability depends on the subnet's route table, a public address and the security group.</p>
+  <h2>Which database fits?</h2>
+  <p>Match the workload to the managed database that suits it.</p>
   <figure class="card">
-    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">Path through the VPC</span></div>
-    <div class="split3" id="path" role="group" aria-label="Network path"></div>
-    <div class="card-bottom"><span class="hint">each step on the path must pass</span><span class="live" id="live"></span></div>
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">Pick the service</span></div>
+    <div class="split" id="cards" role="group" aria-label="Services"></div>
+    <div class="card-bottom"><span class="hint">the highlighted card is the best fit</span><span class="live" id="live"></span></div>
   </figure>
   <div class="controls">
-    <div class="panel">
-      <label class="f">Subnet route <select id="rt"><option value="igw">0.0.0.0/0 to Internet Gateway</option><option value="nat">0.0.0.0/0 to NAT Gateway</option><option value="none">local only</option></select></label>
-      <label class="f">Public IPv4 address <select id="ip"><option value="1">yes</option><option value="">no</option></select></label>
-      <label class="f">Security group allows inbound 443 <select id="sg"><option value="1">yes</option><option value="">no</option></select></label>
-      <label class="f">Test <select id="dir"><option value="out">Instance to internet</option><option value="in">Internet to instance</option></select></label>
-    </div>
+    <div class="panel"><label class="f">What is the workload? <select id="need"><option value="0">A standard relational app (MySQL, PostgreSQL, SQL Server, Oracle)</option><option value="1">Relational with higher throughput, fast failover and many read replicas</option><option value="2">Key-value or document data at any scale with single-digit millisecond reads</option><option value="3">A cache in front of a database, or session and leaderboard data</option></select></label></div>
     <div class="panel"><pre id="readout" aria-live="polite"></pre></div>
   </div>
 </section>
 
 <section>
   <h2>Contents</h2>
-  <ol class="toc">
-    <li><a href="#vpc">VPC and subnets</a></li>
-    <li><a href="#routes">Route tables decide public or private</a></li>
-    <li><a href="#sg">Security groups and network ACLs</a></li>
-    <li><a href="#layout">A common layout</a></li>
-    <li><a href="#sources">Sources</a></li>
+  <div class="prog" id="prog" aria-live="polite"></div>
+  <ol class="check">
+    <li><input type="checkbox" id="c-rds" aria-label="Mark RDS as done"><a href="#rds">RDS</a></li>
+    <li><input type="checkbox" id="c-aurora" aria-label="Mark Aurora as done"><a href="#aurora">Aurora</a></li>
+    <li><input type="checkbox" id="c-dynamodb" aria-label="Mark DynamoDB as done"><a href="#dynamodb">DynamoDB</a></li>
+    <li><input type="checkbox" id="c-elasticache" aria-label="Mark ElastiCache as done"><a href="#elasticache">ElastiCache</a></li>
   </ol>
 </section>
 
-<section id="vpc">
-  <h2>1. VPC and subnets</h2>
-  <p>A <b>VPC</b> is your private network in one Region. You choose its address range, such as <code>10.0.0.0/16</code>. You split it into <b>subnets</b>, each in one Availability Zone. Instances live in subnets.</p>
-</section>
-
-<section id="routes">
-  <h2>2. Route tables decide public or private</h2>
-  <p>Nothing about a subnet is public by itself. A subnet is <b>public</b> when its route table sends <code>0.0.0.0/0</code> to an <b>Internet Gateway</b>. It is <b>private</b> when it does not.</p>
-  <table class="ops">
-    <thead><tr><th>Piece</th><th>Role</th></tr></thead>
-    <tbody>
-      <tr><td>Internet Gateway</td><td>Two-way door between the VPC and the internet. An instance also needs a public or Elastic IP to use it.</td></tr>
-      <tr><td>NAT Gateway</td><td>Lets private instances start outbound connections. The internet cannot start one back. It sits in a public subnet.</td></tr>
-      <tr><td>Route table</td><td>Rules that map destination ranges to a target. The <code>local</code> route keeps VPC traffic inside.</td></tr>
-    </tbody>
-  </table>
-</section>
-
-<section id="sg">
-  <h2>3. Security groups and network ACLs</h2>
+<section id="rds">
+  <h2>1. RDS</h2>
+  <p>Relational Database Service runs MySQL, PostgreSQL, MariaDB, Oracle, SQL Server or Db2 for you: provisioning, patches, backups and point-in-time restore.</p>
   <ul class="tight">
-    <li><b>Security group:</b> a firewall on the instance's network interface. It only has allow rules. It is <b>stateful</b>, so a reply to allowed traffic is allowed automatically.</li>
-    <li><b>Network ACL:</b> a firewall on the subnet with allow and deny rules. It is <b>stateless</b>, so replies need their own rule.</li>
+    <li><b>Multi-AZ</b> keeps a synchronous standby in another zone and fails over automatically. It is for availability, not read scaling.</li>
+    <li><b>Read replicas</b> are asynchronous copies that serve reads. They can be in another Region.</li>
   </ul>
 </section>
 
-<section id="layout">
-  <h2>4. A common layout</h2>
-  <p>Put load balancers in public subnets. Put application servers and databases in private subnets. Give private subnets a NAT Gateway for updates. Reach other AWS services without the internet through <b>VPC endpoints</b>.</p>
+<section id="aurora">
+  <h2>2. Aurora</h2>
+  <p>A cloud-built engine compatible with MySQL and PostgreSQL. Compute is separated from a distributed storage layer that keeps six copies across three zones and grows automatically. Replicas read the same storage, so up to 15 replicas lag very little, and failover is quick. <b>Serverless v2</b> scales capacity in small steps. <b>Global Database</b> replicates to other Regions.</p>
+
+</section>
+
+<section id="dynamodb">
+  <h2>3. DynamoDB</h2>
+  <p>A key-value and document database with no servers to manage. Items are found by a partition key, and optionally a sort key. Reads and writes stay in single-digit milliseconds at any size. Capacity is on-demand or provisioned. Add indexes (GSI, LSI) for other access paths, TTL to expire items, Streams for change events, and <b>global tables</b> for multi-Region writes.</p>
+  <p>Design from your queries backward. A key with uneven traffic makes a hot partition.</p>
+
+</section>
+
+<section id="elasticache">
+  <h2>4. ElastiCache</h2>
+  <p>Managed in-memory stores, Valkey and Redis OSS or Memcached, with sub-millisecond reads. The common pattern is <b>cache-aside</b>: the app checks the cache, on a miss reads the database and writes the result with a TTL. Use it to cut read load and latency, or for sessions and rate limits. Redis-compatible engines add replication and Multi-AZ failover.</p>
+
 </section>
 
 <section id="sources">
@@ -207,30 +204,33 @@ button.pod{cursor:pointer}
 <script>
 (function () {
   function $(id) { return document.getElementById(id); }
+  var cards = [["RDS", "managed relational"], ["Aurora", "cloud-native relational"], ["DynamoDB", "NoSQL key-value"], ["ElastiCache", "in-memory cache"]], opts = [[0, "RDS. A managed engine with backups, patching and Multi-AZ failover. Pick it when you want the engine as is."], [1, "Aurora. MySQL and PostgreSQL compatible, with a shared storage layer that keeps 6 copies over 3 zones and up to 15 replicas."], [2, "DynamoDB. Serverless and fully managed. Model your access patterns first, then choose keys to match."], [3, "ElastiCache. In-memory Valkey, Redis OSS or Memcached with sub-millisecond reads. Data is usually rebuildable."]];
   function draw() {
-    var rt = $('rt').value, ip = !!$('ip').value, sg = !!$('sg').value, out = $('dir').value === 'out';
-    var steps = [];
-    if (out) {
-      steps.push(['Route', rt !== 'none', rt === 'none' ? 'no default route' : 'default route to ' + (rt === 'igw' ? 'Internet Gateway' : 'NAT Gateway')]);
-      steps.push(['Public address', rt === 'nat' || ip, rt === 'nat' ? 'NAT supplies the address' : (ip ? 'has public IPv4' : 'needs a public IP to use the Internet Gateway')]);
-      steps.push(['Internet', true, 'reply returns (security groups are stateful)']);
-    } else {
-      steps.push(['Internet Gateway route', rt === 'igw', rt === 'igw' ? 'subnet is public' : 'subnet is not public']);
-      steps.push(['Public address', ip, ip ? 'has public IPv4' : 'no public IP to send to']);
-      steps.push(['Security group', sg, sg ? 'inbound 443 allowed' : 'inbound 443 not allowed']);
-    }
-    var ok = steps.every(function (s) { return s[1]; }), h = '';
-    steps.forEach(function (s) {
-      h += '<div class="comp' + (s[1] ? ' on' : '') + '"><b>' + s[0] + '</b><span class="' + (s[1] ? 'ok' : 'no') + '">' + (s[1] ? 'pass' : 'blocked') + '</span><br><span>' + s[2] + '</span></div>';
+    var o = opts[+$('need').value], h = '';
+    cards.forEach(function (c, i) {
+      h += '<div class="comp' + (i === o[0] ? ' on' : '') + '"><b>' + c[0] + '</b><span>' + c[1] + '</span></div>';
     });
-    $('path').innerHTML = h;
-    $('live').textContent = ok ? 'reachable' : 'blocked';
-    var r = ok ? 'Traffic flows.' : 'Traffic is blocked at: ' + steps.filter(function (s) { return !s[1]; }).map(function (s) { return s[0]; }).join(', ') + '.';
-    if (!out && rt === 'nat') r += '\nA NAT Gateway never accepts connections started from the internet.';
-    $('readout').textContent = r;
+    $('cards').innerHTML = h;
+    $('live').textContent = cards[o[0]][0];
+    $('readout').textContent = o[1];
   }
-  ['rt', 'ip', 'sg', 'dir'].forEach(function (i) { $(i).addEventListener('change', draw); });
+  $('need').addEventListener('change', draw);
   draw();
+})();
+</script>
+<script>
+(function () {
+  var key = 'aws-check:' + location.pathname, saved = {};
+  try { saved = JSON.parse(localStorage.getItem(key) || '{}'); } catch (e) {}
+  var boxes = document.querySelectorAll('.check input'), out = document.getElementById('prog');
+  function upd() {
+    var n = 0, o = {};
+    boxes.forEach(function (b) { if (b.checked) { n++; o[b.id] = 1; } b.closest('li').classList.toggle('done', b.checked); });
+    out.textContent = n + '/' + boxes.length + ' completed';
+    try { localStorage.setItem(key, JSON.stringify(o)); } catch (e) {}
+  }
+  boxes.forEach(function (b) { b.checked = !!saved[b.id]; b.addEventListener('change', upd); });
+  upd();
 })();
 </script>
 </body>

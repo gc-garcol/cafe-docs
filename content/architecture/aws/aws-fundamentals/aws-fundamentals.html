@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AWS Regions and Availability Zones: a visual guide</title>
+<title>AWS Fundamentals: a visual guide</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -101,6 +101,9 @@ select,input[type=text]{min-height:40px;padding:0 10px;border:1px solid var(--ru
 select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .uri{font-family:var(--mono);font-size:14px;word-break:break-all;padding:14px 16px;background:var(--ink);color:var(--paper);border-radius:6px;margin:0 0 12px}
 
+
+
+
 .pod{display:inline-flex;align-items:center;justify-content:center;min-width:64px;height:36px;margin:3px;padding:0 8px;border:1px solid var(--ink);border-radius:6px;background:#fff;font:600 11px var(--mono);color:var(--ink)}
 button.pod{cursor:pointer}
 .pod.new{background:var(--ink);color:var(--paper)}
@@ -117,7 +120,11 @@ button.pod{cursor:pointer}
 .ok{color:#1f7a4d}.no{color:var(--accent)}
 @media (max-width:860px){.split,.split3{grid-template-columns:1fr}}
 
-
+.check{list-style:none;padding:0;margin:12px 0 0;max-width:640px}
+.check li{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--rule)}
+.check input{width:18px;height:18px;accent-color:var(--accent)}
+.check li.done a{color:var(--soft);text-decoration:line-through}
+.prog{font-family:var(--mono);font-size:12px;color:var(--soft)}
 .doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}.doc-tags a{font:500 12px "Geist Mono",ui-monospace,monospace;padding:4px 10px;border:1px solid var(--rule-solid,#bfc0c0);border-radius:4px;background:#fff;color:var(--muted,#4f5d75);text-decoration:none}.doc-tags a:hover{border-color:var(--ink,#2d3142);color:var(--ink,#2d3142)}.doc-tags a:focus-visible{outline:2px solid var(--accent,#bf4520);outline-offset:2px}
 </style>
 </head>
@@ -129,11 +136,9 @@ button.pod{cursor:pointer}
 
 <header>
   <div class="eyebrow">Architecture · AWS</div>
-  <h1>AWS Regions and Availability Zones</h1>
-  <p class="lede">Where AWS runs your workload. A Region holds isolated zones, and spreading across zones is the first step to staying up.</p>
-  
-  
-  <nav class="doc-tags" aria-label="Main tags"><a href="../../../../index.html#tag=aws">#aws</a><a href="../../../../index.html#tag=region">#region</a><a href="../../../../index.html#tag=availability%20zone">#availability zone</a><a href="../../../../index.html#tag=high%20availability">#high availability</a></nav>
+  <h1>AWS Fundamentals</h1>
+  <p class="lede">Where AWS runs and who may do what. Regions, Availability Zones, the global network and the first line of access control.</p>
+  <nav class="doc-tags" aria-label="Main tags"><a href="../../../../index.html#tag=aws">#aws</a><a href="../../../../index.html#tag=regions">#regions</a><a href="../../../../index.html#tag=availability%20zones">#availability zones</a><a href="../../../../index.html#tag=global%20infrastructure">#global infrastructure</a></nav>
 </header>
 
 <section>
@@ -155,46 +160,49 @@ button.pod{cursor:pointer}
 
 <section>
   <h2>Contents</h2>
-  <ol class="toc">
-    <li><a href="#regions">Regions</a></li>
-    <li><a href="#azs-sec">Availability Zones</a></li>
-    <li><a href="#ha">Designing for failure</a></li>
-    <li><a href="#edge">Beyond zones</a></li>
-    <li><a href="#sources">Sources</a></li>
+  <div class="prog" id="prog" aria-live="polite"></div>
+  <ol class="check">
+    <li><input type="checkbox" id="c-global" aria-label="Mark Global infrastructure as done"><a href="#global">Global infrastructure</a></li>
+    <li><input type="checkbox" id="c-regions" aria-label="Mark Regions as done"><a href="#regions">Regions</a></li>
+    <li><input type="checkbox" id="c-azs" aria-label="Mark Availability Zones as done"><a href="#azs">Availability Zones</a></li>
+    <li><input type="checkbox" id="c-iam" aria-label="Mark IAM as done"><a href="#iam">IAM</a></li>
+    <li><input type="checkbox" id="c-shared" aria-label="Mark Shared responsibility as done"><a href="#shared">Shared responsibility</a></li>
   </ol>
 </section>
 
+<section id="global">
+  <h2>1. Global infrastructure</h2>
+  <p>AWS is a set of <b>Regions</b>, each made of several <b>Availability Zones</b>, joined by a private global network. Around them sit <b>edge locations</b> for CloudFront and Route 53, and <b>Local Zones</b> and <b>Wavelength</b> zones that put some services close to cities and carriers.</p>
+  <p>You call services through a Region's API endpoint. Some services are global, such as IAM, Route 53 and CloudFront.</p>
+
+</section>
+
 <section id="regions">
-  <h2>1. Regions</h2>
-  <p>A <b>Region</b> is a geographic area, such as <code>us-east-1</code> or <code>eu-west-1</code>. Regions are isolated from each other. Data stays in a Region unless you move it. Pick a Region for latency to users, data rules, service availability and price.</p>
+  <h2>2. Regions</h2>
+  <p>A Region is a geographic area, such as <code>us-east-1</code> or <code>eu-west-1</code>. Regions are isolated from each other, and data stays in a Region unless you move it. Choose by latency to users, data residency rules, which services are available and price.</p>
+
 </section>
 
-<section id="azs-sec">
-  <h2>2. Availability Zones</h2>
-  <p>Each Region has several <b>Availability Zones</b>. An AZ is one or more data centers with its own power, cooling and network. Zones in a Region are linked by low-latency networks but fail independently. A fire or power loss in one zone should not touch the others.</p>
-  <p class="callout">Spread across zones to survive a zone. Spread across Regions to survive a Region.</p>
+<section id="azs">
+  <h2>3. Availability Zones</h2>
+  <p>An AZ is one or more data centers with separate power, cooling and network, in one Region. Zones are linked by low-latency networks but fail independently. Subnets, EC2 instances and EBS volumes live in one AZ, so you spread across zones yourself.</p>
+<p class="callout">Spread across zones to survive a zone. Spread across Regions to survive a Region.</p>
 </section>
 
-<section id="ha">
-  <h2>3. Designing for failure</h2>
-  <table class="ops">
-    <thead><tr><th>Goal</th><th>Typical design</th></tr></thead>
-    <tbody>
-      <tr><td>Survive an instance</td><td>Several instances behind a load balancer with health checks.</td></tr>
-      <tr><td>Survive a zone</td><td>The same tier in at least two zones. Keep enough spare capacity to absorb the loss.</td></tr>
-      <tr><td>Survive a Region</td><td>A second Region with replicated data and DNS failover. Costs more and is harder.</td></tr>
-    </tbody>
-  </table>
-  <p>With 3 zones, losing one leaves two thirds of capacity. With 2 zones, losing one leaves half. Plan for the remaining capacity to carry full load.</p>
-</section>
-
-<section id="edge">
-  <h2>4. Beyond zones</h2>
+<section id="iam">
+  <h2>4. IAM</h2>
+  <p>Identity and Access Management answers one question: may this principal do this action on this resource? Principals are users, groups and <b>roles</b>. A policy is a JSON document of Allow and Deny statements. Everything is denied by default, and an explicit deny always wins. The Security page has a live evaluation.</p>
   <ul class="tight">
-    <li><b>Edge locations</b> cache content close to users through CloudFront.</li>
-    <li><b>Local Zones</b> put a few services near a large city.</li>
-    <li>Some services, such as S3 and DynamoDB, replicate across zones for you. For others, such as EC2, you choose the zone.</li>
+    <li>Do not use the root user for daily work. Protect it with MFA.</li>
+    <li>Prefer roles with short-lived credentials over access keys.</li>
+    <li>Grant least privilege.</li>
   </ul>
+</section>
+
+<section id="shared">
+  <h2>5. Shared responsibility</h2>
+  <p>AWS is responsible for security <b>of</b> the cloud: facilities, hardware and the hypervisor. You are responsible for security <b>in</b> the cloud: your data, IAM, network rules, patches on instances you manage and configuration. The more managed the service, the less you operate.</p>
+
 </section>
 
 <section id="sources">
@@ -231,6 +239,21 @@ button.pod{cursor:pointer}
   $('lay').addEventListener('change', draw);
   $('reset').addEventListener('click', function () { down = [false, false, false]; draw(); });
   draw();
+})();
+</script>
+<script>
+(function () {
+  var key = 'aws-check:' + location.pathname, saved = {};
+  try { saved = JSON.parse(localStorage.getItem(key) || '{}'); } catch (e) {}
+  var boxes = document.querySelectorAll('.check input'), out = document.getElementById('prog');
+  function upd() {
+    var n = 0, o = {};
+    boxes.forEach(function (b) { if (b.checked) { n++; o[b.id] = 1; } b.closest('li').classList.toggle('done', b.checked); });
+    out.textContent = n + '/' + boxes.length + ' completed';
+    try { localStorage.setItem(key, JSON.stringify(o)); } catch (e) {}
+  }
+  boxes.forEach(function (b) { b.checked = !!saved[b.id]; b.addEventListener('change', upd); });
+  upd();
 })();
 </script>
 </body>
