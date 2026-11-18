@@ -29,6 +29,7 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);f
 .back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
 h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+h3{font-family:var(--serif);font-weight:400;font-size:24px;line-height:1.2;margin:32px 0 10px}
 .lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
 section{margin-top:64px}
 section p{max-width:68ch;margin:0 0 14px}
@@ -158,7 +159,64 @@ input[type=range]{width:200px;accent-color:#bf4520}
 </section>
 
 <section>
-  <h2>2. The formula</h2>
+  <h2>2. Hypothesis and evidence</h2>
+  <p>Two words carry the whole theorem, so it pays to be exact about them.</p>
+  <p>A <b>hypothesis</b> $H$ is a claim whose probability you want to know. You do not know whether it is true. Examples: this person has the disease, this email is spam, this transaction is fraud, this coin is rigged.</p>
+  <p><b>Evidence</b> $E$ is something you have actually observed that bears on the claim. For a fraud check, the evidence might be that the transaction comes from an unusual IP address, from a new country, from a device never seen before, or is unusually large, or is one of several in a short time.</p>
+  <p class="callout">The hypothesis is what you want to know. The evidence is what you already saw.</p>
+  <p>Textbooks often write the pair as $A$ and $B$ instead of $H$ and $E$. It is the same formula with different letters.</p>
+
+  <h3>A worked example: fraud detection</h3>
+  <p>Let $H$ be "this transaction is fraud" and $E$ be "the transaction comes from an unusual IP". Suppose the numbers are:</p>
+  <table class="ops">
+    <thead><tr><th>Quantity</th><th>Name</th><th>Meaning here</th><th>Value</th></tr></thead>
+    <tbody>
+      <tr><td>$P(H)$</td><td>Prior</td><td>Share of transactions that are fraud, before looking at the IP</td><td>0.10</td></tr>
+      <tr><td>$P(E \mid H)$</td><td>Likelihood</td><td>If it is fraud, chance of an unusual IP</td><td>0.80</td></tr>
+      <tr><td>$P(E \mid \neg H)$</td><td>False alarm</td><td>If it is honest, chance of an unusual IP anyway</td><td>0.05</td></tr>
+      <tr><td>$P(E)$</td><td>Evidence</td><td>Chance of an unusual IP overall</td><td>to compute</td></tr>
+      <tr><td>$P(H \mid E)$</td><td>Posterior</td><td>Chance of fraud, now that we saw the unusual IP</td><td>to compute</td></tr>
+    </tbody>
+  </table>
+  <p>First find how often an unusual IP shows up at all. It can happen in two ways, through fraud or through an honest transaction:</p>
+  <div class="formula">$$P(E)=\underbrace{0.80\times0.10}_{\text{fraud, unusual IP}=0.08}+\underbrace{0.05\times0.90}_{\text{honest, unusual IP}=0.045}=0.125$$</div>
+  <p>Now apply Bayes' theorem:</p>
+  <div class="formula">$$P(H \mid E)=\frac{P(E \mid H)\,P(H)}{P(E)}=\frac{0.08}{0.125}=0.64$$</div>
+  <p>Before the evidence the chance of fraud was 10%. After seeing the unusual IP it is 64%. The evidence changed the probability of the hypothesis, and the size of the change came from how much more often fraud produces that IP than honest traffic does: $0.80$ against $0.05$.</p>
+  <p>Notice the denominator. Of every 1000 transactions, 100 are fraud and 80 of those come from an unusual IP. Of the 900 honest ones, 45 do too. So 125 transactions look like this, and 80 of them are fraud, which is $80/125=64\%$.</p>
+
+  <h3>Three words that are easy to mix up</h3>
+  <table class="ops">
+    <thead><tr><th>Term</th><th>Question it answers</th><th>In the example</th></tr></thead>
+    <tbody>
+      <tr><td>Hypothesis</td><td>What am I trying to find out? Unknown, true or false.</td><td>Is this transaction fraud?</td></tr>
+      <tr><td>Evidence</td><td>What have I actually observed?</td><td>Unusual IP, a new country, an unknown device</td></tr>
+      <tr><td>Posterior</td><td>How likely is the hypothesis after seeing the evidence?</td><td>$P(H \mid E)=64\%$</td></tr>
+    </tbody>
+  </table>
+  <p>The likelihood $P(E \mid H)$ and the posterior $P(H \mid E)$ look alike but ask opposite questions. The first starts from the hypothesis and asks how likely the evidence is. The second starts from the evidence and asks how likely the hypothesis is. Bayes' theorem is the bridge between them.</p>
+
+  <h3>The roles are not fixed</h3>
+  <p>Nothing makes a statement a hypothesis or evidence by itself. It depends on the question you are asking. The same observation can serve in different problems:</p>
+  <ul class="tight">
+    <li>Question one: is this transaction fraud? Hypothesis: "the transaction is fraud". Evidence: "it came from an unusual IP".</li>
+    <li>Question two: has this account been hacked? Hypothesis: "the account is compromised". Evidence: "there was a login from an unusual IP".</li>
+  </ul>
+  <p>The data is nearly the same, but the hypothesis differs, so the priors and likelihoods differ, and so does the answer. Always begin by writing down the hypothesis in one sentence.</p>
+
+  <h3>In short</h3>
+  <ul class="tight">
+    <li><b>Hypothesis $H$</b>: what you want to know is true or not.</li>
+    <li><b>Evidence $E$</b>: what you have observed.</li>
+    <li><b>Prior $P(H)$</b>: how much you believed $H$ before the evidence.</li>
+    <li><b>Likelihood $P(E \mid H)$</b>: how likely the evidence is if $H$ is true.</li>
+    <li><b>Posterior $P(H \mid E)$</b>: how much you believe $H$ after the evidence.</li>
+  </ul>
+  <p>This pattern, a prior updated by evidence into a posterior, is the foundation of Bayesian statistics and Bayesian machine learning.</p>
+</section>
+
+<section>
+  <h2>3. The formula</h2>
   <p>Let $H$ be the hypothesis and $E$ the evidence. The chance of both happening can be written two ways:</p>
   <div class="formula">$$P(H \cap E) = P(E \mid H)\,P(H) = P(H \mid E)\,P(E)$$</div>
   <p>Divide both sides by $P(E)$ and you get Bayes' theorem:</p>
@@ -177,7 +235,7 @@ input[type=range]{width:200px;accent-color:#bf4520}
 </section>
 
 <section>
-  <h2>3. Count people instead</h2>
+  <h2>4. Count people instead</h2>
   <p>The formula is easier to trust when you count. Take the default sliders: 1% of people have the condition, the test catches 90% of them, and it falsely flags 9% of the rest. Out of 1000 people:</p>
   <ul class="tight">
     <li>10 have it, and 9 of them test positive.</li>
@@ -188,19 +246,19 @@ input[type=range]{width:200px;accent-color:#bf4520}
 </section>
 
 <section>
-  <h2>4. Base rate neglect</h2>
+  <h2>5. Base rate neglect</h2>
   <p>People often answer with the hit rate, 90%, because it is the number the test advertises. That swaps $P(E \mid H)$ for $P(H \mid E)$. They are different questions: "how many sick people test positive" and "how many positive people are sick". Drag the base rate slider up to 30% and watch the answer climb. The test did not change. Only the population did.</p>
 </section>
 
 <section>
-  <h2>5. Updating again and again</h2>
+  <h2>6. Updating again and again</h2>
   <p>Today's posterior is tomorrow's prior. In odds form, each piece of evidence just multiplies the odds by a fixed number, the <b>likelihood ratio</b>:</p>
   <div class="formula">$$\underbrace{\frac{P(H \mid E)}{P(\neg H \mid E)}}_{\text{posterior odds}} = \underbrace{\frac{P(H)}{P(\neg H)}}_{\text{prior odds}} \times \underbrace{\frac{P(E \mid H)}{P(E \mid \neg H)}}_{\text{likelihood ratio}}$$</div>
   <p>With the defaults the ratio is $0.90 / 0.09 = 10$. Prior odds of about $1 : 99$ become about $10 : 99$ after one positive test, which is roughly 9%. A second independent positive test multiplies by 10 again, giving about $100 : 99$, or roughly 50%.</p>
 </section>
 
 <section>
-  <h2>6. The same thing in code</h2>
+  <h2>7. The same thing in code</h2>
   <pre><span class="k">function</span> posterior(prior, hit, falseAlarm) {
   <span class="k">const</span> pEvidence = hit * prior + falseAlarm * (<span class="t">1</span> - prior);
   <span class="k">return</span> (hit * prior) / pEvidence;
@@ -211,7 +269,7 @@ posterior(<span class="t">0.092</span>, <span class="t">0.90</span>, <span class
 </section>
 
 <section>
-  <h2>7. Where it shows up</h2>
+  <h2>8. Where it shows up</h2>
   <ul class="tight">
     <li><b>Spam filters</b>: how likely is a message to be spam, given that it contains a certain word?</li>
     <li><b>Medicine</b>: reading screening tests and weighing a result against how common the disease is.</li>
