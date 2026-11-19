@@ -127,9 +127,9 @@ input[type=range]{width:200px;accent-color:#bf4520}
 
   <div class="controls">
     <div class="panel">
-      <div class="row"><label class="wide" for="prior">Base rate $P(H)$</label><input type="range" id="prior" min="1" max="500" value="10"><span class="val" id="v-prior"></span></div>
-      <div class="row"><label class="wide" for="sens">Hit rate $P(E \mid H)$</label><input type="range" id="sens" min="50" max="100" value="90"><span class="val" id="v-sens"></span></div>
-      <div class="row"><label class="wide" for="fpr">False alarm $P(E \mid \neg H)$</label><input type="range" id="fpr" min="0" max="300" value="90"><span class="val" id="v-fpr"></span></div>
+      <div class="row"><label class="wide" for="prior">Base rate $P(H)$</label><input type="range" id="prior" min="0" max="1000" value="10"><span class="val" id="v-prior"></span></div>
+      <div class="row"><label class="wide" for="sens">Hit rate $P(E \mid H)$</label><input type="range" id="sens" min="0" max="100" value="90"><span class="val" id="v-sens"></span></div>
+      <div class="row"><label class="wide" for="fpr">False alarm $P(E \mid \neg H)$</label><input type="range" id="fpr" min="0" max="1000" value="90"><span class="val" id="v-fpr"></span></div>
       <div class="row">
         <button type="button" class="btn" id="p-med">Rare disease</button>
         <button type="button" class="btn" id="p-spam">Spam filter</button>
