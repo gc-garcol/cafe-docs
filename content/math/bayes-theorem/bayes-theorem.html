@@ -255,6 +255,28 @@ input[type=range]{width:200px;accent-color:#bf4520}
   <p>Today's posterior is tomorrow's prior. In odds form, each piece of evidence just multiplies the odds by a fixed number, the <b>likelihood ratio</b>:</p>
   <div class="formula">$$\underbrace{\frac{P(H \mid E)}{P(\neg H \mid E)}}_{\text{posterior odds}} = \underbrace{\frac{P(H)}{P(\neg H)}}_{\text{prior odds}} \times \underbrace{\frac{P(E \mid H)}{P(E \mid \neg H)}}_{\text{likelihood ratio}}$$</div>
   <p>With the defaults the ratio is $0.90 / 0.09 = 10$. Prior odds of about $1 : 99$ become about $10 : 99$ after one positive test, which is roughly 9%. A second independent positive test multiplies by 10 again, giving about $100 : 99$, or roughly 50%.</p>
+
+  <h3>How the new prior is set</h3>
+  <p>After each piece of evidence, the new prior is simply the posterior you just computed. Nothing else is added or adjusted:</p>
+  <div class="formula">$$P_{\text{new}}(H) = P(H \mid E_1) = \frac{P(E_1 \mid H)\,P_{\text{old}}(H)}{P(E_1 \mid H)\,P_{\text{old}}(H) + P(E_1 \mid \neg H)\,\bigl(1-P_{\text{old}}(H)\bigr)}$$</div>
+  <p>Then use $P_{\text{new}}(H)$ in the next round, with its complement $1-P_{\text{new}}(H)$ as the new $P(\neg H)$. Steps for each new piece of evidence $E_n$:</p>
+  <ul class="tight">
+    <li>Take the current belief as the prior: $P(H) \leftarrow$ last posterior.</li>
+    <li>Compute $P(E_n) = P(E_n \mid H)\,P(H) + P(E_n \mid \neg H)\,(1-P(H))$ with that prior.</li>
+    <li>Compute the posterior $P(H \mid E_n) = P(E_n \mid H)\,P(H) / P(E_n)$.</li>
+    <li>Store it as the prior for the next round.</li>
+  </ul>
+  <p>Worked example with the default test (hit rate 0.90, false alarm 0.09):</p>
+  <table class="ops">
+    <thead><tr><th>Round</th><th>Prior $P(H)$</th><th>$P(E)$</th><th>Posterior $P(H \mid E)$</th></tr></thead>
+    <tbody>
+      <tr><td>1st positive</td><td>0.010</td><td>$0.90 \cdot 0.010 + 0.09 \cdot 0.990 = 0.0981$</td><td>$0.009 / 0.0981 \approx 0.092$</td></tr>
+      <tr><td>2nd positive</td><td>0.092 (from round 1)</td><td>$0.90 \cdot 0.092 + 0.09 \cdot 0.908 \approx 0.1646$</td><td>$0.0828 / 0.1646 \approx 0.503$</td></tr>
+    </tbody>
+  </table>
+  <p>Note that $P(E)$ changes every round, because it depends on the prior. The hit rate and false alarm rate stay the same, since they describe the test, not your belief.</p>
+  <p>A negative result updates the same way, but uses the complementary likelihoods: $P(\neg E \mid H) = 1 - 0.90$ and $P(\neg E \mid \neg H) = 1 - 0.09$. The belief goes down instead of up.</p>
+  <p class="callout">Two conditions must hold: each new piece of evidence must be a fresh observation, and the pieces must be independent given $H$. Counting the same evidence twice, or treating two linked signals as independent, pushes the belief too far.</p>
 </section>
 
 <section>
