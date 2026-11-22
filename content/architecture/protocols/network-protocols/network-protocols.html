@@ -399,7 +399,7 @@ Sec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=
   <span class="k">rpc</span> Place (Order) <span class="k">returns</span> (Ack);                <span class="c2">// unary</span>
   <span class="k">rpc</span> Watch (Filter) <span class="k">returns</span> (<span class="k">stream</span> Fill);       <span class="c2">// server streaming</span>
   <span class="k">rpc</span> Upload (<span class="k">stream</span> Order) <span class="k">returns</span> (Summary);    <span class="c2">// client streaming</span>
-  <span class="k">rpc</span> Trade (<span class="k">stream</span> Order) <span class="k">returns</span> (<span class="k">stream</span> Fill);  <span class="c2">// bidirectional</span>
+  <span class="k">rpc</span> Trade (<span class="k">stream</span> Order) <span class="k">returns</span> (<span class="k">stream</span> Fill); <span class="c2">// bidirectional</span>
 }</pre>
   <p>On the wire, a call is an HTTP/2 <code>POST</code> to <code>/package.Service/Method</code> with <code>content-type: application/grpc</code>. Each message gets a 5-byte prefix: one compressed flag byte and a 4-byte big-endian length. The result travels in HTTP trailers.</p>
   <pre>HEADERS   :method POST  :path /shop.Orders/Place  grpc-timeout 200m
