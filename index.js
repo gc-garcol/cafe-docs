@@ -1389,6 +1389,17 @@ const DOCS = [
     summary: 'Fit small trees one after another, each to the mistakes of the ones before. Step through the rounds, tune the learning rate and depth, and watch validation error find its minimum and then rise again.',
     related: ['Decision Tree', 'Random Forest', 'Gradient Descent', 'Overfitting and Regularization', 'Walk-Forward and Purged Cross-Validation'],
   },
+  {
+    title: 'Walk-Forward and Purged Cross-Validation',
+    path: 'content/quant/walk-forward-purged-cv/walk-forward-purged-cv.html',
+    category: 'Quant',
+    topic: 'Machine learning for markets',
+    order: 22,
+    level: 'Intermediate',
+    tags: ['cross-validation', 'walk-forward', 'purging', 'embargo', 'leakage', 'time series', 'overfitting', 'backtesting'],
+    summary: 'Shuffled K-fold finds an edge in pure noise when labels overlap and features drift. Compare shuffled, blocked, walk-forward, purged and combinatorial splits, and watch the fake skill vanish.',
+    related: ['Backtesting Without Look-Ahead', 'Feature Engineering and Leakage', 'Gradient Boosting', 'Hypothesis Tests and p-values', 'Overfitting and Regularization'],
+  },
 ];
 
 // ---------- helpers ----------

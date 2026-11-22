@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Walk-Forward and Purged Cross-Validation: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8; --green:#1f7a4d;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+h3{font-family:var(--serif);font-weight:400;font-size:24px;line-height:1.2;margin:28px 0 8px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+a{color:var(--link)}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+.card{margin:24px 0 0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.scroll{overflow-x:auto;padding:0 8px}
+.scroll svg{display:block;height:auto}
+.controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;margin-top:16px;align-items:start}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:0 0 12px}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.btn:disabled{opacity:.4;cursor:not-allowed;background:transparent;color:var(--ink)}
+.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--ink);border-radius:6px;overflow:hidden}
+.seg button{min-height:36px;padding:0 12px;border:0;border-right:1px solid var(--rule-solid);background:transparent;color:var(--ink);font:500 13px var(--sans);cursor:pointer}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.seg button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.lab-label{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);min-width:96px}
+.size input[type=range]{width:180px;accent-color:var(--accent)}
+.size output{font-family:var(--mono);font-size:12px;font-weight:600;min-width:5ch}
+select{min-height:38px;padding:0 10px;border:1px solid var(--rule-solid);border-radius:6px;font:500 13px var(--sans);color:var(--ink);background:#fff}
+.lab-out{margin:0;padding:0;border:0;background:none;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink)}
+.after{margin-top:16px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:3px;border:1px solid var(--ink);display:inline-block}
+pre{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .t{color:var(--link)} .c{color:var(--soft);font-style:italic}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat h3{margin:4px 0 6px;font-size:22px}
+.stat .big{font-family:var(--serif);font-size:32px;line-height:1.1;margin:6px 0}
+.stat .big .katex{font-size:.8em}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+table.ops{border-collapse:collapse;width:100%;max-width:760px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+ul.tight,ol.tight{padding-left:20px;max-width:68ch}ul.tight li,ol.tight li{margin:6px 0}
+.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;text-align:center;overflow-x:auto}
+.formula .katex{font-size:1.2em}
+.katex{color:var(--ink)}
+p .katex,td .katex,li .katex{font-size:1.05em}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+.two pre{margin:0}
+.two h3{margin-top:0}
+.doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}.doc-tags a{font:500 12px var(--mono);padding:4px 10px;border:1px solid var(--rule-solid);border-radius:4px;background:#fff;color:var(--muted);text-decoration:none}.doc-tags a:hover{border-color:var(--ink);color:var(--ink)}.doc-tags a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (max-width:860px){.controls,.two{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" style="margin-right:8px" href="../../../index.html">&larr; Back to home</a>
+<a class="back back-cat" href="../../../index.html#cat=Quant">&larr; Back to Quant</a>
+
+<header>
+  <div class="eyebrow">Quant · Machine learning for markets</div>
+  <h1>Walk-forward and purged cross-validation</h1>
+  <p class="lede">Ordinary cross-validation assumes every row is independent. Market data is not: neighboring rows share information, and labels built from future returns overlap. Split by time, purge the overlap, and the scores you report start meaning something.</p>
+  <nav class="doc-tags" aria-label="Main tags"><a href="../../../index.html#tag=cross-validation">#cross-validation</a><a href="../../../index.html#tag=walk-forward">#walk-forward</a><a href="../../../index.html#tag=purging">#purging</a><a href="../../../index.html#tag=embargo">#embargo</a></nav>
+</header>
+
+<section>
+  <h2>Try the machine first</h2>
+  <p>Each row is one train/test split of 240 time-ordered samples. Pick a scheme and watch where the test block (orange) sits and which training rows survive. Every sample's label looks $h$ steps into the future, so a training row within $h$ steps of a test row shares part of its label. Those rows are purple when a scheme leaves them in, and gray when purging removes them.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title" id="f1-title">Splits over time</span></div>
+    <div class="scroll">
+      <svg id="splits" width="880" height="320" viewBox="0 0 880 320" style="min-width:880px" role="img" aria-labelledby="splits-title splits-desc">
+        <title id="splits-title">Train and test splits along a time axis</title>
+        <desc id="splits-desc">One row per split. Time runs left to right. Blue cells are training samples, orange cells are test samples, purple cells are training samples whose labels overlap the test labels, gray cells are purged, amber cells are embargoed, and pale cells are unused.</desc>
+        <g id="splits-g"></g>
+      </svg>
+    </div>
+    <div class="card-bottom"><span class="hint">time →</span><span class="live" id="f1-live"></span></div>
+  </figure>
+
+  <div class="controls">
+    <div class="panel">
+      <div class="row"><span class="lab-label">Scheme</span>
+        <select id="scheme" aria-label="Validation scheme">
+          <option value="shuffled">K-fold, shuffled</option>
+          <option value="blocked">K-fold, blocked</option>
+          <option value="wfx" selected>Walk-forward, expanding</option>
+          <option value="wfr">Walk-forward, rolling</option>
+          <option value="purged">Purged K-fold + embargo</option>
+          <option value="cpcv">Combinatorial purged (k = 2)</option>
+        </select>
+      </div>
+      <div class="row size"><label for="k" class="lab-label">Folds</label><input type="range" id="k" min="3" max="8" value="5"><output id="k-out" for="k">5</output></div>
+      <div class="row size"><label for="h" class="lab-label">Horizon h</label><input type="range" id="h" min="0" max="20" value="8"><output id="h-out" for="h">8</output></div>
+      <div class="row size"><label for="emb" class="lab-label">Embargo</label><input type="range" id="emb" min="0" max="10" value="2"><output id="emb-out" for="emb">2%</output></div>
+      <div class="legend" aria-label="Legend">
+        <span><i class="sw" style="background:#5b7fc0;border-color:#5b7fc0"></i>train</span>
+        <span><i class="sw" style="background:#bf4520;border-color:#bf4520"></i>test</span>
+        <span><i class="sw" style="background:#7b4fa0;border-color:#7b4fa0"></i>leaky train</span>
+        <span><i class="sw" style="background:#c9ced8;border-color:#9aa6bf"></i>purged</span>
+        <span><i class="sw" style="background:#e9c77c;border-color:#c9a040"></i>embargo</span>
+      </div>
+    </div>
+    <div class="panel"><pre class="lab-out" id="f1-out" aria-live="polite"></pre></div>
+  </div>
+</section>
+
+<section>
+  <h2>1. Why ordinary cross-validation fails here</h2>
+  <p>K-fold cross-validation shuffles rows into $K$ groups, trains on $K-1$ of them and scores the last. That is fair only if rows are independent draws. Market data breaks this in two ways at once.</p>
+  <ul class="tight">
+    <li><b>Features have memory.</b> A 20-day volatility or a moving average changes slowly. Monday's and Tuesday's rows look almost the same, so a model that has seen Monday in training "recognizes" Tuesday in test.</li>
+    <li><b>Labels overlap.</b> A typical target is the forward return over $h$ days. The labels of two rows $i$ and $j$ use some of the same daily returns whenever $|i-j| \le h$:</li>
+  </ul>
+  <div class="formula">$$y_t = \ln\frac{P_{t+h}}{P_t} = \sum_{s=1}^{h} r_{t+s} \qquad\Rightarrow\qquad \operatorname{Corr}(y_i, y_j) = \max\!\left(0,\ 1 - \frac{|i-j|}{h}\right) \text{ for i.i.d. } r$$</div>
+  <p>Put both together and a shuffled split hands the model test answers in disguise. Its training set contains near-copies of every test row, with labels that share most of the same future. The score is high, and it says nothing about how the model will do on next month's data.</p>
+  <p class="callout">The question a validation scheme must answer is "how would this have done if I had trained it then and used it after?" Shuffling asks a different question.</p>
+</section>
+
+<section>
+  <h2>2. Walk-forward validation</h2>
+  <p>The simplest honest scheme copies deployment. Cut the timeline into blocks. Train on everything before a block, test on the block, then move forward one block and repeat. Every prediction is made by a model that only saw the past.</p>
+  <div class="two">
+    <div>
+      <h3>Expanding window</h3>
+      <p>Train on all history up to the test block. More data each fold, so later folds are more stable. Old regimes keep their weight.</p>
+    </div>
+    <div>
+      <h3>Rolling window</h3>
+      <p>Train on a fixed number of recent blocks. Adapts faster to changing markets, at the cost of fewer samples and noisier fits.</p>
+    </div>
+  </div>
+  <pre><span class="k">function</span> walkForward(n, folds, h, rolling = <span class="k">null</span>) {
+  <span class="k">const</span> size = Math.floor(n / (folds + <span class="t">1</span>)), splits = [];
+  <span class="k">for</span> (<span class="k">let</span> f = <span class="t">1</span>; f &lt;= folds; f++) {
+    <span class="k">const</span> testStart = f * size, testEnd = Math.min(n, testStart + size);
+    <span class="k">const</span> trainEnd = testStart - h;                  <span class="c">// purge: last label must end before the test</span>
+    <span class="k">const</span> trainStart = rolling ? Math.max(<span class="t">0</span>, trainEnd - rolling) : <span class="t">0</span>;
+    splits.push({ train: range(trainStart, trainEnd), test: range(testStart, testEnd) });
+  }
+  <span class="k">return</span> splits;
+}</pre>
+  <p>Note the gap of $h$ rows before each test block. The last training row's label reaches $h$ steps ahead, straight into the test period, so even walk-forward needs purging. Walk-forward has two weaknesses: early folds train on little data, and it produces a single path through history, so one lucky or unlucky stretch can dominate the result.</p>
+</section>
+
+<section>
+  <h2>3. Purging and embargo</h2>
+  <p>Blocked K-fold keeps each fold contiguous in time, but uses data from both sides of the test block. That gives every fold the same amount of training data and uses all of history, which walk-forward cannot. It needs two repairs.</p>
+  <p><b>Purging</b> removes every training row whose label interval overlaps a test label interval. With row $i$'s label covering $[t_i, t_i + h]$, training row $j$ is dropped when</p>
+  <div class="formula">$$[t_j,\ t_j + h] \;\cap\; \bigcup_{i \in \text{test}} [t_i,\ t_i + h] \;\ne\; \varnothing \quad\Longleftrightarrow\quad \min_{i \in \text{test}} |t_i - t_j| \le h$$</div>
+  <p><b>Embargo</b> drops a few more rows right after each test block. Features with memory, such as a 50-day average, carry information from the test period into the rows just after it, even when the labels no longer overlap. A common choice is about 1% of the sample, or at least the longest feature lookback.</p>
+  <pre><span class="k">function</span> purgedKFold(n, folds, h, embargo) {
+  <span class="k">const</span> size = Math.ceil(n / folds), splits = [];
+  <span class="k">for</span> (<span class="k">let</span> f = <span class="t">0</span>; f &lt; folds; f++) {
+    <span class="k">const</span> a = f * size, b = Math.min(n, a + size);    <span class="c">// test rows [a, b)</span>
+    <span class="k">const</span> train = [];
+    <span class="k">for</span> (<span class="k">let</span> j = <span class="t">0</span>; j &lt; n; j++) {
+      <span class="k">if</span> (j &gt;= a - h &amp;&amp; j &lt; b + h) <span class="k">continue</span>;         <span class="c">// purge both sides</span>
+      <span class="k">if</span> (j &gt;= b + h &amp;&amp; j &lt; b + h + embargo) <span class="k">continue</span>; <span class="c">// embargo after the test</span>
+      train.push(j);
+    }
+    splits.push({ train, test: range(a, b) });
+  }
+  <span class="k">return</span> splits;
+}</pre>
+  <p>Rows after the test block are purged too: their features may be fine, but the test labels near the end of the block reach into them. In Fig 1, select <b>K-fold, blocked</b> to see the purple leaky rows on both edges of each test block, then <b>Purged K-fold + embargo</b> to see them removed.</p>
+</section>
+
+<section>
+  <h2>4. Leakage lab</h2>
+  <p>This lab builds data with <b>no signal at all</b> unless you add some. Daily returns are pure noise, the label is the sum of the next $h$ returns, and the features are three slowly drifting AR(1) series that have nothing to do with them:</p>
+  <div class="formula">$$x^{(m)}_t = \phi\, x^{(m)}_{t-1} + \sqrt{1-\phi^2}\,\varepsilon^{(m)}_t \ \ (m = 1, 2, 3), \qquad y_t = \sum_{s=1}^{h} r_{t+s} + \beta\sqrt{h}\, x^{(1)}_t$$</div>
+  <p>A $k$-nearest-neighbor model predicts each test label from the training rows with the closest feature vectors. Each dot is one of 16 random data sets of 500 days. The score is the information coefficient (IC), the correlation between predictions and realized labels. With $\beta = 0$ the honest answer is zero.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 2</span><span class="card-title">Out-of-sample IC on data with no edge</span></div>
+    <div class="scroll">
+      <svg id="leak" width="880" height="300" viewBox="0 0 880 300" style="min-width:880px" role="img" aria-labelledby="leak-title leak-desc">
+        <title id="leak-title">Information coefficient by validation scheme</title>
+        <desc id="leak-desc">Four columns, one per validation scheme. Each dot is the out-of-sample correlation between prediction and label for one random data set. A horizontal bar marks the mean. A dashed line marks the best correlation any model could reach with the chosen signal strength.</desc>
+        <g id="leak-g"></g>
+      </svg>
+    </div>
+    <div class="card-bottom"><span class="hint">dot = one data set · bar = mean · dashed = best possible IC</span><span class="live" id="leak-live"></span></div>
+  </figure>
+
+  <div class="controls">
+    <div class="panel">
+      <div class="row size"><label for="lh" class="lab-label">Horizon h</label><input type="range" id="lh" min="1" max="20" value="10"><output id="lh-out" for="lh">10</output></div>
+      <div class="row size"><label for="phi" class="lab-label">Persistence φ</label><input type="range" id="phi" min="0" max="0.995" step="0.005" value="0.99"><output id="phi-out" for="phi">0.990</output></div>
+      <div class="row size"><label for="beta" class="lab-label">True signal β</label><input type="range" id="beta" min="0" max="0.3" step="0.01" value="0"><output id="beta-out" for="beta">0.00</output></div>
+      <div class="row size"><label for="nn" class="lab-label">Neighbors k</label><input type="range" id="nn" min="1" max="25" value="5"><output id="nn-out" for="nn">5</output></div>
+      <div class="row"><button type="button" class="btn" id="reseed">New data sets</button></div>
+    </div>
+    <div class="panel"><pre class="lab-out" id="leak-out" aria-live="polite"></pre></div>
+  </div>
+  <p class="after">Things to try. With the defaults, shuffled K-fold reports a large positive IC on pure noise. Blocked K-fold leaks much less, only through the edges of each test block. Purged K-fold and walk-forward sit around zero, where they belong. Small negative values are normal noise for a model with nothing to learn. Set $\phi$ to 0 and the leak disappears even for shuffled folds: neighbors in feature space are no longer neighbors in time. Then add a true signal $\beta$: the honest schemes find part of it, and the shuffled one still overstates it.</p>
+</section>
+
+<section>
+  <h2>5. Combinatorial purged cross-validation</h2>
+  <p>Walk-forward gives one path through history, and a single path is a single sample of a very noisy quantity. Combinatorial purged cross-validation (CPCV), from Marcos López de Prado, gets many. Cut the data into $N$ groups. Every choice of $k$ groups is a test set, with the rest purged, embargoed and used for training. That gives</p>
+  <div class="formula">$$\text{splits} = \binom{N}{k}, \qquad \text{backtest paths} = \frac{k}{N}\binom{N}{k} = \binom{N-1}{k-1}$$</div>
+  <p>Each group appears in the test set of $\binom{N-1}{k-1}$ splits, so the out-of-sample predictions can be stitched into that many complete paths through history. With $N = 6$ and $k = 2$ there are 15 splits and 5 paths. Instead of one Sharpe ratio you get a distribution of them, and a strategy whose median path loses money is easy to spot. Select <b>Combinatorial purged</b> in Fig 1 to see all splits for $k = 2$.</p>
+  <p>The cost is compute: every split is a full model fit, and $\binom{N}{k}$ grows fast. Some paths also train on data from after their test period, which is fine for estimating skill but does not mimic deployment the way walk-forward does.</p>
+</section>
+
+<section>
+  <h2>6. Tuning without fooling yourself</h2>
+  <p>Validation protects one model. Trying many models on the same validation data quietly undoes it, because you end up reporting the luckiest one. Two habits help.</p>
+  <ul class="tight">
+    <li><b>Nest the search.</b> Inside each training window, run a second walk-forward to choose hyperparameters. Only the outer test blocks are scored. Keep a final hold-out period that nobody looks at until the end.</li>
+    <li><b>Count your trials.</b> If you try $N$ independent strategies with true Sharpe ratio zero, the best one still looks good. Its expected Sharpe ratio grows like $\sqrt{2\ln N}$ times the standard error. Bailey and López de Prado's <b>deflated Sharpe ratio</b> compares the observed Sharpe ratio with this expected maximum:</li>
+  </ul>
+  <div class="formula">$$\mathbb{E}\Bigl[\max_{n \le N} \widehat{SR}_n\Bigr] \approx \sigma_{SR}\left[(1-\gamma)\,\Phi^{-1}\!\Bigl(1 - \frac1N\Bigr) + \gamma\,\Phi^{-1}\!\Bigl(1 - \frac{1}{N e}\Bigr)\right]$$</div>
+  <p>Here $\gamma \approx 0.5772$ is the Euler–Mascheroni constant, $\Phi^{-1}$ the normal quantile, and $\sigma_{SR}$ the standard deviation of Sharpe ratio estimates across trials. With 100 trials the best of pure noise already sits about $2.5\,\sigma_{SR}$ above zero. See <a href="../hypothesis-testing/hypothesis-testing.html">hypothesis tests</a> for the multiple-testing view of the same problem.</p>
+</section>
+
+<section>
+  <h2>7. Which scheme when</h2>
+  <table class="ops">
+    <thead><tr><th>Scheme</th><th>Leak-free</th><th>Uses all data</th><th>Paths</th><th>Use it for</th></tr></thead>
+    <tbody>
+      <tr><td>K-fold, shuffled</td><td>No</td><td>Yes</td><td>none</td><td>Independent rows only. Never for overlapping labels</td></tr>
+      <tr><td>K-fold, blocked</td><td>Edges leak</td><td>Yes</td><td>1</td><td>A quick check when $h$ and feature memory are tiny</td></tr>
+      <tr><td>Walk-forward</td><td>Yes, with a gap of $h$</td><td>Early data trains only</td><td>1</td><td>The final, deployment-like estimate</td></tr>
+      <tr><td>Purged K-fold + embargo</td><td>Yes</td><td>Yes</td><td>1</td><td>Model selection with limited data</td></tr>
+      <tr><td>CPCV</td><td>Yes</td><td>Yes</td><td>$\binom{N-1}{k-1}$</td><td>A distribution of performance, overfitting checks</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>8. Common mistakes</h2>
+  <ul class="tight">
+    <li><b>Fitting preprocessing on all data.</b> Scalers, PCA, feature selection and target encoding must be fit inside each training window. A z-score that uses the full-sample mean already knows the future. See <a href="../feature-engineering-leakage/feature-engineering-leakage.html">feature engineering and leakage</a>.</li>
+    <li><b>Forgetting the label horizon in walk-forward.</b> Training right up to the test start leaks the last $h$ labels.</li>
+    <li><b>Using index positions instead of timestamps.</b> With irregular data or several assets per day, purge by the actual time each label starts and ends, not by row number.</li>
+    <li><b>Mixing assets across a split.</b> If stock A on Monday is in training and stock B on Monday is in test, market-wide moves leak. Split by date for all assets together.</li>
+    <li><b>Reporting the average of folds without the spread.</b> Five folds with ICs of 0.08, −0.02, 0.01, 0.06 and −0.04 are not "an IC of 0.02". Show every fold.</li>
+    <li><b>Rerunning until it works.</b> Every look at the test period is a trial. Count them.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>9. Where it shows up</h2>
+  <ul class="tight">
+    <li><b>Alpha research:</b> scoring return forecasts, factor models and ML signals before any capital is risked. It pairs with <a href="../backtesting/backtesting.html">backtesting without look-ahead</a>.</li>
+    <li><b>Model tuning:</b> choosing the depth and learning rate of <a href="../gradient-boosting/gradient-boosting.html">gradient boosting</a>, or the penalty of <a href="../../AI/machine-learning/ridge-lasso-regression/ridge-lasso-regression.html">ridge and lasso</a>.</li>
+    <li><b>Libraries:</b> scikit-learn's <code>TimeSeriesSplit</code> is walk-forward with an optional <code>gap</code>. Purged K-fold and CPCV come from <i>Advances in Financial Machine Learning</i> and are implemented in several open-source packages.</li>
+    <li><b>Beyond finance:</b> demand forecasting, energy load, medical records of the same patient over time, and any data where rows near each other are not independent.</li>
+  </ul>
+</section>
+
+</main>
+
+<script>
+(function () {
+  var NS = 'http://www.w3.org/2000/svg';
+  function el(name, attrs, text) {
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (text != null) e.textContent = text;
+    return e;
+  }
+  function rng(s) { return function () { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
+  function gauss(rand) { var u = 1 - rand(), v = rand(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+  function $(id) { return document.getElementById(id); }
+
+  // ---------- Split builder shared by both figures ----------
+  // Returns a list of splits; each split is an Int8Array of roles:
+  // 0 unused, 1 train, 2 test, 3 leaky train, 4 purged, 5 embargo.
+  function buildSplits(scheme, n, K, h, emb, seed) {
+    var out = [], f, j, size;
+    function roles() { return new Int8Array(n); }
+    function markTrain(r, purge, embargo) {
+      // r already has tests marked as 2; everything else 0 becomes train, purged, embargoed or leaky.
+      var near = new Int32Array(n).fill(1e9), last = -1e9, i;
+      for (i = 0; i < n; i++) { if (r[i] === 2) last = i; near[i] = i - last; }
+      last = 1e9;
+      for (i = n - 1; i >= 0; i--) { if (r[i] === 2) last = i; near[i] = Math.min(near[i], last - i); }
+      // distance after the end of the previous test block, for the embargo
+      var since = new Int32Array(n), endPrev = -1e9;
+      for (i = 0; i < n; i++) { if (r[i] === 2) endPrev = i; since[i] = i - endPrev; }
+      for (i = 0; i < n; i++) {
+        if (r[i] !== 0) continue;
+        var overlap = h > 0 && near[i] <= h;
+        if (overlap) r[i] = purge ? 4 : 3;
+        else if (embargo && since[i] > h && since[i] <= h + embargo) r[i] = 5;
+        else r[i] = 1;
+      }
+      return r;
+    }
+    if (scheme === 'shuffled') {
+      var perm = [], rand = rng(seed);
+      for (j = 0; j < n; j++) perm.push(j);
+      for (j = n - 1; j > 0; j--) { var q = Math.floor(rand() * (j + 1)), t = perm[j]; perm[j] = perm[q]; perm[q] = t; }
+      for (f = 0; f < K; f++) {
+        var r = roles();
+        for (j = 0; j < n; j++) if (j % K === f) r[perm[j]] = 2;
+        out.push(markTrain(r, false, 0));
+      }
+    } else if (scheme === 'blocked' || scheme === 'purged') {
+      size = Math.ceil(n / K);
+      for (f = 0; f < K; f++) {
+        var r2 = roles();
+        for (j = f * size; j < Math.min(n, (f + 1) * size); j++) r2[j] = 2;
+        out.push(markTrain(r2, scheme === 'purged', scheme === 'purged' ? emb : 0));
+      }
+    } else if (scheme === 'wfx' || scheme === 'wfr') {
+      size = Math.floor(n / (K + 1));
+      for (f = 1; f <= K; f++) {
+        var r3 = roles(), a = f * size, b = f === K ? n : a + size;
+        for (j = a; j < b; j++) r3[j] = 2;
+        var start = scheme === 'wfr' ? Math.max(0, a - 2 * size) : 0;
+        for (j = 0; j < n; j++) if (j < start || j >= b) r3[j] = -1; // outside the window: unused
+        markTrain(r3, true, 0);
+        for (j = 0; j < n; j++) if (r3[j] === -1) r3[j] = 0;
+        out.push(r3);
+      }
+    } else { // cpcv with k = 2
+      var N = K; size = Math.ceil(n / N);
+      for (var g1 = 0; g1 < N; g1++) for (var g2 = g1 + 1; g2 < N; g2++) {
+        var r4 = roles();
+        for (j = 0; j < n; j++) { var g = Math.floor(j / size); if (g === g1 || g === g2) r4[j] = 2; }
+        out.push(markTrain(r4, true, emb));
+      }
+    }
+    return out;
+  }
+
+  // ---------- Fig 1 ----------
+  var COLORS = ['#f1f1f1', '#5b7fc0', '#bf4520', '#7b4fa0', '#c9ced8', '#e9c77c'];
+  var NAMES = { shuffled: 'K-fold, shuffled', blocked: 'K-fold, blocked', wfx: 'Walk-forward, expanding', wfr: 'Walk-forward, rolling', purged: 'Purged K-fold + embargo', cpcv: 'Combinatorial purged, k = 2' };
+  function renderSplits() {
+    var scheme = $('scheme').value, K = +$('k').value, h = +$('h').value, embPct = +$('emb').value, n = 240;
+    var emb = Math.round(n * embPct / 100);
+    $('k-out').textContent = K; $('h-out').textContent = h; $('emb-out').textContent = embPct + '%';
+    var splits = buildSplits(scheme, n, K, h, emb, 17), g = $('splits-g');
+    g.textContent = '';
+    var x0 = 100, cw = 760 / n, rows = splits.length, rh = Math.min(34, 280 / rows), top = 14;
+    var H = top + rows * rh + 26, svg = $('splits');
+    svg.setAttribute('height', H); svg.setAttribute('viewBox', '0 0 880 ' + H);
+    var tot = [0, 0, 0, 0, 0, 0];
+    splits.forEach(function (r, s) {
+      var y = top + s * rh;
+      g.appendChild(el('text', { x: 16, y: y + rh / 2 + 4, 'font-family': "'Geist Mono',monospace", 'font-size': Math.min(11, rh - 2), fill: '#5a6580' }, 'split ' + (s + 1)));
+      // draw runs of equal role as one rect
+      var i = 0;
+      while (i < n) {
+        var j = i; while (j < n && r[j] === r[i]) j++;
+        g.appendChild(el('rect', { x: x0 + i * cw, y: y + 1, width: (j - i) * cw, height: Math.max(1, rh - (rh > 8 ? 4 : 1)), fill: COLORS[r[i]] }));
+        tot[r[i]] += j - i; i = j;
+      }
+    });
+    for (var t = 0; t <= n; t += 40) {
+      g.appendChild(el('text', { x: x0 + t * cw, y: top + rows * rh + 16, 'text-anchor': 'middle', 'font-family': "'Geist Mono',monospace", 'font-size': 10, fill: '#5a6580' }, t));
+    }
+    var m = splits.length;
+    function avg(k) { return (tot[k] / m).toFixed(0); }
+    $('f1-title').textContent = NAMES[scheme];
+    $('f1-out').textContent =
+      'splits            ' + m + '\n' +
+      'avg train rows    ' + avg(1) + '\n' +
+      'avg test rows     ' + avg(2) + '\n' +
+      'avg leaky train   ' + avg(3) + (tot[3] ? '   <- labels overlap the test' : '') + '\n' +
+      'avg purged        ' + avg(4) + '\n' +
+      'avg embargoed     ' + avg(5) +
+      (scheme === 'cpcv' ? '\n\npaths = C(N-1, k-1) = ' + (K - 1) : '');
+    $('f1-live').textContent = m + ' splits · ' + (tot[3] ? avg(3) + ' leaky rows per split' : 'no label overlap');
+  }
+  ['scheme', 'k', 'h', 'emb'].forEach(function (id) { $(id).addEventListener('input', renderSplits); });
+  renderSplits();
+
+  // ---------- Fig 2: leakage lab ----------
+  var T = 500, RUNS = 16, KF = 5, DIM = 3, leakSeed = 1;
+  function makeData(seed, h, phi, beta) {
+    var rand = rng(seed), r = [], x = new Float64Array(T * DIM), y = [], i, s, m;
+    for (i = 0; i < T + h + 1; i++) r.push(gauss(rand));
+    for (m = 0; m < DIM; m++) {
+      var prev = gauss(rand);
+      for (i = 0; i < T; i++) { prev = phi * prev + Math.sqrt(1 - phi * phi) * gauss(rand); x[i * DIM + m] = prev; }
+    }
+    for (i = 0; i < T; i++) { var sum = 0; for (s = 1; s <= h; s++) sum += r[i + s]; y.push(sum + beta * Math.sqrt(h) * x[i * DIM]); }
+    return { x: x, y: y };
+  }
+  // Brute-force k nearest neighbors in feature space; keeps the k best in a small sorted list.
+  function knnPredict(d, train, test, k) {
+    var x = d.x, kk = Math.min(k, train.length);
+    return test.map(function (t) {
+      var bd = [], bi = [];
+      for (var q = 0; q < train.length; q++) {
+        var j = train[q], dist = 0;
+        for (var m = 0; m < DIM; m++) { var df = x[t * DIM + m] - x[j * DIM + m]; dist += df * df; }
+        if (bd.length < kk || dist < bd[bd.length - 1]) {
+          var p = bd.length < kk ? bd.length : kk - 1;
+          while (p > 0 && bd[p - 1] > dist) { bd[p] = bd[p - 1]; bi[p] = bi[p - 1]; p--; }
+          bd[p] = dist; bi[p] = j;
+        }
+      }
+      var sum = 0; for (var c = 0; c < bi.length; c++) sum += d.y[bi[c]];
+      return bi.length ? sum / bi.length : 0;
+    });
+  }
+  function corr(a, b) {
+    var n = a.length, ma = 0, mb = 0, i;
+    for (i = 0; i < n; i++) { ma += a[i]; mb += b[i]; }
+    ma /= n; mb /= n;
+    var sab = 0, saa = 0, sbb = 0;
+    for (i = 0; i < n; i++) { var da = a[i] - ma, db = b[i] - mb; sab += da * db; saa += da * da; sbb += db * db; }
+    return saa && sbb ? sab / Math.sqrt(saa * sbb) : 0;
+  }
+  function score(d, scheme, h, k, seed) {
+    var splits = buildSplits(scheme, T, KF, h, Math.max(h, Math.round(T * 0.01)), seed), P = [], Y = [];
+    splits.forEach(function (r) {
+      var train = [], test = [];
+      for (var i = 0; i < T; i++) { if (r[i] === 1 || r[i] === 3) train.push(i); else if (r[i] === 2) test.push(i); }
+      if (!train.length) return;
+      var p = knnPredict(d, train, test, k);
+      test.forEach(function (t, q) { P.push(p[q]); Y.push(d.y[t]); });
+    });
+    return corr(P, Y);
+  }
+  var SCHEMES = [['shuffled', 'K-fold shuffled'], ['blocked', 'K-fold blocked'], ['purged', 'Purged + embargo'], ['wfx', 'Walk-forward']];
+  function renderLeak() {
+    var h = +$('lh').value, phi = +$('phi').value, beta = +$('beta').value, k = +$('nn').value;
+    $('lh-out').textContent = h; $('phi-out').textContent = phi.toFixed(3); $('beta-out').textContent = beta.toFixed(2); $('nn-out').textContent = k;
+    var res = SCHEMES.map(function () { return []; });
+    for (var run = 0; run < RUNS; run++) {
+      var d = makeData(leakSeed * 1000 + run, h, phi, beta);
+      SCHEMES.forEach(function (s, q) { res[q].push(score(d, s[0], h, k, run + 7)); });
+    }
+    var g = $('leak-g'); g.textContent = '';
+    var lo = -0.3, hi = 1, y0 = 20, y1 = 250;
+    function Y(v) { return y1 - (Math.max(lo, Math.min(hi, v)) - lo) / (hi - lo) * (y1 - y0); }
+    [-0.2, 0, 0.2, 0.4, 0.6, 0.8, 1].forEach(function (v) {
+      g.appendChild(el('line', { x1: 70, x2: 860, y1: Y(v), y2: Y(v), stroke: v === 0 ? '#2d3142' : 'rgba(45,49,66,.10)' }));
+      g.appendChild(el('text', { x: 60, y: Y(v) + 4, 'text-anchor': 'end', 'font-family': "'Geist Mono',monospace", 'font-size': 10, fill: '#5a6580' }, v.toFixed(1)));
+    });
+    var trueIC = beta / Math.sqrt(1 + beta * beta);
+    g.appendChild(el('line', { x1: 70, x2: 860, y1: Y(trueIC), y2: Y(trueIC), stroke: '#1f7a4d', 'stroke-dasharray': '5 4', 'stroke-width': 1.5 }));
+    var lines = [], colW = 790 / SCHEMES.length, rand = rng(99);
+    SCHEMES.forEach(function (s, q) {
+      var cx = 70 + colW * (q + .5), vals = res[q], mean = vals.reduce(function (a, b) { return a + b; }, 0) / vals.length;
+      var color = q === 0 ? '#bf4520' : q === 1 ? '#d9a03a' : '#2e5aa8';
+      vals.forEach(function (v) { g.appendChild(el('circle', { cx: cx - 40 + rand() * 80, cy: Y(v), r: 3.5, fill: color, 'fill-opacity': .55 })); });
+      g.appendChild(el('line', { x1: cx - 60, x2: cx + 60, y1: Y(mean), y2: Y(mean), stroke: '#2d3142', 'stroke-width': 3 }));
+      g.appendChild(el('text', { x: cx, y: 272, 'text-anchor': 'middle', 'font-family': "'Geist',sans-serif", 'font-size': 13, 'font-weight': 600, fill: '#2d3142' }, s[1]));
+      g.appendChild(el('text', { x: cx, y: 290, 'text-anchor': 'middle', 'font-family': "'Geist Mono',monospace", 'font-size': 11, fill: '#5a6580' }, 'mean ' + mean.toFixed(3)));
+      var pad = '                  '.slice(s[1].length);
+      lines.push(s[1] + pad + (mean >= 0 ? ' ' : '') + mean.toFixed(3));
+    });
+    $('leak-out').textContent = 'mean out-of-sample IC, ' + RUNS + ' data sets\n\n' + lines.join('\n') + '\n\nbest possible     ' + (trueIC >= 0 ? ' ' : '') + trueIC.toFixed(3);
+    var m0 = res[0].reduce(function (a, b) { return a + b; }, 0) / RUNS, m2 = res[2].reduce(function (a, b) { return a + b; }, 0) / RUNS;
+    $('leak-live').textContent = 'shuffled ' + m0.toFixed(2) + ' · purged ' + m2.toFixed(2) + ' · best ' + trueIC.toFixed(2);
+  }
+  var pending = null;
+  function schedule() { if (pending) cancelAnimationFrame(pending); pending = requestAnimationFrame(function () { pending = null; renderLeak(); }); }
+  ['lh', 'phi', 'beta', 'nn'].forEach(function (id) { $(id).addEventListener('input', schedule); });
+  $('reseed').addEventListener('click', function () { leakSeed = 1 + Math.floor(Math.random() * 1e5); renderLeak(); });
+  renderLeak();
+})();
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  renderMathInElement(document.body, {
+    delimiters: [
+      { left: '$$', right: '$$', display: true },
+      { left: '$', right: '$', display: false }
+    ],
+    ignoredTags: ['script', 'style', 'textarea', 'pre', 'code'],
+    throwOnError: false
+  });
+});
+</script>
+</body>
+</html>
