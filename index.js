@@ -1,4 +1,4 @@
-// Cafe Docs: content registry + search, filter and mindmap.
+// Cafe Docs: content registry + search, filter and graph view.
 // To add a doc: append an entry to DOCS. Categories and topics are derived from it.
 // `order` is the reading order inside a category (lower first, prerequisites before what builds on them).
 // A doc can sit in more categories: `also: [{ category, topic, order }]` adds it there with its own topic and order.
@@ -1549,144 +1549,239 @@ function renderToc() {
     || '<li class="na">Nothing to list</li>';
 }
 
-// ---------- mindmap ----------
-function buildTree() {
-  const root = { label: 'Cafe Docs', kind: 'root', children: [] };
-  const cats = allCats().sort();
-  cats.forEach(c => {
-    const cn = { label: c, kind: 'cat', cat: c, children: [] };
-    const here = DOCS.filter(d => inCat(d, c));
-    [...new Set(here.map(d => place(d, c).topic))].sort(byTopic(c)).forEach(t => {
-      const tn = { label: t, kind: 'topic', cat: c, children: [] };
-      here.filter(d => place(d, c).topic === t).sort(byOrderIn(c))
-        .forEach(d => tn.children.push({ label: d.title, kind: 'doc', doc: d, cat: c, children: [] }));
-      cn.children.push(tn);
-    });
-    root.children.push(cn);
+// ---------- graph view (Obsidian-style force-directed graph) ----------
+// Every doc is a node, every `related` link is an edge, colours follow the home category.
+// Optional category hubs connect each doc to the categories it is listed under.
+const CAT_COLORS = ['#bf4520', '#2e5aa8', '#3d8b5f', '#7a4fb0', '#2a8a8a', '#b8860b', '#b04a7a', '#5a6580'];
+const reduceMotion = () => window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+const G = {
+  nodes: [], links: [], byId: new Map(), adj: new Map(), alpha: 0, alphaTarget: 0, raf: 0,
+  view: { k: 1, x: 0, y: 0 }, W: 0, H: 0, dpr: 1, sized: false, fitted: false,
+  hover: null, live: new Set(), hubs: false, built: '',
+};
+const catColor = c => CAT_COLORS[allCats().sort().indexOf(c) % CAT_COLORS.length];
+const hash01 = s => { let h = 2166136261; for (const ch of s) h = Math.imul(h ^ ch.charCodeAt(0), 16777619); return ((h >>> 0) % 10000) / 10000; };
+
+function buildGraph() {
+  const key = String(G.hubs);
+  if (G.built === key) return;
+  G.built = key;
+  const old = G.byId, cats = allCats().sort(), titles = new Set(DOCS.map(d => d.title));
+  const nodes = [], links = [], byId = new Map(), seen = new Set();
+  const add = n => {
+    const prev = old.get(n.id);
+    const ci = cats.indexOf(n.cat), a = (ci / cats.length) * Math.PI * 2 + hash01(n.id) * 0.9, r = 120 + hash01(n.id + '#') * 140;
+    Object.assign(n, prev ? { x: prev.x, y: prev.y } : { x: Math.cos(a) * r, y: Math.sin(a) * r }, { vx: 0, vy: 0, fx: null, fy: null, deg: 0 });
+    nodes.push(n); byId.set(n.id, n);
+  };
+  DOCS.forEach(d => add({ id: 'd:' + d.title, kind: 'doc', label: d.title, doc: d, cat: d.category }));
+  const link = (a, b, hub) => {
+    const k = a < b ? a + '|' + b : b + '|' + a;
+    if (a === b || seen.has(k)) return;
+    seen.add(k); links.push({ s: byId.get(a), t: byId.get(b), hub });
+  };
+  DOCS.forEach(d => (d.related || []).filter(r => titles.has(r)).forEach(r => link('d:' + d.title, 'd:' + r, false)));
+  if (G.hubs) {
+    cats.forEach(c => add({ id: 'c:' + c, kind: 'cat', label: c, cat: c }));
+    DOCS.forEach(d => placements(d).forEach(p => link('d:' + d.title, 'c:' + p.category, true)));
+  }
+  const adj = new Map(nodes.map(n => [n, new Set()]));
+  links.forEach(l => { l.s.deg++; l.t.deg++; adj.get(l.s).add(l.t); adj.get(l.t).add(l.s); });
+  nodes.forEach(n => { n.r = n.kind === 'cat' ? 11 : 3.2 + Math.sqrt(n.deg) * 1.25; });
+  Object.assign(G, { nodes, links, byId, adj });
+}
+
+function tick() {
+  const { nodes, links } = G, a = G.alpha;
+  // repulsion between every pair (n is small, so O(n^2) is fine)
+  for (let i = 0; i < nodes.length; i++) {
+    const p = nodes[i];
+    for (let j = i + 1; j < nodes.length; j++) {
+      const q = nodes[j];
+      let dx = q.x - p.x, dy = q.y - p.y, d2 = dx * dx + dy * dy;
+      if (d2 > 250000) continue;
+      if (d2 < 1) { dx = hash01(p.id + q.id) - 0.5; dy = 0.5 - hash01(q.id + p.id); d2 = 1; }
+      const s = (p.kind === 'cat' || q.kind === 'cat' ? -260 : -110) * a / d2;
+      p.vx += dx * s; p.vy += dy * s; q.vx -= dx * s; q.vy -= dy * s;
+    }
+  }
+  // springs along links
+  links.forEach(l => {
+    const { s, t } = l, len = l.hub ? 90 : 46;
+    let dx = t.x + t.vx - s.x - s.vx, dy = t.y + t.vy - s.y - s.vy, d = Math.hypot(dx, dy) || 1;
+    const k = (d - len) / d * a * (l.hub ? 0.12 : 1 / Math.min(s.deg, t.deg)), b = s.deg / (s.deg + t.deg);
+    dx *= k; dy *= k;
+    t.vx -= dx * b; t.vy -= dy * b; s.vx += dx * (1 - b); s.vy += dy * (1 - b);
   });
-  return root;
+  nodes.forEach(n => {
+    n.vx -= n.x * 0.035 * a; n.vy -= n.y * 0.035 * a;  // gentle pull to the centre
+    if (n.fx != null) { n.x = n.fx; n.y = n.fy; n.vx = n.vy = 0; return; }
+    n.vx *= 0.6; n.vy *= 0.6; n.x += n.vx; n.y += n.vy;
+  });
+  G.alpha += (G.alphaTarget - G.alpha) * 0.0228;
+}
+
+function heat(a = 0.6) {
+  G.alpha = Math.max(G.alpha, a);
+  if (reduceMotion()) { for (let i = 0; i < 300 && G.alpha > 0.005; i++) tick(); return drawGraph(); }
+  if (!G.raf) G.raf = requestAnimationFrame(loop);
+}
+function loop() {
+  G.raf = 0;
+  tick(); drawGraph();
+  if (G.alpha > 0.005 || G.alphaTarget > 0) G.raf = requestAnimationFrame(loop);
+}
+
+function drawGraph() {
+  const cv = $('#map');
+  if (!cv || !G.sized) return;
+  const ctx = cv.getContext('2d'), { k, x, y } = G.view, d = G.dpr;
+  ctx.setTransform(d, 0, 0, d, 0, 0);
+  ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, G.W, G.H);
+  ctx.setTransform(d * k, 0, 0, d * k, d * x, d * y);
+
+  const f = G.hover, near = f ? G.adj.get(f) : null;
+  const isLive = n => n.kind === 'cat' ? (state.cat === 'All' || state.cat === n.cat) : G.live.has(n.doc.title);
+  const filtered = G.live.size !== DOCS.length;
+  const lit = n => (!f || n === f || near.has(n)) && isLive(n);
+
+  // edges
+  ctx.lineWidth = 1 / Math.sqrt(k);
+  G.links.forEach(l => {
+    const on = f ? (l.s === f || l.t === f) : true, live = isLive(l.s) && isLive(l.t);
+    ctx.strokeStyle = on && f ? catColor(f.cat) : '#4f5d75';
+    ctx.globalAlpha = f ? (on ? 0.9 : 0.05) : live ? (l.hub ? 0.18 : 0.32) : 0.05;
+    ctx.beginPath(); ctx.moveTo(l.s.x, l.s.y); ctx.lineTo(l.t.x, l.t.y); ctx.stroke();
+  });
+
+  // nodes
+  G.nodes.forEach(n => {
+    ctx.globalAlpha = lit(n) ? 1 : 0.14;
+    ctx.fillStyle = catColor(n.cat);
+    ctx.beginPath(); ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2); ctx.fill();
+    if (n.kind === 'cat') { ctx.lineWidth = 2 / k; ctx.strokeStyle = '#fff'; ctx.stroke(); }
+    if (n === f || (filtered && isLive(n) && n.kind === 'doc' && !f)) {
+      ctx.lineWidth = 1.5 / k; ctx.strokeStyle = '#2d3142';
+      ctx.beginPath(); ctx.arc(n.x, n.y, n.r + 2.5 / k, 0, Math.PI * 2); ctx.stroke();
+    }
+  });
+
+  // labels fade in as you zoom; the hovered node, its neighbours and hubs always show
+  const zoomA = Math.min(1, Math.max(0, (k - 0.85) / 0.6));
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  ctx.lineJoin = 'round';
+  G.nodes.forEach(n => {
+    let a = n.kind === 'cat' ? 1 : zoomA;
+    if (f) a = n === f || near.has(n) ? 1 : zoomA * 0.12;
+    if (!isLive(n)) a *= 0.2;
+    if (a < 0.03) return;
+    const fs = n.kind === 'cat' ? 13 : n === f ? 12 : 10.5, sz = Math.max(fs / Math.min(k, 1.6), fs * 0.6);
+    ctx.font = `${n.kind === 'cat' || n === f ? 600 : 500} ${sz}px Geist, system-ui, sans-serif`;
+    ctx.globalAlpha = a;
+    ctx.lineWidth = 3 / k; ctx.strokeStyle = 'rgba(255,255,255,.9)';
+    ctx.strokeText(n.label, n.x, n.y + n.r + 3);
+    ctx.fillStyle = '#2d3142';
+    ctx.fillText(n.label, n.x, n.y + n.r + 3);
+  });
+  ctx.globalAlpha = 1;
 }
 
 function renderMap() {
-  const svg = $('#map');
-  const root = buildTree();
-  // two-sided mind map: root in the centre, categories / topics / docs in columns to its left and right.
-  // text is horizontal; leaves are one ROW apart and parents sit at the mean y of their children,
-  // so no two labels can overlap.
-  const ROW = 22, GAP = 40, RR = 44;
-  const tw = (t, k) => t.length * k + 2;                 // text width estimate
-  const catW = n => tw(n.label, 7) + 24;
-  const cats = root.children;
-  cats.forEach(c => { c.leafs = []; (function f(n) { n.children.length ? n.children.forEach(f) : c.leafs.push(n); })(c); });
-  const total = cats.reduce((n, c) => n + c.leafs.length, 0);
-  let acc = 0, cut = 1, best = Infinity;
-  cats.forEach((c, i) => { acc += c.leafs.length; const d = Math.abs(total / 2 - acc); if (i < cats.length - 1 && d < best) { best = d; cut = i + 1; } });
-  const sides = [cats.slice(0, cut), cats.slice(cut)];
-
-  const topics = cats.flatMap(c => c.children), docsAll = topics.flatMap(t => t.children);
-  const wCat = Math.max(...cats.map(catW)), wTop = Math.max(...topics.map(t => tw(t.label, 7))), wDoc = Math.max(...docsAll.map(d => tw(d.label, 6.4)));
-  const dc = RR + GAP + wCat / 2;                        // category column (centre)
-  const dt = dc + wCat / 2 + GAP;                        // topic dot
-  const dd = dt + 9 + wTop + GAP;                        // doc dot
-  const half = dd + 9 + wDoc + 16;
-  const rows = Math.max(...sides.map(cs => cs.reduce((n, c) => n + c.leafs.length, 0)));
-  const W = half * 2, H = rows * ROW + 50, ox = W / 2, oy = H / 2;
-  mapBox = { W, H };
-
-  sides.forEach((cs, si) => {
-    const sg = si === 0 ? 1 : -1, ls = cs.flatMap(c => c.leafs);
-    ls.forEach((l, j) => { l.y = oy + (j + 0.5 - ls.length / 2) * ROW; });
-    cs.forEach(c => {
-      c.sg = sg; c.x = ox + sg * dc;
-      c.children.forEach(t => {
-        t.sg = sg; t.x = ox + sg * dt;
-        t.children.forEach(d => { d.sg = sg; d.x = ox + sg * dd; });
-        t.y = t.children.reduce((m, d) => m + d.y, 0) / t.children.length;
-      });
-      c.y = c.children.reduce((m, t) => m + t.y, 0) / c.children.length;
-    });
-  });
-  root.x = ox; root.y = oy;
-
-  const live = new Set(visibleDocs().map(d => d.title));
-  const alive = n => n.kind === 'doc' ? live.has(n.label) : n.children.some(alive);
-  // where an edge leaves a parent / enters a child
-  const outX = n => n.kind === 'root' ? null : n.kind === 'cat' ? n.x + n.sg * catW(n) / 2 : n.x + n.sg * (9 + tw(n.label, 7) + 4);
-  const edge = (n, c) => {
-    const x1 = n.kind === 'root' ? ox + c.sg * RR : outX(n);
-    const x2 = c.kind === 'cat' ? c.x - c.sg * catW(c) / 2 : c.x - c.sg * 3;
-    const mx = (x1 + x2) / 2;
-    return `<path d="M${x1.toFixed(1)},${n.y.toFixed(1)} C${mx.toFixed(1)},${n.y.toFixed(1)} ${mx.toFixed(1)},${c.y.toFixed(1)} ${x2.toFixed(1)},${c.y.toFixed(1)}" class="edge${alive(c) ? '' : ' off'}"/>`;
-  };
-  const label = (n, cls, k) => {
-    const x = n.x, y = n.y, anchor = n.sg > 0 ? 'start' : 'end';
-    return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.2" class="dot ${cls}"/>` +
-      `<text x="${(x + n.sg * 9).toFixed(1)}" y="${(y + 3.5).toFixed(1)}" text-anchor="${anchor}" class="nt ${cls}">${esc(n.label)}</text>`;
-  };
-
-  let edges = '', nodes = '';
-  (function walk(n) {
-    n.children.forEach(c => { edges += edge(n, c); walk(c); });
-    const on = n.kind === 'root' || alive(n);
-    if (n.kind === 'root') {
-      nodes += `<g class="g"><circle cx="${ox}" cy="${oy}" r="${RR}" class="nd root"/><text x="${ox}" y="${oy + 4}" text-anchor="middle" class="nt root">${esc(n.label)}</text></g>`;
-    } else if (n.kind === 'cat') {
-      const w = catW(n);
-      nodes += `<g class="g${on ? '' : ' off'}" data-cat="${esc(n.cat)}" tabindex="0" role="button" aria-label="Filter by ${esc(n.label)}">` +
-        `<rect x="${(n.x - w / 2).toFixed(1)}" y="${(n.y - 14).toFixed(1)}" width="${w.toFixed(1)}" height="28" rx="14" class="nd cat"/>` +
-        `<text x="${n.x.toFixed(1)}" y="${(n.y + 4).toFixed(1)}" text-anchor="middle" class="nt cat">${esc(n.label)}</text></g>`;
-    } else if (n.kind === 'topic') {
-      nodes += `<g class="g${on ? '' : ' off'}">${label(n, 'topic')}</g>`;
-    } else {
-      nodes += `<a href="${esc(n.doc.path)}" class="g${on ? '' : ' off'}"><title>${esc(n.doc.summary)}</title>${label(n, 'doc')}</a>`;
-    }
-  })(root);
-  svg.innerHTML = `<g id="mapView">${edges}${nodes}</g>`;
-  if (!mapView.set) fitMap(); else applyMap();
+  buildGraph();
+  G.live = new Set(visibleDocs().map(d => d.title));
+  const cats = allCats().sort();
+  const lg = $('#mapLegend');
+  if (lg) lg.innerHTML = cats.map(c =>
+    `<button type="button" class="chip legend" data-cat="${esc(c)}" aria-pressed="${state.cat === c}"><span class="sw" style="background:${catColor(c)}"></span>${esc(c)}</button>`).join('');
+  if (G.alpha < 0.005 && !G.fitted) {
+    // first layout: settle most of it up front so the graph does not explode into view
+    G.alpha = 1;
+    for (let i = 0; i < (reduceMotion() ? 300 : 160); i++) tick();
+  }
+  if (G.sized && !G.fitted) fitMap();
+  drawGraph();
+  if (G.alpha > 0.005) heat(G.alpha);
 }
 
-// ---------- mindmap pan / zoom ----------
-const VW = 900, VH = 700;
-let mapBox = { W: 700, H: 200 };
-const mapView = { k: 1, x: 0, y: 0, set: false };
-function applyMap() { const g = $('#mapView'); if (g) g.setAttribute('transform', `translate(${mapView.x} ${mapView.y}) scale(${mapView.k})`); }
+// ---------- graph pan / zoom / drag ----------
+function sizeMap() {
+  const cv = $('#map'), b = cv.getBoundingClientRect();
+  if (!b.width || !b.height) return;
+  G.W = b.width; G.H = b.height; G.dpr = window.devicePixelRatio || 1;
+  cv.width = Math.round(b.width * G.dpr); cv.height = Math.round(b.height * G.dpr);
+  if (!G.sized) { G.sized = true; fitMap(); }
+  drawGraph();
+}
 function fitMap() {
-  // scale the whole tree into the frame and centre it (the root sits mid-height)
-  const k = Math.min(VW / (mapBox.W + 20), VH / (mapBox.H + 20), 1.4);
-  Object.assign(mapView, { k, x: (VW - mapBox.W * k) / 2, y: (VH - mapBox.H * k) / 2, set: true });
-  applyMap();
+  if (!G.sized || !G.nodes.length) return;
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  G.nodes.forEach(n => { x0 = Math.min(x0, n.x); y0 = Math.min(y0, n.y); x1 = Math.max(x1, n.x); y1 = Math.max(y1, n.y); });
+  const k = Math.min(G.W / (x1 - x0 + 120), G.H / (y1 - y0 + 120), 2);
+  G.view = { k, x: G.W / 2 - ((x0 + x1) / 2) * k, y: G.H / 2 - ((y0 + y1) / 2) * k };
+  G.fitted = true;
+  drawGraph();
 }
-function centerMap() {
-  // keep the current zoom, just bring the root to the middle of the frame
-  mapView.x = VW / 2 - (mapBox.W / 2) * mapView.k;
-  mapView.y = VH / 2 - (mapBox.H / 2) * mapView.k;
-  applyMap();
+function zoomMap(f, cx = G.W / 2, cy = G.H / 2) {
+  const v = G.view, k = Math.min(6, Math.max(0.2, v.k * f)), r = k / v.k;
+  v.x = cx - (cx - v.x) * r; v.y = cy - (cy - v.y) * r; v.k = k;
+  drawGraph();
 }
-function zoomMap(f, cx = VW / 2, cy = VH / 2) {
-  const k = Math.min(4, Math.max(0.3, mapView.k * f)), r = k / mapView.k;
-  mapView.x = cx - (cx - mapView.x) * r; mapView.y = cy - (cy - mapView.y) * r; mapView.k = k;
-  applyMap();
+function nodeAt(sx, sy) {
+  const { k, x, y } = G.view, wx = (sx - x) / k, wy = (sy - y) / k;
+  let best = null, bd = Infinity;
+  G.nodes.forEach(n => { const d = Math.hypot(n.x - wx, n.y - wy); if (d < n.r + 5 / k && d < bd) { bd = d; best = n; } });
+  return best;
 }
 function initMapControls() {
-  const svg = $('#map');
-  const pt = e => { const b = svg.getBoundingClientRect(), s = Math.min(b.width / VW, b.height / VH);
-    return [(e.clientX - b.left - (b.width - VW * s) / 2) / s, (e.clientY - b.top - (b.height - VH * s) / 2) / s, s]; };
-  svg.addEventListener('wheel', e => { e.preventDefault(); const [x, y] = pt(e); zoomMap(e.deltaY < 0 ? 1.12 : 1 / 1.12, x, y); }, { passive: false });
-  let drag = null, moved = false;
-  svg.addEventListener('pointerdown', e => { if (e.button) return; const [, , s] = pt(e); drag = { sx: e.clientX, sy: e.clientY, x: mapView.x, y: mapView.y, s }; moved = false; });
-  window.addEventListener('pointermove', e => {
-    if (!drag) return;
-    const dx = e.clientX - drag.sx, dy = e.clientY - drag.sy;
-    if (!moved && Math.hypot(dx, dy) < 4) return;
-    moved = true; svg.classList.add('panning');
-    mapView.x = drag.x + dx / drag.s; mapView.y = drag.y + dy / drag.s; applyMap();
+  const cv = $('#map');
+  const pt = e => { const b = cv.getBoundingClientRect(); return [e.clientX - b.left, e.clientY - b.top]; };
+  new ResizeObserver(sizeMap).observe(cv);
+  cv.addEventListener('wheel', e => { e.preventDefault(); const [x, y] = pt(e); zoomMap(Math.exp(-e.deltaY * 0.0015), x, y); }, { passive: false });
+
+  let drag = null;
+  cv.addEventListener('pointerdown', e => {
+    if (e.button) return;
+    const [x, y] = pt(e), n = nodeAt(x, y);
+    cv.setPointerCapture(e.pointerId);
+    drag = { n, sx: x, sy: y, vx: G.view.x, vy: G.view.y, moved: false };
+    if (n) { n.fx = n.x; n.fy = n.y; }
   });
-  window.addEventListener('pointerup', () => { drag = null; svg.classList.remove('panning'); });
-  // a drag must not count as a click on a node
-  svg.addEventListener('click', e => { if (moved) { e.preventDefault(); e.stopPropagation(); moved = false; } }, true);
+  cv.addEventListener('pointermove', e => {
+    const [x, y] = pt(e);
+    if (!drag) {
+      const n = nodeAt(x, y);
+      if (n !== G.hover) { G.hover = n; cv.style.cursor = n ? 'pointer' : ''; cv.title = n ? (n.doc ? n.doc.summary : `Filter by ${n.label}`) : ''; drawGraph(); }
+      return;
+    }
+    if (!drag.moved && Math.hypot(x - drag.sx, y - drag.sy) < 4) return;
+    drag.moved = true;
+    if (drag.n) {
+      // drag a node: it stays pinned under the pointer and pulls its neighbours along
+      drag.n.fx = (x - G.view.x) / G.view.k; drag.n.fy = (y - G.view.y) / G.view.k;
+      G.hover = drag.n; G.alphaTarget = 0.3; heat(0.3);
+    } else {
+      cv.classList.add('panning');
+      G.view.x = drag.vx + x - drag.sx; G.view.y = drag.vy + y - drag.sy; drawGraph();
+    }
+  });
+  const end = e => {
+    if (!drag) return;
+    const { n, moved } = drag;
+    drag = null; cv.classList.remove('panning');
+    if (n) { n.fx = n.fy = null; G.alphaTarget = 0; }
+    if (!n || moved || e.type === 'pointercancel') return;
+    if (n.kind === 'doc') { if (e.metaKey || e.ctrlKey) window.open(n.doc.path, '_blank'); else location.href = n.doc.path; }
+    else { state.cat = state.cat === n.cat ? 'All' : n.cat; render(false); }
+  };
+  cv.addEventListener('pointerup', end);
+  cv.addEventListener('pointercancel', end);
+  cv.addEventListener('pointerleave', () => { if (!drag && G.hover) { G.hover = null; cv.style.cursor = ''; drawGraph(); } });
+
   $('#mapIn').addEventListener('click', () => zoomMap(1.25));
   $('#mapOut').addEventListener('click', () => zoomMap(1 / 1.25));
-  $('#mapFit').addEventListener('click', centerMap);
+  $('#mapFit').addEventListener('click', fitMap);
+  $('#mapHubs').addEventListener('change', e => { G.hubs = e.target.checked; renderMap(); heat(0.8); });
+  $('#mapShake').addEventListener('click', () => heat(1));
 }
 
 // ---------- orchestration ----------

@@ -69,29 +69,14 @@ ul.list{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:re
 .mapwrap{position:relative;padding:0 8px 12px}
 #map{display:block;width:100%;height:min(78vh,720px);cursor:grab;touch-action:none;user-select:none;border:1px solid var(--rule-solid);border-radius:6px;background:#fff}
 #map.panning{cursor:grabbing}
-.mapctl{position:absolute;top:10px;right:18px;display:flex;gap:6px}
+.mapctl{position:absolute;top:10px;right:18px;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
 .mapctl button{font:600 16px var(--sans);width:32px;height:32px;border:1px solid var(--rule-solid);border-radius:6px;background:#fff;color:var(--ink);cursor:pointer}
 .mapctl button.txt{width:auto;padding:0 10px;font-size:12px}
-.mapctl button:hover{border-color:var(--ink)}
-#map .edge{fill:none;stroke:#4f5d75;stroke-width:1.2;opacity:.6}
-#map .edge.off{opacity:.12}
-#map .g{cursor:pointer;transition:opacity .15s}
-#map .g.off{opacity:.22}
-#map .nd{fill:#fff;stroke:#4f5d75;stroke-width:1}
-#map .nd.root{fill:var(--ink);stroke:var(--ink)}
-#map .nd.cat{fill:var(--accent-tint);stroke:var(--accent);stroke-width:1.3}
-#map .nd.topic{fill:#eef2fa;stroke:var(--link)}
-#map .g:hover .nd{stroke-width:2}
-#map .nt{font-family:var(--sans);font-size:12px;font-weight:500;fill:var(--ink);pointer-events:none}
-#map .nt.root{fill:var(--paper);font-weight:600}
-#map .nt.cat{font-weight:600}
-#map .nt{font-size:11px}
-#map .nt.topic{fill:var(--link);font-weight:600;}
-#map .nt.doc{pointer-events:all}
-#map a:hover .nt.doc{text-decoration:underline;fill:var(--accent)}
-#map .dot{fill:#fff;stroke:#4f5d75;stroke-width:1.2}
-#map .dot.topic{stroke:var(--link)}
-#map a{text-decoration:none}
+.mapctl button:hover,.mapctl label:hover{border-color:var(--ink)}
+.mapctl label{display:inline-flex;align-items:center;gap:6px;font:500 12px var(--sans);color:var(--ink);height:32px;padding:0 10px;border:1px solid var(--rule-solid);border-radius:6px;background:#fff;cursor:pointer}
+.legend-row{padding:0 16px 14px}
+.chip.legend{display:inline-flex;align-items:center;gap:6px}
+.chip.legend .sw{width:9px;height:9px;border-radius:50%;flex:none}
 
 #toc,#toc ul{list-style:none;margin:0;padding-left:20px}
 #toc{padding:20px 24px;background:#fff;border:1px solid var(--rule-solid);border-radius:8px}
@@ -125,7 +110,7 @@ footer{margin-top:64px;font-family:var(--mono);font-size:11px;color:var(--soft)}
 <header>
   <div class="eyebrow">Cafe Docs · Visual guides</div>
   <h1>Learn it by touching it</h1>
-  <p class="lede">Interactive explainers for data structures and algorithms. Search by keyword, filter by category or tag, or browse the mind map.</p>
+  <p class="lede">Interactive explainers for data structures and algorithms. Search by keyword, filter by category or tag, or explore the graph.</p>
 </header>
 
 <section class="tools" aria-label="Search and filters">
@@ -148,7 +133,7 @@ footer{margin-top:64px;font-family:var(--mono);font-size:11px;color:var(--soft)}
 <div class="bar">
   <div class="views" role="group" aria-label="View">
     <button type="button" class="vbtn" data-view="list" aria-pressed="true">Cards</button>
-    <button type="button" class="vbtn" data-view="map" aria-pressed="false">Mind map</button>
+    <button type="button" class="vbtn" data-view="map" aria-pressed="false">Graph</button>
     <button type="button" class="vbtn" data-view="toc" aria-pressed="false">Contents</button>
   </div>
   <span id="count" aria-live="polite"></span>
@@ -161,8 +146,9 @@ footer{margin-top:64px;font-family:var(--mono);font-size:11px;color:var(--soft)}
 
 <section id="viewMap" hidden>
   <figure class="card" style="margin:0">
-    <div class="card-top"><span class="card-title">Mind map</span><span class="hint">Drag to pan · scroll to zoom · click a category to filter · click a doc to open it</span></div>
-    <div class="mapwrap"><div class="mapctl" role="group" aria-label="Map zoom"><button type="button" id="mapIn" aria-label="Zoom in">+</button><button type="button" id="mapOut" aria-label="Zoom out">−</button><button type="button" id="mapFit" class="txt">Center</button></div><svg id="map" viewBox="0 0 900 700" role="group" aria-label="Mind map of docs by category and topic"></svg></div>
+    <div class="card-top"><span class="card-title">Graph</span><span class="hint">Hover to see links · drag a node to pull it · drag the background to pan · scroll to zoom · click a doc to open it</span></div>
+    <div class="mapwrap"><div class="mapctl" role="group" aria-label="Graph controls"><button type="button" id="mapIn" aria-label="Zoom in">+</button><button type="button" id="mapOut" aria-label="Zoom out">−</button><label><input type="checkbox" id="mapHubs"> Category hubs</label><button type="button" id="mapShake" class="txt">Shake</button><button type="button" id="mapFit" class="txt">Fit</button></div><canvas id="map" role="img" aria-label="Graph of docs: each doc is a dot, lines join related docs, colours mark the category. Use the Contents view for a keyboard-friendly list."></canvas></div>
+    <div class="row legend-row" id="mapLegend" role="group" aria-label="Filter by category"></div>
   </figure>
 </section>
 
