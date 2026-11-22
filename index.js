@@ -1264,6 +1264,17 @@ const DOCS = [
     summary: 'Price a European call or put with the Black-Scholes formula. Move spot, volatility and time, watch the price curve bend toward the payoff, and read delta, gamma, vega and theta off the chart.',
     related: ['Itô\'s Lemma', 'No-Arbitrage and Put-Call Parity', 'Binomial Trees', 'Monte Carlo Pricing', 'Futures, Forwards and Option Payoffs'],
   },
+  {
+    title: 'Binomial Trees',
+    path: 'content/quant/binomial-tree/binomial-tree.html',
+    category: 'Quant',
+    topic: 'Markets and derivatives',
+    order: 12,
+    level: 'Intermediate',
+    tags: ['binomial tree', 'cox-ross-rubinstein', 'option pricing', 'risk-neutral', 'american option', 'early exercise', 'backward induction', 'derivatives'],
+    summary: 'Let the stock move up or down in each step, price the option at the leaves, and roll back with risk-neutral probabilities. See early exercise of an American put and watch the price converge to Black-Scholes.',
+    related: ['Black-Scholes and the Greeks', 'No-Arbitrage and Put-Call Parity', 'Monte Carlo Pricing', 'Random Walks and Brownian Motion'],
+  },
 ];
 
 // ---------- helpers ----------
