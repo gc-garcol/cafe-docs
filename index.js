@@ -1403,7 +1403,11 @@ const state = { tagq: '', q: '', cat: 'All', tag: '', level: 'All', sort: 'order
 const placements = d => [{ category: d.category, topic: d.topic, order: d.order }, ...(d.also || [])];
 const inCat = (d, c) => placements(d).some(p => p.category === c);
 const place = (d, c) => placements(d).find(p => p.category === c) || placements(d)[0];
-const allCats = () => [...new Set(DOCS.flatMap(d => placements(d).map(p => p.category)))];
+// categories listed here come first, in this order; any others follow alphabetically
+const CAT_ORDER = ['Mathematics', 'Quant', 'AI'];
+const catRank = c => { const i = CAT_ORDER.indexOf(c); return i < 0 ? CAT_ORDER.length : i; };
+const byCat = (a, b) => catRank(a) - catRank(b) || a.localeCompare(b);
+const allCats = () => [...new Set(DOCS.flatMap(d => placements(d).map(p => p.category)))].sort(byCat);
 function haystack(d) {
   return norm([d.title, d.summary, ...placements(d).flatMap(p => [p.category, p.topic]), d.level, ...d.tags].join(' '));
 }
@@ -1425,9 +1429,9 @@ const byTopic = c => (a, b) => topicRank(c, a) - topicRank(c, b) || a.localeComp
 function visibleDocs() {
   const list = DOCS.filter(matches);
   const by = {
-    order: state.cat !== 'All' ? byOrderIn(state.cat) : (a, b) => a.category.localeCompare(b.category) || byOrder(a, b),
+    order: state.cat !== 'All' ? byOrderIn(state.cat) : (a, b) => byCat(a.category, b.category) || byOrder(a, b),
     title: (a, b) => a.title.localeCompare(b.title),
-    category: (a, b) => a.category.localeCompare(b.category) || a.title.localeCompare(b.title),
+    category: (a, b) => byCat(a.category, b.category) || a.title.localeCompare(b.title),
   };
   return list.sort(by[state.sort]);
 }
@@ -1542,7 +1546,7 @@ function renderToc() {
   docs.forEach(d => placements(d).forEach(p => {
     if (state.cat === 'All' || p.category === state.cat) ((tree[p.category] ||= {})[p.topic] ||= []).push(d);
   }));
-  $('#toc').innerHTML = Object.keys(tree).sort().map(c =>
+  $('#toc').innerHTML = Object.keys(tree).sort(byCat).map(c =>
     `<li><b>${esc(c)}</b><ul>${Object.keys(tree[c]).sort(byTopic(c)).map(t => tree[c][t].sort(byOrderIn(c)) &&
       `<li><span class="topic">${esc(t)}</span><ul>${tree[c][t].map(d =>
         `<li><a href="${esc(d.path)}">${esc(d.title)}</a></li>`).join('')}</ul></li>`).join('')}</ul></li>`).join('')
@@ -1559,14 +1563,14 @@ const G = {
   view: { k: 1, x: 0, y: 0 }, W: 0, H: 0, dpr: 1, sized: false, fitted: false,
   hover: null, live: new Set(), hubs: true, built: '',
 };
-const catColor = c => CAT_COLORS[allCats().sort().indexOf(c) % CAT_COLORS.length];
+const catColor = c => CAT_COLORS[allCats().indexOf(c) % CAT_COLORS.length];
 const hash01 = s => { let h = 2166136261; for (const ch of s) h = Math.imul(h ^ ch.charCodeAt(0), 16777619); return ((h >>> 0) % 10000) / 10000; };
 
 function buildGraph() {
   const key = String(G.hubs);
   if (G.built === key) return;
   G.built = key;
-  const old = G.byId, cats = allCats().sort(), titles = new Set(DOCS.map(d => d.title));
+  const old = G.byId, cats = allCats(), titles = new Set(DOCS.map(d => d.title));
   const nodes = [], links = [], byId = new Map(), seen = new Set();
   const add = n => {
     const prev = old.get(n.id);
@@ -1689,7 +1693,7 @@ function drawGraph() {
 function renderMap() {
   buildGraph();
   G.live = new Set(visibleDocs().map(d => d.title));
-  const cats = allCats().sort();
+  const cats = allCats();
   const lg = $('#mapLegend');
   if (lg) lg.innerHTML = cats.map(c =>
     `<button type="button" class="chip legend" data-cat="${esc(c)}" aria-pressed="${state.cat === c}"><span class="sw" style="background:${catColor(c)}"></span>${esc(c)}</button>`).join('');
