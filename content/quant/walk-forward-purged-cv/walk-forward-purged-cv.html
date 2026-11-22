@@ -88,6 +88,7 @@ p .katex,td .katex,li .katex{font-size:1.05em}
 .doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}.doc-tags a{font:500 12px var(--mono);padding:4px 10px;border:1px solid var(--rule-solid);border-radius:4px;background:#fff;color:var(--muted);text-decoration:none}.doc-tags a:hover{border-color:var(--ink);color:var(--ink)}.doc-tags a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media (max-width:860px){.controls,.two{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
 @media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+.lab-label i{text-transform:none;font-style:italic;font-family:var(--serif);font-size:15px;letter-spacing:0}
 
 </style>
 </head>
@@ -133,7 +134,7 @@ p .katex,td .katex,li .katex{font-size:1.05em}
         </select>
       </div>
       <div class="row size"><label for="k" class="lab-label">Folds</label><input type="range" id="k" min="3" max="8" value="5"><output id="k-out" for="k">5</output></div>
-      <div class="row size"><label for="h" class="lab-label">Horizon h</label><input type="range" id="h" min="0" max="20" value="8"><output id="h-out" for="h">8</output></div>
+      <div class="row size"><label for="h" class="lab-label">Horizon <i>h</i></label><input type="range" id="h" min="0" max="20" value="8"><output id="h-out" for="h">8</output></div>
       <div class="row size"><label for="emb" class="lab-label">Embargo</label><input type="range" id="emb" min="0" max="10" value="2"><output id="emb-out" for="emb">2%</output></div>
       <div class="legend" aria-label="Legend">
         <span><i class="sw" style="background:#5b7fc0;border-color:#5b7fc0"></i>train</span>
@@ -228,10 +229,10 @@ p .katex,td .katex,li .katex{font-size:1.05em}
 
   <div class="controls">
     <div class="panel">
-      <div class="row size"><label for="lh" class="lab-label">Horizon h</label><input type="range" id="lh" min="1" max="20" value="10"><output id="lh-out" for="lh">10</output></div>
-      <div class="row size"><label for="phi" class="lab-label">Persistence φ</label><input type="range" id="phi" min="0" max="0.995" step="0.005" value="0.99"><output id="phi-out" for="phi">0.990</output></div>
-      <div class="row size"><label for="beta" class="lab-label">True signal β</label><input type="range" id="beta" min="0" max="0.3" step="0.01" value="0"><output id="beta-out" for="beta">0.00</output></div>
-      <div class="row size"><label for="nn" class="lab-label">Neighbors k</label><input type="range" id="nn" min="1" max="25" value="5"><output id="nn-out" for="nn">5</output></div>
+      <div class="row size"><label for="lh" class="lab-label">Horizon <i>h</i></label><input type="range" id="lh" min="1" max="20" value="10"><output id="lh-out" for="lh">10</output></div>
+      <div class="row size"><label for="phi" class="lab-label">Persistence <i>φ</i></label><input type="range" id="phi" min="0" max="0.995" step="0.005" value="0.99"><output id="phi-out" for="phi">0.990</output></div>
+      <div class="row size"><label for="beta" class="lab-label">True signal <i>β</i></label><input type="range" id="beta" min="0" max="0.3" step="0.01" value="0"><output id="beta-out" for="beta">0.00</output></div>
+      <div class="row size"><label for="nn" class="lab-label">Neighbors <i>k</i></label><input type="range" id="nn" min="1" max="25" value="5"><output id="nn-out" for="nn">5</output></div>
       <div class="row"><button type="button" class="btn" id="reseed">New data sets</button></div>
     </div>
     <div class="panel"><pre class="lab-out" id="leak-out" aria-live="polite"></pre></div>
