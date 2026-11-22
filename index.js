@@ -1275,6 +1275,18 @@ const DOCS = [
     summary: 'Let the stock move up or down in each step, price the option at the leaves, and roll back with risk-neutral probabilities. See early exercise of an American put and watch the price converge to Black-Scholes.',
     related: ['Black-Scholes and the Greeks', 'No-Arbitrage and Put-Call Parity', 'Monte Carlo Pricing', 'Random Walks and Brownian Motion'],
   },
+  {
+    title: 'Monte Carlo Pricing',
+    path: 'content/quant/monte-carlo-pricing/monte-carlo-pricing.html',
+    category: 'Quant',
+    topic: 'Markets and derivatives',
+    order: 13,
+    also: [{ category: 'Mathematics', topic: 'Numerical analysis', order: 27 }],
+    level: 'Intermediate',
+    tags: ['monte carlo', 'simulation', 'option pricing', 'variance reduction', 'antithetic variates', 'asian option', 'standard error', 'risk-neutral'],
+    summary: 'Simulate thousands of risk-neutral stock paths, average the discounted payoffs, and watch the estimate close in on Black-Scholes with an error band that shrinks like one over root N. Then price an Asian option that has no simple formula.',
+    related: ['Law of Large Numbers and the CLT', 'Black-Scholes and the Greeks', 'Binomial Trees', 'Random Walks and Brownian Motion'],
+  },
 ];
 
 // ---------- helpers ----------
