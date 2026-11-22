@@ -1253,6 +1253,17 @@ const DOCS = [
     summary: 'The chain rule for random paths. Follow a function of a simulated stock price step by step and see that the ordinary first-order term misses a second-order piece that never averages away.',
     related: ['Random Walks and Brownian Motion', 'Black-Scholes and the Greeks', 'Returns, Compounding and Time Value', 'Monte Carlo Pricing'],
   },
+  {
+    title: 'Black-Scholes and the Greeks',
+    path: 'content/quant/black-scholes/black-scholes.html',
+    category: 'Quant',
+    topic: 'Markets and derivatives',
+    order: 11,
+    level: 'Intermediate',
+    tags: ['black-scholes', 'greeks', 'delta', 'gamma', 'vega', 'theta', 'option pricing', 'hedging'],
+    summary: 'Price a European call or put with the Black-Scholes formula. Move spot, volatility and time, watch the price curve bend toward the payoff, and read delta, gamma, vega and theta off the chart.',
+    related: ['Itô\'s Lemma', 'No-Arbitrage and Put-Call Parity', 'Binomial Trees', 'Monte Carlo Pricing', 'Futures, Forwards and Option Payoffs'],
+  },
 ];
 
 // ---------- helpers ----------

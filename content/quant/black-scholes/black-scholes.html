@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Black-Scholes and the Greeks: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8; --green:#3d7a4f;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1080px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+a{color:var(--link)}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+h3{font-family:var(--serif);font-weight:400;font-size:22px;line-height:1.2;margin:0 0 6px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:70ch;margin:0 0 14px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+ul.tight{padding-left:20px;max-width:70ch}ul.tight li{margin:6px 0}
+.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;text-align:center;overflow-x:auto;max-width:820px}
+.formula .katex{font-size:1.2em}
+.katex{color:var(--ink)}
+p .katex,li .katex,td .katex{font-size:1.05em}
+
+.howto{margin:16px 0 0;padding:16px 20px;background:#fff;border:1px solid var(--rule-solid);border-left:3px solid var(--accent);border-radius:8px;max-width:780px}
+.howto h3{font:600 11px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--soft);margin:0 0 8px}
+.howto ol{margin:0;padding-left:20px}.howto li{margin:4px 0}
+
+.lab{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:20px;align-items:start;margin-top:24px}
+.card{margin:0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--ink);text-align:right}
+.stage{padding:0 10px}
+.stage svg{display:block;width:100%;height:auto;max-height:calc(100vh - 150px)}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px}
+.seg{display:flex;border:1px solid var(--rule-solid);border-radius:6px;overflow:hidden;margin-bottom:14px}
+.seg button{flex:1;min-height:38px;border:0;background:transparent;font:500 13.5px var(--sans);color:var(--muted);cursor:pointer;padding:0 8px}
+.seg button+button{border-left:1px solid var(--rule-solid)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.row{display:grid;grid-template-columns:110px 1fr 64px;gap:10px;align-items:center;margin:8px 0}
+.row label{font-family:var(--mono);font-size:12px;font-weight:600}
+.row output{font-family:var(--mono);font-size:12.5px;text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);min-height:28px}
+select{min-height:36px;border:1px solid var(--rule-solid);border-radius:6px;background:#fff;font:500 13px var(--sans);color:var(--ink);padding:0 8px;width:100%}
+input[type=number]{width:100%;min-height:36px;padding:0 10px;border:1px solid var(--rule-solid);border-radius:6px;font:500 13px var(--mono);background:#fff;color:var(--ink)}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.btn{min-height:38px;padding:0 14px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 13.5px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.btn[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.btn:disabled{opacity:.4;cursor:default}.btn:disabled:hover{background:transparent;color:var(--ink)}
+.chk{display:flex;gap:8px;align-items:center;font-size:13.5px;margin:8px 0;cursor:pointer}
+.chk input{accent-color:var(--accent);width:16px;height:16px}
+.res-label{font:500 11px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--soft);margin:14px 0 6px}
+.readout{margin:0;padding:12px 14px;background:var(--paper);border:1px solid var(--rule);border-radius:6px;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink)}
+.na{color:var(--soft)}
+.c-a{color:var(--link);font-weight:600}.c-b{color:var(--accent);font-weight:600}.c-g{color:var(--green);font-weight:600}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:10px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:12px;border-radius:2px;display:inline-block;border:1px solid rgba(45,49,66,.4)}
+.sw.line{height:3px;border:0}
+
+.fig{margin:20px 0 8px}
+.scroll{overflow-x:auto;border:1px solid var(--rule);border-radius:8px;background:#fff;padding:8px}
+.scroll svg{display:block;height:auto}
+.cap{font-family:var(--mono);font-size:11px;color:var(--soft);margin:8px 0 0}
+pre{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0;max-width:860px}
+.k{color:var(--accent)} .t{color:var(--link)} .c{color:var(--soft);font-style:italic}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:30px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+table.ops{border-collapse:collapse;width:100%;max-width:820px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+.ok{color:#1d6b3a;font-weight:600}.no{color:var(--accent);font-weight:600}
+.doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}.doc-tags a{font:500 12px var(--mono);padding:4px 10px;border:1px solid var(--rule-solid);border-radius:4px;background:#fff;color:var(--muted);text-decoration:none}.doc-tags a:hover{border-color:var(--ink);color:var(--ink)}
+@media (max-width:900px){.lab{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" style="margin-right:8px" href="../../../index.html">&larr; Back to home</a>
+<a class="back back-cat" href="../../../index.html#cat=Quant">&larr; Back to Quant</a>
+
+<header>
+  <div class="eyebrow">Quant · Markets and derivatives</div>
+  <h1>Black-Scholes and the Greeks</h1>
+  <p class="lede">If a stock follows geometric Brownian motion and you can trade continuously, an option can be hedged perfectly with the stock. Its price then follows from no-arbitrage alone, and the formula depends on volatility but not on the stock's expected return.</p>
+  <nav class="doc-tags" aria-label="Main tags"><a href="../../../index.html#tag=black-scholes">#black-scholes</a><a href="../../../index.html#tag=greeks">#greeks</a><a href="../../../index.html#tag=delta">#delta</a><a href="../../../index.html#tag=gamma">#gamma</a></nav>
+</header>
+<section>
+  <h2>Price an option</h2>
+  <p>The top chart shows the option value today for every spot price, with the payoff at expiry as a dashed line. The orange tangent at the current spot has slope delta. The bottom chart plots the Greek you choose against spot.</p>
+  <div class="howto">
+    <h3>How to use this simulator</h3>
+    <ol>
+      <li>Shrink the time to expiry. The smooth curve sinks onto the hockey-stick payoff: that loss of value is theta.</li>
+      <li>Raise volatility. Every option gets more expensive, most of all near the strike: that is vega.</li>
+      <li>Pick <b>Gamma</b> in the bottom chart and shorten the expiry. Gamma spikes at the strike, so delta hedges need big adjustments there.</li>
+      <li>Switch between call and put. Delta changes sign, gamma and vega stay the same.</li>
+    </ol>
+  </div>
+  <div class="lab">
+    <figure class="card">
+      <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">Value today and a Greek</span></div>
+      <div class="stage"><svg id="fig" viewBox="0 0 640 470" role="img" aria-labelledby="f-t f-d"><title id="f-t">Black-Scholes option value and Greeks against the stock price</title><desc id="f-d">Top: option value today and payoff at expiry against spot, with the tangent line whose slope is delta at the current spot. Bottom: the chosen Greek against spot with the current spot marked.</desc><g id="scene"></g></svg></div>
+      <div class="card-bottom"><span class="hint">No dividends, European exercise</span><span class="live" id="live"></span></div>
+    </figure>
+    <div>
+      <div class="panel">
+        <div class="seg" role="group" aria-label="Option type"><button type="button" data-o="call" aria-pressed="true">Call</button><button type="button" data-o="put" aria-pressed="false">Put</button></div>
+        <div class="row"><label for="S">spot S</label><input type="range" id="S" min="50" max="150" step="1" value="105"><output id="oS"></output></div>
+        <div class="row"><label for="K">strike K</label><input type="range" id="K" min="60" max="140" step="1" value="100"><output id="oK"></output></div>
+        <div class="row"><label for="sg">volatility σ</label><input type="range" id="sg" min="0.05" max="0.8" step="0.01" value="0.25"><output id="oSg"></output></div>
+        <div class="row"><label for="T">years T</label><input type="range" id="T" min="0.01" max="2" step="0.01" value="0.5"><output id="oT"></output></div>
+        <div class="row"><label for="r">rate r</label><input type="range" id="r" min="0" max="0.1" step="0.0025" value="0.03"><output id="oR"></output></div>
+        <div class="seg" role="group" aria-label="Greek to plot" style="margin-top:6px"><button type="button" data-g="delta" aria-pressed="true">Delta</button><button type="button" data-g="gamma" aria-pressed="false">Gamma</button><button type="button" data-g="vega" aria-pressed="false">Vega</button><button type="button" data-g="theta" aria-pressed="false">Theta</button></div>
+        <div class="readout" id="out" aria-live="polite"></div>
+      </div>
+      <div class="legend"><span><i class="sw line" style="background:#2e5aa8"></i>value today</span><span><i class="sw line" style="background:#8a92a3"></i>payoff at expiry</span><span><i class="sw line" style="background:#bf4520"></i>delta tangent</span></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>1. The formula</h2>
+  <p>For a call with strike $K$, expiry $T$, volatility $\sigma$ and risk-free rate $r$:</p>
+  <div class="formula">$$C = S\,N(d_1) - K e^{-rT} N(d_2), \qquad d_{1,2} = \frac{\ln(S/K) + (r \pm \tfrac12\sigma^2)\,T}{\sigma\sqrt T}$$</div>
+  <p>$N$ is the standard normal CDF. The put follows from put-call parity: $P = K e^{-rT} N(-d_2) - S\,N(-d_1)$. Read $N(d_2)$ as the risk-neutral probability that the call ends in the money, and $S\,N(d_1)$ as the value of receiving the stock in those states.</p>
+</section>
+
+<section>
+  <h2>2. Where it comes from</h2>
+  <p>Let $V(t,S)$ be the option value. By Itô's lemma, $dV$ has a $dW$ term $\sigma S\,\partial_S V\,dW$. Hold the option and short $\Delta = \partial_S V$ shares, and the random part cancels. A riskless portfolio must earn $r$, which gives the Black-Scholes equation:</p>
+  <div class="formula">$$\frac{\partial V}{\partial t} + \frac12\sigma^2 S^2\frac{\partial^2 V}{\partial S^2} + rS\frac{\partial V}{\partial S} - rV = 0$$</div>
+  <p>The drift $\mu$ dropped out with the hedge. Two traders who disagree about where the stock is going still agree on the option price, as long as they agree on $\sigma$.</p>
+</section>
+
+<section>
+  <h2>3. The Greeks</h2>
+  <table class="ops">
+    <thead><tr><th>Greek</th><th>Meaning</th><th>Call</th></tr></thead>
+    <tbody>
+      <tr><td>Delta $\Delta$</td><td>change in value per 1 change in $S$; the hedge ratio</td><td>$N(d_1)$</td></tr>
+      <tr><td>Gamma $\Gamma$</td><td>change in delta per 1 change in $S$</td><td>$\dfrac{N'(d_1)}{S\sigma\sqrt T}$</td></tr>
+      <tr><td>Vega $\nu$</td><td>change per 1 point of volatility</td><td>$S\,N'(d_1)\sqrt T \,/\, 100$</td></tr>
+      <tr><td>Theta $\Theta$</td><td>change per day that passes</td><td>$\Big(-\dfrac{S N'(d_1)\sigma}{2\sqrt T} - rKe^{-rT}N(d_2)\Big)/365$</td></tr>
+      <tr><td>Rho $\rho$</td><td>change per 1 point of rate</td><td>$KTe^{-rT}N(d_2)\,/\,100$</td></tr>
+    </tbody>
+  </table>
+  <p>The equation above links them: $\Theta + \tfrac12\sigma^2S^2\Gamma + rS\Delta - rV = 0$. A delta-hedged long option earns from gamma when the stock moves and pays theta when it does not.</p>
+  <pre><span class="k">from</span> math <span class="k">import</span> log, sqrt, exp
+<span class="k">from</span> statistics <span class="k">import</span> NormalDist
+N = NormalDist().cdf
+<span class="k">def</span> bs_call(S, K, T, r, sigma):
+    d1 = (log(S / K) + (r + 0.5 * sigma**2) * T) / (sigma * sqrt(T))
+    d2 = d1 - sigma * sqrt(T)
+    <span class="k">return</span> S * N(d1) - K * exp(-r * T) * N(d2), N(d1)      <span class="c"># price, delta</span></pre>
+</section>
+
+<section>
+  <h2>Pitfalls</h2>
+  <ul class="tight">
+    <li>Real volatility is not constant. Market prices imply different $\sigma$ for different strikes, the <b>volatility smile</b>, so the model is used as a quoting language more than as truth.</li>
+    <li>Hedging is discrete and costs money. Large gamma near expiry makes daily rebalancing expensive and risky.</li>
+    <li>Jumps and fat tails make deep out-of-the-money options worth more than the formula says.</li>
+    <li>Check units: vega per vol point, theta per calendar day or per trading day, rates continuously compounded.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>Where this fits</h2>
+  <p>This doc is part of phase 2 of the <a href="../quant-roadmap/quant-roadmap.html">Quant Roadmap</a>. Related: <a href="../../math/gaussian-distribution/gaussian-distribution.html">Gaussian Distribution</a>.</p>
+</section>
+
+</main>
+<script>
+(() => {
+// ---------- shared helpers ----------
+const $ = id => document.getElementById(id);
+const REDUCE = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+function rng(seed) { let a = seed >>> 0; return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+function gauss(r) { let u = 0, v = 0; while (u === 0) u = r(); while (v === 0) v = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+const mean = a => a.reduce((s, x) => s + x, 0) / a.length;
+const variance = (a, m = mean(a)) => a.reduce((s, x) => s + (x - m) * (x - m), 0) / Math.max(1, a.length - 1);
+const sd = a => Math.sqrt(variance(a));
+const fmt = (x, d = 2) => (Number.isFinite(x) ? x.toFixed(d) : '—').replace(/^-(0\.0*)$/, '$1');
+const pct = (x, d = 1) => fmt(100 * x, d) + '%';
+const erf = x => { const t = 1 / (1 + 0.3275911 * Math.abs(x)); const y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-x * x); return x >= 0 ? y : -y; };
+const ncdf = x => 0.5 * (1 + erf(x / Math.SQRT2));
+const npdf = x => Math.exp(-x * x / 2) / Math.sqrt(2 * Math.PI);
+const esc = s => String(s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+// plot frame: maps data to an SVG box and draws axes
+function frame(o) {
+  const f = Object.assign({ x: 56, y: 16, w: 520, h: 260, x0: 0, x1: 1, y0: 0, y1: 1 }, o);
+  f.X = v => f.x + (v - f.x0) / (f.x1 - f.x0) * f.w;
+  f.Y = v => f.y + f.h - (v - f.y0) / (f.y1 - f.y0) * f.h;
+  f.path = (xs, ys) => xs.map((x, i) => (i ? 'L' : 'M') + f.X(x).toFixed(1) + ',' + f.Y(ys[i]).toFixed(1)).join('');
+  f.axes = (opt = {}) => {
+    const nx = opt.nx ?? 5, ny = opt.ny || 4, fx = opt.fx || (v => fmt(v, 1)), fy = opt.fy || (v => fmt(v, 1));
+    let s = `<rect x="${f.x}" y="${f.y}" width="${f.w}" height="${f.h}" fill="#fff" stroke="rgba(45,49,66,.25)"/>`;
+    for (let i = 0; i <= ny; i++) { const v = f.y0 + (f.y1 - f.y0) * i / ny, y = f.Y(v).toFixed(1); s += `<line x1="${f.x}" x2="${f.x + f.w}" y1="${y}" y2="${y}" stroke="rgba(45,49,66,.08)"/><text x="${f.x - 6}" y="${+y + 4}" text-anchor="end" font-family="'Geist Mono',monospace" font-size="11" fill="#5a6580">${fy(v)}</text>`; }
+    for (let i = 0; nx > 0 && i <= nx; i++) { const v = f.x0 + (f.x1 - f.x0) * i / nx, x = f.X(v).toFixed(1); s += `<line y1="${f.y}" y2="${f.y + f.h}" x1="${x}" x2="${x}" stroke="rgba(45,49,66,.06)"/><text x="${x}" y="${f.y + f.h + 14}" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="11" fill="#5a6580">${fx(v)}</text>`; }
+    if (opt.xl) s += `<text x="${f.x + f.w}" y="${f.y + f.h + 28}" text-anchor="end" font-family="'Geist Mono',monospace" font-size="11.5" fill="#4f5d75">${opt.xl}</text>`;
+    if (opt.yl) s += `<text x="${f.x}" y="${f.y - 5}" font-family="'Geist Mono',monospace" font-size="11.5" fill="#4f5d75">${opt.yl}</text>`;
+    if (f.y0 < 0 && f.y1 > 0 && opt.zero !== false) s += `<line x1="${f.x}" x2="${f.x + f.w}" y1="${f.Y(0).toFixed(1)}" y2="${f.Y(0).toFixed(1)}" stroke="rgba(45,49,66,.45)"/>`;
+    return s;
+  };
+  return f;
+}
+const T = (s, x, y, o = {}) => `<text x="${(+x).toFixed(1)}" y="${(+y).toFixed(1)}" text-anchor="${o.a || 'start'}" font-size="${o.s || 11}" font-weight="${o.w || 500}" fill="${o.c || '#2d3142'}" font-family="${o.serif ? "'Instrument Serif',serif" : o.sans ? "'Geist',sans-serif" : "'Geist Mono',monospace"}"${o.i ? ' font-style="italic"' : ''}>${s}</text>`;
+const niceMax = v => { const p = Math.pow(10, Math.floor(Math.log10(v || 1))); const m = v / p; return (m <= 1 ? 1 : m <= 2 ? 2 : m <= 2.5 ? 2.5 : m <= 5 ? 5 : 10) * p; };
+
+const st = { o: 'call', S: 105, K: 100, sg: 0.25, T: 0.5, r: 0.03, g: 'delta' };
+function bs(S, o = st.o, T = st.T, sg = st.sg) {
+  const K = st.K, r = st.r;
+  if (T <= 1e-6) { const v = o === 'call' ? Math.max(S - K, 0) : Math.max(K - S, 0); return { v, delta: o === 'call' ? +(S > K) : -(S < K), gamma: 0, vega: 0, theta: 0, rho: 0, d1: NaN, d2: NaN }; }
+  const sq = Math.sqrt(T), d1 = (Math.log(S / K) + (r + sg * sg / 2) * T) / (sg * sq), d2 = d1 - sg * sq, df = Math.exp(-r * T);
+  const v = o === 'call' ? S * ncdf(d1) - K * df * ncdf(d2) : K * df * ncdf(-d2) - S * ncdf(-d1);
+  const gamma = npdf(d1) / (S * sg * sq), vega = S * npdf(d1) * sq / 100;
+  const theta = (o === 'call' ? -S * npdf(d1) * sg / (2 * sq) - r * K * df * ncdf(d2) : -S * npdf(d1) * sg / (2 * sq) + r * K * df * ncdf(-d2)) / 365;
+  const rho = (o === 'call' ? K * T * df * ncdf(d2) : -K * T * df * ncdf(-d2)) / 100;
+  return { v, delta: o === 'call' ? ncdf(d1) : ncdf(d1) - 1, gamma, vega, theta, rho, d1, d2 };
+}
+const GN = { delta: 'delta Δ', gamma: 'gamma Γ', vega: 'vega ν (per vol pt)', theta: 'theta Θ (per day)' };
+function render() {
+  const xs = []; for (let i = 0; i <= 200; i++) xs.push(50 + i / 2);
+  const val = xs.map(S => bs(S).v), pay = xs.map(S => st.o === 'call' ? Math.max(S - st.K, 0) : Math.max(st.K - S, 0));
+  const top = Math.max(5, Math.ceil(Math.max(...val, ...pay) * 1.08 / 5) * 5);
+  const A = frame({ x: 56, y: 20, w: 560, h: 220, x0: 50, x1: 150, y0: 0, y1: top });
+  let g = A.axes({ nx: 10, ny: 4, fx: v => fmt(v, 0), fy: v => fmt(v, 0), yl: `${st.o} value` });
+  g += `<path d="${A.path(xs, pay)}" stroke="#8a92a3" stroke-width="1.6" stroke-dasharray="5 4" fill="none"/>`;
+  g += `<path d="${A.path(xs, val)}" stroke="#2e5aa8" stroke-width="2.6" fill="none"/>`;
+  const b = bs(st.S), x1 = Math.max(50, st.S - 18), x2 = Math.min(150, st.S + 18);
+  const tl = x => Math.max(0, Math.min(top, b.v + b.delta * (x - st.S)));
+  g += `<path d="${A.path([x1, x2], [tl(x1), tl(x2)])}" stroke="#bf4520" stroke-width="2" fill="none"/>`;
+  g += `<line x1="${A.X(st.K)}" x2="${A.X(st.K)}" y1="${A.y}" y2="${A.y + A.h}" stroke="#4f5d75" stroke-dasharray="2 3"/>` + T('K', A.X(st.K) + 4, A.y + 14, { s: 11, c: '#4f5d75' });
+  g += `<circle cx="${A.X(st.S)}" cy="${A.Y(b.v)}" r="5.5" fill="#bf4520" stroke="#fff" stroke-width="1.5"/>` + T(`${fmt(b.v)}`, A.X(st.S) + 8, A.Y(b.v) - 8, { s: 12, w: 700, c: '#bf4520' });
+  const gv = xs.map(S => bs(S)[st.g]);
+  let lo = Math.min(0, ...gv), hi = Math.max(0, ...gv); if (hi - lo < 1e-9) hi = lo + 1;
+  const B = frame({ x: 56, y: 290, w: 560, h: 140, x0: 50, x1: 150, y0: lo - (hi - lo) * 0.05, y1: hi + (hi - lo) * 0.1 });
+  const dg = hi - lo < 0.1 ? 3 : 2;
+  g += B.axes({ nx: 10, ny: 3, fx: v => fmt(v, 0), fy: v => fmt(v, dg), xl: 'spot S', yl: GN[st.g] });
+  g += `<path d="${B.path(xs, gv)}" stroke="#3d7a4f" stroke-width="2.4" fill="none"/>`;
+  g += `<line x1="${B.X(st.S)}" x2="${B.X(st.S)}" y1="${B.y}" y2="${B.y + B.h}" stroke="#bf4520" stroke-dasharray="3 3"/><circle cx="${B.X(st.S)}" cy="${B.Y(b[st.g])}" r="5" fill="#3d7a4f" stroke="#fff" stroke-width="1.5"/>`;
+  $('scene').innerHTML = g;
+  const intr = st.o === 'call' ? Math.max(st.S - st.K, 0) : Math.max(st.K - st.S, 0);
+  $('out').innerHTML = `<b>${st.o} price  ${fmt(b.v, 3)}</b>\n` +
+    `intrinsic ${fmt(intr)} + time value ${fmt(b.v - intr)}\n` +
+    `d₁ = ${fmt(b.d1, 3)}   d₂ = ${fmt(b.d2, 3)}   N(d₂) = ${fmt(ncdf(b.d2), 3)}\n\n` +
+    `delta   ${fmt(b.delta, 3).padStart(8)}   <span class="na">shares to hedge</span>\n` +
+    `gamma   ${fmt(b.gamma, 4).padStart(8)}\n` +
+    `vega    ${fmt(b.vega, 3).padStart(8)}   <span class="na">per 1 vol point</span>\n` +
+    `theta   ${fmt(b.theta, 3).padStart(8)}   <span class="na">per day</span>\n` +
+    `rho     ${fmt(b.rho, 3).padStart(8)}   <span class="na">per 1% rate</span>`;
+  $('live').textContent = `${st.o} ${fmt(b.v)} · Δ ${fmt(b.delta, 2)} · Γ ${fmt(b.gamma, 3)}`;
+  $('oS').textContent = st.S; $('oK').textContent = st.K; $('oSg').textContent = pct(st.sg, 0); $('oT').textContent = fmt(st.T); $('oR').textContent = pct(st.r, 2);
+  document.querySelectorAll('[data-o]').forEach(x => x.setAttribute('aria-pressed', x.dataset.o === st.o));
+  document.querySelectorAll('[data-g]').forEach(x => x.setAttribute('aria-pressed', x.dataset.g === st.g));
+}
+['S', 'K', 'sg', 'T', 'r'].forEach(k => { $(k).value = st[k]; $(k).oninput = e => { st[k] = +e.target.value; render(); }; });
+document.querySelectorAll('[data-o]').forEach(x => x.onclick = () => { st.o = x.dataset.o; render(); });
+document.querySelectorAll('[data-g]').forEach(x => x.onclick = () => { st.g = x.dataset.g; render(); });
+render();
+
+})();
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  renderMathInElement(document.body, {
+    delimiters: [
+      { left: '$$', right: '$$', display: true },
+      { left: '$', right: '$', display: false }
+    ],
+    ignoredTags: ['script', 'style', 'textarea', 'pre', 'code', 'svg'],
+    ignoredClasses: ['readout', 'live', 'nomath'],
+    throwOnError: false
+  });
+});
+</script>
+</body>
+</html>
