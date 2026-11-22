@@ -29,6 +29,7 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);f
 .back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
 h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+h3{font-family:var(--serif);font-weight:400;font-size:24px;line-height:1.2;margin:32px 0 10px}
 .lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
 section{margin-top:64px}
 section p{max-width:68ch;margin:0 0 14px}
@@ -42,25 +43,29 @@ p .katex,td .katex,li .katex{font-size:1.05em}
 
 .lab{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:24px;align-items:start;margin-top:24px}
 .card{margin:0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
-.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
 .card-title{font-family:var(--serif);font-size:20px}
 .hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
 .live{font-family:var(--mono);font-size:12px;font-weight:600}
 .stage{padding:0 8px}
 .stage svg{display:block;width:100%;height:auto}
 .panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
-.seg{display:flex;border:1px solid var(--rule-solid);border-radius:6px;overflow:hidden;margin-bottom:16px}
-.seg button{flex:1;min-height:40px;border:0;background:transparent;font:500 13px var(--sans);color:var(--muted);cursor:pointer;padding:0 8px}
-.seg button+button{border-left:1px solid var(--rule-solid)}
+.seg{display:flex;flex-wrap:wrap;border:1px solid var(--rule-solid);border-radius:6px;overflow:hidden;margin-bottom:12px}
+.seg button{flex:1 1 18%;min-height:40px;border:0;background:transparent;font:500 13px var(--sans);color:var(--muted);cursor:pointer;padding:0 6px;box-shadow:inset 1px 0 0 var(--rule-solid),inset 0 1px 0 var(--rule-solid)}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
-.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 13px var(--sans);cursor:pointer}
-.btn:hover{background:var(--ink);color:var(--paper)}
-button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.row{display:grid;grid-template-columns:56px 1fr 40px;gap:12px;align-items:center;margin:12px 0}
+.seg-label{font-family:var(--mono);font-size:11px;color:var(--soft);margin:0 0 6px;letter-spacing:.08em;text-transform:uppercase}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.row{display:grid;grid-template-columns:50px 1fr 64px;gap:12px;align-items:center;margin:8px 0}
 .row label{font-family:var(--mono);font-size:13px;font-weight:600}
 .row output{font-family:var(--mono);font-size:12px;text-align:right}
 input[type=range]{width:100%;accent-color:var(--accent);min-height:28px}
-#readout{margin:16px 0 0;padding:14px 16px;background:var(--paper);border:1px solid var(--rule);border-radius:6px;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;min-height:96px}
+#dout{margin:12px 0 0;padding:14px 16px;background:var(--paper);border:1px solid var(--rule);border-radius:6px;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;min-height:90px}
+#readout{margin:12px 0 0;padding:14px 16px;background:var(--paper);border:1px solid var(--rule);border-radius:6px;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;min-height:110px}
+table.vals{border-collapse:collapse;width:100%;margin-top:12px;font-family:var(--mono);font-size:12px}
+table.vals caption{text-align:left;font-size:11px;color:var(--soft);padding-bottom:4px}
+table.vals th,table.vals td{padding:5px 8px;text-align:right;border-bottom:1px solid var(--rule)}
+table.vals th{font-weight:500;color:var(--soft);font-size:11px}
+table.vals tr:last-child td{border-bottom:0}
 .legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
 .legend span{display:inline-flex;align-items:center;gap:8px}
 .sw{width:14px;height:14px;border-radius:2px;border:1px solid var(--ink);display:inline-block}
@@ -74,17 +79,26 @@ input[type=range]{width:100%;accent-color:var(--accent);min-height:28px}
 .stat .big{font-family:var(--serif);font-size:30px;line-height:1.1;margin:6px 0}
 .stat p{font-size:14px;color:var(--muted);margin:0}
 .stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+.steps{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;max-width:760px}
+.steps ol{margin:0;padding-left:20px}.steps li{margin:8px 0}
+pre{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .t{color:var(--link)} .c{color:var(--soft);font-style:italic}
 table.ops{border-collapse:collapse;width:100%;max-width:760px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);border-radius:6px;font-size:14px}
 table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule)}
 table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
 table.ops tr:last-child td{border-bottom:0}
 ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
 @media (max-width:860px){.lab{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
-@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
-
-
-
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
 .doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}.doc-tags a{font:500 12px "Geist Mono",ui-monospace,monospace;padding:4px 10px;border:1px solid var(--rule-solid,#bfc0c0);border-radius:4px;background:#fff;color:var(--muted,#4f5d75);text-decoration:none}.doc-tags a:hover{border-color:var(--ink,#2d3142);color:var(--ink,#2d3142)}.doc-tags a:focus-visible{outline:2px solid var(--accent,#bf4520);outline-offset:2px}
+.duo{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);border-top:1px solid var(--rule)}
+.duo>div{padding:12px 16px}
+.duo>div+div{border-left:1px solid var(--rule)}
+.duo svg{display:block;width:100%;height:auto}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer;margin-top:8px}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.card+.card{margin-top:0}
+@media (max-width:860px){.duo{grid-template-columns:1fr}.duo>div+div{border-left:0;border-top:1px solid var(--rule)}}
 </style>
 </head>
 <body>
@@ -96,16 +110,13 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
 <header>
   <div class="eyebrow">Mathematics · Signals</div>
   <h1>Fourier Transform</h1>
-  <p class="lede">Any signal is a stack of simple waves. The Fourier transform tells you which frequencies are in the stack and how strong each one is.</p>
-  
-  
-  
+  <p class="lede">Any signal is a stack of simple waves. The Fourier transform tells you which frequencies are in the stack, how strong each one is, and where each one starts. It turns hard operations on signals into easy ones on their frequencies, and the FFT makes it fast enough to run inside every phone.</p>
   <nav class="doc-tags" aria-label="Main tags"><a href="../../../index.html#tag=fourier">#fourier</a><a href="../../../index.html#tag=frequency">#frequency</a><a href="../../../index.html#tag=signal">#signal</a><a href="../../../index.html#tag=fft">#fft</a></nav>
 </header>
 
 <section>
   <h2>Try it first</h2>
-  <p>Each turning circle is one sine wave. Chain them tip to tail and the last tip draws the signal on the right. Add more circles and the shape sharpens toward the target. The bars below show the strength of each frequency.</p>
+  <p>Each turning circle is one sine wave. Chain them tip to tail and the last tip draws the signal on the right. Add more circles and the shape sharpens toward the target. The bars below show the strength of each frequency. Watch the corners of the square wave: the overshoot near each jump gets narrower as you add circles, but never shorter.</p>
 
   <div class="lab">
     <figure class="card">
@@ -118,15 +129,17 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
       </div>
       <div class="card-bottom"><span class="hint">More circles, closer fit</span><span class="live" id="live"></span></div>
     </figure>
-
     <div>
       <div class="panel">
+        <p class="seg-label">Target wave</p>
         <div class="seg" role="group" aria-label="Target wave">
           <button type="button" data-wv="0" aria-pressed="true">Square</button>
           <button type="button" data-wv="1" aria-pressed="false">Sawtooth</button>
           <button type="button" data-wv="2" aria-pressed="false">Triangle</button>
+          <button type="button" data-wv="3" aria-pressed="false">Pulse</button>
+          <button type="button" data-wv="4" aria-pressed="false">Half-wave</button>
         </div>
-        <div class="row"><label for="inN">circles</label><input type="range" id="inN" min="1" max="12" value="3"><output id="outN"></output></div>
+        <div class="row"><label for="inN">circles</label><input type="range" id="inN" min="1" max="25" value="3"><output id="outN" for="inN"></output></div>
         <button type="button" class="btn" id="play" aria-pressed="true">Pause</button>
         <div id="readout" aria-live="polite"></div>
       </div>
@@ -141,53 +154,235 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
 
 <section>
   <h2>1. Time domain and frequency domain</h2>
-  <p>A recording of a chord is one wiggly line: pressure over time. That is the time domain. The same sound can be described as three notes, each with a pitch and a loudness. That is the frequency domain. Both describe the same data, and the Fourier transform converts between them.</p>
+  <p>A recording of a chord is one wiggly line: air pressure over time. That is the time domain. The same sound can be described as three notes, each with a pitch, a loudness and a starting point. That is the frequency domain. Both descriptions hold exactly the same information, and the Fourier transform converts between them in either direction without losing anything.</p>
   <div class="callout">Same signal, two views: when it happens, and what it is made of.</div>
+  <p>Why bother? Because many problems are hard in one view and easy in the other. Removing a hum at 50 Hz from a recording is nearly impossible to do sample by sample, but in the frequency domain it is "set one bar to zero". Blurring an image, solving the heat equation and multiplying huge numbers all become simple multiplications after a Fourier transform.</p>
 </section>
 
 <section>
-  <h2>2. Fourier series: building a wave</h2>
-  <p>A repeating wave can be written as a sum of sines whose frequencies are whole multiples of a base frequency. A square wave uses only odd multiples:</p>
+  <h2>2. Fourier series: building a periodic wave</h2>
+  <p>A wave that repeats every $2\pi$ can be written as a sum of sines and cosines whose frequencies are whole multiples of the base frequency:</p>
+  <div class="formula">$$f(t) = \frac{a_0}{2} + \sum_{k=1}^{\infty} \big(a_k \cos kt + b_k \sin kt\big)$$</div>
+  <p>Each coefficient measures how much of that one wave the signal contains, by averaging the signal against it:</p>
+  <div class="formula">$$a_k = \frac{1}{\pi}\int_{-\pi}^{\pi} f(t)\cos kt\,dt, \qquad b_k = \frac{1}{\pi}\int_{-\pi}^{\pi} f(t)\sin kt\,dt$$</div>
+  <h3>Worked example: the square wave</h3>
+  <p>Take $f(t) = 1$ for $0 \lt t \lt \pi$ and $-1$ for $-\pi \lt t \lt 0$. It is odd, so every $a_k = 0$. For the sines:</p>
+  <div class="formula">$$b_k = \frac{2}{\pi}\int_0^{\pi} \sin kt\,dt = \frac{2}{\pi k}\big(1 - \cos k\pi\big) = \begin{cases} \frac{4}{\pi k} & k \text{ odd} \\ 0 & k \text{ even} \end{cases}$$</div>
   <div class="formula">$$\text{square}(t) = \frac{4}{\pi}\left[\sin t + \frac{\sin 3t}{3} + \frac{\sin 5t}{5} + \cdots\right]$$</div>
-  <p>Each term is one circle in Fig 1. Term $k$ turns $k$ times as fast and is $\frac{1}{k}$ as large. Near the jump the sum overshoots by about 9 percent, however many circles you add. This is the Gibbs phenomenon.</p>
-</section>
-
-<section>
-  <h2>3. The transform</h2>
-  <p>For a signal that is not periodic, use all frequencies instead of just multiples. The transform measures how much of each frequency $\xi$ is in $f$, by wrapping the signal around a circle at that speed and finding where its center of mass lands.</p>
-  <div class="formula">$$F(\xi) = \int_{-\infty}^{\infty} f(t)\, e^{-2\pi i \xi t}\,dt$$</div>
-  <p>The inverse adds all the waves back together:</p>
-  <div class="formula">$$f(t) = \int_{-\infty}^{\infty} F(\xi)\, e^{2\pi i \xi t}\,d\xi$$</div>
-  <p>The result $F(\xi)$ is a complex number. Its size is the strength of that frequency. Its angle is the phase, the point where that wave starts.</p>
-</section>
-
-<section>
-  <h2>4. Discrete Fourier Transform and FFT</h2>
-  <p>Computers hold $N$ samples, not a continuous curve. The DFT turns $N$ samples into $N$ frequency values.</p>
-  <div class="formula">$$X[k] = \sum_{n=0}^{N-1} x[n]\, e^{-2\pi i k n / N}$$</div>
-  <p>Computing this directly costs O(N²). The Fast Fourier Transform splits the sum into even and odd samples, solves each half, and combines them. That brings the cost down to O(N log N), which is why audio, images, and radio can be processed in real time.</p>
+  <p>Each term is one circle in Fig 1: term $k$ turns $k$ times as fast and is $\frac{1}{k}$ as large. Put $t = \frac{\pi}{2}$ and you get Leibniz's series, $1 - \frac{1}{3} + \frac{1}{5} - \cdots = \frac{\pi}{4}$.</p>
+  <h3>Smoothness decides the speed</h3>
   <table class="ops">
-    <thead><tr><th>Method</th><th>Cost for N samples</th><th>Note</th></tr></thead>
+    <thead><tr><th>Shape</th><th>Coefficients shrink like</th><th>Lab example</th></tr></thead>
     <tbody>
-      <tr><td>Direct DFT</td><td>$O(N^2)$</td><td>Simple, slow for large N</td></tr>
-      <tr><td>FFT (Cooley-Tukey)</td><td>$O(N \log N)$</td><td>Fastest when N is a power of two</td></tr>
+      <tr><td>has jumps</td><td>$\frac{1}{k}$</td><td>Square, Sawtooth, Pulse</td></tr>
+      <tr><td>continuous, with corners</td><td>$\frac{1}{k^2}$</td><td>Triangle, Half-wave</td></tr>
+      <tr><td>smooth (every derivative continuous)</td><td>faster than any power of $\frac{1}{k}$</td><td>a pure sine needs one term</td></tr>
     </tbody>
   </table>
-  <p>Two limits to remember. The highest frequency you can see is half the sample rate (Nyquist). Anything faster folds back as a false lower frequency, called aliasing.</p>
+  <p>This is why the triangle wave looks right with three circles while the square wave still ripples with twenty. Sharp features need high frequencies.</p>
+  <h3>The Gibbs phenomenon</h3>
+  <p>Near a jump the partial sums overshoot by about 9% of the jump size, however many terms you add. With 100 terms the square-wave sum still peaks at $1.179$ instead of $1$. The overshoot gets squeezed into a narrower and narrower spike, so the average error goes to zero, but the peak does not. Fig 1 reports the peak in the readout. This is the ringing you see around sharp edges in heavily compressed images.</p>
 </section>
 
 <section>
-  <h2>5. What it is used for</h2>
+  <h2>3. Why the coefficients work: orthogonality</h2>
+  <p>The formulas for $a_k$ and $b_k$ come from one fact. Over a full period, different sines and cosines cancel when multiplied:</p>
+  <div class="formula">$$\int_{-\pi}^{\pi} \sin mt\,\sin nt\,dt = \begin{cases} \pi & m = n \\ 0 & m \ne n \end{cases} \qquad \int_{-\pi}^{\pi} \sin mt\,\cos nt\,dt = 0$$</div>
+  <p>Multiply $f$ by $\sin kt$ and integrate: every term of the series vanishes except the $k$-th, which leaves $\pi b_k$. That is the same trick as finding coordinates in an orthogonal basis in the <a href="../vector-spaces/vector-spaces.html">Vector Spaces</a> guide, where each coordinate is a single dot product. Here the "vectors" are functions, the dot product is $\langle f, g \rangle = \int f g\,dt$, and the sines and cosines are an orthogonal basis.</p>
+  <p>The tidiest way to write it uses complex exponentials, which bundle a cosine and a sine with the same frequency (see <a href="../euler-formula/euler-formula.html">Euler's Formula</a>):</p>
+  <div class="formula">$$f(t) = \sum_{k=-\infty}^{\infty} c_k\,e^{ikt}, \qquad c_k = \frac{1}{2\pi}\int_{-\pi}^{\pi} f(t)\,e^{-ikt}\,dt$$</div>
+  <p>$|c_k|$ is the strength of frequency $k$ and $\arg c_k$ is its phase. Negative $k$ are the same circles turning the other way; for a real signal $c_{-k}$ is the complex conjugate of $c_k$.</p>
+</section>
+
+<section>
+  <h2>4. The transform: winding a signal around a circle</h2>
+  <p>A signal that does not repeat has no base frequency, so it needs every frequency, not just whole multiples. The sum becomes an integral:</p>
+  <div class="formula">$$F(\xi) = \int_{-\infty}^{\infty} f(t)\, e^{-2\pi i \xi t}\,dt \qquad\qquad f(t) = \int_{-\infty}^{\infty} F(\xi)\, e^{2\pi i \xi t}\,d\xi$$</div>
+  <p>The left formula has a picture. $e^{-2\pi i \xi t}$ walks around the unit circle $\xi$ times per second. Multiplying by $f(t)$ stretches the radius to the signal's value. So the integral wraps the graph of $f$ around the origin at winding speed $\xi$ and adds up where it lands, which is (up to a factor) its center of mass. When the winding speed matches a frequency in the signal, the bumps all land on the same side and the center of mass jumps away from zero. Otherwise they spread evenly and cancel.</p>
+
+  <figure class="card" style="margin-top:24px">
+    <div class="card-top"><span class="eyebrow">Fig 2</span><span class="card-title">The winding machine</span></div>
+    <div class="duo">
+      <div>
+        <svg id="wind" viewBox="0 0 400 400" role="img" aria-labelledby="wd-title wd-desc">
+          <title id="wd-title">The signal wrapped around the origin at the winding frequency</title>
+          <desc id="wd-desc">The signal, shifted up so it is never negative, is drawn as a curve wound around the origin at the chosen winding frequency. An orange dot marks the center of mass of the curve. When the winding frequency matches a frequency in the signal, the dot moves away from the origin.</desc>
+        </svg>
+      </div>
+      <div>
+        <svg id="wsig" viewBox="0 0 400 120" role="img" aria-labelledby="ws-title ws-desc">
+          <title id="ws-title">The signal over time</title>
+          <desc id="ws-desc">Two seconds of the signal, a sum of up to two cosines, shown as a curve.</desc>
+        </svg>
+        <svg id="wspec" viewBox="0 0 400 150" role="img" aria-labelledby="wsp-title wsp-desc">
+          <title id="wsp-title">Distance of the center of mass from the origin, for every winding frequency</title>
+          <desc id="wsp-desc">A curve of how far the center of mass lies from the origin as the winding frequency goes from 0 to 8 cycles per second. Peaks appear at the frequencies present in the signal. A marker shows the current winding frequency.</desc>
+        </svg>
+        <div class="row"><label for="xi">ξ</label><input type="range" id="xi" min="0" max="800" value="150"><output id="o-xi" for="xi"></output></div>
+        <div class="row"><label for="f1">f₁</label><input type="range" id="f1" min="1" max="7" step="0.5" value="3"><output id="o-f1" for="f1"></output></div>
+        <div class="row"><label for="f2">f₂</label><input type="range" id="f2" min="0" max="7" step="0.5" value="5"><output id="o-f2" for="f2"></output></div>
+      </div>
+    </div>
+    <div class="card-bottom"><span class="hint">Slide ξ: the dot leaves the origin at f₁ and f₂</span><span class="live" id="wlive"></span></div>
+  </figure>
+
+  <p style="margin-top:20px">The value at $\xi = 0$ is just the average of the signal, which is why the lab shows a big peak there: the wound signal is shifted up so it stays positive. Real transforms of a signal with zero average have no such peak.</p>
+  <h3>Transforms worth knowing</h3>
+  <table class="ops">
+    <thead><tr><th>Signal $f(t)$</th><th>Transform $F(\xi)$</th><th>Lesson</th></tr></thead>
+    <tbody>
+      <tr><td>$\cos(2\pi \xi_0 t)$</td><td>spikes at $\pm\xi_0$</td><td>one frequency, two mirror-image bars</td></tr>
+      <tr><td>box of width 1</td><td>$\operatorname{sinc}\xi = \frac{\sin \pi\xi}{\pi\xi}$</td><td>sharp edges spread over all frequencies</td></tr>
+      <tr><td>$e^{-\pi t^2}$</td><td>$e^{-\pi \xi^2}$</td><td>the bell curve is its own transform</td></tr>
+      <tr><td>a single impulse $\delta(t)$</td><td>$1$</td><td>a click contains every frequency equally</td></tr>
+      <tr><td>$e^{-a|t|}$</td><td>$\frac{2a}{a^2 + 4\pi^2 \xi^2}$</td><td>a decay gives a smooth bump</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>5. Properties that do the work</h2>
+  <p>Most uses of the transform come from a handful of rules. Write $f \leftrightarrow F$ for a pair.</p>
+  <table class="ops">
+    <thead><tr><th>Rule</th><th>Time domain</th><th>Frequency domain</th></tr></thead>
+    <tbody>
+      <tr><td>Linearity</td><td>$a f + b g$</td><td>$a F + b G$</td></tr>
+      <tr><td>Time shift</td><td>$f(t - t_0)$</td><td>$e^{-2\pi i \xi t_0} F(\xi)$: same strengths, new phases</td></tr>
+      <tr><td>Modulation</td><td>$e^{2\pi i \xi_0 t} f(t)$</td><td>$F(\xi - \xi_0)$: the spectrum slides, which is how radio works</td></tr>
+      <tr><td>Scaling</td><td>$f(at)$</td><td>$\frac{1}{|a|} F\!\left(\frac{\xi}{a}\right)$: squeeze one, stretch the other</td></tr>
+      <tr><td>Derivative</td><td>$f'(t)$</td><td>$2\pi i \xi\, F(\xi)$: calculus becomes algebra</td></tr>
+      <tr><td>Convolution</td><td>$(f * g)(t) = \int f(s) g(t - s)\,ds$</td><td>$F(\xi)\,G(\xi)$</td></tr>
+      <tr><td>Parseval</td><td>$\int |f|^2\,dt$</td><td>$= \int |F|^2\,d\xi$: energy is the same in both views</td></tr>
+    </tbody>
+  </table>
+  <p>The convolution rule is the star. Blurring, echo, smoothing and many filters are convolutions, which cost $O(N^2)$ directly. Transform both, multiply point by point, transform back, and it costs $O(N \log N)$. The derivative rule turns linear differential equations into polynomial equations: for the heat equation $u_t = u_{xx}$, each frequency simply decays like $e^{-4\pi^2 \xi^2 t}$, so high frequencies (sharp details) vanish first.</p>
+</section>
+
+<section>
+  <h2>6. The uncertainty principle</h2>
+  <p>The scaling rule has a famous consequence: a signal cannot be narrow in time and narrow in frequency at once. Squeeze a pulse to make it shorter and its spectrum spreads. Measure the spreads by their standard deviations and</p>
+  <div class="formula">$$\sigma_t\,\sigma_\xi \ge \frac{1}{4\pi}$$</div>
+  <p>with equality only for the Gaussian bell. A short click has a broad spectrum; a pure tone lasts forever. To tell two notes 1 Hz apart you must listen for about a second. In quantum mechanics position and momentum are a Fourier pair, and this inequality becomes Heisenberg's uncertainty principle.</p>
+</section>
+
+<section>
+  <h2>7. The Discrete Fourier Transform</h2>
+  <p>Computers hold $N$ samples, not a continuous curve. The DFT turns $N$ samples into $N$ complex frequency values:</p>
+  <div class="formula">$$X[k] = \sum_{n=0}^{N-1} x[n]\, e^{-2\pi i k n / N}, \qquad x[n] = \frac{1}{N}\sum_{k=0}^{N-1} X[k]\, e^{2\pi i k n / N}$$</div>
+  <p>Bin $k$ means "$k$ cycles across the whole window". With sample rate $f_s$ that is $k \cdot \frac{f_s}{N}$ hertz. Play with a sampled signal below: the bars are $|X[k]|$, and the filter keeps only the bins below the cutoff before transforming back.</p>
+
+  <figure class="card" style="margin-top:24px">
+    <div class="card-top"><span class="eyebrow">Fig 3</span><span class="card-title">64 samples and their spectrum</span></div>
+    <div class="duo">
+      <div>
+        <svg id="dtime" viewBox="0 0 440 170" role="img" aria-labelledby="dt-title dt-desc">
+          <title id="dt-title">Samples of the signal and the filtered reconstruction</title>
+          <desc id="dt-desc">Sixty-four sample dots of a signal made of two sine waves plus optional noise. A blue line shows the signal rebuilt from only the frequency bins below the cutoff.</desc>
+        </svg>
+        <svg id="dspec" viewBox="0 0 440 190" role="img" aria-labelledby="ds-title ds-desc">
+          <title id="ds-title">Magnitude of the DFT</title>
+          <desc id="ds-desc">Bars for the magnitude of each of the 64 frequency bins. Bins above the Nyquist index 32 are the mirror image of the lower half and are shaded. Bins removed by the low-pass filter are drawn grey.</desc>
+        </svg>
+      </div>
+      <div>
+        <div class="row"><label for="k1">f₁</label><input type="range" id="k1" min="0" max="63" step="0.5" value="4"><output id="o-k1" for="k1"></output></div>
+        <div class="row"><label for="a1">A₁</label><input type="range" id="a1" min="0" max="10" value="10"><output id="o-a1" for="a1"></output></div>
+        <div class="row"><label for="k2">f₂</label><input type="range" id="k2" min="0" max="63" step="0.5" value="20"><output id="o-k2" for="k2"></output></div>
+        <div class="row"><label for="a2">A₂</label><input type="range" id="a2" min="0" max="10" value="4"><output id="o-a2" for="a2"></output></div>
+        <div class="row"><label for="noise">noise</label><input type="range" id="noise" min="0" max="10" value="0"><output id="o-noise" for="noise"></output></div>
+        <div class="row"><label for="cut">cutoff</label><input type="range" id="cut" min="1" max="33" value="33"><output id="o-cut" for="cut"></output></div>
+        <p class="seg-label" style="margin-top:12px">Presets</p>
+        <div class="seg" role="group" aria-label="DFT presets">
+          <button type="button" data-d="4,10,20,4,0,33">Two tones</button>
+          <button type="button" data-d="4,10,20,4,0,10">Low-pass</button>
+          <button type="button" data-d="4,10,0,0,6,8">Denoise</button>
+          <button type="button" data-d="4.5,10,0,0,0,33">Leakage</button>
+          <button type="button" data-d="60,10,0,0,0,33">Aliasing</button>
+        </div>
+        <div id="dout" aria-live="polite"></div>
+      </div>
+    </div>
+    <div class="card-bottom"><span class="hint">f in cycles per 64 samples. Nyquist = 32</span><span class="live" id="dlive"></span></div>
+  </figure>
+
+  <h3>Three things the lab shows</h3>
+  <ul class="tight" style="margin-top:20px">
+    <li><b>Mirror image.</b> For real samples $X[N-k]$ is the conjugate of $X[k]$, so the right half of the bars repeats the left half. Only bins $0$ to $\frac{N}{2}$ carry new information.</li>
+    <li><b>Aliasing.</b> The highest frequency the samples can represent is half the sample rate, the <b>Nyquist frequency</b>. Set $f_1 = 60$: those samples are identical to a wave with 4 cycles, so the peak appears at bin 4. That is why audio is sampled at 44.1 kHz, a bit more than twice the 20 kHz limit of hearing, and why the analog signal is low-pass filtered first.</li>
+    <li><b>Leakage.</b> The DFT assumes the window repeats. With $f_1 = 4.5$ the wave does not complete a whole number of cycles, the ends do not meet, and the energy smears into neighboring bins. Multiplying by a smooth window (Hann, Hamming) before the transform reduces the smearing.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>8. The Fast Fourier Transform</h2>
+  <p>Computed straight from the formula, each of the $N$ outputs needs $N$ multiplications: $O(N^2)$. The Cooley–Tukey FFT splits the sum into even- and odd-numbered samples. Each half is itself a DFT of size $\frac{N}{2}$, and the two halves combine with one multiplication per output:</p>
+  <div class="formula">$$X[k] = E[k] + w^k\,O[k], \qquad X\!\left[k + \tfrac{N}{2}\right] = E[k] - w^k\,O[k], \qquad w = e^{-2\pi i / N}$$</div>
+  <p>Apply the split again inside each half, down to single samples. There are $\log_2 N$ levels, each doing $O(N)$ work, so the total is $O(N \log N)$. This is the same divide-and-conquer shape as merge sort.</p>
+  <table class="ops">
+    <thead><tr><th>N</th><th>Direct DFT, about $N^2$</th><th>FFT, about $N \log_2 N$</th><th>Speed-up</th></tr></thead>
+    <tbody>
+      <tr><td>$1{,}024$</td><td>$1$ million</td><td>$10{,}240$</td><td>$100\times$</td></tr>
+      <tr><td>$1{,}048{,}576$</td><td>$10^{12}$</td><td>$2 \times 10^{7}$</td><td>$50{,}000\times$</td></tr>
+    </tbody>
+  </table>
+  <p>One second of CD audio is 44,100 samples. Direct, that is about two billion operations; with the FFT, under a million. Gauss sketched the idea in 1805; Cooley and Tukey rediscovered it in 1965, and it is often listed among the most important algorithms of the century.</p>
+</section>
+
+<section>
+  <h2>9. The same thing in code</h2>
+  <pre><span class="c">// Recursive radix-2 FFT. x: array of [re, im], length a power of 2.</span>
+<span class="k">function</span> fft(x) {
+  <span class="k">const</span> N = x.length;
+  <span class="k">if</span> (N === <span class="t">1</span>) <span class="k">return</span> [x[<span class="t">0</span>]];
+  <span class="k">const</span> E = fft(x.filter((_, i) =&gt; i % <span class="t">2</span> === <span class="t">0</span>));
+  <span class="k">const</span> O = fft(x.filter((_, i) =&gt; i % <span class="t">2</span> === <span class="t">1</span>));
+  <span class="k">const</span> X = <span class="k">new</span> Array(N);
+  <span class="k">for</span> (<span class="k">let</span> k = <span class="t">0</span>; k &lt; N / <span class="t">2</span>; k++) {
+    <span class="k">const</span> a = -<span class="t">2</span> * Math.PI * k / N, w = [Math.cos(a), Math.sin(a)];
+    <span class="k">const</span> t = [w[<span class="t">0</span>] * O[k][<span class="t">0</span>] - w[<span class="t">1</span>] * O[k][<span class="t">1</span>],     <span class="c">// w^k · O[k]</span>
+               w[<span class="t">0</span>] * O[k][<span class="t">1</span>] + w[<span class="t">1</span>] * O[k][<span class="t">0</span>]];
+    X[k]         = [E[k][<span class="t">0</span>] + t[<span class="t">0</span>], E[k][<span class="t">1</span>] + t[<span class="t">1</span>]];
+    X[k + N / <span class="t">2</span>] = [E[k][<span class="t">0</span>] - t[<span class="t">0</span>], E[k][<span class="t">1</span>] - t[<span class="t">1</span>]];
+  }
+  <span class="k">return</span> X;
+}
+
+<span class="c">// 16 samples of sin(3 cycles) + 0.5·cos(5 cycles)</span>
+<span class="k">const</span> N = <span class="t">16</span>;
+<span class="k">const</span> x = [...Array(N)].map((_, n) =&gt;
+  [Math.sin(<span class="t">2</span> * Math.PI * <span class="t">3</span> * n / N) + <span class="t">0.5</span> * Math.cos(<span class="t">2</span> * Math.PI * <span class="t">5</span> * n / N), <span class="t">0</span>]);
+fft(x).map(([re, im]) =&gt; Math.hypot(re, im).toFixed(1));
+<span class="c">// bins 3 and 13 → 8.0, bins 5 and 11 → 4.0, the rest 0.0</span>
+<span class="c">// |X[k]| = amplitude · N / 2, and each tone shows up twice (k and N − k)</span></pre>
+  <p>In practice use a library: <code>numpy.fft.rfft</code>, FFTW, or the Web Audio <code>AnalyserNode</code>. They handle any length, real input (half the work) and cache-friendly ordering.</p>
+</section>
+
+<section>
+  <h2>10. What it is used for</h2>
   <div class="cards">
-    <div class="stat focal"><div class="eyebrow">Filter</div><div class="big">remove noise</div><p>Zero the frequencies you do not want, then invert.</p></div>
-    <div class="stat"><div class="eyebrow">Compress</div><div class="big">keep the big bars</div><p>JPEG and MP3 keep strong frequencies and drop weak ones.</p></div>
-    <div class="stat"><div class="eyebrow">Multiply</div><div class="big">fast convolution</div><p>Convolution in time is plain multiplication in frequency.</p></div>
+    <div class="stat focal"><div class="eyebrow">Filter</div><div class="big">remove noise</div><p>Zero the frequencies you do not want, then invert. Equalizers, hum removal and noise gates work this way.</p></div>
+    <div class="stat"><div class="eyebrow">Compress</div><div class="big">keep big bars</div><p>JPEG uses a cosine transform on 8×8 blocks; MP3 and AAC drop frequencies the ear will not miss.</p></div>
+    <div class="stat"><div class="eyebrow">Multiply</div><div class="big">fast convolution</div><p>Convolution in time is plain multiplication in frequency. Multiplying million-digit numbers uses the same trick.</p></div>
+    <div class="stat"><div class="eyebrow">Imaging</div><div class="big">MRI</div><p>An MRI scanner measures the 2D Fourier transform of the body directly; the image is its inverse.</p></div>
+    <div class="stat"><div class="eyebrow">Audio</div><div class="big">spectrograms</div><p>FFTs of short overlapping windows show how frequencies change over time, as in speech recognition.</p></div>
+    <div class="stat"><div class="eyebrow">Finance</div><div class="big">option pricing</div><p>Carr–Madan and COS methods price options by FFT of the characteristic function of returns.</p></div>
   </div>
 </section>
 
 <section>
-  <h2>6. Next</h2>
-  <p>The Fourier transform rests on integrals, introduced in the Integrals guide. For the sorting-like divide-and-conquer trick behind the FFT, see Merge Sort.</p>
+  <h2>11. Common mistakes</h2>
+  <ul class="tight">
+    <li>Reading bins above $\frac{N}{2}$ as high frequencies. For real signals they are the negative frequencies, a mirror of the lower half.</li>
+    <li>Forgetting the scale. A sine of amplitude $A$ gives $|X[k]| = \frac{AN}{2}$ in the unnormalized DFT; libraries differ on where they put the $\frac{1}{N}$.</li>
+    <li>Sampling too slowly. Anything above Nyquist does not disappear; it comes back as a fake lower frequency.</li>
+    <li>Trusting peak heights for frequencies between bins. Leakage spreads them out; use a window or zero-padding for a finer grid.</li>
+    <li>Throwing away the phase. Magnitude alone cannot rebuild a signal; swapping phases between two images swaps most of what you see.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>12. Next</h2>
+  <p>The Fourier transform rests on integrals and on complex exponentials; see the Integrals guide and Euler's Formula. The Laplace Transform extends the idea to growing and decaying signals. For the divide-and-conquer trick behind the FFT, see Merge Sort.</p>
 </section>
 
 </main>
@@ -196,134 +391,255 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
 (function () {
   var NSV = 'http://www.w3.org/2000/svg';
   var $ = function (s) { return document.querySelector(s); };
-  var TAU = 2 * Math.PI;
-  var MAXN = 12, MAXK = 24;
-  var CX = 110, CY = 120, S = 50;       // epicycle center and pixels per unit
-  var WX0 = 250, WX1 = 540;             // waveform x range
-  var BASE = 372, BH = 70;              // spectrum baseline and bar height for amp 1.3
-
-  // each wave gives the k-th term (signed amplitude of sin kt), or 0 when absent
-  var WAVES = [
-    { name: 'Square wave',
-      coef: function (k) { return k % 2 ? 4 / (Math.PI * k) : 0; },
-      ideal: function (t) { return Math.sin(t) >= 0 ? 1 : -1; } },
-    { name: 'Sawtooth wave',
-      coef: function (k) { return (k % 2 ? 1 : -1) * 2 / (Math.PI * k); },
-      ideal: function (t) { var u = ((t % TAU) + TAU) % TAU; return u === 0 ? 0 : 1 - u / Math.PI; } },
-    { name: 'Triangle wave',
-      coef: function (k) { return k % 2 ? ((k % 4 === 1) ? 1 : -1) * 8 / (Math.PI * Math.PI * k * k) : 0; },
-      ideal: function (t) { return 2 / Math.PI * Math.asin(Math.sin(t)); } }
-  ];
-  var cur = 0, playing = true, t = 0.6, last = null;
+  var TAU = 2 * Math.PI, PI = Math.PI;
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (reduce) playing = false;
-
   function el(n, attrs, parent) {
     var e = document.createElementNS(NSV, n);
     for (var k in attrs) e.setAttribute(k, attrs[k]);
     if (parent) parent.appendChild(e);
     return e;
   }
+  function text(g, x, y, s, extra) {
+    var a = { x: x, y: y, 'font-size': 10, fill: '#5a6580', 'font-family': 'Geist Mono, monospace' };
+    for (var k in extra) a[k] = extra[k];
+    var t = el('text', a, g); t.textContent = s; return t;
+  }
+  function clear(svg) {
+    Array.prototype.slice.call(svg.childNodes).forEach(function (n) {
+      var nm = (n.localName || '').toLowerCase();
+      if (nm !== 'title' && nm !== 'desc') svg.removeChild(n);
+    });
+    return el('g', {}, svg);
+  }
+  function wrap(t) { var u = ((t + PI) % TAU + TAU) % TAU; return u - PI; }
+
+  // ---------- Fig 1: epicycles ----------
+  var MAXK = 50, CX = 110, CY = 120, S = 50, WX0 = 250, WX1 = 540, BASE = 372, BH = 70;
+  // each wave: dc = a0/2, ab(k) = [a_k (cos), b_k (sin)]
+  var WAVES = [
+    { name: 'Square wave', dc: 0, ab: function (k) { return [0, k % 2 ? 4 / (PI * k) : 0]; }, ideal: function (t) { return wrap(t) >= 0 ? 1 : -1; }, jump: true },
+    { name: 'Sawtooth wave', dc: 0, ab: function (k) { return [0, (k % 2 ? 1 : -1) * 2 / (PI * k)]; }, ideal: function (t) { return wrap(t) / PI; }, jump: true },
+    { name: 'Triangle wave', dc: 0, ab: function (k) { return [0, k % 2 ? ((k % 4 === 1) ? 1 : -1) * 8 / (PI * PI * k * k) : 0]; }, ideal: function (t) { return 2 / PI * Math.asin(Math.sin(t)); }, jump: false },
+    { name: 'Pulse wave (25% duty)', dc: 0.25, ab: function (k) { return [2 * Math.sin(k * PI / 4) / (PI * k), 0]; }, ideal: function (t) { return Math.abs(wrap(t)) < PI / 4 ? 1 : 0; }, jump: true },
+    { name: 'Half-wave rectified sine', dc: 1 / PI, ab: function (k) { return k === 1 ? [0, 0.5] : (k % 2 ? [0, 0] : [-2 / (PI * (k * k - 1)), 0]); }, ideal: function (t) { return Math.max(0, Math.sin(t)); }, jump: false }
+  ];
+  var cur = 0, playing = !reduce, t = 0.6, last = null;
+
   function terms(n) {
     var list = [], W = WAVES[cur];
     for (var k = 1; k <= MAXK && list.length < n; k++) {
-      var a = W.coef(k);
-      if (a !== 0) list.push({ k: k, a: a });
+      var ab = W.ab(k), R = Math.hypot(ab[0], ab[1]);
+      if (R > 1e-12) list.push({ k: k, R: R, ph: Math.atan2(ab[0], ab[1]) });
     }
     return list;
   }
   function sumAt(list, tt) {
-    var s = 0;
-    for (var i = 0; i < list.length; i++) s += list[i].a * Math.sin(list[i].k * tt);
+    var s = WAVES[cur].dc;
+    for (var i = 0; i < list.length; i++) s += list[i].R * Math.sin(list[i].k * tt + list[i].ph);
     return s;
   }
-
   function render() {
     var n = +$('#inN').value, W = WAVES[cur], list = terms(n);
     var svg = $('#plot');
     Array.prototype.slice.call(svg.querySelectorAll('.dyn')).forEach(function (x) { x.remove(); });
     var g = el('g', { 'class': 'dyn' }, svg);
-
-    // axes
     el('line', { x1: WX0, x2: WX1, y1: CY, y2: CY, stroke: 'rgba(45,49,66,.25)' }, g);
     el('line', { x1: 20, x2: 540, y1: BASE, y2: BASE, stroke: '#2d3142' }, g);
-
-    // circles chain
-    var x = CX, y = CY;
+    var x = CX, y = CY - W.dc * S;
+    if (W.dc) el('line', { x1: CX, y1: CY, x2: x, y2: y, stroke: '#2d3142', 'stroke-width': 1.4, 'stroke-dasharray': '2 2' }, g);
     for (var i = 0; i < list.length; i++) {
-      var r = Math.abs(list[i].a) * S, ang = list[i].k * t;
-      var nx = x + list[i].a * S * Math.cos(ang), ny = y - list[i].a * S * Math.sin(ang);
-      el('circle', { cx: x, cy: y, r: r, fill: 'none', stroke: 'rgba(45,49,66,.35)' }, g);
+      var r = list[i].R * S, ang = list[i].k * t + list[i].ph;
+      var nx = x + r * Math.cos(ang), ny = y - r * Math.sin(ang);
+      if (r > 0.6) el('circle', { cx: x, cy: y, r: r, fill: 'none', stroke: 'rgba(45,49,66,.35)' }, g);
       el('line', { x1: x, y1: y, x2: nx, y2: ny, stroke: '#2d3142', 'stroke-width': 1.4 }, g);
       x = nx; y = ny;
     }
     el('circle', { cx: x, cy: y, r: 4, fill: '#2e5aa8' }, g);
     el('line', { x1: x, y1: y, x2: WX0, y2: y, stroke: '#2e5aa8', 'stroke-dasharray': '3 3' }, g);
-
-    // target and sum traces (newest sample at the left edge)
-    var span = TAU, pts = 240, d1 = '', d2 = '';
+    var pts = 360, d1 = '', d2 = '';
     for (var j = 0; j <= pts; j++) {
-      var s = span * j / pts, tt = t - s;
-      var px = WX0 + (WX1 - WX0) * j / pts;
+      var tt = t - TAU * j / pts, px = WX0 + (WX1 - WX0) * j / pts;
       d1 += (j ? ' L' : 'M') + px.toFixed(1) + ' ' + (CY - W.ideal(tt) * S).toFixed(1);
       d2 += (j ? ' L' : 'M') + px.toFixed(1) + ' ' + (CY - sumAt(list, tt) * S).toFixed(1);
     }
     el('path', { d: d1, fill: 'none', stroke: '#bf4520', 'stroke-width': 1.6, 'stroke-dasharray': '5 4' }, g);
     el('path', { d: d2, fill: 'none', stroke: '#2e5aa8', 'stroke-width': 2.4 }, g);
-
-    // spectrum bars
-    var bw = (520 / MAXK);
-    for (var k = 1; k <= MAXK; k++) {
-      var a = W.coef(k), used = list.some(function (q) { return q.k === k; });
-      var h = Math.abs(a) / 1.3 * BH;
-      if (h > 0) el('rect', { x: 20 + (k - 1) * bw + 3, y: BASE - h, width: bw - 6, height: h, fill: used ? '#bf4520' : '#bfc0c0' }, g);
-      if (k % 2 === 1 || k === MAXK) {
-        var lb = el('text', { x: 20 + (k - 0.5) * bw, y: BASE + 14, 'text-anchor': 'middle', 'font-size': 9, fill: '#5a6580', 'font-family': 'Geist Mono, monospace' }, g);
-        lb.textContent = k;
-      }
+    // spectrum bars, k = 1..30
+    var KB = 30, bw = 520 / KB;
+    for (var k = 1; k <= KB; k++) {
+      var ab = W.ab(k), R = Math.hypot(ab[0], ab[1]), used = list.some(function (q) { return q.k === k; });
+      var h = Math.min(R / 1.3, 1) * BH;
+      if (h > 0.3) el('rect', { x: 20 + (k - 1) * bw + 2, y: BASE - h, width: bw - 4, height: h, fill: used ? '#bf4520' : '#bfc0c0' }, g);
+      if (k % 2 === 1) text(g, 20 + (k - 0.5) * bw, BASE + 14, k, { 'font-size': 9, 'text-anchor': 'middle' });
     }
-    var cap = el('text', { x: 20, y: 262, 'font-size': 10, fill: '#5a6580', 'font-family': 'Geist Mono, monospace' }, g);
-    cap.textContent = 'Strength of each frequency (harmonic number k)';
-
-    // error over one period
-    var err = 0, m = 400;
+    text(g, 20, 280, 'Strength of each frequency (harmonic number k)');
+    // error and peak over one period
+    var err = 0, m = 2000, peak = -Infinity, idealMax = -Infinity;
     for (var q = 0; q < m; q++) {
-      var u = TAU * (q + 0.5) / m;
-      err += Math.abs(sumAt(list, u) - W.ideal(u));
+      var u = -PI + TAU * (q + 0.5) / m, sv = sumAt(list, u), iv = W.ideal(u);
+      err += Math.abs(sv - iv); peak = Math.max(peak, sv); idealMax = Math.max(idealMax, iv);
     }
     err /= m;
-
     $('#outN').textContent = n;
     $('#wvTitle').textContent = W.name;
-    $('#live').textContent = 'avg error = ' + err.toFixed(3);
+    $('#live').textContent = 'avg error = ' + err.toFixed(4);
     $('#readout').textContent =
       'circles      = ' + n + '\n' +
-      'frequencies  = ' + list.map(function (q) { return q.k; }).join(', ') + '\n' +
-      'biggest term = ' + Math.abs(list[0].a).toFixed(3) + ' at k = ' + list[0].k + '\n' +
-      'avg error    = ' + err.toFixed(3);
+      'frequencies  = ' + list.slice(0, 10).map(function (q) { return q.k; }).join(', ') + (list.length > 10 ? ', …' : '') + '\n' +
+      (W.dc ? 'average a₀/2 = ' + W.dc.toFixed(3) + '\n' : '') +
+      'last term    = ' + list[list.length - 1].R.toFixed(4) + ' at k = ' + list[list.length - 1].k + '\n' +
+      'avg error    = ' + err.toFixed(4) + '\n' +
+      'peak of sum  = ' + peak.toFixed(3) + ' (target ' + idealMax.toFixed(2) + ')' +
+      (W.jump && n >= 5 ? '\nGibbs: the overshoot stays near 9% of the jump' : '');
   }
-
   function tick(ts) {
     if (last !== null && playing) t += (ts - last) / 1000 * 1.1;
     last = ts;
     if (playing) render();
     requestAnimationFrame(tick);
   }
-
   Array.prototype.forEach.call(document.querySelectorAll('[data-wv]'), function (b) {
     b.addEventListener('click', function () {
       cur = +b.dataset.wv;
-      Array.prototype.forEach.call(document.querySelectorAll('[data-wv]'), function (o) { o.setAttribute('aria-pressed', o === b); });
+      Array.prototype.forEach.call(document.querySelectorAll('[data-wv]'), function (o) { o.setAttribute('aria-pressed', o === b ? 'true' : 'false'); });
       render();
     });
   });
   $('#inN').addEventListener('input', render);
   var pb = $('#play');
-  function syncPlay() { pb.textContent = playing ? 'Pause' : 'Play'; pb.setAttribute('aria-pressed', playing); }
+  function syncPlay() { pb.textContent = playing ? 'Pause' : 'Play'; pb.setAttribute('aria-pressed', String(playing)); }
   pb.addEventListener('click', function () { playing = !playing; syncPlay(); });
   syncPlay();
   render();
   requestAnimationFrame(tick);
+
+  // ---------- Fig 2: winding machine ----------
+  var TW = 4, NS = 1600;
+  function sig(tt, f1, f2) { return 1 + 0.5 * Math.cos(TAU * f1 * tt) + (f2 > 0 ? 0.5 * Math.cos(TAU * f2 * tt) : 0); }
+  function com(xi, f1, f2, n) {
+    var re = 0, im = 0;
+    for (var i = 0; i < n; i++) { var tt = TW * (i + 0.5) / n, v = sig(tt, f1, f2), a = -TAU * xi * tt; re += v * Math.cos(a); im += v * Math.sin(a); }
+    return [re / n, im / n];
+  }
+  function renderWind() {
+    var xi = +$('#xi').value / 100, f1 = +$('#f1').value, f2 = +$('#f2').value;
+    $('#o-xi').textContent = xi.toFixed(2); $('#o-f1').textContent = f1; $('#o-f2').textContent = f2 || 'off';
+    // wound curve
+    var g = clear($('#wind')), C = 200, R = 80;
+    el('rect', { x: 0, y: 0, width: 400, height: 400, fill: '#fff' }, g);
+    el('line', { x1: 10, x2: 390, y1: C, y2: C, stroke: 'rgba(45,49,66,.25)' }, g);
+    el('line', { x1: C, x2: C, y1: 10, y2: 390, stroke: 'rgba(45,49,66,.25)' }, g);
+    [1, 2].forEach(function (r) { el('circle', { cx: C, cy: C, r: r * R, fill: 'none', stroke: 'rgba(45,49,66,.07)' }, g); });
+    var d = '';
+    for (var i = 0; i <= NS; i++) {
+      var tt = TW * i / NS, v = sig(tt, f1, f2), a = -TAU * xi * tt;
+      d += (i ? ' L' : 'M') + (C + v * R * Math.cos(a)).toFixed(1) + ' ' + (C - v * R * Math.sin(a)).toFixed(1);
+    }
+    el('path', { d: d, fill: 'none', stroke: '#2e5aa8', 'stroke-width': 1.1, opacity: 0.8 }, g);
+    var cm = com(xi, f1, f2, NS), mag = Math.hypot(cm[0], cm[1]);
+    el('line', { x1: C, y1: C, x2: C + cm[0] * R, y2: C - cm[1] * R, stroke: '#bf4520', 'stroke-width': 2 }, g);
+    el('circle', { cx: C + cm[0] * R, cy: C - cm[1] * R, r: 7, fill: '#bf4520', stroke: '#fff', 'stroke-width': 2 }, g);
+    text(g, 14, 22, 'winding ' + xi.toFixed(2) + ' turns per second', { fill: '#2d3142', 'font-size': 11 });
+    text(g, 14, 38, 'center of mass |·| = ' + mag.toFixed(3), { fill: '#bf4520', 'font-size': 11, 'font-weight': 600 });
+
+    // signal strip
+    var gs = clear($('#wsig')), L = 30, Wd = 360;
+    el('rect', { x: L, y: 8, width: Wd, height: 96, fill: '#fff', stroke: 'rgba(45,49,66,.2)' }, gs);
+    var ds = '';
+    for (var j = 0; j <= 400; j++) { var t2 = 2 * j / 400; ds += (j ? ' L' : 'M') + (L + Wd * j / 400).toFixed(1) + ' ' + (104 - sig(t2, f1, f2) / 2 * 92).toFixed(1); }
+    el('path', { d: ds, fill: 'none', stroke: '#2d3142', 'stroke-width': 1.5 }, gs);
+    text(gs, L + 4, 20, 'g(t) over 2 s', { fill: '#2d3142' });
+    text(gs, L, 116, '0 s'); text(gs, L + Wd, 116, '2 s', { 'text-anchor': 'end' });
+
+    // spectrum: |center of mass| over xi in [0, 8]
+    var gp = clear($('#wspec')), T0 = 10, H = 110, YMAX = 0.6;
+    var X = function (x) { return L + x / 8 * Wd; }, Y = function (y) { return T0 + H - Math.min(y, YMAX) / YMAX * H; };
+    el('rect', { x: L, y: T0, width: Wd, height: H, fill: '#fff', stroke: 'rgba(45,49,66,.2)' }, gp);
+    for (var q = 0; q <= 8; q++) { el('line', { x1: X(q), x2: X(q), y1: T0, y2: T0 + H, stroke: 'rgba(45,49,66,.07)' }, gp); text(gp, X(q), T0 + H + 13, q, { 'text-anchor': 'middle', 'font-size': 9 }); }
+    var dp = '';
+    for (var s = 0; s <= 320; s++) { var x2 = 8 * s / 320, c2 = com(x2, f1, f2, 640); dp += (s ? ' L' : 'M') + X(x2).toFixed(1) + ' ' + Y(Math.hypot(c2[0], c2[1])).toFixed(1); }
+    el('path', { d: dp, fill: 'none', stroke: '#bf4520', 'stroke-width': 1.8 }, gp);
+    el('line', { x1: X(xi), x2: X(xi), y1: T0, y2: T0 + H, stroke: '#2e5aa8', 'stroke-dasharray': '3 3' }, gp);
+    el('circle', { cx: X(xi), cy: Y(mag), r: 4.5, fill: '#2e5aa8' }, gp);
+    text(gp, X(0) + 6, T0 + 12, 'average (clipped)', { 'font-size': 9 });
+    text(gp, L + Wd - 4, T0 + 12, '|center of mass| vs ξ', { 'text-anchor': 'end', fill: '#2d3142' });
+    text(gp, L + Wd / 2, T0 + H + 26, 'winding frequency ξ (Hz)', { 'text-anchor': 'middle' });
+    var hit = [f1, f2].filter(function (f) { return f > 0 && Math.abs(xi - f) < 0.06; });
+    $('#wlive').textContent = hit.length ? 'match at ' + hit[0] + ' Hz: the bumps pile up on one side' : (xi < 0.06 ? 'ξ = 0: the plain average' : 'no match: the loops cancel out');
+  }
+  ['#xi', '#f1', '#f2'].forEach(function (id) { $(id).addEventListener('input', renderWind); });
+  renderWind();
+
+  // ---------- Fig 3: DFT lab ----------
+  var N = 64, NOISE = [];
+  (function () { var s = 12345; function r() { s = (s * 16807) % 2147483647; return s / 2147483647; } for (var i = 0; i < N; i++) NOISE.push(Math.sqrt(-2 * Math.log(r())) * Math.cos(TAU * r())); })();
+  function renderDFT() {
+    var k1 = +$('#k1').value, A1 = +$('#a1').value / 10, k2 = +$('#k2').value, A2 = +$('#a2').value / 10, nz = +$('#noise').value / 10, cut = +$('#cut').value;
+    $('#o-k1').textContent = k1; $('#o-a1').textContent = A1.toFixed(1); $('#o-k2').textContent = k2; $('#o-a2').textContent = A2.toFixed(1);
+    $('#o-noise').textContent = nz.toFixed(1); $('#o-cut').textContent = cut >= 33 ? 'off' : cut;
+    var x = [];
+    for (var n = 0; n < N; n++) x.push(A1 * Math.sin(TAU * k1 * n / N) + A2 * Math.sin(TAU * k2 * n / N) + 0.35 * nz * NOISE[n]);
+    var X = [];
+    for (var k = 0; k < N; k++) { var re = 0, im = 0; for (var m = 0; m < N; m++) { var a = -TAU * k * m / N; re += x[m] * Math.cos(a); im += x[m] * Math.sin(a); } X.push([re, im]); }
+    var keep = function (k) { return Math.min(k, N - k) < cut; };
+    var y = [];
+    for (var n2 = 0; n2 < N; n2++) { var s = 0; for (var k3 = 0; k3 < N; k3++) { if (!keep(k3)) continue; var b = TAU * k3 * n2 / N; s += X[k3][0] * Math.cos(b) - X[k3][1] * Math.sin(b); } y.push(s / N); }
+
+    // time plot
+    var gt = clear($('#dtime')), L = 34, Wd = 396, T0 = 10, H = 140, YM = 2.2;
+    var tx = function (n) { return L + n / (N - 1) * Wd; }, ty = function (v) { return T0 + H / 2 - v / YM * H / 2; };
+    el('rect', { x: L, y: T0, width: Wd, height: H, fill: '#fff', stroke: 'rgba(45,49,66,.2)' }, gt);
+    el('line', { x1: L, x2: L + Wd, y1: ty(0), y2: ty(0), stroke: 'rgba(45,49,66,.3)' }, gt);
+    text(gt, L - 4, ty(1) + 3, '1', { 'text-anchor': 'end' }); text(gt, L - 4, ty(-1) + 3, '−1', { 'text-anchor': 'end' });
+    if (cut < 33) el('path', { d: y.map(function (v, i) { return (i ? 'L' : 'M') + tx(i).toFixed(1) + ' ' + ty(v).toFixed(1); }).join(' '), fill: 'none', stroke: '#2e5aa8', 'stroke-width': 2 }, gt);
+    x.forEach(function (v, i) {
+      el('line', { x1: tx(i), x2: tx(i), y1: ty(0), y2: ty(v), stroke: 'rgba(45,49,66,.25)' }, gt);
+      el('circle', { cx: tx(i), cy: ty(v), r: 2.4, fill: '#2d3142' }, gt);
+    });
+    text(gt, L + 4, T0 + 12, cut < 33 ? 'samples x[n] and filtered signal (blue)' : 'samples x[n], n = 0…63', { fill: '#2d3142' });
+
+    // spectrum plot
+    var gp = clear($('#dspec')), H2 = 150, bw = Wd / N, AM = 1.2;
+    var sy = function (v) { return T0 + H2 - Math.min(v, AM) / AM * H2; };
+    el('rect', { x: L, y: T0, width: Wd, height: H2, fill: '#fff', stroke: 'rgba(45,49,66,.2)' }, gp);
+    el('rect', { x: L + 33 * bw, y: T0, width: Wd - 33 * bw, height: H2, fill: 'rgba(45,49,66,.05)' }, gp);
+    el('line', { x1: L + 32.5 * bw, x2: L + 32.5 * bw, y1: T0, y2: T0 + H2, stroke: '#2d3142', 'stroke-dasharray': '3 3' }, gp);
+    text(gp, L + 32.5 * bw + 4, T0 + 12, 'Nyquist', { fill: '#2d3142' });
+    text(gp, L + Wd - 4, T0 + 26, 'mirror half', { 'text-anchor': 'end' });
+    [0.5, 1].forEach(function (v) { el('line', { x1: L, x2: L + Wd, y1: sy(v), y2: sy(v), stroke: 'rgba(45,49,66,.08)' }, gp); text(gp, L - 4, sy(v) + 3, v, { 'text-anchor': 'end' }); });
+    var peaks = [];
+    X.forEach(function (c, k) {
+      var amp = Math.hypot(c[0], c[1]) / (N / 2);
+      if (k <= 32) peaks.push([k, amp]);
+      var h = T0 + H2 - sy(amp);
+      if (h > 0.4) el('rect', { x: L + k * bw + 0.6, y: sy(amp), width: bw - 1.2, height: h, fill: keep(k) ? (k <= 32 ? '#bf4520' : 'rgba(191,69,32,.45)') : '#bfc0c0' }, gp);
+      if (k % 8 === 0) text(gp, L + (k + 0.5) * bw, T0 + H2 + 13, k, { 'text-anchor': 'middle', 'font-size': 9 });
+    });
+    text(gp, L + (63.5) * bw, T0 + H2 + 13, 63, { 'text-anchor': 'middle', 'font-size': 9 });
+    text(gp, L + Wd / 2, T0 + H2 + 26, 'bin k   (bar height = |X[k]| / (N/2), the amplitude)', { 'text-anchor': 'middle' });
+
+    peaks.sort(function (p, q) { return q[1] - p[1]; });
+    var notes = [];
+    [[k1, A1], [k2, A2]].forEach(function (p) {
+      if (p[1] === 0) return;
+      if (p[0] > 32) notes.push('f = ' + p[0] + ' is above Nyquist: it aliases to ' + Math.abs(N * Math.round(p[0] / N) - p[0]));
+      else if (p[0] % 1) notes.push('f = ' + p[0] + ' is between bins: energy leaks to neighbors');
+    });
+    if (cut < 33) notes.push('low-pass keeps bins 0…' + (cut - 1) + ' (and their mirrors)');
+    $('#dout').textContent =
+      'strongest bins (0…32):\n' + peaks.slice(0, 3).map(function (p) { return '  k = ' + p[0] + '   amplitude ' + p[1].toFixed(3); }).join('\n') +
+      (notes.length ? '\n\n' + notes.join('\n') : '');
+    $('#dlive').textContent = 'top peak at k = ' + peaks[0][0];
+  }
+  ['#k1', '#a1', '#k2', '#a2', '#noise', '#cut'].forEach(function (id) { $(id).addEventListener('input', renderDFT); });
+  Array.prototype.forEach.call(document.querySelectorAll('[data-d]'), function (b) {
+    b.addEventListener('click', function () {
+      var v = b.getAttribute('data-d').split(',');
+      ['#k1', '#a1', '#k2', '#a2', '#noise', '#cut'].forEach(function (id, i) { $(id).value = v[i]; });
+      renderDFT();
+    });
+  });
+  renderDFT();
 })();
 </script>
 <script>
