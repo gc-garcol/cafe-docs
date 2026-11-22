@@ -277,6 +277,30 @@ input[type=range]{width:200px;accent-color:#bf4520}
   <p>Note that $P(E)$ changes every round, because it depends on the prior. The hit rate and false alarm rate stay the same, since they describe the test, not your belief.</p>
   <p>A negative result updates the same way, but uses the complementary likelihoods: $P(\neg E \mid H) = 1 - 0.90$ and $P(\neg E \mid \neg H) = 1 - 0.09$. The belief goes down instead of up.</p>
   <p class="callout">Two conditions must hold: each new piece of evidence must be a fresh observation, and the pieces must be independent given $H$. Counting the same evidence twice, or treating two linked signals as independent, pushes the belief too far.</p>
+
+  <h3>The general formula for many pieces of evidence</h3>
+  <p>Instead of updating one piece at a time, you can use all the evidence $E_1, E_2, \dots, E_n$ at once. Bayes' theorem still holds, with the evidence now a whole list:</p>
+  <div class="formula">$$P(H \mid E_1,\dots,E_n)=\frac{P(E_1,\dots,E_n \mid H)\,P(H)}{P(E_1,\dots,E_n \mid H)\,P(H)+P(E_1,\dots,E_n \mid \neg H)\,P(\neg H)}$$</div>
+  <p>This form is always true, but the joint likelihood $P(E_1,\dots,E_n \mid H)$ is hard to know. By the chain rule it expands to $P(E_1 \mid H)\,P(E_2 \mid H,E_1)\cdots P(E_n \mid H,E_1,\dots,E_{n-1})$, and you would need every link of that chain.</p>
+  <p>The usual simplification is <b>conditional independence</b>: once you know whether $H$ is true, one piece of evidence tells you nothing new about another. Then the joint likelihood becomes a plain product, and the general formula is:</p>
+  <div class="formula">$$P(H \mid E_1,\dots,E_n)=\frac{P(H)\prod_{i=1}^{n}P(E_i \mid H)}{P(H)\prod_{i=1}^{n}P(E_i \mid H)+P(\neg H)\prod_{i=1}^{n}P(E_i \mid \neg H)}$$</div>
+  <p>In odds form it is even simpler. Every piece of evidence multiplies the prior odds by its own likelihood ratio:</p>
+  <div class="formula">$$\frac{P(H \mid E_1,\dots,E_n)}{P(\neg H \mid E_1,\dots,E_n)}=\frac{P(H)}{P(\neg H)}\times\prod_{i=1}^{n}\frac{P(E_i \mid H)}{P(E_i \mid \neg H)}$$</div>
+  <p>Take the logarithm and the product turns into a sum. Each piece of evidence adds or subtracts a fixed amount of "weight" to the log-odds. This is exactly what a naive Bayes classifier does:</p>
+  <div class="formula">$$\ln\frac{P(H \mid E_1,\dots,E_n)}{P(\neg H \mid E_1,\dots,E_n)}=\ln\frac{P(H)}{P(\neg H)}+\sum_{i=1}^{n}\ln\frac{P(E_i \mid H)}{P(E_i \mid \neg H)}$$</div>
+  <p>To get the probability back from odds $O$, use $P = \dfrac{O}{1+O}$.</p>
+  <p>Check with the default test. For $n$ positive results the likelihood ratio is $10$ each time, so the odds are $\frac{1}{99}\times 10^{n}$:</p>
+  <table class="ops">
+    <thead><tr><th>Positive tests $n$</th><th>Posterior odds</th><th>Posterior $P(H \mid E_1,\dots,E_n)$</th></tr></thead>
+    <tbody>
+      <tr><td>0</td><td>$1 : 99$</td><td>$\approx 0.010$</td></tr>
+      <tr><td>1</td><td>$10 : 99$</td><td>$\approx 0.092$</td></tr>
+      <tr><td>2</td><td>$100 : 99$</td><td>$\approx 0.503$</td></tr>
+      <tr><td>3</td><td>$1000 : 99$</td><td>$\approx 0.910$</td></tr>
+    </tbody>
+  </table>
+  <p>These match the round by round updates above, so updating one piece at a time and using the product formula always agree. The order of the evidence does not matter either, because multiplication does not care about order.</p>
+  <p>Evidence of different kinds just uses its own ratio. A negative test has ratio $\frac{1-0.90}{1-0.09}\approx 0.11$. Two positives and one negative give odds $\frac{1}{99}\times 10\times 10\times 0.11\approx 0.111$, which is about 10%. The negative result cancelled most of the gain.</p>
 </section>
 
 <section>
@@ -287,7 +311,19 @@ input[type=range]{width:200px;accent-color:#bf4520}
 }
 
 posterior(<span class="t">0.01</span>, <span class="t">0.90</span>, <span class="t">0.09</span>);   <span class="c">// 0.092  (about 9%)</span>
-posterior(<span class="t">0.092</span>, <span class="t">0.90</span>, <span class="t">0.09</span>);  <span class="c">// 0.503  (a second positive test)</span></pre>
+posterior(<span class="t">0.092</span>, <span class="t">0.90</span>, <span class="t">0.09</span>);  <span class="c">// 0.503  (a second positive test)</span>
+
+<span class="c">// many pieces of evidence at once (assumes independence given H)</span>
+<span class="k">function</span> posteriorMany(prior, evidence) {
+  <span class="k">let</span> odds = prior / (<span class="t">1</span> - prior);
+  <span class="k">for</span> (<span class="k">const</span> { hit, falseAlarm } <span class="k">of</span> evidence) {
+    odds *= hit / falseAlarm;            <span class="c">// multiply by the likelihood ratio</span>
+  }
+  <span class="k">return</span> odds / (<span class="t">1</span> + odds);
+}
+
+<span class="k">const</span> pos = { hit: <span class="t">0.90</span>, falseAlarm: <span class="t">0.09</span> };
+posteriorMany(<span class="t">0.01</span>, [pos, pos, pos]);  <span class="c">// 0.910  (three positive tests)</span></pre>
 </section>
 
 <section>
