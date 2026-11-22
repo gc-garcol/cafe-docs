@@ -7,6 +7,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
 <style>
 :root{
   --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
@@ -87,6 +90,27 @@ table.logs tr.down td{color:var(--soft);background:var(--paper)}
 
 
 .doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}.doc-tags a{font:500 12px "Geist Mono",ui-monospace,monospace;padding:4px 10px;border:1px solid var(--rule-solid,#bfc0c0);border-radius:4px;background:#fff;color:var(--muted,#4f5d75);text-decoration:none}.doc-tags a:hover{border-color:var(--ink,#2d3142);color:var(--ink,#2d3142)}.doc-tags a:focus-visible{outline:2px solid var(--accent,#bf4520);outline-offset:2px}
+.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;text-align:center;overflow-x:auto}
+.formula .katex{font-size:1.25em}
+.katex{color:var(--ink)}
+p .katex,td .katex,li .katex{font-size:1.05em}
+.stat .big .katex{font-size:.8em}
+.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--ink);border-radius:6px;overflow:hidden}
+.seg button{min-height:36px;padding:0 12px;border:0;border-right:1px solid var(--rule-solid);background:transparent;color:var(--ink);font:500 13px var(--sans);cursor:pointer}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.seg button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.lab-label{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);min-width:84px}
+.lab-out{margin:0;padding:0;border:0;background:none;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+.two pre{margin:0}
+.two h3,.panel h3{font-family:var(--serif);font-weight:400;font-size:22px;margin:0 0 8px}
+.after{margin-top:16px}
+@media (max-width:860px){.two{grid-template-columns:1fr}}
+.size input[type=range]{width:180px;accent-color:var(--accent)}
+.size output{font-family:var(--mono);font-size:12px;font-weight:600;min-width:6ch}
+label.lab-label{font-weight:500;font-size:11px}
+ol.tight{padding-left:22px;max-width:68ch}ol.tight li{margin:6px 0}
 </style>
 </head>
 <body>
@@ -156,9 +180,10 @@ table.logs tr.down td{color:var(--soft);background:var(--paper)}
 
 <section>
   <h2>1. The idea</h2>
-  <p>Many servers must act like one reliable machine. If they all apply the same commands in the same order, they end up in the same state. So the problem becomes: agree on one log. Raft splits that into three smaller pieces that can be understood alone: <b>leader election</b>, <b>log replication</b>, and <b>safety</b>.</p>
-  <p>At any moment a server is a follower, a candidate, or the leader. Time is cut into <b>terms</b>, numbered upward. Each term has at most one leader, and a higher term always wins over a lower one.</p>
-  <p class="callout">One leader per term. Only the leader writes to the log.</p>
+  <p>Many servers must act like one reliable machine. If they all start in the same state and apply the same commands in the same order, they end up in the same state. This is <b>state machine replication</b>, and it turns the problem into: agree on one log. Raft splits that into three smaller pieces that can be understood alone: <b>leader election</b>, <b>log replication</b>, and <b>safety</b>.</p>
+  <p>At any moment a server is a follower, a candidate, or the leader. Time is cut into <b>terms</b>, numbered upward. Each term has at most one leader, and a higher term always wins over a lower one. Every message carries the sender's term. A server that sees a higher term adopts it and becomes a follower at once, which is how a stale leader finds out it has been replaced.</p>
+  <p class="callout">One leader per term. Only the leader writes to the log. Everything flows from leader to followers.</p>
+  <p>Each server keeps a little state on disk, because it must survive a restart: <code>currentTerm</code>, <code>votedFor</code> and the log. Everything else, such as the commit index, can be rebuilt.</p>
 </section>
 
 <section>
@@ -170,20 +195,80 @@ table.logs tr.down td{color:var(--soft);background:var(--paper)}
     <li>A candidate with votes from a majority becomes leader and starts sending heartbeats.</li>
     <li>If nobody wins, timeouts fire again. The random timeouts make repeated ties unlikely.</li>
   </ul>
-  <pre><span class="k">function</span> onElectionTimeout(me) {
+  <p>"Up to date" compares the last entry of each log, term first, then length. A voter $v$ grants its vote to candidate $c$ only if</p>
+  <div class="formula">$$\text{lastTerm}_c > \text{lastTerm}_v \quad\text{or}\quad \bigl(\text{lastTerm}_c = \text{lastTerm}_v \ \text{ and } \ \text{lastIndex}_c \ge \text{lastIndex}_v\bigr)$$</div>
+  <div class="two">
+    <div>
+      <h3>Candidate</h3>
+      <pre><span class="k">function</span> onElectionTimeout(me) {
   me.term += <span class="t">1</span>;
   me.role = <span class="t">'candidate'</span>;
   me.votedFor = me.id;
   me.votes = <span class="t">1</span>;
-  broadcast({ type: <span class="t">'RequestVote'</span>, term: me.term,
-              lastLogIndex: me.log.length, lastLogTerm: lastTerm(me) });
+  persist(me);
+  broadcast({ type: <span class="t">'RequestVote'</span>,
+    term: me.term,
+    lastLogIndex: lastIndex(me),
+    lastLogTerm: lastTerm(me) });
 }</pre>
+    </div>
+    <div>
+      <h3>Voter</h3>
+      <pre><span class="k">function</span> onRequestVote(me, m) {
+  <span class="k">if</span> (m.term &gt; me.term) stepDown(me, m.term);
+  <span class="k">const</span> ok = m.term === me.term
+    &amp;&amp; (me.votedFor === <span class="k">null</span>
+        || me.votedFor === m.from)
+    &amp;&amp; upToDate(m, me);
+  <span class="k">if</span> (ok) {
+    me.votedFor = m.from; persist(me);
+    resetElectionTimer(me);
+  }
+  reply({ term: me.term, granted: ok });
+}</pre>
+    </div>
+  </div>
+  <p>The timeouts must respect an ordering, or the cluster either never elects anyone or elects all the time:</p>
+  <div class="formula">$$\text{broadcast time} \;\ll\; \text{election timeout} \;\ll\; \text{mean time between failures}$$</div>
+  <p>Broadcast time is a few milliseconds in a data center, failures are months apart, so timeouts of 150 to 300 ms are typical. etcd defaults to a 100 ms heartbeat and a 1000 ms election timeout.</p>
 </section>
 
 <section>
-  <h2>3. Log replication</h2>
+  <h2>3. Election lab</h2>
+  <p>The leader has just crashed. Every follower's timer was last reset by its final heartbeat, and each timeout is drawn uniformly from $[150,\ 150 + \text{spread}]$ ms. When the first timer fires, that server asks for votes, and the requests take some time to arrive. Any server whose own timer fires before a request reaches it becomes a candidate too, and the vote may split. The lab runs 2000 crashes and plots how long the cluster stays without a leader.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 2</span><span class="card-title">Time without a leader after a crash</span></div>
+    <div class="scroll">
+      <svg id="el" width="880" height="280" viewBox="0 0 880 280" style="min-width:880px" role="img" aria-labelledby="el-title el-desc">
+        <title id="el-title">Histogram of leaderless time over 2000 simulated crashes</title>
+        <desc id="el-desc">Bars show how many simulated crashes ended with a new leader after a given number of milliseconds. Crashes resolved in the first election round are blue, crashes that needed more rounds after a split vote are orange.</desc>
+        <g id="el-g"></g>
+      </svg>
+    </div>
+    <div class="card-bottom"><span class="hint">blue = first round · orange = after a split vote</span><span class="live" id="el-live"></span></div>
+  </figure>
+
+  <div class="controls">
+    <div class="panel">
+      <div class="row"><span class="lab-label">Servers</span>
+        <div class="seg" role="group" aria-label="Cluster size" data-key="n">
+          <button type="button" data-v="3" aria-pressed="false">3</button><button type="button" data-v="5" aria-pressed="true">5</button><button type="button" data-v="7" aria-pressed="false">7</button><button type="button" data-v="9" aria-pressed="false">9</button>
+        </div>
+      </div>
+      <div class="row size"><label for="spread" class="lab-label">Spread</label><input type="range" id="spread" min="0" max="300" step="5" value="150"><output id="spread-out" for="spread">150 ms</output></div>
+      <div class="row size"><label for="delay" class="lab-label">Msg delay</label><input type="range" id="delay" min="1" max="100" value="10"><output id="delay-out" for="delay">10 ms</output></div>
+      <div class="row"><button type="button" class="btn" id="rerun">Run again</button></div>
+    </div>
+    <div class="panel"><pre class="lab-out" id="el-out" aria-live="polite"></pre></div>
+  </div>
+  <p class="after">Things to try. Set <b>Spread</b> to 0: all timers fire together, every server votes for itself, and no leader is ever elected. A spread smaller than the message delay barely helps, because the other timers fire before any vote request arrives. Once the spread is several times the message delay, almost every election finishes in one round. Raise <b>Msg delay</b> to see why the timeout must be much larger than the broadcast time.</p>
+</section>
+
+<section>
+  <h2>4. Log replication</h2>
   <p>A client sends a command to the leader. The leader appends it to its own log, then sends <code>AppendEntries</code> to every follower. Each message says where the new entries attach: the index and term of the entry just before them.</p>
-  <p>A follower accepts only if its log has a matching entry at that spot. If not, it says no, and the leader steps back one entry and tries again until the logs agree. Then the follower overwrites anything that conflicts.</p>
+  <p>A follower accepts only if its log has a matching entry at that spot. If not, it says no, and the leader steps back and tries again until the logs agree. Then the follower overwrites anything that conflicts.</p>
   <pre><span class="k">function</span> onAppendEntries(me, m) {
   <span class="k">if</span> (m.term &lt; me.term) <span class="k">return</span> reply(<span class="k">false</span>);
   resetElectionTimer(me);
@@ -192,41 +277,97 @@ table.logs tr.down td{color:var(--soft);background:var(--paper)}
   me.commitIndex = Math.min(m.leaderCommit, lastIndex(me));
   reply(<span class="k">true</span>);
 }</pre>
-  <p>An entry is <b>committed</b> once the leader has stored it on a majority of servers, and it is from the leader's current term. Committed entries are never lost. The next heartbeat tells followers the new commit index. In the table above, committed entries have a solid border.</p>
+  <p>The consistency check gives the <b>Log Matching</b> property by induction: if two logs have an entry with the same index and term, they are identical up to that index. A follower can only accept entries that attach to a prefix it already shares with the leader.</p>
+  <p>The leader tracks two numbers per follower: <code>nextIndex</code>, the next entry to send, and <code>matchIndex</code>, the highest entry known to be stored there. It commits index $N$ when a majority stores it and the entry is from the current term:</p>
+  <div class="formula">$$\text{commitIndex} = \max \Bigl\{ N \;:\; \bigl|\{\, i : \text{matchIndex}_i \ge N \,\}\bigr| \ge \left\lfloor \tfrac{n}{2} \right\rfloor + 1 \ \text{ and } \ \text{log}[N].\text{term} = \text{currentTerm} \Bigr\}$$</div>
+  <p>Equivalently: sort the match indexes, including the leader's own last index, and take the median. Committed entries are never lost. The next heartbeat tells followers the new commit index, and every server applies entries up to it in order. In Fig 1, committed entries have a solid border.</p>
 </section>
 
 <section>
-  <h2>4. Why it is safe</h2>
-  <p>Two rules protect committed entries. A candidate needs votes from a majority, and a voter refuses a candidate with a staler log. Any two majorities overlap in at least one server. So a new leader must have collected a vote from a server that holds every committed entry, and it cannot win with a log that misses one.</p>
-  <p>Try it: write a few entries, kill the leader, and see who wins. The winner always has all committed entries. Uncommitted entries on a dead leader may be lost, and the client then has to retry. If you revive the old leader, it learns the new term, steps down, and has its log rewritten to match.</p>
+  <h2>5. Why only current-term entries are counted</h2>
+  <p>The second condition in the commit rule looks unnecessary, but it is the subtlest part of Raft. Here is the scenario from the Raft paper, with five servers S1 to S5:</p>
+  <ol class="tight">
+    <li>Term 2: leader S1 writes entry 2 and copies it to S2 only, then crashes.</li>
+    <li>Term 3: S5 wins with votes from S3, S4 and itself, writes a different entry at index 2, and crashes before copying it.</li>
+    <li>Term 4: S1 comes back, wins, and copies its old term-2 entry to S3. Now it is on a majority: S1, S2, S3.</li>
+    <li>If S1 counted that as committed and then crashed, S5 could still win term 5, because its last term 3 is newer than their 2. S5 would overwrite the "committed" entry everywhere.</li>
+  </ol>
+  <p>The fix: a leader never commits an old-term entry by counting replicas. It commits a new entry from its own term, and the Log Matching property commits everything before it at the same time. That is also why a new leader appends a no-op entry as soon as it is elected.</p>
 </section>
 
 <section>
-  <h2>5. Cost and limits</h2>
+  <h2>6. Why it is safe</h2>
+  <p>Raft guarantees five properties at all times. The last one is the goal, the others lead to it.</p>
+  <table class="ops">
+    <thead><tr><th>Property</th><th>Statement</th></tr></thead>
+    <tbody>
+      <tr><td>Election Safety</td><td>At most one leader per term</td></tr>
+      <tr><td>Leader Append-Only</td><td>A leader never overwrites or deletes its own entries</td></tr>
+      <tr><td>Log Matching</td><td>Same index and term means same log up to there</td></tr>
+      <tr><td>Leader Completeness</td><td>A committed entry is in the log of every later leader</td></tr>
+      <tr><td>State Machine Safety</td><td>No two servers apply different commands at the same index</td></tr>
+    </tbody>
+  </table>
+  <p>Election Safety and Leader Completeness both rest on one counting fact. With $n$ servers, a majority has $q = \lfloor n/2 \rfloor + 1$ members, and any two majorities $Q_1, Q_2$ must share a server:</p>
+  <div class="formula">$$|Q_1 \cap Q_2| \;\ge\; |Q_1| + |Q_2| - n \;=\; 2\left(\left\lfloor \tfrac n2 \right\rfloor + 1\right) - n \;\ge\; 1$$</div>
+  <p>Two candidates in the same term cannot both get a majority, because the shared server votes only once. And a committed entry sits on a majority, so the voters of any later leader include at least one server that holds it. That server refuses any candidate whose log is less up to date, so a candidate missing the entry cannot win.</p>
+  <p>Try it in Fig 1: write a few entries, kill the leader, and see who wins. The winner always has all committed entries. Uncommitted entries on a dead leader may be lost, and the client then has to retry. If you revive the old leader, it learns the new term, steps down, and has its log rewritten to match.</p>
+</section>
+
+<section>
+  <h2>7. Running it for real</h2>
+  <ul class="tight">
+    <li><b>Snapshots.</b> The log cannot grow forever. Each server periodically writes its state machine to a snapshot and drops the log prefix it covers. A follower that falls too far behind gets the snapshot with <code>InstallSnapshot</code> instead of old entries.</li>
+    <li><b>Membership changes.</b> Switching from one set of servers to another at once could create two disjoint majorities. Raft either uses <b>joint consensus</b>, a transition config $C_{\text{old,new}}$ that needs majorities of both sets, or changes one server at a time, which keeps old and new majorities overlapping.</li>
+    <li><b>Linearizable reads.</b> A leader that was cut off may not know it was replaced. Before answering a read, it confirms leadership with a heartbeat round (ReadIndex), or relies on a time lease when clocks are trusted.</li>
+    <li><b>Exactly-once commands.</b> A client that times out retries, and the command could be applied twice. Clients tag commands with an ID and a sequence number, and the state machine skips duplicates.</li>
+    <li><b>PreVote and CheckQuorum.</b> A server cut off by a partition keeps timing out and raising its term. When it reconnects, its high term forces a healthy leader to step down. PreVote first asks "would you vote for me?" without changing terms, and CheckQuorum makes a leader step down when it cannot reach a majority.</li>
+    <li><b>Batching and pipelining.</b> Leaders send many entries per message and do not wait for one reply before sending the next batch. One fsync covers many commands.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>8. Cost and limits</h2>
   <div class="cards">
-    <div class="stat focal"><div class="eyebrow">Commit latency</div><div class="big">1 round trip</div><p>Leader to a majority and back, in the normal case.</p></div>
-    <div class="stat"><div class="eyebrow">Fault tolerance</div><div class="big">f of 2f+1</div><p>5 servers survive 2 crashes. 3 servers survive 1.</p></div>
+    <div class="stat focal"><div class="eyebrow">Commit latency</div><div class="big">1 round trip</div><p>Leader to a majority and back, plus a disk write, in the normal case.</p></div>
+    <div class="stat"><div class="eyebrow">Fault tolerance</div><div class="big">$f$ of $2f{+}1$</div><p>5 servers survive 2 crashes. 3 servers survive 1.</p></div>
     <div class="stat"><div class="eyebrow">Throughput</div><div class="big">one leader</div><p>All writes pass through one server.</p></div>
   </div>
+  <p>To survive $f$ crashed servers, a majority must still be alive, so $n - f \ge \lfloor n/2 \rfloor + 1$, which gives</p>
+  <div class="formula">$$n \ge 2f + 1$$</div>
   <table class="ops">
     <thead><tr><th>Cluster size</th><th>Majority</th><th>Crashes survived</th></tr></thead>
     <tbody>
       <tr><td>3</td><td>2</td><td>1</td></tr>
+      <tr><td>4</td><td>3</td><td>1, no better than 3</td></tr>
       <tr><td>5</td><td>3</td><td>2</td></tr>
       <tr><td>7</td><td>4</td><td>3</td></tr>
     </tbody>
   </table>
-  <p>This demo leaves out several things a real system needs: network partitions, persistent storage, log compaction with snapshots, and changing cluster membership.</p>
+  <p>Even sizes add a server without adding tolerance, and a bigger majority makes every commit wait for one more reply. Most deployments run 3 or 5 servers. Systems that need more throughput run many independent Raft groups, one per shard of the data, so different shards have different leaders.</p>
+  <p>Raft tolerates crashes, slow servers and lost or reordered messages. It does not tolerate servers that lie. That needs Byzantine fault tolerant protocols such as PBFT, which require $n \ge 3f + 1$. And like every consensus protocol, it cannot guarantee progress in a fully asynchronous network (the FLP result). The random timeouts make progress very likely, not certain.</p>
 </section>
 
 <section>
-  <h2>6. Where it shows up</h2>
+  <h2>9. Common mistakes</h2>
+  <ul class="tight">
+    <li><b>Replying before persisting.</b> A server that grants a vote or acknowledges entries, then crashes before the fsync, can vote twice in one term or lose a committed entry.</li>
+    <li><b>Counting replicas of old-term entries.</b> See section 5. Only current-term entries are committed by counting.</li>
+    <li><b>Resetting the election timer on every message.</b> Reset it only on a valid <code>AppendEntries</code> from the current leader, or when granting a vote. Otherwise a candidate with a stale log can keep everyone from timing out.</li>
+    <li><b>Serving reads from followers or a stale leader</b> without ReadIndex or a lease. They can return old data.</li>
+    <li><b>Deleting the follower log too eagerly.</b> Truncate only from the first conflicting entry. A late, duplicated <code>AppendEntries</code> must not remove entries that came after it.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>10. Where it shows up</h2>
   <ul class="tight">
     <li><b>Coordination stores</b>: etcd (the brain of Kubernetes) and Consul.</li>
     <li><b>Databases</b>: CockroachDB, TiKV, and YugabyteDB replicate each data range with Raft.</li>
     <li><b>Streaming</b>: Kafka's KRaft mode and RabbitMQ quorum queues.</li>
+    <li><b>Verification</b>: Raft's safety has been checked with TLA+ and proved in Coq, in the Verdi project.</li>
   </ul>
-  <p>Raft is equivalent in purpose to Paxos, but it was designed to be easier to teach and implement. Most new systems pick Raft.</p>
+  <p>Raft is equivalent in purpose to Multi-Paxos, but it was designed to be easier to teach and implement: a strong leader, logs without holes, and a separate election step. Most new systems pick Raft.</p>
 </section>
 
 </main>
@@ -420,6 +561,135 @@ table.logs tr.down td{color:var(--soft);background:var(--paper)}
   init();
   render();
 })();
+</script>
+<script>
+(function () {
+  var NS = 'http://www.w3.org/2000/svg', TRIALS = 2000, MIN_T = 150, MAX_ROUNDS = 40;
+  var state = { n: '5' }, spread = 150, delay = 10, seed = 3;
+
+  function el(name, attrs, text) {
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (text != null) e.textContent = text;
+    return e;
+  }
+  function rng(s) { return function () { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
+
+  // One crash: the n-1 live servers race to become leader. Returns { t, rounds } or null.
+  function trial(n, rand) {
+    var live = n - 1, maj = Math.floor(n / 2) + 1, reset = [], j;
+    function lat() { return delay * (0.5 + 0.5 * rand()); }            // one-way message delay
+    function timeout() { return MIN_T + spread * rand(); }
+    for (j = 0; j < live; j++) reset.push(0);                          // last heartbeat at t = 0
+    for (var round = 1; round <= MAX_ROUNDS; round++) {
+      var ev = [], voted = [], votes = [], fire = [];
+      for (j = 0; j < live; j++) { voted.push(-1); votes.push(0); fire.push(reset[j] + timeout()); ev.push([fire[j], 0, j, j]); }
+      var winner = -1, tWin = 0;
+      while (ev.length) {
+        var bi = 0;
+        for (var q = 1; q < ev.length; q++) if (ev[q][0] < ev[bi][0]) bi = q;
+        var e = ev.splice(bi, 1)[0], t = e[0], kind = e[1], from = e[2], to = e[3];
+        if (kind === 0) {                                              // timeout: become candidate
+          if (voted[to] !== -1) continue;
+          voted[to] = to; votes[to] = 1;
+          for (var k = 0; k < live; k++) if (k !== to) ev.push([t + lat(), 1, to, k]);
+        } else if (kind === 1) {                                       // RequestVote arrives
+          if (voted[to] === -1) { voted[to] = from; reset[to] = t; ev.push([t + lat(), 2, from, from]); }
+        } else {                                                       // vote granted arrives
+          votes[from]++;
+          if (votes[from] >= maj) { winner = from; tWin = t; break; }
+        }
+      }
+      if (winner >= 0) return { t: tWin, rounds: round };
+      // Split vote: candidates restart from their own timeout, voters from when they voted.
+      for (j = 0; j < live; j++) if (voted[j] === j) reset[j] = fire[j];
+    }
+    return null;
+  }
+
+  function run() {
+    var n = +state.n, rand = rng(seed), res = [], fails = 0, split = 0;
+    for (var i = 0; i < TRIALS; i++) {
+      var r = trial(n, rand);
+      if (!r) { fails++; continue; }
+      if (r.rounds > 1) split++;
+      res.push(r);
+    }
+    render(res, fails, split, n);
+  }
+
+  function pct(sorted, p) { return sorted[Math.min(sorted.length - 1, Math.floor(p * sorted.length))]; }
+
+  function render(res, fails, split, n) {
+    var g = document.getElementById('el-g'), out = document.getElementById('el-out'), live = document.getElementById('el-live');
+    g.textContent = '';
+    var x0 = 50, x1 = 860, y0 = 20, y1 = 230;
+    g.appendChild(el('line', { x1: x0, x2: x1, y1: y1, y2: y1, stroke: '#2d3142' }));
+    if (!res.length) {
+      g.appendChild(el('text', { x: 455, y: 130, 'text-anchor': 'middle', 'font-family': "'Geist',sans-serif", 'font-size': 16, fill: '#bf4520' }, 'No leader in any trial: every vote split for ' + MAX_ROUNDS + ' rounds.'));
+      out.textContent = 'trials          ' + TRIALS + '\nno leader       ' + fails + ' (100%)\n\nAll timers fire at the same moment,\nso every server votes for itself.';
+      live.textContent = 'no leader elected';
+      return;
+    }
+    var ts = res.map(function (r) { return r.t; }).sort(function (a, b) { return a - b; });
+    var hi = Math.max(MIN_T + 20, pct(ts, 0.99) * 1.1), B = 50, w = (x1 - x0) / B;
+    var first = [], later = [], b, maxc = 1;
+    for (b = 0; b < B; b++) { first.push(0); later.push(0); }
+    res.forEach(function (r) {
+      var k = Math.min(B - 1, Math.floor(r.t / hi * B));
+      if (r.rounds === 1) first[k]++; else later[k]++;
+    });
+    for (b = 0; b < B; b++) maxc = Math.max(maxc, first[b] + later[b]);
+    for (b = 0; b < B; b++) {
+      var h1 = (y1 - y0) * first[b] / maxc, h2 = (y1 - y0) * later[b] / maxc, x = x0 + b * w + 1;
+      if (h1) g.appendChild(el('rect', { x: x, y: y1 - h1, width: w - 2, height: h1, fill: '#2e5aa8' }));
+      if (h2) g.appendChild(el('rect', { x: x, y: y1 - h1 - h2, width: w - 2, height: h2, fill: '#bf4520' }));
+    }
+    var step = hi > 1500 ? 500 : hi > 600 ? 200 : hi > 300 ? 100 : 50;
+    for (var tk = 0; tk <= hi; tk += step) {
+      var tx = x0 + tk / hi * (x1 - x0);
+      g.appendChild(el('line', { x1: tx, x2: tx, y1: y1, y2: y1 + 5, stroke: '#2d3142' }));
+      g.appendChild(el('text', { x: tx, y: y1 + 19, 'text-anchor': 'middle', 'font-family': "'Geist Mono',monospace", 'font-size': 10, fill: '#5a6580' }, tk));
+    }
+    g.appendChild(el('text', { x: x1, y: y1 + 40, 'text-anchor': 'end', 'font-family': "'Geist Mono',monospace", 'font-size': 10, fill: '#5a6580' }, 'ms from the last heartbeat until a leader has a majority'));
+    var mean = ts.reduce(function (s, v) { return s + v; }, 0) / ts.length;
+    out.textContent =
+      'cluster         ' + n + ' servers, 1 crashed, majority ' + (Math.floor(n / 2) + 1) + '\n' +
+      'trials          ' + TRIALS + '\n' +
+      'split vote      ' + (100 * split / TRIALS).toFixed(1) + '%  (needed another round)\n' +
+      (fails ? 'no leader       ' + fails + '  (after ' + MAX_ROUNDS + ' rounds)\n' : '') + '\n' +
+      'leaderless time\n' +
+      '  median        ' + Math.round(pct(ts, 0.5)) + ' ms\n' +
+      '  mean          ' + Math.round(mean) + ' ms\n' +
+      '  99th pct      ' + Math.round(pct(ts, 0.99)) + ' ms';
+    live.textContent = 'split ' + (100 * split / TRIALS).toFixed(1) + '% · median ' + Math.round(pct(ts, 0.5)) + ' ms';
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll('.seg'), function (seg) {
+    seg.addEventListener('click', function (e) {
+      var btn = e.target.closest('button'); if (!btn) return;
+      Array.prototype.forEach.call(seg.querySelectorAll('button'), function (x) { x.setAttribute('aria-pressed', x === btn ? 'true' : 'false'); });
+      state[seg.getAttribute('data-key')] = btn.getAttribute('data-v');
+      run();
+    });
+  });
+  document.getElementById('spread').addEventListener('input', function () { spread = +this.value; document.getElementById('spread-out').textContent = spread + ' ms'; run(); });
+  document.getElementById('delay').addEventListener('input', function () { delay = +this.value; document.getElementById('delay-out').textContent = delay + ' ms'; run(); });
+  document.getElementById('rerun').addEventListener('click', function () { seed = 1 + Math.floor(Math.random() * 1e6); run(); });
+  run();
+})();
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  renderMathInElement(document.body, {
+    delimiters: [
+      { left: '$$', right: '$$', display: true },
+      { left: '$', right: '$', display: false }
+    ],
+    ignoredTags: ['script', 'style', 'textarea', 'pre', 'code'],
+    throwOnError: false
+  });
+});
 </script>
 </body>
 </html>
