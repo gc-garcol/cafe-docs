@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sequence Models and Transformers: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8; --green:#1f7a4d;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+h3{font-family:var(--serif);font-weight:400;font-size:24px;line-height:1.2;margin:28px 0 8px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+a{color:var(--link)}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+.card{margin:24px 0 0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.scroll{overflow-x:auto;padding:0 8px}
+.scroll svg{display:block;height:auto}
+.controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;margin-top:16px;align-items:start}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:0 0 12px}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.btn:disabled{opacity:.4;cursor:not-allowed;background:transparent;color:var(--ink)}
+.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--ink);border-radius:6px;overflow:hidden}
+.seg button{min-height:36px;padding:0 12px;border:0;border-right:1px solid var(--rule-solid);background:transparent;color:var(--ink);font:500 13px var(--sans);cursor:pointer}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.seg button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.lab-label{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);min-width:96px}
+.size input[type=range]{width:180px;accent-color:var(--accent)}
+.size output{font-family:var(--mono);font-size:12px;font-weight:600;min-width:5ch}
+select{min-height:38px;padding:0 10px;border:1px solid var(--rule-solid);border-radius:6px;font:500 13px var(--sans);color:var(--ink);background:#fff}
+.lab-out{margin:0;padding:0;border:0;background:none;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink)}
+.after{margin-top:16px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:3px;border:1px solid var(--ink);display:inline-block}
+pre{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .t{color:var(--link)} .c{color:var(--soft);font-style:italic}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat h3{margin:4px 0 6px;font-size:22px}
+.stat .big{font-family:var(--serif);font-size:32px;line-height:1.1;margin:6px 0}
+.stat .big .katex{font-size:.8em}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+table.ops{border-collapse:collapse;width:100%;max-width:760px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+ul.tight,ol.tight{padding-left:20px;max-width:68ch}ul.tight li,ol.tight li{margin:6px 0}
+.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;text-align:center;overflow-x:auto}
+.formula .katex{font-size:1.2em}
+.katex{color:var(--ink)}
+p .katex,td .katex,li .katex{font-size:1.05em}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+.two pre{margin:0}
+.two h3{margin-top:0}
+.doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}.doc-tags a{font:500 12px var(--mono);padding:4px 10px;border:1px solid var(--rule-solid);border-radius:4px;background:#fff;color:var(--muted);text-decoration:none}.doc-tags a:hover{border-color:var(--ink);color:var(--ink)}.doc-tags a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (max-width:860px){.controls,.two{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+.lab-label i{text-transform:none;font-style:italic;font-family:var(--serif);font-size:15px;letter-spacing:0}
+#qseg button{padding:0 9px}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" style="margin-right:8px" href="../../../../index.html">&larr; Back to home</a>
+<a class="back back-cat" href="../../../../index.html#cat=AI">&larr; Back to AI</a>
+
+<header>
+  <div class="eyebrow">AI · Deep learning</div>
+  <h1>Sequence models and transformers</h1>
+  <p class="lede">Prices, order books and text arrive as sequences, where order matters and the clue may be far back. Recurrent networks carry a memory forward one step at a time. Transformers let every position look at every other position directly, through attention.</p>
+  <nav class="doc-tags" aria-label="Main tags"><a href="../../../../index.html#tag=transformer">#transformer</a><a href="../../../../index.html#tag=attention">#attention</a><a href="../../../../index.html#tag=rnn">#rnn</a><a href="../../../../index.html#tag=lstm">#lstm</a></nav>
+</header>
+
+<section>
+  <h2>Try the machine first</h2>
+  <p>One self-attention head reads the sentence below. Pick a query word. Every word scores how relevant each other word is, and the scores pass through a softmax to become weights that sum to 1. The arcs show the weights, the grid shows all queries at once. Turn on the <b>causal mask</b> to let each word look only backward, as a forecasting model must.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title" id="att-title">Where "it" looks</span></div>
+    <div class="scroll">
+      <svg id="att" width="880" height="450" viewBox="0 0 880 450" style="min-width:880px" role="img" aria-labelledby="att-t att-d">
+        <title id="att-t">Self-attention weights for one query word and the full attention matrix</title>
+        <desc id="att-d">Top: the nine words of the sentence in a row, with arcs from the selected query word to every word it attends to, thicker for larger weight. Bottom: a nine by nine grid where row i, column j is the weight word i puts on word j. Masked cells are hatched.</desc>
+        <g id="att-g"></g>
+      </svg>
+    </div>
+    <div class="card-bottom"><span class="hint">arc width = attention weight · grid row = query, column = key</span><span class="live" id="att-live"></span></div>
+  </figure>
+
+  <div class="controls">
+    <div class="panel">
+      <div class="row"><span class="lab-label">Query</span><div class="seg" role="group" aria-label="Query word" id="qseg"></div></div>
+      <div class="row size"><label for="temp" class="lab-label">Sharpness</label><input type="range" id="temp" min="0.2" max="4" step="0.1" value="2"><output id="temp-out" for="temp">2.0</output></div>
+      <div class="row"><span class="lab-label">Mask</span>
+        <div class="seg" role="group" aria-label="Mask" data-key="mask">
+          <button type="button" data-v="none" aria-pressed="true">Bidirectional</button><button type="button" data-v="causal" aria-pressed="false">Causal</button>
+        </div>
+      </div>
+    </div>
+    <div class="panel"><pre class="lab-out" id="att-out" aria-live="polite"></pre></div>
+  </div>
+  <p class="after">The query and key vectors here are hand-made so the result is readable: pronouns look for nouns, verbs look for their subject or object. A trained model learns these projections from data, and has many heads that each learn a different kind of relation. <b>Sharpness</b> multiplies the scores before the softmax. High values make attention pick one word, low values spread it evenly.</p>
+</section>
+
+<section>
+  <h2>1. Why sequences are different</h2>
+  <p>A tabular model sees a fixed list of features. A sequence model sees $x_1, x_2, \dots, x_T$, where $T$ can vary, the order carries meaning, and the relevant clue for $x_T$ might be one step back or five hundred. Market data is full of this:</p>
+  <ul class="tight">
+    <li><b>Tick and bar streams:</b> returns, volumes and spreads, where volatility clusters over hours and days.</li>
+    <li><b>Limit order books:</b> each event changes the book, and the next mid-price move depends on recent order flow.</li>
+    <li><b>Text:</b> earnings calls, filings and news, where "it" in one sentence refers to a company named three sentences earlier.</li>
+  </ul>
+  <p>The standard training task is next-step prediction. Given the past, predict the next value or token, and minimize the error over every position:</p>
+  <div class="formula">$$\mathcal{L} = -\sum_{t=1}^{T} \log p_\theta\bigl(x_{t+1} \mid x_1, \dots, x_t\bigr)$$</div>
+  <p>Any model for this must be <b>causal</b>: its prediction at $t$ may only use positions up to $t$. That one rule is what the causal mask in Fig 1 enforces.</p>
+</section>
+
+<section>
+  <h2>2. Recurrent networks</h2>
+  <p>A recurrent neural network (RNN) reads one step at a time and keeps a hidden state $h_t$, a summary of everything seen so far:</p>
+  <div class="formula">$$h_t = \tanh\bigl(W h_{t-1} + U x_t + b\bigr), \qquad \hat y_t = V h_t$$</div>
+  <p>The same weights $W$, $U$, $V$ are used at every step, so the model works for any length. Training unrolls the loop and runs <a href="../backpropagation/backpropagation.html">backpropagation</a> through time. The gradient of a late loss with respect to an early state is a product of one Jacobian per step:</p>
+  <div class="formula">$$\frac{\partial h_T}{\partial h_t} = \prod_{s=t+1}^{T} \operatorname{diag}\bigl(1 - h_s^2\bigr)\, W \qquad\Rightarrow\qquad \left\lVert \frac{\partial h_T}{\partial h_t} \right\rVert \lesssim \bigl(\gamma\,\rho(W)\bigr)^{T-t}$$</div>
+  <p>Here $\rho(W)$ is the largest singular value of $W$ and $\gamma \le 1$ bounds the tanh slope. If $\gamma\rho \lt 1$ the gradient shrinks exponentially with distance, so the network cannot learn long-range links: <b>vanishing gradients</b>. If it is above 1 the gradient can blow up instead. Fig 2 shows how fast this happens.</p>
+</section>
+
+<section>
+  <h2>3. LSTM and GRU: an additive memory</h2>
+  <p>The long short-term memory (LSTM) cell adds a second state $c_t$ that is updated by addition, not by a matrix multiply. Gates between 0 and 1 decide what to forget, what to write and what to show:</p>
+  <div class="formula">$$\begin{aligned} f_t &= \sigma(W_f [h_{t-1}, x_t] + b_f) && \text{forget} \\ i_t &= \sigma(W_i [h_{t-1}, x_t] + b_i) && \text{input} \\ o_t &= \sigma(W_o [h_{t-1}, x_t] + b_o) && \text{output} \\ c_t &= f_t \odot c_{t-1} + i_t \odot \tanh(W_c [h_{t-1}, x_t] + b_c) \\ h_t &= o_t \odot \tanh(c_t) \end{aligned}$$</div>
+  <p>Along the cell state, the gradient is just the product of forget gates, $\prod_s f_s$. When the network learns to keep $f$ near 1, information and gradients survive for hundreds of steps. That is why initializing the forget-gate bias to about 1 helps. The GRU merges the cell and hidden state and uses two gates instead of three. It is a little cheaper and usually about as good.</p>
+
+  <h3>Gradient lab</h3>
+  <p>How strongly does the loss at the last step still feel an input $k$ steps back? Each curve is the size of that gradient on a log scale. The RNN curve uses $(\gamma\rho)^k$, the LSTM curve uses a constant forget gate $f^k$, and attention connects any two positions in one step.</p>
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 2</span><span class="card-title">Gradient signal versus distance</span></div>
+    <div class="scroll">
+      <svg id="grad" width="880" height="300" viewBox="0 0 880 300" style="min-width:880px" role="img" aria-labelledby="grad-t grad-d">
+        <title id="grad-t">Gradient magnitude as a function of distance in time</title>
+        <desc id="grad-d">Log-scale plot of gradient size against lag. The recurrent network curve falls or rises exponentially depending on the recurrent gain. The LSTM curve falls slowly when the forget gate is near one. The attention curve is flat. A dashed line marks one thousandth, below which learning is practically impossible.</desc>
+        <g id="grad-g"></g>
+      </svg>
+    </div>
+    <div class="card-bottom"><span class="hint">orange = RNN · blue = LSTM cell path · green = attention · dashed = 10⁻³</span><span class="live" id="grad-live"></span></div>
+  </figure>
+  <div class="controls">
+    <div class="panel">
+      <div class="row size"><label for="rho" class="lab-label">RNN gain <i>γρ</i></label><input type="range" id="rho" min="0.5" max="1.15" step="0.01" value="0.9"><output id="rho-out" for="rho">0.90</output></div>
+      <div class="row size"><label for="fg" class="lab-label">Forget gate <i>f</i></label><input type="range" id="fg" min="0.8" max="0.999" step="0.001" value="0.98"><output id="fg-out" for="fg">0.980</output></div>
+      <div class="row size"><label for="len" class="lab-label">Length <i>T</i></label><input type="range" id="len" min="20" max="500" step="10" value="200"><output id="len-out" for="len">200</output></div>
+    </div>
+    <div class="panel"><pre class="lab-out" id="grad-out" aria-live="polite"></pre></div>
+  </div>
+</section>
+
+<section>
+  <h2>4. Attention</h2>
+  <p>Attention drops the step-by-step chain. Each position $i$ builds three vectors from its input: a query $q_i$ ("what am I looking for?"), a key $k_j$ ("what do I contain?") and a value $v_j$ ("what do I pass on?"). Position $i$ scores every key, turns the scores into weights with a softmax, and takes the weighted average of the values:</p>
+  <div class="formula">$$\operatorname{Attention}(Q, K, V) = \operatorname{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}} + M\right) V, \qquad M_{ij} = \begin{cases} 0 & j \le i \\ -\infty & j > i \ \ (\text{causal}) \end{cases}$$</div>
+  <p>With $Q = XW_Q$, $K = XW_K$ and $V = XW_V$ for learned matrices. The division by $\sqrt{d_k}$ keeps the scores in a sensible range: if the entries of $q$ and $k$ have unit variance, their dot product over $d_k$ dimensions has variance $d_k$, and without the scaling the softmax would saturate to a single winner with tiny gradients. That is the <b>Sharpness</b> slider in Fig 1.</p>
+  <p><b>Multi-head attention</b> runs $h$ such heads in parallel on smaller projections, $d_k = d/h$, and concatenates the results. One head can track syntax, another recency, another a specific entity. The path from any position to any other is a single step, so long-range gradients do not vanish the way they do in an RNN.</p>
+</section>
+
+<section>
+  <h2>5. The transformer block</h2>
+  <p>A transformer stacks identical blocks. Each block has an attention sub-layer and a small two-layer network applied to every position separately, each wrapped in a residual connection and layer normalization:</p>
+  <div class="formula">$$\begin{aligned} z &= x + \operatorname{MultiHead}\bigl(\operatorname{LN}(x)\bigr) \\ x' &= z + W_2\,\phi\bigl(W_1 \operatorname{LN}(z)\bigr) \end{aligned}$$</div>
+  <p>Attention by itself ignores order: shuffle the inputs and the outputs shuffle with them. Position must be added explicitly. The original transformer added sinusoids of different frequencies to the inputs:</p>
+  <div class="formula">$$PE_{(p,\,2i)} = \sin\!\left(\frac{p}{10000^{2i/d}}\right), \qquad PE_{(p,\,2i+1)} = \cos\!\left(\frac{p}{10000^{2i/d}}\right)$$</div>
+  <p>Modern models more often use learned position embeddings or rotary embeddings (RoPE), which rotate $q$ and $k$ by an angle proportional to position, so their dot product depends on the relative distance $i - j$.</p>
+
+  <table class="ops">
+    <thead><tr><th>Model</th><th>Cost per layer</th><th>Sequential steps</th><th>Path between distant steps</th></tr></thead>
+    <tbody>
+      <tr><td>RNN, LSTM, GRU</td><td>$O(T d^2)$</td><td>$O(T)$</td><td>$O(T)$</td></tr>
+      <tr><td>1-D CNN, kernel $k$</td><td>$O(k T d^2)$</td><td>$O(1)$</td><td>$O(\log_k T)$ with dilation</td></tr>
+      <tr><td>Self-attention</td><td>$O(T^2 d)$</td><td>$O(1)$</td><td>$O(1)$</td></tr>
+    </tbody>
+  </table>
+  <p>Attention trains in parallel over the whole sequence, which is why it scales to huge data sets on GPUs. The price is the $T^2$ term: a sequence of 10,000 order book events needs a 100-million-entry attention matrix per head. Sparse, windowed and linear-attention variants, and state-space models such as Mamba, attack exactly that cost.</p>
+  <p>Dilated causal convolutions are the cheap alternative for numeric series. With kernel size $k$ and dilations $1, 2, 4, \dots, 2^{L-1}$, the receptive field grows exponentially with depth:</p>
+  <div class="formula">$$\text{receptive field} = 1 + (k-1)\sum_{l=0}^{L-1} 2^l = 1 + (k-1)(2^L - 1)$$</div>
+</section>
+
+<section>
+  <h2>6. Sequence models in markets</h2>
+  <p>The architecture is rarely the bottleneck in finance. The data is.</p>
+  <ul class="tight">
+    <li><b>Signal-to-noise is tiny.</b> A daily return forecast with a correlation of 0.05 is good. A model with millions of parameters will happily fit the noise. Strong regularization, early stopping and small models win more often than big ones.</li>
+    <li><b>The process changes.</b> Patterns from 2015 may not hold in 2025. Train and test with <a href="../../../quant/walk-forward-purged-cv/walk-forward-purged-cv.html">walk-forward and purged cross-validation</a>, never with shuffled windows.</li>
+    <li><b>Inputs need care.</b> Feed returns, volatility-scaled values or ranks, not raw prices, and normalize with past data only. See <a href="../../../quant/feature-engineering-leakage/feature-engineering-leakage.html">feature engineering and leakage</a>.</li>
+    <li><b>Where it works best:</b> rich, high-frequency inputs. Models such as DeepLOB combine convolutions over the order book with an LSTM over time to predict short-term mid-price moves. Transformers over news and filings produce sentiment and event features. Pretrained time-series transformers give reasonable zero-shot forecasts for smooth business series, less so for returns.</li>
+  </ul>
+  <p class="callout">Beat a linear model on lagged features first. If the transformer cannot, the problem is the data, not the depth.</p>
+</section>
+
+<section>
+  <h2>7. A minimal causal attention layer</h2>
+  <pre><span class="k">import</span> torch, torch.nn <span class="k">as</span> nn, math
+
+<span class="k">class</span> CausalSelfAttention(nn.Module):
+    <span class="k">def</span> __init__(self, d, heads):
+        super().__init__()
+        self.h, self.dk = heads, d // heads
+        self.qkv = nn.Linear(d, <span class="t">3</span> * d)
+        self.out = nn.Linear(d, d)
+
+    <span class="k">def</span> forward(self, x):                      <span class="c"># x: (batch, T, d)</span>
+        B, T, d = x.shape
+        q, k, v = self.qkv(x).split(d, dim=-<span class="t">1</span>)
+        q, k, v = (t.view(B, T, self.h, self.dk).transpose(<span class="t">1</span>, <span class="t">2</span>) <span class="k">for</span> t <span class="k">in</span> (q, k, v))
+        scores = q @ k.transpose(-<span class="t">2</span>, -<span class="t">1</span>) / math.sqrt(self.dk)
+        mask = torch.triu(torch.ones(T, T, dtype=torch.bool), diagonal=<span class="t">1</span>)
+        scores = scores.masked_fill(mask, float(<span class="t">"-inf"</span>))    <span class="c"># no peeking ahead</span>
+        y = scores.softmax(dim=-<span class="t">1</span>) @ v
+        <span class="k">return</span> self.out(y.transpose(<span class="t">1</span>, <span class="t">2</span>).reshape(B, T, d))</pre>
+  <p>In practice, <code>torch.nn.functional.scaled_dot_product_attention(q, k, v, is_causal=True)</code> does the same with a fused, memory-efficient kernel.</p>
+</section>
+
+<section>
+  <h2>8. Common mistakes</h2>
+  <ul class="tight">
+    <li><b>Forgetting the causal mask</b>, or using a bidirectional model for forecasting. The model reads the answer from later positions.</li>
+    <li><b>Normalizing each window with its own future.</b> Scaling a window by its full mean and standard deviation leaks the last values into the first ones.</li>
+    <li><b>Overlapping training windows split at random.</b> Neighboring windows share almost all their data, so validation scores are inflated.</li>
+    <li><b>Weak baselines.</b> Compare with last value, a moving average, ARMA or GARCH, and a linear model on lags. Many published deep forecasts lose to these.</li>
+    <li><b>Ignoring the cost of $T^2$.</b> Doubling the context quadruples attention memory. Downsample, window or summarize old history.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>9. Where it shows up</h2>
+  <ul class="tight">
+    <li><b>Language models:</b> every large language model is a causal transformer trained on next-token prediction.</li>
+    <li><b>Finance:</b> order book models, volatility forecasting, news and earnings-call analysis, and execution agents that read recent market state. See also <a href="../../machine-learning/policy-gradient/policy-gradient.html">policy gradients</a> for learning to act on such states.</li>
+    <li><b>Other domains:</b> speech, protein structure, weather forecasting and recommendation systems that model a user's click history.</li>
+    <li><b>Related:</b> <a href="../convolution/convolution.html">convolutions</a> share weights across positions in space, recurrent networks share them across time, and attention learns which positions to share information between.</li>
+  </ul>
+</section>
+
+</main>
+
+<script>
+(function () {
+  var NS = 'http://www.w3.org/2000/svg';
+  function el(name, attrs, text) {
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (text != null) e.textContent = text;
+    return e;
+  }
+  function $(id) { return document.getElementById(id); }
+
+  // ---------- Fig 1: one attention head with hand-made projections ----------
+  // Embedding features: [entity, action, market object, pronoun]
+  var WORDS = ['the', 'trader', 'sold', 'the', 'stock', 'because', 'it', 'was', 'falling'];
+  var EMB = [
+    [0.1, 0, 0, 0], [1, 0, 0.2, 0], [0, 1, 0.5, 0], [0.1, 0, 0, 0], [1, 0, 1, 0],
+    [0, 0.1, 0, 0], [0.3, 0, 0, 1], [0, 0.5, 0, 0], [0, 1, 0.8, 0]
+  ];
+  var D = 4;
+  // q = Wq e: pronouns and verbs look for entities and market objects, nouns look for actions.
+  function query(e) { return [2 * e[3] + 1 * e[1], 1.5 * e[0], 2 * e[3] + 1 * e[1], 0.3 * e[3]]; }
+  function key(e) { return e; }
+  var state = { q: 6, mask: 'none' };
+
+  function weights(sharp, causal) {
+    var n = WORDS.length, W = [], S = [];
+    for (var i = 0; i < n; i++) {
+      var q = query(EMB[i]), row = [], srow = [], mx = -Infinity, j;
+      for (j = 0; j < n; j++) {
+        var k = key(EMB[j]), s = 0;
+        for (var d = 0; d < D; d++) s += q[d] * k[d];
+        s = s / Math.sqrt(D) * sharp;
+        if (causal && j > i) s = -Infinity;
+        srow.push(s); if (s > mx) mx = s;
+      }
+      var z = 0;
+      for (j = 0; j < n; j++) { var ex = srow[j] === -Infinity ? 0 : Math.exp(srow[j] - mx); row.push(ex); z += ex; }
+      W.push(row.map(function (v) { return v / z; })); S.push(srow);
+    }
+    return { W: W, S: S };
+  }
+
+  var qseg = $('qseg');
+  WORDS.forEach(function (w, i) {
+    var b = document.createElement('button');
+    b.type = 'button'; b.textContent = w; b.setAttribute('aria-pressed', i === state.q ? 'true' : 'false');
+    b.setAttribute('aria-label', 'Query word ' + (i + 1) + ': ' + w);
+    b.addEventListener('click', function () {
+      state.q = i;
+      Array.prototype.forEach.call(qseg.children, function (x, k) { x.setAttribute('aria-pressed', k === i ? 'true' : 'false'); });
+      renderAtt();
+    });
+    qseg.appendChild(b);
+  });
+  document.querySelector('[data-key=mask]').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    Array.prototype.forEach.call(this.querySelectorAll('button'), function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+    state.mask = b.getAttribute('data-v'); renderAtt();
+  });
+  $('temp').addEventListener('input', renderAtt);
+
+  function renderAtt() {
+    var sharp = +$('temp').value, causal = state.mask === 'causal', r = weights(sharp, causal), n = WORDS.length, qi = state.q;
+    $('temp-out').textContent = sharp.toFixed(1);
+    var g = $('att-g'); g.textContent = '';
+    var x0 = 70, gap = 740 / (n - 1), ty = 150;
+    function X(i) { return x0 + i * gap; }
+    // arcs from the query word
+    r.W[qi].forEach(function (w, j) {
+      if (w < 0.005) return;
+      var x1 = X(qi), x2 = X(j), hgt = j === qi ? 0 : Math.min(120, 30 + Math.abs(x2 - x1) * 0.25);
+      var d = j === qi
+        ? 'M' + (x1 - 10) + ' ' + (ty - 22) + ' C ' + (x1 - 26) + ' ' + (ty - 70) + ' ' + (x1 + 26) + ' ' + (ty - 70) + ' ' + (x1 + 10) + ' ' + (ty - 22)
+        : 'M' + x1 + ' ' + (ty - 22) + ' Q ' + ((x1 + x2) / 2) + ' ' + (ty - 22 - 2 * hgt) + ' ' + x2 + ' ' + (ty - 22);
+      g.appendChild(el('path', { d: d, fill: 'none', stroke: '#bf4520', 'stroke-width': (1 + 16 * w).toFixed(2), 'stroke-opacity': (0.25 + 0.75 * w).toFixed(2), 'stroke-linecap': 'round' }));
+    });
+    WORDS.forEach(function (w, j) {
+      var wt = r.W[qi][j], masked = causal && j > qi, isQ = j === qi;
+      g.appendChild(el('rect', { x: X(j) - 38, y: ty - 18, width: 76, height: 34, rx: 6, fill: isQ ? '#2d3142' : masked ? '#f1f1f1' : '#fff', stroke: isQ ? '#2d3142' : 'rgba(45,49,66,.35)', 'stroke-dasharray': masked ? '3 3' : null }));
+      g.appendChild(el('text', { x: X(j), y: ty + 4, 'text-anchor': 'middle', 'font-family': "'Geist',sans-serif", 'font-size': 14, 'font-weight': 600, fill: isQ ? '#fff' : masked ? '#9aa0ad' : '#2d3142' }, w));
+      g.appendChild(el('text', { x: X(j), y: ty + 36, 'text-anchor': 'middle', 'font-family': "'Geist Mono',monospace", 'font-size': 11, fill: wt > 0.15 ? '#bf4520' : '#5a6580', 'font-weight': wt > 0.15 ? 600 : 400 }, masked ? 'masked' : wt.toFixed(2)));
+    });
+    // full matrix
+    var cs = 22, gx = 340, gy = 236;
+    WORDS.forEach(function (w, i) {
+      g.appendChild(el('text', { x: gx - 8, y: gy + i * cs + 15, 'text-anchor': 'end', 'font-family': "'Geist Mono',monospace", 'font-size': 11, fill: i === qi ? '#bf4520' : '#5a6580', 'font-weight': i === qi ? 600 : 400 }, w));
+      for (var j = 0; j < n; j++) {
+        var v = r.W[i][j], masked = causal && j > i;
+        g.appendChild(el('rect', { x: gx + j * cs, y: gy + i * cs, width: cs - 2, height: cs - 2, rx: 2,
+          fill: masked ? '#eceef2' : 'rgba(191,69,32,' + (0.05 + 0.95 * v).toFixed(3) + ')',
+          stroke: i === qi ? '#2d3142' : 'none', 'stroke-width': i === qi ? 1 : 0 }));
+      }
+    });
+    g.appendChild(el('text', { x: gx + n * cs / 2, y: gy - 8, 'text-anchor': 'middle', 'font-family': "'Geist Mono',monospace", 'font-size': 11, fill: '#5a6580' }, 'keys →'));
+    g.appendChild(el('text', { x: gx - 70, y: gy - 8, 'text-anchor': 'end', 'font-family': "'Geist Mono',monospace", 'font-size': 11, fill: '#5a6580' }, 'queries ↓'));
+    g.appendChild(el('text', { x: gx + n * cs + 16, y: gy + n * cs / 2, 'font-family': "'Geist Mono',monospace", 'font-size': 11, fill: '#5a6580' }, 'each row sums to 1'));
+    // readout
+    var lines = ['query "' + WORDS[qi] + '", scores = q·k / sqrt(d) x ' + sharp.toFixed(1), ''];
+    var order = WORDS.map(function (_, j) { return j; }).sort(function (a, b) { return r.W[qi][b] - r.W[qi][a]; });
+    order.slice(0, 5).forEach(function (j) {
+      var s = r.S[qi][j];
+      lines.push(('  ' + WORDS[j] + (WORDS[j] === 'the' ? ' (' + (j + 1) + ')' : '') + '            ').slice(0, 14) + 'score ' + (s === -Infinity ? ' -inf' : (s >= 0 ? ' ' : '') + s.toFixed(2)) + '   weight ' + r.W[qi][j].toFixed(3));
+    });
+    var ent = 0; r.W[qi].forEach(function (p) { if (p > 0) ent -= p * Math.log2(p); });
+    lines.push('', 'entropy ' + ent.toFixed(2) + ' bits (max ' + Math.log2(causal ? qi + 1 : n).toFixed(2) + ')');
+    $('att-out').textContent = lines.join('\n');
+    $('att-title').textContent = 'Where "' + WORDS[qi] + '" looks';
+    $('att-live').textContent = 'top: ' + WORDS[order[0]] + ' ' + r.W[qi][order[0]].toFixed(2) + (causal ? ' · causal' : ' · bidirectional');
+  }
+  renderAtt();
+
+  // ---------- Fig 2: gradient decay ----------
+  function renderGrad() {
+    var rho = +$('rho').value, f = +$('fg').value, T = +$('len').value;
+    $('rho-out').textContent = rho.toFixed(2); $('fg-out').textContent = f.toFixed(3); $('len-out').textContent = T;
+    var g = $('grad-g'); g.textContent = '';
+    var x0 = 70, x1 = 840, y0 = 16, y1 = 250, lo = -12, hi = 6;
+    function X(k) { return x0 + k / T * (x1 - x0); }
+    function Y(l) { return y1 - (Math.max(lo, Math.min(hi, l)) - lo) / (hi - lo) * (y1 - y0); }
+    for (var e = lo; e <= hi; e += 3) {
+      g.appendChild(el('line', { x1: x0, x2: x1, y1: Y(e), y2: Y(e), stroke: e === 0 ? '#2d3142' : 'rgba(45,49,66,.10)' }));
+      g.appendChild(el('text', { x: x0 - 8, y: Y(e) + 4, 'text-anchor': 'end', 'font-family': "'Geist Mono',monospace", 'font-size': 10, fill: '#5a6580' }, '1e' + e));
+    }
+    g.appendChild(el('line', { x1: x0, x2: x1, y1: Y(-3), y2: Y(-3), stroke: '#2d3142', 'stroke-dasharray': '5 4' }));
+    var stepT = T > 250 ? 100 : 50;
+    for (var t = 0; t <= T; t += stepT) g.appendChild(el('text', { x: X(t), y: y1 + 18, 'text-anchor': 'middle', 'font-family': "'Geist Mono',monospace", 'font-size': 10, fill: '#5a6580' }, t));
+    g.appendChild(el('text', { x: x1, y: y1 + 36, 'text-anchor': 'end', 'font-family': "'Geist Mono',monospace", 'font-size': 10, fill: '#5a6580' }, 'distance k (steps back)'));
+    function curve(fn, color) {
+      var d = '';
+      for (var k = 0; k <= T; k++) d += (k ? 'L' : 'M') + X(k).toFixed(1) + ' ' + Y(fn(k)).toFixed(1);
+      g.appendChild(el('path', { d: d, fill: 'none', stroke: color, 'stroke-width': 2.4 }));
+    }
+    curve(function () { return 0; }, '#1f7a4d');
+    curve(function (k) { return k * Math.log10(f); }, '#2e5aa8');
+    curve(function (k) { return k * Math.log10(rho); }, '#bf4520');
+    function reach(base) { return base >= 1 ? Infinity : Math.log(1e-3) / Math.log(base); }
+    function fmt(v) { return v === Infinity ? 'never' : Math.round(v) + ' steps'; }
+    var rr = reach(rho), lr = reach(f);
+    $('grad-out').textContent =
+      'distance where the gradient drops below 1e-3\n\n' +
+      '  RNN        ' + fmt(rr) + (rho > 1 ? '   (grows: exploding, needs clipping)' : '') + '\n' +
+      '  LSTM cell  ' + fmt(lr) + '\n' +
+      '  attention  never   (one step between any pair)\n\n' +
+      'at k = ' + T + '\n' +
+      '  RNN        1e' + (T * Math.log10(rho)).toFixed(1) + '\n' +
+      '  LSTM cell  1e' + (T * Math.log10(f)).toFixed(1);
+    $('grad-live').textContent = 'RNN reach ' + fmt(rr) + ' · LSTM reach ' + fmt(lr);
+  }
+  ['rho', 'fg', 'len'].forEach(function (id) { $(id).addEventListener('input', renderGrad); });
+  renderGrad();
+})();
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  renderMathInElement(document.body, {
+    delimiters: [
+      { left: '$$', right: '$$', display: true },
+      { left: '$', right: '$', display: false }
+    ],
+    ignoredTags: ['script', 'style', 'textarea', 'pre', 'code'],
+    throwOnError: false
+  });
+});
+</script>
+</body>
+</html>

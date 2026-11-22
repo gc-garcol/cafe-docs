@@ -852,6 +852,18 @@ const DOCS = [
     related: ['Deep Learning Overview', 'Linear Regression', 'Gradient Descent', 'Backpropagation'],
   },
   {
+    title: 'Sequence Models and Transformers',
+    path: 'content/AI/deep-learning/sequence-models-transformers/sequence-models-transformers.html',
+    category: 'AI',
+    topic: 'Deep learning',
+    order: 32,
+    also: [{ category: 'Quant', topic: 'Deep learning and RL', order: 24 }],
+    level: 'Intermediate',
+    tags: ['transformer', 'attention', 'rnn', 'lstm', 'sequence model', 'self-attention', 'positional encoding', 'time series'],
+    summary: 'Pick a word and watch one attention head weigh every other word, with and without a causal mask. Compare how far gradients reach in an RNN, an LSTM and attention, then see what it takes to use these models on market data.',
+    related: ['Backpropagation', 'Convolution and CNNs', 'Deep Learning Overview', 'Walk-Forward and Purged Cross-Validation', 'Feature Engineering and Leakage'],
+  },
+  {
     title: 'Aeron Transport',
     path: 'content/architecture/aeron/aeron-transport/aeron-transport.html',
     category: 'Architecture',
