@@ -95,6 +95,8 @@ p .katex,td .katex,li .katex{font-size:1.05em}
 .two h3,.panel h3{font-family:var(--serif);font-weight:400;font-size:22px;margin:0 0 8px}
 .after{margin-top:16px}
 @media (max-width:860px){.two{grid-template-columns:1fr}}
+.size input[type=range]{width:180px;accent-color:var(--accent)}
+.size output{font-family:var(--mono);font-size:12px;font-weight:600;min-width:3ch}
 </style>
 </head>
 <body>
@@ -118,7 +120,7 @@ p .katex,td .katex,li .katex{font-size:1.05em}
   <p>Press <b>Step</b> to walk through a top-down merge sort. Orange marks the range being split or merged. During a merge, the bar being written is blue. The message names the two items being compared. Light green runs are already merged, and the whole array turns dark green at the end.</p>
 
   <figure class="card">
-    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">Merge sort on 12 numbers</span></div>
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title" id="t1">Merge sort on 12 numbers</span></div>
     <div class="scroll">
       <svg id="chart" width="880" height="300" viewBox="0 0 880 300" style="min-width:880px" role="img" aria-labelledby="chart-title chart-desc">
         <title id="chart-title">Bar chart of an array being sorted by merge sort</title>
@@ -139,6 +141,7 @@ p .katex,td .katex,li .katex{font-size:1.05em}
       <div class="row">
         <button type="button" class="btn" id="shuffle">New array</button>
       </div>
+      <div class="row size"><label for="n1" class="lab-label">Size</label><input type="range" id="n1" min="4" max="40" value="12"><output id="n1-out" for="n1">12</output></div>
       <div class="legend" aria-label="Legend">
         <span><i class="sw" style="background:#fff;border-color:#bf4520;border-width:2px"></i>active range</span>
         <span><i class="sw" style="background:#2e5aa8;border-color:#2e5aa8"></i>written now</span>
@@ -222,7 +225,7 @@ p .katex,td .katex,li .katex{font-size:1.05em}
   <p>Each row is one pass. Boxes are sorted runs, and the next row merges neighboring boxes. <b>Fixed widths</b> is the bottom-up sort above. <b>Natural runs</b> first scans the input for runs that are already ascending, and reverses strictly descending runs, then merges those. That is the core idea of Timsort.</p>
 
   <figure class="card">
-    <div class="card-top"><span class="eyebrow">Fig 2</span><span class="card-title">Passes of a merge sort on 16 items</span></div>
+    <div class="card-top"><span class="eyebrow">Fig 2</span><span class="card-title" id="t2">Passes of a merge sort on 16 items</span></div>
     <div class="scroll">
       <svg id="lab" width="880" height="330" viewBox="0 0 880 330" style="min-width:880px" role="img" aria-labelledby="lab-title lab-desc">
         <title id="lab-title">Merge passes, one row per pass</title>
@@ -245,11 +248,12 @@ p .katex,td .katex,li .katex{font-size:1.05em}
           <button type="button" data-v="fixed" aria-pressed="true">Fixed widths</button><button type="button" data-v="natural" aria-pressed="false">Natural runs</button>
         </div>
       </div>
+      <div class="row size"><label for="n2" class="lab-label">Size</label><input type="range" id="n2" min="4" max="40" value="16"><output id="n2-out" for="n2">16</output></div>
       <div class="row"><button type="button" class="btn" id="reroll">New random draw</button></div>
     </div>
     <div class="panel"><pre class="lab-out" id="lab-out" aria-live="polite"></pre></div>
   </div>
-  <p class="after">Things to try. With <b>Fixed widths</b>, every input takes 4 passes, and even <b>Sorted</b> spends 32 comparisons, one per item per pass for half the items. Switch to <b>Natural runs</b>: sorted and reversed inputs become one run after 15 scan comparisons and need no merge at all, and a nearly sorted input needs one or two passes.</p>
+  <p class="after">Things to try. At 16 items with <b>Fixed widths</b>, every input takes 4 passes, and even <b>Sorted</b> spends 32 comparisons, one per item per pass for half the items. Switch to <b>Natural runs</b>: sorted and reversed inputs become one run after 15 scan comparisons and need no merge at all, and a nearly sorted input needs one or two passes. Change <b>Size</b> to a number that is not a power of two, such as 13, and the last run of a pass waits a row before it finds a partner.</p>
 </section>
 
 <section>
@@ -396,12 +400,15 @@ p .katex,td .katex,li .katex{font-size:1.05em}
     var a = []; while (a.length < N) { var v = 10 + Math.floor(Math.random() * 90); if (a.indexOf(v) < 0) a.push(v); }
     return a;
   }
-  function load(arr) { stop(); frames = record(arr); pos = 0; render(); }
+  function load(arr) {
+    stop(); N = arr.length;
+    document.getElementById('t1').textContent = 'Merge sort on ' + N + ' numbers';
+    frames = record(arr); pos = 0; render(); }
 
   function render() {
     var f = frames[pos], g = document.getElementById('bars');
     g.textContent = '';
-    var bw = 56, x0 = (880 - N * bw) / 2, by = 270;
+    var bw = Math.min(56, 840 / N), pad = bw > 24 ? 4 : 1.5, fs = bw > 30 ? 13 : bw > 22 ? 10 : 8, x0 = (880 - N * bw) / 2, by = 270;
     f.a.forEach(function (v, k) {
       var h = v / 100 * 220, inRange = f.lo !== undefined && k >= f.lo && k <= f.hi;
       var fill = '#fff', stroke = 'rgba(45,49,66,.45)', sw = 1, dark = false;
@@ -409,9 +416,9 @@ p .katex,td .katex,li .katex{font-size:1.05em}
       else if (f.merged[k]) { fill = '#a9d6bd'; stroke = '#1f7a4d'; }
       if (inRange && !f.done) { stroke = '#bf4520'; sw = 2; }
       if (k === f.w) { fill = '#2e5aa8'; stroke = '#2e5aa8'; dark = true; }
-      g.appendChild(el('rect', { x: x0 + k * bw + 4, y: by - h, width: bw - 8, height: h, rx: 4, fill: fill, stroke: stroke, 'stroke-width': sw }));
-      g.appendChild(el('text', { x: x0 + k * bw + bw / 2, y: by - h + 18, 'text-anchor': 'middle', 'font-family': "'Geist',sans-serif", 'font-size': 13, 'font-weight': 600, fill: dark ? '#fff' : '#2d3142' }, v));
-      g.appendChild(el('text', { x: x0 + k * bw + bw / 2, y: by + 16, 'text-anchor': 'middle', 'font-family': "'Geist Mono',monospace", 'font-size': 10, fill: '#5a6580' }, k));
+      g.appendChild(el('rect', { x: x0 + k * bw + pad, y: by - h, width: bw - 2 * pad, height: h, rx: Math.min(4, bw / 6), fill: fill, stroke: stroke, 'stroke-width': sw }));
+      g.appendChild(el('text', { x: x0 + k * bw + bw / 2, y: by - h + 18, 'text-anchor': 'middle', 'font-family': "'Geist',sans-serif", 'font-size': fs, 'font-weight': 600, fill: dark ? '#fff' : '#2d3142' }, v));
+      g.appendChild(el('text', { x: x0 + k * bw + bw / 2, y: by + 16, 'text-anchor': 'middle', 'font-family': "'Geist Mono',monospace", 'font-size': bw > 22 ? 10 : 8, fill: '#5a6580' }, k));
     });
     document.getElementById('readout').textContent = f.msg;
     document.getElementById('live').textContent = 'step ' + pos + ' / ' + (frames.length - 1);
@@ -439,6 +446,10 @@ p .katex,td .katex,li .katex{font-size:1.05em}
   document.getElementById('run').addEventListener('click', run);
   document.getElementById('shuffle').addEventListener('click', function () { load(randomArray()); });
 
+  document.getElementById('n1').addEventListener('input', function () {
+    N = +this.value; document.getElementById('n1-out').textContent = N; load(randomArray());
+  });
+
   load([62, 17, 85, 34, 91, 48, 23, 70, 56, 12, 39, 77]);
 })();
 </script>
@@ -465,7 +476,8 @@ p .katex,td .katex,li .katex{font-size:1.05em}
     if (kind === 'reversed') return a.reverse();
     if (kind === 'nearly') {
       // Two non-overlapping adjacent swaps.
-      [1 + Math.floor(rand() * 6), 9 + Math.floor(rand() * 5)].forEach(function (p) { t = a[p]; a[p] = a[p + 1]; a[p + 1] = t; });
+      var half = N >> 1;
+      [Math.floor(rand() * (half - 1)), half + Math.floor(rand() * (N - 1 - half))].forEach(function (p) { t = a[p]; a[p] = a[p + 1]; a[p + 1] = t; });
     }
     return a;
   }
@@ -511,29 +523,34 @@ p .katex,td .katex,li .katex{font-size:1.05em}
   function render() {
     var r = simulate(), g = document.getElementById('lab-g');
     g.textContent = '';
-    var x0 = 76, cw = 45, rh = 62, top = 14;
+    var x0 = 76, cw = Math.min(45, 724 / N), rh = 62, top = 14, fs = cw > 30 ? 13 : cw > 21 ? 11 : 9;
+    var H = top + r.rows.length * rh, svg = document.getElementById('lab');
+    svg.setAttribute('height', H); svg.setAttribute('viewBox', '0 0 880 ' + H);
+    document.getElementById('t2').textContent = 'Passes of a merge sort on ' + N + ' items';
     r.rows.forEach(function (row, d) {
       var y = top + d * rh, k = 0;
       g.appendChild(el('text', { x: 16, y: y + 27, 'font-family': "'Geist Mono',monospace", 'font-size': 11, fill: '#5a6580' }, row.label));
       row.runs.forEach(function (run) {
         var last = d === r.rows.length - 1;
-        g.appendChild(el('rect', { x: x0 + k * cw + 2, y: y, width: run.length * cw - 4, height: 40, rx: 6, fill: last ? 'rgba(31,122,77,.10)' : 'rgba(46,90,168,.06)', stroke: last ? '#1f7a4d' : 'rgba(46,90,168,.6)', 'stroke-width': 1.5 }));
+        g.appendChild(el('rect', { x: x0 + k * cw + Math.min(2, cw / 10), y: y, width: run.length * cw - Math.min(4, cw / 5), height: 40, rx: Math.min(6, cw / 4), fill: last ? 'rgba(31,122,77,.10)' : 'rgba(46,90,168,.06)', stroke: last ? '#1f7a4d' : 'rgba(46,90,168,.6)', 'stroke-width': 1.5 }));
         run.forEach(function (v, q) {
-          g.appendChild(el('text', { x: x0 + (k + q) * cw + cw / 2, y: y + 25, 'text-anchor': 'middle', 'font-family': "'Geist',sans-serif", 'font-size': 13, 'font-weight': 600, fill: '#2d3142' }, v));
+          g.appendChild(el('text', { x: x0 + (k + q) * cw + cw / 2, y: y + 25, 'text-anchor': 'middle', 'font-family': "'Geist',sans-serif", 'font-size': fs, 'font-weight': 600, fill: '#2d3142' }, v));
         });
         k += run.length;
       });
       g.appendChild(el('text', { x: 866, y: y + 25, 'text-anchor': 'end', 'font-family': "'Geist Mono',monospace", 'font-size': 12, 'font-weight': 600, fill: d === 0 ? '#5a6580' : '#bf4520' }, d === 0 ? (row.c ? row.c + ' scan' : '') : row.c + ' cmp'));
       if (d < r.rows.length - 1) g.appendChild(el('line', { x1: x0, x2: x0 + N * cw, y1: y + 51, y2: y + 51, stroke: 'rgba(45,49,66,.12)' }));
     });
-    var bound = 45, worst = 49;
+    var lg = Math.ceil(Math.log2(N)), worst = N * lg - Math.pow(2, lg) + 1, bound = 0;
+    for (var q = 2; q <= N; q++) bound += Math.log2(q);
+    bound = Math.ceil(bound - 1e-9);
     document.getElementById('lab-out').textContent =
       'initial runs   ' + r.initRuns + '\n' +
       'merge passes   ' + r.passes + '\n' +
       'comparisons    ' + r.total + (r.scan ? '  (' + r.scan + ' to find runs)' : '') + '\n\n' +
-      '  n log2 n          64\n' +
-      '  worst case W(16)  ' + worst + '\n' +
-      '  ceil(log2 16!)    ' + bound + '  (worst-case lower bound)';
+      '  n log2 n            ' + Math.round(N * Math.log2(N)) + '\n' +
+      '  top-down worst W(n) ' + worst + '\n' +
+      '  ceil(log2 n!)       ' + bound + '  (worst-case lower bound)';
     document.getElementById('lab-live').textContent = r.passes + ' passes · ' + r.total + ' comparisons';
   }
 
@@ -546,6 +563,9 @@ p .katex,td .katex,li .katex{font-size:1.05em}
     });
   });
   document.getElementById('reroll').addEventListener('click', function () { seed = 1 + Math.floor(Math.random() * 1e6); render(); });
+  document.getElementById('n2').addEventListener('input', function () {
+    N = +this.value; document.getElementById('n2-out').textContent = N; render();
+  });
   render();
 })();
 </script>
