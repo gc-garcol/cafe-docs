@@ -7,6 +7,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
 <style>
 :root{
   --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
@@ -91,6 +94,27 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
 
 
 .doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}.doc-tags a{font:500 12px "Geist Mono",ui-monospace,monospace;padding:4px 10px;border:1px solid var(--rule-solid,#bfc0c0);border-radius:4px;background:#fff;color:var(--muted,#4f5d75);text-decoration:none}.doc-tags a:hover{border-color:var(--ink,#2d3142);color:var(--ink,#2d3142)}.doc-tags a:focus-visible{outline:2px solid var(--accent,#bf4520);outline-offset:2px}
+.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;text-align:center;overflow-x:auto}
+.formula .katex{font-size:1.25em}
+.katex{color:var(--ink)}
+p .katex,td .katex,li .katex{font-size:1.05em}
+.stat .big .katex{font-size:.8em}
+.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--ink);border-radius:6px;overflow:hidden}
+.seg button{min-height:36px;padding:0 12px;border:0;border-right:1px solid var(--rule-solid);background:transparent;color:var(--ink);font:500 13px var(--sans);cursor:pointer}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.seg button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.lab-label{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);min-width:84px}
+.lab-out{margin:0;padding:0;border:0;background:none;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+.two pre{margin:0}
+.two h3,.panel h3{font-family:var(--serif);font-weight:400;font-size:22px;margin:0 0 8px}
+.after{margin-top:16px}
+@media (max-width:860px){.two{grid-template-columns:1fr}}
+label.lab-label{font-weight:500;font-size:11px}
+h3.sub{font-family:var(--serif);font-weight:400;font-size:24px;margin:28px 0 8px}
+.size input[type=range]{width:180px;accent-color:var(--accent)}
+.size output{font-family:var(--mono);font-size:12px;font-weight:600;min-width:4ch}
 </style>
 </head>
 <body>
@@ -102,7 +126,7 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
 <header>
   <div class="eyebrow">Algorithms · Pathfinding</div>
   <h1>A* search</h1>
-  <p class="lede">Find the shortest path by always expanding the node with the lowest <code>g + h</code>: the cost so far plus a guess of the cost left. A good guess lets it skip most of the map.</p>
+  <p class="lede">Find the shortest path by always expanding the node with the lowest $g + h$: the cost so far plus a guess of the cost left. A good guess lets it skip most of the map.</p>
   
   
   
@@ -111,7 +135,7 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
 
 <section>
   <h2>Try the machine first</h2>
-  <p>Blue is the start, green is the goal. Pick a tool, then click cells to draw walls or move the endpoints. Press <b>Step</b> to expand one node, or <b>Run</b> to watch the search. Each explored cell shows its <code>f = g + h</code>.</p>
+  <p>Blue is the start, green is the goal. Pick a tool, then click cells to draw walls or move the endpoints. Press <b>Step</b> to expand one node, or <b>Run</b> to watch the search. Each explored cell shows its $f = g + h$.</p>
 
   <figure class="card">
     <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">A* on a 15 × 9 grid</span></div>
@@ -156,17 +180,16 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
 
 <section>
   <h2>1. The idea</h2>
-  <p>Dijkstra expands the node closest to the start, so it spreads out in every direction. Greedy search expands the node closest to the goal, so it rushes ahead but can walk into a dead end and return a long path. A* combines both.</p>
-  <pre><span class="t">g(n)</span> = cost of the best known path from start to n
-<span class="t">h(n)</span> = estimated cost from n to the goal
-<span class="t">f(n)</span> = g(n) + h(n)   <span class="c">// estimated total cost through n</span></pre>
+  <p>Dijkstra expands the node closest to the start, so it spreads out in every direction. Greedy best-first search expands the node closest to the goal, so it rushes ahead but can walk into a dead end and return a long path. A* combines both. For every node $n$ it keeps three numbers:</p>
+  <div class="formula">$$f(n) = \underbrace{g(n)}_{\text{best known cost from start}} + \underbrace{h(n)}_{\text{estimated cost to goal}}$$</div>
+  <p>$f(n)$ estimates the cost of the cheapest full path that goes through $n$. A* always expands the node with the smallest $f$.</p>
   <p class="callout">Always expand the node that looks cheapest overall, not the one that is cheapest so far.</p>
-  <p>Switch the heuristic to <b>None</b> in the demo. With <code>h = 0</code> the search becomes Dijkstra and floods a large area. With Manhattan it narrows toward the goal.</p>
+  <p>Switch the heuristic to <b>None</b> in the demo. With $h = 0$ the search becomes Dijkstra and floods a large area. With Manhattan it narrows toward the goal.</p>
 </section>
 
 <section>
   <h2>2. The algorithm</h2>
-  <p>Keep an <b>open</b> set of nodes waiting to be expanded, ordered by <code>f</code>, and a <b>closed</b> set of nodes already expanded.</p>
+  <p>Keep an <b>open</b> set of nodes waiting to be expanded, ordered by $f$, and a <b>closed</b> set of nodes already expanded.</p>
   <pre><span class="k">function</span> aStar(start, goal) {
   <span class="k">const</span> g = <span class="k">new</span> Map([[start, 0]]), parent = <span class="k">new</span> Map();
   <span class="k">const</span> open = <span class="k">new</span> MinHeap();         <span class="c">// ordered by f = g + h</span>
@@ -184,52 +207,162 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
       <span class="k">if</span> (ng &lt; (g.get(m) ?? Infinity)) {
         g.set(m, ng);
         parent.set(m, n);
-        open.push(m, ng + h(m));
+        open.push(m, ng + h(m));          <span class="c">// lazy: old entry stays, skipped later</span>
       }
     }
   }
   <span class="k">return</span> <span class="k">null</span>;                       <span class="c">// no path</span>
 }</pre>
-  <p>The goal is checked when it is <b>popped</b>, not when it is first seen. Only then is its <code>g</code> guaranteed to be optimal. The demo uses a plain scan of the open list to stay short. Real code uses a <a href="../heap/heap.html">heap</a> so each pop costs <code>O(log n)</code>.</p>
+  <p>The goal is checked when it is <b>popped</b>, not when it is first seen. Only then is its $g$ guaranteed to be optimal. Most heaps cannot lower a key in place, so the code pushes a second entry and skips the stale one when it comes out. The demo uses a plain scan of the open list to stay short. Real code uses a <a href="../heap/heap.html">heap</a> so each pop costs $O(\log n)$.</p>
 </section>
 
 <section>
-  <h2>3. Choosing the heuristic</h2>
-  <p>The heuristic decides everything. Two properties matter.</p>
-  <ul class="tight">
-    <li><b>Admissible:</b> <code>h</code> never overestimates the true remaining cost. With an admissible <code>h</code>, the path A* returns is optimal.</li>
-    <li><b>Consistent:</b> <code>h(n) &le; cost(n, m) + h(m)</code> for every edge. Then each node is expanded at most once, which is why a closed set is safe.</li>
-  </ul>
+  <h2>3. Admissible and consistent</h2>
+  <p>The heuristic decides everything. Write $h^*(n)$ for the true cost of the cheapest path from $n$ to the goal. Two properties matter.</p>
+  <div class="formula">$$\textbf{admissible:}\quad h(n) \le h^*(n) \ \text{ for every } n \qquad\qquad \textbf{consistent:}\quad h(n) \le c(n, m) + h(m) \ \text{ for every edge } (n, m)$$</div>
+  <p>Admissible means the guess is never too high. Consistent is a triangle inequality: the guess at $n$ is never more than one step plus the guess at the neighbor. Consistency, with $h(\text{goal}) = 0$, implies admissibility. The heuristics people actually use are almost always consistent.</p>
+
+  <h3 class="sub">Why admissible means optimal</h3>
+  <p>Let $C^*$ be the optimal cost and suppose A* pops the goal with a worse cost $C > C^*$. Look at the optimal path. Its start was expanded, its goal was not yet, so some node $n$ on it sits in the open set with its optimal $g(n) = g^*(n)$. Then</p>
+  <div class="formula">$$f(n) = g^*(n) + h(n) \;\le\; g^*(n) + h^*(n) = C^* \;<\; C = f(\text{goal})$$</div>
+  <p>So $n$ had a smaller $f$ than the goal and would have been popped first. The contradiction shows the first time the goal is popped, its cost is $C^*$.</p>
+
+  <h3 class="sub">Why consistent means "expand once"</h3>
+  <p>Along any edge from $n$ to $m$, consistency keeps $f$ from going down:</p>
+  <div class="formula">$$f(m) = g(n) + c(n,m) + h(m) \;\ge\; g(n) + h(n) = f(n)$$</div>
+  <p>So nodes leave the open set in non-decreasing order of $f$, exactly like Dijkstra pops by distance. When a node is popped, its $g$ is final, and a closed set is safe. With an admissible but inconsistent $h$, a closed node can later be reached more cheaply and must be reopened, which costs time.</p>
+</section>
+
+<section>
+  <h2>4. Choosing the heuristic</h2>
+  <p>Write $\Delta x = |x_n - x_{\text{goal}}|$ and $\Delta y = |y_n - y_{\text{goal}}|$. The right heuristic is the exact cost on the same map with all walls removed.</p>
   <table class="ops">
     <thead><tr><th>Map</th><th>Heuristic</th><th>Formula</th></tr></thead>
     <tbody>
-      <tr><td>4-way grid</td><td>Manhattan</td><td><code>|dx| + |dy|</code></td></tr>
-      <tr><td>8-way grid</td><td>Octile</td><td><code>max(|dx|,|dy|) + (&radic;2 &minus; 1) &middot; min(|dx|,|dy|)</code></td></tr>
-      <tr><td>Free movement</td><td>Euclidean</td><td><code>&radic;(dx&sup2; + dy&sup2;)</code></td></tr>
-      <tr><td>Anything</td><td>Zero</td><td><code>0</code> (Dijkstra)</td></tr>
+      <tr><td>4-way grid</td><td>Manhattan</td><td>$\Delta x + \Delta y$</td></tr>
+      <tr><td>8-way grid</td><td>Octile</td><td>$\max(\Delta x, \Delta y) + (\sqrt2 - 1)\min(\Delta x, \Delta y)$</td></tr>
+      <tr><td>8-way, diagonal costs 1</td><td>Chebyshev</td><td>$\max(\Delta x, \Delta y)$</td></tr>
+      <tr><td>Free movement</td><td>Euclidean</td><td>$\sqrt{\Delta x^2 + \Delta y^2}$</td></tr>
+      <tr><td>Road network</td><td>Straight line ÷ top speed</td><td>$\lVert p_n - p_{\text{goal}} \rVert / v_{\max}$ for travel time</td></tr>
+      <tr><td>Anything</td><td>Zero</td><td>$0$ (Dijkstra)</td></tr>
     </tbody>
   </table>
-  <p>Try <b>Manhattan × 3</b>. It overestimates, so the search runs very few steps, but it can return a path that is longer than the best one. That is the usual trade: a bigger <code>h</code> is faster and less exact.</p>
+  <p>Among admissible heuristics, bigger is better. If $h_1(n) \le h_2(n)$ everywhere, A* with $h_2$ never expands a node that A* with $h_1$ skips (apart from ties). Euclidean distance on a 4-way grid is admissible but too low, so it expands more than Manhattan. The maximum of two admissible heuristics is admissible too, and at least as strong as either.</p>
+  <p>Try <b>Manhattan × 3</b> in Fig 1. It overestimates, so the search runs very few steps, but it can return a path that is longer than the best one.</p>
 </section>
 
 <section>
-  <h2>4. Cost</h2>
-  <div class="cards">
-    <div class="stat focal"><div class="eyebrow">Best case</div><div class="big">O(d)</div><p>A perfect heuristic walks straight down the path.</p></div>
-    <div class="stat"><div class="eyebrow">Worst case</div><div class="big">O(b<sup>d</sup>)</div><p>A weak heuristic degrades to Dijkstra.</p></div>
-    <div class="stat"><div class="eyebrow">Memory</div><div class="big">O(b<sup>d</sup>)</div><p>It stores every open and closed node.</p></div>
+  <h2>5. Search lab</h2>
+  <p>A bigger random map, searched by four algorithms that differ only in the priority they use. Light cells were expanded, the orange line is the path found. Compare the number of expanded nodes with the path cost.</p>
+  <table class="ops">
+    <thead><tr><th>Algorithm</th><th>Priority</th><th>Optimal?</th></tr></thead>
+    <tbody>
+      <tr><td>Dijkstra</td><td>$g(n)$</td><td>Yes</td></tr>
+      <tr><td>A*</td><td>$g(n) + h(n)$</td><td>Yes, if $h$ is admissible</td></tr>
+      <tr><td>Weighted A*</td><td>$g(n) + w \cdot h(n)$, $w \ge 1$</td><td>Within a factor $w$</td></tr>
+      <tr><td>Greedy best-first</td><td>$h(n)$</td><td>No bound</td></tr>
+    </tbody>
+  </table>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 2</span><span class="card-title">Same map, four priorities</span></div>
+    <div class="scroll">
+      <svg id="lab" width="880" height="480" viewBox="0 0 880 480" style="min-width:880px" role="img" aria-labelledby="lab-title lab-desc">
+        <title id="lab-title">Grid search comparison</title>
+        <desc id="lab-desc">A 44 by 24 grid with random walls. The start is blue on the left, the goal is green on the right. Expanded cells are tinted, frontier cells are pale orange, and the path found is an orange line.</desc>
+        <g id="lab-g"></g>
+      </svg>
+    </div>
+    <div class="card-bottom"><span class="hint">tinted = expanded · pale orange = still open · line = path</span><span class="live" id="lab-live"></span></div>
+  </figure>
+
+  <div class="controls">
+    <div class="panel">
+      <div class="row"><span class="lab-label">Priority</span>
+        <div class="seg" role="group" aria-label="Algorithm" data-key="algo">
+          <button type="button" data-v="dijkstra" aria-pressed="false">Dijkstra</button><button type="button" data-v="astar" aria-pressed="true">A*</button><button type="button" data-v="weighted" aria-pressed="false">Weighted A*</button><button type="button" data-v="greedy" aria-pressed="false">Greedy</button>
+        </div>
+      </div>
+      <div class="row"><span class="lab-label">Moves</span>
+        <div class="seg" role="group" aria-label="Moves" data-key="moves">
+          <button type="button" data-v="4" aria-pressed="true">4-way · Manhattan</button><button type="button" data-v="8" aria-pressed="false">8-way · Octile</button>
+        </div>
+      </div>
+      <div class="row size"><label for="w" class="lab-label">Weight w</label><input type="range" id="w" min="1" max="5" step="0.25" value="2"><output id="w-out" for="w">2</output></div>
+      <div class="row size"><label for="dens" class="lab-label">Walls</label><input type="range" id="dens" min="0" max="40" step="2" value="28"><output id="dens-out" for="dens">28%</output></div>
+      <div class="row"><button type="button" class="btn" id="newmap">New map</button></div>
+    </div>
+    <div class="panel"><pre class="lab-out" id="lab-out" aria-live="polite"></pre></div>
   </div>
-  <p><code>b</code> is the branching factor and <code>d</code> is the depth of the solution. Memory is usually the limit before time is. IDA* trades repeated work for a much smaller footprint.</p>
+  <p class="after">Things to try. Dijkstra and A* always find the same cost, but A* expands a fraction of the cells. Raise <b>w</b> and the count drops further while the cost creeps up, never beyond $w$ times the optimum. Greedy is the extreme: fastest on open maps, and often clearly worse on mazes. Set <b>Walls</b> to 0 to see how narrow A* becomes with a perfect heuristic.</p>
 </section>
 
 <section>
-  <h2>5. Where it shows up</h2>
+  <h2>6. Weighted A*: trading cost for speed</h2>
+  <p>Inflating the heuristic by $w \ge 1$ makes the search more eager to head for the goal. If $h$ is admissible, the result has a guaranteed quality bound:</p>
+  <div class="formula">$$\text{cost found} \;\le\; w \cdot C^*$$</div>
+  <p>The proof is the same as before with $w h(n) \le w h^*(n)$. In practice the found cost is usually much closer to $C^*$ than the bound says. Anytime planners such as ARA* start with a large $w$ to get a path fast, then lower $w$ step by step and reuse earlier work, improving the path while time remains.</p>
+</section>
+
+<section>
+  <h2>7. Ties and details that matter</h2>
+  <ul class="tight">
+    <li><b>Break ties toward the goal.</b> On open grids, many nodes share the same $f$. Preferring the larger $g$ (equivalently the smaller $h$) follows one path to the goal instead of filling a whole diamond of equal-$f$ cells.</li>
+    <li><b>Corner cutting.</b> On 8-way grids, decide whether a diagonal step may squeeze between two walls. The lab does not allow it.</li>
+    <li><b>Units.</b> If edges are measured in seconds, the heuristic must be in seconds too. A distance in meters used as a time estimate is either useless or inadmissible.</li>
+    <li><b>Unreachable goal.</b> A* then explores everything it can reach before giving up. A quick connected-components check up front avoids this.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>8. Variants</h2>
+  <table class="ops">
+    <thead><tr><th>Variant</th><th>Idea</th><th>Use it when</th></tr></thead>
+    <tbody>
+      <tr><td>IDA*</td><td>Depth-first search with an $f$ limit that grows each round</td><td>Memory is tight, as in the 15-puzzle</td></tr>
+      <tr><td>Bidirectional A*</td><td>Search from both ends and meet in the middle</td><td>Large road graphs</td></tr>
+      <tr><td>Jump Point Search</td><td>Skip runs of symmetric grid cells, expand only "jump points"</td><td>Uniform-cost grids</td></tr>
+      <tr><td>ALT (landmarks)</td><td>Precompute distances to a few landmarks, use the triangle inequality</td><td>Routing on fixed maps</td></tr>
+      <tr><td>D* Lite, LPA*</td><td>Repair the previous search when edge costs change</td><td>Robots discovering obstacles</td></tr>
+      <tr><td>HPA*</td><td>Plan on a coarse grid of clusters, then refine</td><td>Large game maps</td></tr>
+    </tbody>
+  </table>
+  <p>The landmark heuristic is a good example of building a stronger $h$ from data. For a landmark $L$ with known distances $d(L, \cdot)$, the triangle inequality gives a lower bound on the distance from $v$ to the goal $t$ in an undirected graph:</p>
+  <div class="formula">$$h(v) = \max_{L} \,\bigl|\, d(L, t) - d(L, v) \,\bigr| \;\le\; d(v, t)$$</div>
+</section>
+
+<section>
+  <h2>9. Cost</h2>
+  <div class="cards">
+    <div class="stat focal"><div class="eyebrow">Best case</div><div class="big">$O(d)$</div><p>A perfect heuristic walks straight down the path.</p></div>
+    <div class="stat"><div class="eyebrow">Worst case</div><div class="big">$O(b^d)$</div><p>A weak heuristic degrades to Dijkstra.</p></div>
+    <div class="stat"><div class="eyebrow">Memory</div><div class="big">$O(b^d)$</div><p>It stores every open and closed node.</p></div>
+  </div>
+  <p>$b$ is the branching factor and $d$ is the depth of the solution. On an explicit graph with $V$ nodes and $E$ edges, A* with a consistent heuristic is never worse than Dijkstra with a binary heap:</p>
+  <div class="formula">$$O\bigl((V + E)\log V\bigr)$$</div>
+  <p>The number of expansions shrinks when the heuristic error $h^*(n) - h(n)$ is small. With a constant error, the search stays close to the optimal path. With an error that grows with distance, as is common, the savings are a constant factor, not an exponential one. Memory is usually the limit before time is. IDA* trades repeated work for a footprint linear in $d$.</p>
+</section>
+
+<section>
+  <h2>10. Common mistakes</h2>
+  <ul class="tight">
+    <li><b>Stopping when the goal is pushed.</b> A cheaper route may still be waiting in the open set. Stop when it is popped.</li>
+    <li><b>Using Euclidean or octile distance with the wrong moves.</b> Octile on a 4-way grid is too low, which is safe but slow. Manhattan on an 8-way grid overestimates, which breaks optimality.</li>
+    <li><b>Skipping a better path to an open node.</b> If a node is reached again with a lower $g$, update its parent and push it again.</li>
+    <li><b>A closed set with an inconsistent heuristic.</b> Nodes may need reopening. Either make $h$ consistent or allow reopening.</li>
+    <li><b>Floating-point ties.</b> With $\sqrt2$ costs, compare with a small tolerance or use integer costs such as 10 and 14.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>11. Where it shows up</h2>
   <ul class="tight">
     <li><b>Games:</b> NPC navigation on grids and navigation meshes.</li>
-    <li><b>Maps and routing:</b> road networks, often with landmark heuristics.</li>
-    <li><b>Robotics:</b> motion planning over a discretized space.</li>
-    <li><b>Puzzles:</b> the 8-puzzle with misplaced-tile or Manhattan heuristics.</li>
-    <li><b>Parsing and planning:</b> any search with a state graph and a cost estimate.</li>
+    <li><b>Maps and routing:</b> road networks, often with landmark heuristics or precomputed hierarchies.</li>
+    <li><b>Robotics:</b> motion planning over a discretized space, with D* Lite for replanning.</li>
+    <li><b>Puzzles:</b> the 8-puzzle and 15-puzzle with Manhattan or pattern-database heuristics.</li>
+    <li><b>Planning and parsing:</b> any search with a state graph and a cost estimate, including AI planners and some speech decoders.</li>
+    <li><b>Related search:</b> <a href="../minimax/minimax.html">minimax</a> searches a game tree against an opponent, where A* searches a graph alone.</li>
   </ul>
 </section>
 
@@ -392,6 +525,168 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
   build();
   init();
 })();
+</script>
+<script>
+(function () {
+  var R = 24, C = 44, CS = 19, X0 = 22, Y0 = 12, NS = 'http://www.w3.org/2000/svg', SQ2 = Math.SQRT2;
+  var START = [12, 1], GOAL = [11, 42];
+  var state = { algo: 'astar', moves: '4' }, w = 2, dens = 0.28, seed = 11, walls = [];
+
+  function el(name, attrs) {
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+  function rng(s) { return function () { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
+
+  // Binary min-heap of [priority, tiebreak, node].
+  function Heap() { this.a = []; }
+  Heap.prototype.less = function (x, y) { return x[0] < y[0] - 1e-9 || (Math.abs(x[0] - y[0]) <= 1e-9 && x[1] < y[1]); };
+  Heap.prototype.push = function (it) {
+    var a = this.a, i = a.push(it) - 1;
+    while (i > 0) { var p = (i - 1) >> 1; if (!this.less(a[i], a[p])) break; var t = a[i]; a[i] = a[p]; a[p] = t; i = p; }
+  };
+  Heap.prototype.pop = function () {
+    var a = this.a, top = a[0], last = a.pop();
+    if (a.length) {
+      a[0] = last; var i = 0;
+      for (;;) {
+        var l = 2 * i + 1, r = l + 1, m = i;
+        if (l < a.length && this.less(a[l], a[m])) m = l;
+        if (r < a.length && this.less(a[r], a[m])) m = r;
+        if (m === i) break; var t = a[i]; a[i] = a[m]; a[m] = t; i = m;
+      }
+    }
+    return top;
+  };
+
+  function h(n, eight) {
+    var dr = Math.abs(Math.floor(n / C) - GOAL[0]), dc = Math.abs(n % C - GOAL[1]);
+    return eight ? Math.max(dr, dc) + (SQ2 - 1) * Math.min(dr, dc) : dr + dc;
+  }
+  function neighbors(n, eight) {
+    var r = Math.floor(n / C), c = n % C, out = [];
+    var dirs = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+    if (eight) dirs = dirs.concat([[-1, -1], [-1, 1], [1, -1], [1, 1]]);
+    dirs.forEach(function (d) {
+      var rr = r + d[0], cc = c + d[1];
+      if (rr < 0 || cc < 0 || rr >= R || cc >= C || walls[rr * C + cc]) return;
+      if (d[0] && d[1] && (walls[r * C + cc] || walls[rr * C + c])) return; // no corner cutting
+      out.push([rr * C + cc, d[0] && d[1] ? SQ2 : 1]);
+    });
+    return out;
+  }
+
+  function search(algo, eight) {
+    var s = START[0] * C + START[1], t = GOAL[0] * C + GOAL[1];
+    var g = {}, parent = {}, closed = {}, open = new Heap(), expanded = 0;
+    function prio(n) {
+      var hn = h(n, eight);
+      if (algo === 'dijkstra') return g[n];
+      if (algo === 'greedy') return hn;
+      if (algo === 'weighted') return g[n] + w * hn;
+      return g[n] + hn;
+    }
+    g[s] = 0; open.push([prio(s), h(s, eight), s]);
+    while (open.a.length) {
+      var n = open.pop()[2];
+      if (closed[n]) continue;
+      closed[n] = true; expanded++;
+      if (n === t) {
+        var path = [], p = t;
+        while (p !== undefined) { path.push(p); p = parent[p]; }
+        return { found: true, cost: g[t], path: path.reverse(), closed: closed, g: g, expanded: expanded };
+      }
+      neighbors(n, eight).forEach(function (e) {
+        var m = e[0], ng = g[n] + e[1];
+        if (closed[m]) return;
+        if (g[m] === undefined || ng < g[m] - 1e-9) { g[m] = ng; parent[m] = n; open.push([prio(m), h(m, eight), m]); }
+      });
+    }
+    return { found: false, closed: closed, g: g, expanded: expanded, path: [] };
+  }
+
+  function makeMap() {
+    for (var tries = 0; tries < 30; tries++) {
+      var rand = rng(seed + tries * 101);
+      walls = [];
+      for (var i = 0; i < R * C; i++) walls.push(rand() < dens);
+      [START, GOAL].forEach(function (p) {
+        for (var dr = -1; dr <= 1; dr++) for (var dc = -1; dc <= 1; dc++) {
+          var r = p[0] + dr, c = p[1] + dc;
+          if (r >= 0 && c >= 0 && r < R && c < C) walls[r * C + c] = false;
+        }
+      });
+      if (search('astar', false).found) return true;
+    }
+    return false;
+  }
+
+  function fmt(x) { return Math.abs(x - Math.round(x)) < 1e-9 ? String(Math.round(x)) : x.toFixed(2); }
+
+  function render() {
+    var eight = state.moves === '8', res = search(state.algo, eight), best = search('dijkstra', eight);
+    var g = document.getElementById('lab-g');
+    g.textContent = '';
+    for (var n = 0; n < R * C; n++) {
+      var r = Math.floor(n / C), c = n % C, fill = '#fff', stroke = 'rgba(45,49,66,.10)';
+      if (walls[n]) { fill = '#2d3142'; stroke = '#2d3142'; }
+      else if (res.closed[n]) { fill = '#dfe4ee'; stroke = '#c3cbdb'; }
+      else if (res.g[n] !== undefined) { fill = '#fbe9d9'; stroke = '#ecc9a8'; }
+      g.appendChild(el('rect', { x: X0 + c * CS + .5, y: Y0 + r * CS + .5, width: CS - 1, height: CS - 1, rx: 2, fill: fill, stroke: stroke }));
+    }
+    if (res.found) {
+      var pts = res.path.map(function (p) { return (X0 + (p % C) * CS + CS / 2) + ',' + (Y0 + Math.floor(p / C) * CS + CS / 2); }).join(' ');
+      g.appendChild(el('polyline', { points: pts, fill: 'none', stroke: '#bf4520', 'stroke-width': 4, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }));
+    }
+    [[START, '#2e5aa8'], [GOAL, '#1f7a4d']].forEach(function (p) {
+      g.appendChild(el('circle', { cx: X0 + p[0][1] * CS + CS / 2, cy: Y0 + p[0][0] * CS + CS / 2, r: 7, fill: p[1], stroke: '#fff', 'stroke-width': 2 }));
+    });
+    var out = document.getElementById('lab-out'), live = document.getElementById('lab-live');
+    if (!res.found) { out.textContent = 'No path on this map.\nLower the wall density or press New map.'; live.textContent = 'no path'; return; }
+    var bound = state.algo === 'weighted' ? 'cost <= ' + w + ' x optimal' : state.algo === 'greedy' ? 'no guarantee' : 'optimal';
+    out.textContent =
+      'expanded      ' + res.expanded + '\n' +
+      '  Dijkstra    ' + best.expanded + '\n' +
+      '  saved       ' + Math.round(100 * (1 - res.expanded / best.expanded)) + '%\n\n' +
+      'path cost     ' + fmt(res.cost) + '\n' +
+      '  optimal     ' + fmt(best.cost) + '\n' +
+      '  ratio       ' + (res.cost / best.cost).toFixed(3) + '\n' +
+      '  guarantee   ' + bound;
+    live.textContent = res.expanded + ' expanded · cost ' + fmt(res.cost);
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll('.seg'), function (seg) {
+    seg.addEventListener('click', function (e) {
+      var b = e.target.closest('button'); if (!b) return;
+      Array.prototype.forEach.call(seg.querySelectorAll('button'), function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+      state[seg.getAttribute('data-key')] = b.getAttribute('data-v');
+      render();
+    });
+  });
+  document.getElementById('w').addEventListener('input', function () {
+    w = +this.value; document.getElementById('w-out').textContent = w;
+    if (state.algo !== 'weighted') document.querySelector('[data-key=algo] [data-v=weighted]').click(); else render();
+  });
+  document.getElementById('dens').addEventListener('input', function () {
+    dens = this.value / 100; document.getElementById('dens-out').textContent = this.value + '%'; makeMap(); render();
+  });
+  document.getElementById('newmap').addEventListener('click', function () { seed = 1 + Math.floor(Math.random() * 1e6); makeMap(); render(); });
+  makeMap();
+  render();
+})();
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  renderMathInElement(document.body, {
+    delimiters: [
+      { left: '$$', right: '$$', display: true },
+      { left: '$', right: '$', display: false }
+    ],
+    ignoredTags: ['script', 'style', 'textarea', 'pre', 'code'],
+    throwOnError: false
+  });
+});
 </script>
 </body>
 </html>
