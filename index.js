@@ -1169,6 +1169,17 @@ const DOCS = [
     summary: 'Average more and more draws from any distribution. The running mean settles on the true mean, and the spread of many averages turns into a bell curve of width sigma over root n.',
     related: ['Expectation, Variance and Covariance', 'Gaussian Distribution', 'Hypothesis Tests and p-values', 'Monte Carlo Pricing'],
   },
+  {
+    title: 'Maximum Likelihood Estimation',
+    path: 'content/quant/maximum-likelihood/maximum-likelihood.html',
+    category: 'Quant',
+    topic: 'Probability and statistics',
+    order: 4,
+    level: 'Intermediate',
+    tags: ['maximum likelihood', 'mle', 'estimation', 'log-likelihood', 'statistics', 'fisher information', 'normal distribution', 'model fitting'],
+    summary: 'Guess the mean and volatility behind a set of returns and watch the log-likelihood score your guess. The best guess is the peak, and the curvature at the peak says how sure you can be.',
+    related: ['Expectation, Variance and Covariance', 'Gaussian Distribution', 'Hypothesis Tests and p-values', 'ARMA and GARCH'],
+  },
 ];
 
 // ---------- helpers ----------
