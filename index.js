@@ -1782,6 +1782,27 @@ function initMapControls() {
   $('#mapFit').addEventListener('click', fitMap);
   $('#mapHubs').addEventListener('change', e => { G.hubs = e.target.checked; renderMap(); heat(0.8); });
   $('#mapShake').addEventListener('click', () => heat(1));
+  $('#mapFull').addEventListener('click', () => setFull(!$('#mapCard').classList.contains('full')));
+  document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && $('#mapCard').classList.contains('full')) setFull(false); });
+  document.addEventListener('keydown', e => {
+    if ($('#viewMap').hidden || e.target.closest('input,select,textarea')) return;
+    if (e.key === 'f' || e.key === 'F') setFull(!$('#mapCard').classList.contains('full'));
+    else if (e.key === 'Escape' && $('#mapCard').classList.contains('full')) setFull(false);
+  });
+}
+// full screen: the card fills the window (works everywhere) and also asks the browser for real full screen
+function setFull(on) {
+  const card = $('#mapCard'), b = $('#mapFull');
+  card.classList.toggle('full', on);
+  document.body.classList.toggle('no-scroll', on);
+  b.setAttribute('aria-pressed', on);
+  b.textContent = on ? '⤡ Exit full screen' : '⤢ Full screen';
+  b.title = on ? 'Exit full screen (Esc)' : 'Full screen (F)';
+  try {
+    if (on && card.requestFullscreen && !document.fullscreenElement) card.requestFullscreen().catch(() => {});
+    if (!on && document.fullscreenElement) document.exitFullscreen().catch(() => {});
+  } catch (_) {}
+  requestAnimationFrame(() => { sizeMap(); fitMap(); });
 }
 
 // ---------- orchestration ----------
@@ -1802,6 +1823,7 @@ function setView(v) {
   document.querySelectorAll('[data-view]').forEach(b => b.setAttribute('aria-pressed', b.dataset.view === v));
   $('#viewList').hidden = v !== 'list';
   $('#viewMap').hidden = v !== 'map';
+  if (v !== 'map' && $('#mapCard').classList.contains('full')) setFull(false);
   $('#viewToc').hidden = v !== 'toc';
   sessionStorage.setItem('view', v);
 }

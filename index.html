@@ -75,6 +75,10 @@ ul.list{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:re
 .mapctl button:hover,.mapctl label:hover{border-color:var(--ink)}
 .mapctl label{display:inline-flex;align-items:center;gap:6px;font:500 12px var(--sans);color:var(--ink);height:32px;padding:0 10px;border:1px solid var(--rule-solid);border-radius:6px;background:#fff;cursor:pointer}
 .legend-row{padding:0 16px 14px}
+#mapCard.full{position:fixed;inset:0;z-index:100;margin:0;border-radius:0;border:0;display:flex;flex-direction:column}
+#mapCard.full .mapwrap{flex:1;min-height:0}
+#mapCard.full #map{height:100%}
+body.no-scroll{overflow:hidden}
 .chip.legend{display:inline-flex;align-items:center;gap:6px}
 .chip.legend .sw{width:9px;height:9px;border-radius:50%;flex:none}
 
@@ -145,9 +149,9 @@ footer{margin-top:64px;font-family:var(--mono);font-size:11px;color:var(--soft)}
 </section>
 
 <section id="viewMap" hidden>
-  <figure class="card" style="margin:0">
+  <figure class="card" id="mapCard" style="margin:0">
     <div class="card-top"><span class="card-title">Graph</span><span class="hint">Hover to see links · drag a node to pull it · drag the background to pan · scroll to zoom · click a doc to open it</span></div>
-    <div class="mapwrap"><div class="mapctl" role="group" aria-label="Graph controls"><button type="button" id="mapIn" aria-label="Zoom in">+</button><button type="button" id="mapOut" aria-label="Zoom out">−</button><label><input type="checkbox" id="mapHubs"> Category hubs</label><button type="button" id="mapShake" class="txt">Shake</button><button type="button" id="mapFit" class="txt">Fit</button></div><canvas id="map" role="img" aria-label="Graph of docs: each doc is a dot, lines join related docs, colours mark the category. Use the Contents view for a keyboard-friendly list."></canvas></div>
+    <div class="mapwrap"><div class="mapctl" role="group" aria-label="Graph controls"><button type="button" id="mapIn" aria-label="Zoom in">+</button><button type="button" id="mapOut" aria-label="Zoom out">−</button><label><input type="checkbox" id="mapHubs"> Category hubs</label><button type="button" id="mapShake" class="txt">Shake</button><button type="button" id="mapFit" class="txt">Fit</button><button type="button" id="mapFull" class="txt" aria-pressed="false" title="Full screen (F)">⤢ Full screen</button></div><canvas id="map" role="img" aria-label="Graph of docs: each doc is a dot, lines join related docs, colours mark the category. Use the Contents view for a keyboard-friendly list."></canvas></div>
     <div class="row legend-row" id="mapLegend" role="group" aria-label="Filter by category"></div>
   </figure>
 </section>
