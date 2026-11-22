@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Data Structures and Algorithms for Quants: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8; --green:#1f7a4d;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+h3{font-family:var(--serif);font-weight:400;font-size:24px;line-height:1.2;margin:28px 0 8px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+a{color:var(--link)}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+.card{margin:24px 0 0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.scroll{overflow-x:auto;padding:0 8px}
+.scroll svg{display:block;height:auto}
+.controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;margin-top:16px;align-items:start}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:0 0 12px}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.btn:disabled{opacity:.4;cursor:not-allowed;background:transparent;color:var(--ink)}
+.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--ink);border-radius:6px;overflow:hidden}
+.seg button{min-height:36px;padding:0 12px;border:0;border-right:1px solid var(--rule-solid);background:transparent;color:var(--ink);font:500 13px var(--sans);cursor:pointer}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.seg button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.lab-label{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);min-width:96px}
+.size input[type=range]{width:180px;accent-color:var(--accent)}
+.size output{font-family:var(--mono);font-size:12px;font-weight:600;min-width:5ch}
+select{min-height:38px;padding:0 10px;border:1px solid var(--rule-solid);border-radius:6px;font:500 13px var(--sans);color:var(--ink);background:#fff}
+.lab-out{margin:0;padding:0;border:0;background:none;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink)}
+.after{margin-top:16px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:3px;border:1px solid var(--ink);display:inline-block}
+pre{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .t{color:var(--link)} .c{color:var(--soft);font-style:italic}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat h3{margin:4px 0 6px;font-size:22px}
+.stat .big{font-family:var(--serif);font-size:32px;line-height:1.1;margin:6px 0}
+.stat .big .katex{font-size:.8em}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+table.ops{border-collapse:collapse;width:100%;max-width:760px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+ul.tight,ol.tight{padding-left:20px;max-width:68ch}ul.tight li,ol.tight li{margin:6px 0}
+.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;text-align:center;overflow-x:auto}
+.formula .katex{font-size:1.2em}
+.katex{color:var(--ink)}
+p .katex,td .katex,li .katex{font-size:1.05em}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+.two pre{margin:0}
+.two h3{margin-top:0}
+.doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}.doc-tags a{font:500 12px var(--mono);padding:4px 10px;border:1px solid var(--rule-solid);border-radius:4px;background:#fff;color:var(--muted);text-decoration:none}.doc-tags a:hover{border-color:var(--ink);color:var(--ink)}.doc-tags a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (max-width:860px){.controls,.two{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+.lab-label i{text-transform:none;font-style:italic;font-family:var(--serif);font-size:15px;letter-spacing:0}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" style="margin-right:8px" href="../../../index.html">&larr; Back to home</a>
+<a class="back back-cat" href="../../../index.html#cat=Quant">&larr; Back to Quant</a>
+
+<header>
+  <div class="eyebrow">Quant · Engineering and interviews</div>
+  <h1>Data structures and algorithms for quants</h1>
+  <p class="lede">Trading code lives on a few structures: an order book, a hash map from order ID to order, ring buffers between threads, and one-pass statistics over streams. Pick them by the operations you do most, and by the worst case, not only the average.</p>
+  <nav class="doc-tags" aria-label="Main tags"><a href="../../../index.html#tag=data%20structures">#data structures</a><a href="../../../index.html#tag=algorithms">#algorithms</a><a href="../../../index.html#tag=order%20book">#order book</a><a href="../../../index.html#tag=complexity">#complexity</a></nav>
+</header>
+
+<section>
+  <h2>Try the machine first</h2>
+  <p>A simulated stream of orders hits the bid side of a limit order book: new limit orders, cancels, and market sells that eat the best price. Four ways to store the price levels process exactly the same stream. Each counts its elementary steps: comparisons, element shifts, heap swaps or empty ticks scanned. Change how spread out the orders are and see which structure suffers.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">Cost of maintaining a book of price levels</span></div>
+    <div class="scroll">
+      <svg id="book" width="880" height="330" viewBox="0 0 880 330" style="min-width:880px" role="img" aria-labelledby="book-t book-d">
+        <title id="book-t">Order book depth and operation cost per structure</title>
+        <desc id="book-d">Left: the final bid side of the book, one horizontal bar per price level, with the best bid at the top. Right: bars comparing the average number of elementary steps per event for a sorted array, a binary heap, a balanced tree and a tick-indexed array.</desc>
+        <g id="book-g"></g>
+      </svg>
+    </div>
+    <div class="card-bottom"><span class="hint">same event stream for every structure · steps per event, lower is better</span><span class="live" id="book-live"></span></div>
+  </figure>
+
+  <div class="controls">
+    <div class="panel">
+      <div class="row size"><label for="spread" class="lab-label">Order spread</label><input type="range" id="spread" min="1" max="120" value="20"><output id="spread-out" for="spread">20</output></div>
+      <div class="row size"><label for="events" class="lab-label">Events</label><input type="range" id="events" min="1000" max="50000" step="1000" value="20000"><output id="events-out" for="events">20000</output></div>
+      <div class="row size"><label for="mkt" class="lab-label">Market orders</label><input type="range" id="mkt" min="0" max="40" value="15"><output id="mkt-out" for="mkt">15%</output></div>
+      <div class="row"><button type="button" class="btn" id="rerun">New stream</button></div>
+      <p style="font-size:14px;color:var(--muted);margin:4px 0 0">Order spread is the average distance, in ticks, of a new limit order from the mid price.</p>
+    </div>
+    <div class="panel"><pre class="lab-out" id="book-out" aria-live="polite"></pre></div>
+  </div>
+  <p class="after">Things to try. With a tight spread, everything costs a few steps per event and the tick array is cheapest. Spread orders far apart: the sorted array has more levels to shift on every cancel in the middle, and its cost grows with the book. Now raise market orders to 40%. The book drains faster than it refills, gaps of empty ticks open below the best price, and the tick array has to scan hundreds of them each time the best level is eaten. The heap pops stale entries, the tree barely notices. No structure wins everywhere, which is why real books add a bitmap to the tick array or cap the price band.</p>
+</section>
+
+<section>
+  <h2>1. The numbers that matter</h2>
+  <p>Big-O hides constants, but it is still the first filter. At the sizes trading systems see, the gap between classes is large:</p>
+  <table class="ops">
+    <thead><tr><th>Growth</th><th>$n = 10^3$</th><th>$n = 10^6$</th><th>Typical operation</th></tr></thead>
+    <tbody>
+      <tr><td>$O(1)$</td><td>1</td><td>1</td><td>Hash lookup, array index, ring buffer push</td></tr>
+      <tr><td>$O(\log n)$</td><td>10</td><td>20</td><td>Heap push, tree insert, binary search</td></tr>
+      <tr><td>$O(n)$</td><td>$10^3$</td><td>$10^6$</td><td>Scan, insert into the middle of an array</td></tr>
+      <tr><td>$O(n \log n)$</td><td>$10^4$</td><td>$2 \times 10^7$</td><td><a href="../../datastructure-algorithm/merge-sort/merge-sort.html">Sorting</a></td></tr>
+      <tr><td>$O(n^2)$</td><td>$10^6$</td><td>$10^{12}$</td><td>All pairs, naive correlation matrix updates</td></tr>
+    </tbody>
+  </table>
+  <p>Below that, memory decides. A cache miss to main memory costs around 100 ns, about as long as a few hundred simple instructions. A contiguous array that fits in cache often beats a pointer-based tree with a better Big-O. And in a trading system the <b>tail</b> matters more than the mean: one 50 µs pause during a burst costs more than a slightly slower average. Prefer structures with bounded worst cases and no allocation on the hot path.</p>
+  <p class="callout">Choose by the operation you do a million times a second, then by its worst case, then by its memory layout.</p>
+</section>
+
+<section>
+  <h2>2. The limit order book</h2>
+  <p>An exchange matches orders by <b>price-time priority</b>: the best price first, and at the same price, the oldest order first. A book therefore needs three things fast:</p>
+  <ul class="tight">
+    <li><b>Best price</b> on each side, for every incoming market order.</li>
+    <li><b>Insert and remove price levels</b> as orders arrive at new prices or the last order at a price leaves.</li>
+    <li><b>Find an order by ID</b> to cancel or modify it. Cancels are often more than 90% of all messages.</li>
+  </ul>
+  <table class="ops">
+    <thead><tr><th>Level storage</th><th>Best price</th><th>New level</th><th>Remove level</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>Sorted array, best at the end</td><td>$O(1)$</td><td>$O(\log L + \text{shift})$</td><td>$O(\log L + \text{shift})$</td><td>Very cache friendly. Shifts are cheap when activity is near the top</td></tr>
+      <tr><td><a href="../../datastructure-algorithm/heap/heap.html">Binary heap</a> + lazy delete</td><td>$O(1)$ peek, pops to clear stale</td><td>$O(\log L)$</td><td>$O(1)$ mark</td><td>Simple, but stale entries pile up</td></tr>
+      <tr><td><a href="../../datastructure-algorithm/red-black-tree/red-black-tree.html">Balanced tree</a> or <a href="../../datastructure-algorithm/skiplist/skiplist.html">skip list</a></td><td>$O(1)$ with a cached pointer</td><td>$O(\log L)$</td><td>$O(\log L)$</td><td>The textbook choice. Pointer chasing costs cache misses</td></tr>
+      <tr><td>Array indexed by tick</td><td>$O(1)$</td><td>$O(1)$</td><td>$O(1)$, scan if it was the best</td><td>Fastest for liquid instruments in a bounded price band</td></tr>
+    </tbody>
+  </table>
+  <p>Each price level holds a FIFO queue of orders, usually an intrusive doubly linked list, so a cancel unlinks in $O(1)$. A <a href="#hash">hash map</a> from order ID to the order's node finds it. Put together:</p>
+  <pre><span class="k">class</span> Book {                                  <span class="c">// bid side, prices in integer ticks</span>
+  levels = <span class="k">new</span> Array(MAX_TICKS);              <span class="c">// tick -> Level { qty, head, tail } or null</span>
+  orders = <span class="k">new</span> Map();                        <span class="c">// order id -> node in its level's list</span>
+  best = -<span class="t">1</span>;
+
+  add(id, tick, qty) {
+    <span class="k">const</span> lvl = (<span class="k">this</span>.levels[tick] ??= <span class="k">new</span> Level());
+    <span class="k">this</span>.orders.set(id, lvl.append(id, qty));    <span class="c">// O(1)</span>
+    <span class="k">if</span> (tick &gt; <span class="k">this</span>.best) <span class="k">this</span>.best = tick;
+  }
+  cancel(id) {
+    <span class="k">const</span> node = <span class="k">this</span>.orders.get(id); <span class="k">this</span>.orders.delete(id);
+    node.level.unlink(node);                      <span class="c">// O(1)</span>
+    <span class="k">if</span> (node.level.empty &amp;&amp; node.tick === <span class="k">this</span>.best) <span class="k">this</span>.rescanBest();
+  }
+  rescanBest() {                                  <span class="c">// only cost that grows: empty ticks skipped</span>
+    <span class="k">while</span> (<span class="k">this</span>.best &gt;= <span class="t">0</span> &amp;&amp; !<span class="k">this</span>.levels[<span class="k">this</span>.best]?.qty) <span class="k">this</span>.best--;
+  }
+}</pre>
+  <p>The rescan can be bounded with a bitmap of non-empty ticks: one 64-bit word covers 64 ticks, and a count-leading-zeros instruction finds the next set bit, so even a wide gap costs a handful of word reads.</p>
+</section>
+
+<section>
+  <h2>3. Statistics over streams</h2>
+  <p>Signals are computed tick by tick, so every statistic should update in $O(1)$ or $O(\log w)$ per event, never by recomputing a window from scratch.</p>
+  <h3>Mean and variance in one pass</h3>
+  <p>The textbook formula $\frac1n\sum x^2 - \bar x^2$ subtracts two large, nearly equal numbers and loses precision. Welford's update is stable:</p>
+  <div class="formula">$$\delta = x_n - \mu_{n-1}, \qquad \mu_n = \mu_{n-1} + \frac{\delta}{n}, \qquad M_n = M_{n-1} + \delta\,(x_n - \mu_n), \qquad s_n^2 = \frac{M_n}{n-1}$$</div>
+  <p>For a fading memory, use an exponentially weighted mean, $\mu_t = \lambda \mu_{t-1} + (1-\lambda) x_t$, whose half-life is $\ln 2 / \ln(1/\lambda)$ steps.</p>
+
+  <h3>Rolling maximum with a monotonic deque</h3>
+  <p>Keep indexes whose values decrease from front to back. A new value pops every smaller value from the back, since they can never be the maximum again. The front is the answer. Each index is pushed and popped once, so the cost is $O(1)$ amortized:</p>
+  <pre><span class="k">function</span> rollingMax(xs, w) {
+  <span class="k">const</span> dq = [], out = [];                    <span class="c">// indexes, values decreasing</span>
+  <span class="k">for</span> (<span class="k">let</span> i = <span class="t">0</span>; i &lt; xs.length; i++) {
+    <span class="k">while</span> (dq.length &amp;&amp; xs[dq[dq.length - <span class="t">1</span>]] &lt;= xs[i]) dq.pop();
+    dq.push(i);
+    <span class="k">if</span> (dq[<span class="t">0</span>] &lt;= i - w) dq.shift();          <span class="c">// use a ring buffer in real code</span>
+    <span class="k">if</span> (i &gt;= w - <span class="t">1</span>) out.push(xs[dq[<span class="t">0</span>]]);
+  }
+  <span class="k">return</span> out;
+}</pre>
+
+  <h3>Median, quantiles and counts</h3>
+  <ul class="tight">
+    <li><b>Running median:</b> two heaps, a max-heap for the lower half and a min-heap for the upper half, kept within one element of each other. $O(\log n)$ per update. For a sliding window, add lazy deletion or use an order-statistic tree.</li>
+    <li><b>Approximate quantiles</b> over huge streams: t-digest or KLL sketches, in fixed memory.</li>
+    <li><b>Heavy hitters and distinct counts:</b> <a href="../../datastructure-algorithm/count-min-sketch/count-min-sketch.html">count-min sketch</a> for "which symbols trade most", <a href="../../datastructure-algorithm/hyperloglog/hyperloglog.html">HyperLogLog</a> for "how many distinct accounts".</li>
+    <li><b>Range queries:</b> prefix sums for static data, a <a href="../../datastructure-algorithm/segment-tree/segment-tree.html">segment tree</a> or Fenwick tree when values change.</li>
+  </ul>
+
+  <h3>Maximum drawdown in one pass</h3>
+  <p>The largest peak-to-trough loss of an equity curve $V_t$ only needs the running peak:</p>
+  <div class="formula">$$\text{MDD} = \max_{t}\left(1 - \frac{V_t}{\max_{s \le t} V_s}\right)$$</div>
+  <p>It is the same pattern as the classic "best time to buy and sell a stock once" interview question, which tracks the running minimum instead.</p>
+</section>
+
+<section>
+  <h2 id="hash">4. Hash maps, ring buffers and queues</h2>
+  <p><b>Hash maps</b> give $O(1)$ expected lookup from order ID, symbol or account to its record. On a hot path, prefer open addressing with linear probing in one flat array over chained buckets: probes stay in the same cache lines. Keep the load factor below about 0.7, pre-size the table so it never rehashes during the session, and use a hash function that integer IDs from the exchange cannot defeat.</p>
+  <p><b>Ring buffers</b> pass messages between threads without locks. With a capacity that is a power of two, the slot for sequence number $s$ is $s \bmod 2^k$, computed as <code>s &amp; (2^k - 1)</code>. A single-producer single-consumer ring needs only two counters, each written by one thread. Pad them onto separate cache lines to avoid <a href="../../engineering/false-sharing/false-sharing.html">false sharing</a>, and order the writes with <a href="../../engineering/memory-fence/memory-fence.html">memory fences</a>. <a href="../../architecture/aeron/aeron-transport/aeron-transport.html">Aeron</a> and the LMAX Disruptor are built on this idea.</p>
+  <p><b>Timers</b> for order timeouts and heartbeats: a <a href="../../datastructure-algorithm/timer-wheel/timer-wheel.html">timer wheel</a> gives $O(1)$ start and cancel, where a heap gives $O(\log n)$.</p>
+</section>
+
+<section>
+  <h2>5. Algorithms that come up in quant interviews</h2>
+  <table class="ops">
+    <thead><tr><th>Pattern</th><th>Quant-flavored example</th><th>Cost</th></tr></thead>
+    <tbody>
+      <tr><td>One pass with a running extreme</td><td>Best single buy and sell, maximum drawdown</td><td>$O(n)$</td></tr>
+      <tr><td>Kadane / prefix sums</td><td>Most profitable contiguous holding period</td><td>$O(n)$</td></tr>
+      <tr><td>Two pointers, sliding window</td><td>Longest period with volatility under a cap</td><td>$O(n)$</td></tr>
+      <tr><td>Heap of size $k$</td><td>Top $k$ symbols by volume, merging $k$ sorted feeds</td><td>$O(n \log k)$</td></tr>
+      <tr><td>Binary search on the answer</td><td>Smallest position limit that keeps a drawdown under 10%</td><td>$O(n \log R)$</td></tr>
+      <tr><td>Dynamic programming</td><td>Best profit with at most $k$ trades, optimal execution schedules</td><td>$O(nk)$</td></tr>
+      <tr><td>Shortest paths with negative edges</td><td>Currency arbitrage detection</td><td>$O(VE)$</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Arbitrage as a negative cycle</h3>
+  <p>With exchange rates $r_{ij}$, a loop of trades makes money if the product of rates exceeds 1. Taking $-\ln$ turns products into sums and the condition into a negative cycle, which Bellman-Ford detects:</p>
+  <div class="formula">$$r_{ab}\, r_{bc}\, r_{ca} > 1 \quad\Longleftrightarrow\quad (-\ln r_{ab}) + (-\ln r_{bc}) + (-\ln r_{ca}) < 0$$</div>
+
+  <h3>At most k trades</h3>
+  <p>Let $B_j$ be the best cash after the $j$-th buy and $S_j$ after the $j$-th sell. Scanning prices $p_t$ once:</p>
+  <div class="formula">$$B_j \leftarrow \max\bigl(B_j,\ S_{j-1} - p_t\bigr), \qquad S_j \leftarrow \max\bigl(S_j,\ B_j + p_t\bigr), \qquad j = 1, \dots, k$$</div>
+  <p>With $S_0 = 0$ and $B_j = -\infty$ at the start, the answer is $S_k$. Adding a fee per trade is one more term in the sell update.</p>
+</section>
+
+<section>
+  <h2>6. Common mistakes</h2>
+  <ul class="tight">
+    <li><b>Floating-point prices as keys.</b> 0.1 + 0.2 is not 0.3. Store prices as integer ticks and quantities as integers.</li>
+    <li><b>Allocating on the hot path.</b> A garbage collection or a page fault in the middle of a burst ruins the tail. Pre-allocate pools of orders and levels.</li>
+    <li><b>Unbounded growth.</b> Lazy-deletion heaps, maps of cancelled orders and logs all grow until something is cleaned up. Bound or compact them.</li>
+    <li><b>Average-case thinking.</b> A hash map with a bad hash, or a quicksort pivot an adversary can predict, turns $O(1)$ or $O(n \log n)$ into something much worse exactly when traffic spikes.</li>
+    <li><b>Recomputing windows.</b> A 1,000-tick rolling mean recomputed from scratch is 1,000 times more work than updating it.</li>
+    <li><b>Benchmarking the mean only.</b> Report the 99th and 99.9th percentile latency, with realistic message bursts.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>7. Where to go next</h2>
+  <ul class="tight">
+    <li><b>Structures:</b> <a href="../../datastructure-algorithm/heap/heap.html">heap</a>, <a href="../../datastructure-algorithm/skiplist/skiplist.html">skip list</a>, <a href="../../datastructure-algorithm/red-black-tree/red-black-tree.html">red-black tree</a>, <a href="../../datastructure-algorithm/b-tree/b-tree.html">B-tree</a>, <a href="../../datastructure-algorithm/bloom-filter/bloom-filter.html">Bloom filter</a>.</li>
+    <li><b>Algorithms:</b> <a href="../../datastructure-algorithm/quicksort/quicksort.html">quicksort</a> and <a href="../../datastructure-algorithm/merge-sort/merge-sort.html">merge sort</a>, including k-way merging of sorted feeds.</li>
+    <li><b>Systems:</b> <a href="../../datastructure-algorithm/timer-wheel/timer-wheel.html">timer wheel</a>, <a href="../../architecture/aeron/aeron-transport/aeron-transport.html">Aeron transport</a>, <a href="../../engineering/false-sharing/false-sharing.html">false sharing</a>.</li>
+    <li><b>Interviews:</b> pair this page with <a href="../probability-puzzles/probability-puzzles.html">probability puzzles</a>. Most quant interviews mix both.</li>
+    <li><b>Project:</b> the roadmap's limit order book. Start with the tick array above, add both sides and matching, then measure throughput and tail latency on a recorded or simulated feed.</li>
+  </ul>
+</section>
+
+</main>
+
+<script>
+(function () {
+  var NS = 'http://www.w3.org/2000/svg', P = 1200, seed = 42;
+  function el(name, attrs, text) {
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (text != null) e.textContent = text;
+    return e;
+  }
+  function rng(s) { return function () { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
+  function $(id) { return document.getElementById(id); }
+  function lg(n) { return Math.max(1, Math.ceil(Math.log2(n + 1))); }
+
+  // Price-level stores. Each counts elementary steps in this.cost.
+  // Sorted array, ascending, best bid at the end.
+  function SortedArray() { this.a = []; this.cost = 0; }
+  SortedArray.prototype.find = function (p) {
+    var lo = 0, hi = this.a.length;
+    while (lo < hi) { this.cost++; var m = (lo + hi) >> 1; if (this.a[m] < p) lo = m + 1; else hi = m; }
+    return lo;
+  };
+  SortedArray.prototype.touch = function (p) { this.find(p); };
+  SortedArray.prototype.addLevel = function (p) { var i = this.find(p); this.cost += this.a.length - i; this.a.splice(i, 0, p); };
+  SortedArray.prototype.removeLevel = function (p) { var i = this.find(p); this.cost += this.a.length - i - 1; this.a.splice(i, 1); };
+  SortedArray.prototype.best = function () { this.cost++; return this.a.length ? this.a[this.a.length - 1] : -1; };
+
+  // Max-heap of prices with lazy deletion; a hash map (alive) says which levels exist.
+  function LazyHeap() { this.h = []; this.alive = {}; this.cost = 0; }
+  LazyHeap.prototype.touch = function () { this.cost++; };
+  LazyHeap.prototype.push = function (p) {
+    var h = this.h, i = h.push(p) - 1; this.cost++;
+    while (i > 0) { var q = (i - 1) >> 1; this.cost++; if (h[q] >= h[i]) break; var t = h[q]; h[q] = h[i]; h[i] = t; i = q; }
+  };
+  LazyHeap.prototype.pop = function () {
+    var h = this.h, last = h.pop(); this.cost++;
+    if (h.length) {
+      h[0] = last; var i = 0;
+      for (;;) {
+        var l = 2 * i + 1, r = l + 1, m = i;
+        if (l < h.length) { this.cost++; if (h[l] > h[m]) m = l; }
+        if (r < h.length) { this.cost++; if (h[r] > h[m]) m = r; }
+        if (m === i) break; var t = h[m]; h[m] = h[i]; h[i] = t; i = m;
+      }
+    }
+  };
+  LazyHeap.prototype.addLevel = function (p) { this.cost++; this.alive[p] = (this.alive[p] || 0) + 1; this.push(p); };
+  LazyHeap.prototype.removeLevel = function (p) { this.cost++; this.alive[p]--; };
+  LazyHeap.prototype.best = function () {
+    this.cost++;
+    while (this.h.length && !(this.alive[this.h[0]] > 0)) this.pop();
+    // duplicates of a live price can exist after remove + re-add; drop extras lazily too
+    return this.h.length ? this.h[0] : -1;
+  };
+
+  // Balanced tree or skip list: cost model of one root-to-leaf path per change, cached best pointer.
+  function Tree() { this.n = 0; this.cost = 0; this.top = -1; this.set = {}; }
+  Tree.prototype.touch = function () { this.cost++; };
+  Tree.prototype.addLevel = function (p) { this.cost += lg(this.n); this.n++; this.set[p] = 1; if (p > this.top) this.top = p; };
+  Tree.prototype.removeLevel = function (p) {
+    this.cost += lg(this.n); this.n--; delete this.set[p];
+    if (p === this.top) { this.cost += 1; this.top = -1; for (var k in this.set) if (+k > this.top) this.top = +k; } // successor: O(1) amortized in a real tree
+  };
+  Tree.prototype.best = function () { this.cost++; return this.top; };
+
+  // Array indexed by tick, best pointer rescans downward when the best level empties.
+  function TickArray() { this.q = new Int32Array(P); this.top = -1; this.cost = 0; }
+  TickArray.prototype.touch = function () { this.cost++; };
+  TickArray.prototype.addLevel = function (p) { this.cost++; this.q[p] = 1; if (p > this.top) this.top = p; };
+  TickArray.prototype.removeLevel = function (p) {
+    this.cost++; this.q[p] = 0;
+    if (p === this.top) { while (this.top >= 0 && !this.q[this.top]) { this.top--; this.cost++; } }
+  };
+  TickArray.prototype.best = function () { this.cost++; return this.top; };
+
+  function simulate() {
+    var spread = +$('spread').value, N = +$('events').value, mkt = +$('mkt').value / 100, rand = rng(seed);
+    var stores = [new SortedArray(), new LazyHeap(), new Tree(), new TickArray()];
+    var qty = new Int32Array(P), live = [], mid = P / 2, levels = 0, maxLevels = 0, i;
+    function each(fn) { for (var s = 0; s < stores.length; s++) fn(stores[s]); }
+    function addOrder(p) {
+      if (qty[p] === 0) { levels++; each(function (s) { s.addLevel(p); }); } else each(function (s) { s.touch(p); });
+      qty[p]++; live.push(p);
+    }
+    function removeAt(k) {
+      var p = live[k]; live[k] = live[live.length - 1]; live.pop();
+      qty[p]--;
+      if (qty[p] === 0) { levels--; each(function (s) { s.removeLevel(p); }); } else each(function (s) { s.touch(p); });
+    }
+    // warm up with some resting orders
+    for (i = 0; i < 200; i++) addOrder(Math.max(0, Math.min(P - 1, Math.round(mid - 1 - (-Math.log(1 - rand())) * spread))));
+    each(function (s) { s.cost = 0; });
+    for (i = 0; i < N; i++) {
+      if (rand() < 0.05) mid = Math.max(spread * 3 + 2, Math.min(P - 2, mid + (rand() < 0.5 ? -1 : 1)));
+      var u = rand();
+      if (u < mkt && live.length) {
+        // market sell hits the best bid: everyone must find it
+        var b = -1; each(function (s) { var v = s.best(); if (b < 0) b = v; });
+        for (var k = live.length - 1; k >= 0; k--) if (live[k] === b) { removeAt(k); break; }
+      } else if (u < mkt + 0.35 && live.length) {
+        removeAt(Math.floor(rand() * live.length));      // cancel a random resting order
+      } else {
+        var p = Math.round(mid - 1 - (-Math.log(1 - rand())) * spread);
+        addOrder(Math.max(0, Math.min(P - 1, p)));
+      }
+      if (levels > maxLevels) maxLevels = levels;
+    }
+    return { stores: stores, qty: qty, N: N, levels: levels, maxLevels: maxLevels, orders: live.length, heapSize: stores[1].h.length };
+  }
+
+  var NAMES = ['Sorted array', 'Binary heap, lazy', 'Balanced tree', 'Tick array'];
+  var COLORS = ['#d9a03a', '#7b4fa0', '#2e5aa8', '#1f7a4d'];
+  function render() {
+    $('spread-out').textContent = $('spread').value; $('events-out').textContent = $('events').value; $('mkt-out').textContent = $('mkt').value + '%';
+    var r = simulate(), g = $('book-g'); g.textContent = '';
+    // depth view: top 30 occupied levels
+    var lv = []; for (var p = P - 1; p >= 0 && lv.length < 30; p--) if (r.qty[p]) lv.push([p, r.qty[p]]);
+    var mq = Math.max.apply(null, lv.map(function (x) { return x[1]; }).concat([1]));
+    g.appendChild(el('text', { x: 20, y: 22, 'font-family': "'Geist Mono',monospace", 'font-size': 11, fill: '#5a6580' }, 'bid levels, best on top'));
+    var best = lv.length ? lv[0][0] : 0;
+    lv.forEach(function (x, k) {
+      var y = 34 + k * 9.4;
+      g.appendChild(el('text', { x: 64, y: y + 7, 'text-anchor': 'end', 'font-family': "'Geist Mono',monospace", 'font-size': 8, fill: '#5a6580' }, k % 3 === 0 ? '−' + (best - x[0]) : ''));
+      g.appendChild(el('rect', { x: 70, y: y, width: Math.max(2, 230 * x[1] / mq), height: 7.4, rx: 1.5, fill: k === 0 ? '#bf4520' : '#5b7fc0' }));
+    });
+    g.appendChild(el('text', { x: 70, y: 326, 'font-family': "'Geist Mono',monospace", 'font-size': 10, fill: '#5a6580' }, 'ticks below best · bar = resting orders'));
+    // cost bars
+    var per = r.stores.map(function (s) { return s.cost / r.N; }), mx = Math.max.apply(null, per);
+    g.appendChild(el('text', { x: 360, y: 22, 'font-family': "'Geist Mono',monospace", 'font-size': 11, fill: '#5a6580' }, 'elementary steps per event'));
+    per.forEach(function (v, k) {
+      var y = 48 + k * 66, w = Math.max(3, 340 * v / mx), win = v === Math.min.apply(null, per);
+      g.appendChild(el('text', { x: 360, y: y, 'font-family': "'Geist',sans-serif", 'font-size': 14, 'font-weight': 600, fill: '#2d3142' }, NAMES[k]));
+      g.appendChild(el('rect', { x: 360, y: y + 8, width: w, height: 26, rx: 4, fill: COLORS[k], 'fill-opacity': win ? 1 : .75 }));
+      g.appendChild(el('text', { x: 368 + w, y: y + 26, 'font-family': "'Geist Mono',monospace", 'font-size': 13, 'font-weight': 600, fill: '#2d3142' }, v.toFixed(1) + (win ? '  lowest' : '')));
+    });
+    var lines = ['events          ' + r.N, 'price levels    ' + r.levels + ' now, ' + r.maxLevels + ' max', 'resting orders  ' + r.orders, 'heap entries    ' + r.heapSize + '  (incl. stale)', '', 'steps per event'];
+    per.forEach(function (v, k) { lines.push('  ' + (NAMES[k] + '                  ').slice(0, 18) + v.toFixed(2)); });
+    $('book-out').textContent = lines.join('\n');
+    var order = per.map(function (v, k) { return k; }).sort(function (a, b) { return per[a] - per[b]; });
+    $('book-live').textContent = 'fastest: ' + NAMES[order[0]] + ' · slowest: ' + NAMES[order[3]];
+  }
+  ['spread', 'events', 'mkt'].forEach(function (id) { $(id).addEventListener('input', render); });
+  $('rerun').addEventListener('click', function () { seed = 1 + Math.floor(Math.random() * 1e6); render(); });
+  render();
+})();
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  renderMathInElement(document.body, {
+    delimiters: [
+      { left: '$$', right: '$$', display: true },
+      { left: '$', right: '$', display: false }
+    ],
+    ignoredTags: ['script', 'style', 'textarea', 'pre', 'code'],
+    throwOnError: false
+  });
+});
+</script>
+</body>
+</html>

@@ -1423,6 +1423,18 @@ const DOCS = [
     summary: 'Five common leaks turn a random walk into a winning strategy: full-sample z-scores, off-by-one alignment, centered smoothing, selection on all data and mis-dated releases. See each one, then the point-in-time fix.',
     related: ['Walk-Forward and Purged Cross-Validation', 'Backtesting Without Look-Ahead', 'Stationarity and Autocorrelation', 'Gradient Boosting'],
   },
+  {
+    title: 'Data Structures and Algorithms for Quants',
+    path: 'content/quant/data-structures-algorithms/data-structures-algorithms.html',
+    category: 'Quant',
+    topic: 'Engineering and interviews',
+    order: 25,
+    also: [{ category: 'Algorithms', topic: 'Applications', order: 9 }],
+    level: 'Intermediate',
+    tags: ['data structures', 'algorithms', 'order book', 'complexity', 'streaming', 'interview', 'latency', 'hash map'],
+    summary: 'Run one order stream through four order book designs and count the work each does. Then the streaming statistics, hash maps, ring buffers and interview patterns that trading code is built on.',
+    related: ['Heap', 'Skip List', 'Red-Black Tree', 'Timer Wheel', 'Probability Puzzles'],
+  },
 ];
 
 // ---------- helpers ----------
