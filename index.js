@@ -1355,6 +1355,17 @@ const DOCS = [
     summary: 'Measure how much a portfolio can lose: one-day Value at Risk, the expected shortfall beyond it, and the worst peak-to-trough drawdown of the equity curve. Switch to fat tails and see the normal model underestimate the damage.',
     related: ['ARMA and GARCH', 'Mean-Variance Portfolios', 'Expectation, Variance and Covariance', 'Backtesting Without Look-Ahead'],
   },
+  {
+    title: 'Backtesting Without Look-Ahead',
+    path: 'content/quant/backtesting/backtesting.html',
+    category: 'Quant',
+    topic: 'Time series and portfolios',
+    order: 19,
+    level: 'Intermediate',
+    tags: ['backtesting', 'look-ahead bias', 'overfitting', 'out-of-sample', 'trading strategy', 'data snooping', 'moving average', 'sharpe ratio'],
+    summary: 'Backtest a moving-average strategy on prices with no edge at all. Use today\'s close to trade today\'s return and it looks brilliant. Tune the window on the whole sample and it still looks good, until you check the data you did not tune on.',
+    related: ['Hypothesis Tests and p-values', 'Transaction Costs and Slippage', 'Walk-Forward and Purged Cross-Validation', 'Feature Engineering and Leakage'],
+  },
 ];
 
 // ---------- helpers ----------
