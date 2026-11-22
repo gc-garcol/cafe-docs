@@ -1207,6 +1207,17 @@ const DOCS = [
     summary: 'Grow one dollar with yearly, monthly and continuous compounding, discount future cash back to today, and see why +50% then -50% leaves you down 25%: the volatility drag on compounded returns.',
     related: ['Expectation, Variance and Covariance', 'No-Arbitrage and Put-Call Parity', 'Random Walks and Brownian Motion', 'Itô\'s Lemma'],
   },
+  {
+    title: 'Futures, Forwards and Option Payoffs',
+    path: 'content/quant/option-payoffs/option-payoffs.html',
+    category: 'Quant',
+    topic: 'Markets and derivatives',
+    order: 7,
+    level: 'Beginner',
+    tags: ['options', 'futures', 'forwards', 'payoff', 'call', 'put', 'option strategies', 'derivatives'],
+    summary: 'Build positions from calls, puts, forwards and stock, and read the payoff at expiry. Load spreads, straddles and covered calls, then edit the legs and watch the breakevens move.',
+    related: ['Returns, Compounding and Time Value', 'No-Arbitrage and Put-Call Parity', 'Black-Scholes and the Greeks'],
+  },
 ];
 
 // ---------- helpers ----------
