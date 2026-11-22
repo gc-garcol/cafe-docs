@@ -7,6 +7,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
 <style>
 :root{
   --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
@@ -75,6 +78,23 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
 
 
 .doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}.doc-tags a{font:500 12px "Geist Mono",ui-monospace,monospace;padding:4px 10px;border:1px solid var(--rule-solid,#bfc0c0);border-radius:4px;background:#fff;color:var(--muted,#4f5d75);text-decoration:none}.doc-tags a:hover{border-color:var(--ink,#2d3142);color:var(--ink,#2d3142)}.doc-tags a:focus-visible{outline:2px solid var(--accent,#bf4520);outline-offset:2px}
+.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;text-align:center;overflow-x:auto}
+.formula .katex{font-size:1.25em}
+.katex{color:var(--ink)}
+p .katex,td .katex,li .katex{font-size:1.05em}
+.stat .big .katex{font-size:.8em}
+.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--ink);border-radius:6px;overflow:hidden}
+.seg button{min-height:36px;padding:0 12px;border:0;border-right:1px solid var(--rule-solid);background:transparent;color:var(--ink);font:500 13px var(--sans);cursor:pointer}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.seg button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.lab-label{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);min-width:84px}
+.lab-out{margin:0;padding:0;border:0;background:none;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+.two pre{margin:0}
+.two h3,.panel h3{font-family:var(--serif);font-weight:400;font-size:22px;margin:0 0 8px}
+.after{margin-top:16px}
+@media (max-width:860px){.two{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -86,7 +106,7 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
 <header>
   <div class="eyebrow">Algorithms · Sorting</div>
   <h1>Merge sort</h1>
-  <p class="lede">Split the array in half, sort each half, then merge the two sorted halves into one. Every level of splitting costs one pass, so the total is O(n log n) in every case.</p>
+  <p class="lede">Split the array in half, sort each half, then merge the two sorted halves into one. Every level of splitting costs one pass, so the total is $O(n \log n)$ in every case.</p>
   
   
   
@@ -106,7 +126,7 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
         <g id="bars"></g>
       </svg>
     </div>
-    <div class="card-bottom"><span class="hint">O(n log n) always · O(n) extra space · stable</span><span class="live" id="live"></span></div>
+    <div class="card-bottom"><span class="hint">$O(n \log n)$ always · $O(n)$ extra space · stable</span><span class="live" id="live"></span></div>
   </figure>
 
   <div class="controls">
@@ -133,7 +153,7 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
 <section>
   <h2>1. The idea</h2>
   <p>Merging two sorted lists is easy and fast. Look at the front of each list, take the smaller item, repeat. That takes one pass. Merge sort uses this by turning sorting into a lot of merging.</p>
-  <p>A single item is already sorted. So split until each piece has one item, then merge pieces back up. Each level of the recursion merges <code>n</code> items in total.</p>
+  <p>A single item is already sorted. So split until each piece has one item, then merge pieces back up. Each level of the recursion merges $n$ items in total.</p>
   <p class="callout">Sorting is hard. Merging two sorted lists is not. Reduce the first to the second.</p>
 </section>
 
@@ -156,41 +176,170 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
   <span class="k">while</span> (i &lt; L.length) a[k++] = L[i++];
   <span class="k">while</span> (j &lt; R.length) a[k++] = R[j++];
 }</pre>
-  <p>Copy both halves first, then write back into the original array. Copying is why merge sort needs <code>O(n)</code> extra space.</p>
+  <p>Copy both halves first, then write back into the original array. Copying is why merge sort needs $O(n)$ extra space. Merging runs of length $p$ and $q$ writes exactly $p+q$ items and needs at most $p+q-1$ comparisons: every comparison outputs one item, and the last item is copied for free. If one run is entirely smaller than the other, only $\min(p,q)$ comparisons are needed.</p>
 </section>
 
 <section>
-  <h2>3. Why it is stable</h2>
-  <p>When two items are equal, the merge takes from the <b>left</b> half first (<code>&lt;=</code>, not <code>&lt;</code>). Items that were earlier in the input stay earlier in the output. This matters when you sort records by one field and want a previous order kept for ties, for example sorting by date and then by name.</p>
+  <h2>3. Why it is always n log n</h2>
+  <p>Let $T(n)$ be the work to sort $n$ items. Two half-size sorts, then a linear merge:</p>
+  <div class="formula">$$T(n) = 2\,T\!\left(\tfrac{n}{2}\right) + cn, \qquad T(1) = 0$$</div>
+  <p>Draw the recursion as a tree. The root merges $n$ items. Its two children merge $n/2$ each, which is $n$ again. Every level adds up to $cn$, and halving reaches size one after $\log_2 n$ levels:</p>
+  <div class="formula">$$T(n) = \underbrace{cn + cn + \dots + cn}_{\log_2 n \text{ levels}} = cn\log_2 n = \Theta(n \log n)$$</div>
+  <p>Unlike <a href="../quicksort/quicksort.html">quicksort</a>, the split never depends on the data. The halves are always equal, so there is no bad input. The worst case for comparisons is reached when every merge goes to the last item, and it has an exact formula:</p>
+  <div class="formula">$$W(n) = n\lceil \log_2 n \rceil - 2^{\lceil \log_2 n \rceil} + 1$$</div>
+  <p>For $n = 16$ this is $16 \cdot 4 - 16 + 1 = 49$ comparisons.</p>
+
+  <h2 style="margin-top:40px;font-size:26px">Close to the limit</h2>
+  <p>Any sort that only compares items must tell apart all $n!$ orders of the input. Each comparison has two outcomes, so $k$ comparisons can separate at most $2^k$ orders. That forces</p>
+  <div class="formula">$$k \;\ge\; \log_2 n! \;=\; n\log_2 n - n\log_2 e + O(\log n) \;\approx\; n\log_2 n - 1.44\,n$$</div>
+  <p>For 16 items the bound is $\lceil \log_2 16! \rceil = 45$, and merge sort's worst case is 49. Merge sort is within a small linear term of the best any comparison sort can do, which is why it is the textbook proof that $\Theta(n\log n)$ is achievable.</p>
 </section>
 
 <section>
-  <h2>4. Cost</h2>
+  <h2>4. Why it is stable</h2>
+  <p>When two items are equal, the merge takes from the <b>left</b> half first (<code>&lt;=</code>, not <code>&lt;</code>). The left half holds items that came earlier in the input, so earlier stays earlier in the output.</p>
+  <p>This matters for multi-key sorts. Sort orders by customer, then stable-sort by date: orders on the same date stay grouped by customer. With <code>&lt;</code> instead of <code>&lt;=</code> the sort is still correct, but no longer stable. It is a one-character bug that no test with distinct keys catches.</p>
+</section>
+
+<section>
+  <h2>5. Bottom-up: no recursion</h2>
+  <p>The top-down version splits first and merges on the way back. You can skip the splitting entirely. Treat each item as a run of length 1, merge neighbors into runs of length 2, then 4, then 8, until one run is left.</p>
+  <pre><span class="k">function</span> mergeSortBottomUp(a) {
+  <span class="k">const</span> n = a.length;
+  <span class="k">for</span> (<span class="k">let</span> width = 1; width &lt; n; width *= 2) {          <span class="c">// one pass per width</span>
+    <span class="k">for</span> (<span class="k">let</span> lo = 0; lo &lt; n - width; lo += 2 * width) {
+      <span class="k">const</span> mid = lo + width - 1;
+      <span class="k">const</span> hi = Math.min(lo + 2 * width - 1, n - 1);
+      merge(a, lo, mid, hi);
+    }
+  }
+}</pre>
+  <p>It does $\lceil \log_2 n \rceil$ passes over the array, needs no stack, and every pass is a sequential sweep. That shape is what tape drives, disk files and GPU kernels like.</p>
+</section>
+
+<section>
+  <h2>6. Merge lab</h2>
+  <p>Each row is one pass. Boxes are sorted runs, and the next row merges neighboring boxes. <b>Fixed widths</b> is the bottom-up sort above. <b>Natural runs</b> first scans the input for runs that are already ascending, and reverses strictly descending runs, then merges those. That is the core idea of Timsort.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 2</span><span class="card-title">Passes of a merge sort on 16 items</span></div>
+    <div class="scroll">
+      <svg id="lab" width="880" height="330" viewBox="0 0 880 330" style="min-width:880px" role="img" aria-labelledby="lab-title lab-desc">
+        <title id="lab-title">Merge passes, one row per pass</title>
+        <desc id="lab-desc">The top row is the input split into initial runs. Each lower row shows the array after one merge pass, with a box around each sorted run and the comparisons used by that pass on the right.</desc>
+        <g id="lab-g"></g>
+      </svg>
+    </div>
+    <div class="card-bottom"><span class="hint">box = sorted run · right column = comparisons in that pass</span><span class="live" id="lab-live"></span></div>
+  </figure>
+
+  <div class="controls">
+    <div class="panel">
+      <div class="row"><span class="lab-label">Input</span>
+        <div class="seg" role="group" aria-label="Input" data-key="input">
+          <button type="button" data-v="random" aria-pressed="true">Random</button><button type="button" data-v="nearly" aria-pressed="false">Nearly sorted</button><button type="button" data-v="reversed" aria-pressed="false">Reversed</button><button type="button" data-v="sorted" aria-pressed="false">Sorted</button>
+        </div>
+      </div>
+      <div class="row"><span class="lab-label">Runs</span>
+        <div class="seg" role="group" aria-label="Run strategy" data-key="mode">
+          <button type="button" data-v="fixed" aria-pressed="true">Fixed widths</button><button type="button" data-v="natural" aria-pressed="false">Natural runs</button>
+        </div>
+      </div>
+      <div class="row"><button type="button" class="btn" id="reroll">New random draw</button></div>
+    </div>
+    <div class="panel"><pre class="lab-out" id="lab-out" aria-live="polite"></pre></div>
+  </div>
+  <p class="after">Things to try. With <b>Fixed widths</b>, every input takes 4 passes, and even <b>Sorted</b> spends 32 comparisons, one per item per pass for half the items. Switch to <b>Natural runs</b>: sorted and reversed inputs become one run after 15 scan comparisons and need no merge at all, and a nearly sorted input needs one or two passes.</p>
+</section>
+
+<section>
+  <h2>7. Merging many runs at once</h2>
+  <p>A two-way merge halves the number of runs per pass. A $k$-way merge reads the heads of $k$ runs and keeps them in a <a href="../heap/heap.html">min-heap</a>. Each output item costs one heap pop and one push, so merging $n$ items from $k$ runs costs $O(n \log k)$.</p>
+  <p>This is how databases sort data that does not fit in memory. With $N$ records and memory for $M$, first sort $\lceil N/M \rceil$ chunks in memory and write them out as runs. Then merge $k$ runs at a time:</p>
+  <div class="formula">$$\text{passes over the data} = 1 + \left\lceil \log_k \frac{N}{M} \right\rceil$$</div>
+  <p>Sorting 1 TB with 10 GB of memory gives 100 runs. A 100-way merge finishes in one more pass, so the whole sort reads and writes the data only twice. The cost is dominated by sequential disk I/O, which is exactly the access pattern merge sort has.</p>
+</section>
+
+<section>
+  <h2>8. Linked lists and in-place merging</h2>
+  <p>On a linked list, merging needs no buffer: relink the nodes instead of copying them. The extra space is only the recursion, $O(\log n)$, or $O(1)$ with the bottom-up version. Merge sort is the standard way to sort a linked list, because quicksort and heapsort both want random access.</p>
+  <pre><span class="k">function</span> mergeLists(a, b) {
+  <span class="k">const</span> head = { next: <span class="k">null</span> };
+  <span class="k">let</span> tail = head;
+  <span class="k">while</span> (a &amp;&amp; b) {
+    <span class="k">if</span> (a.val &lt;= b.val) { tail.next = a; a = a.next; }
+    <span class="k">else</span>                { tail.next = b; b = b.next; }
+    tail = tail.next;
+  }
+  tail.next = a || b;     <span class="c">// append what is left, no copying</span>
+  <span class="k">return</span> head.next;
+}</pre>
+  <p>On arrays, in-place stable merging exists but it is complicated. Block merge sorts and rotation-based merges reach $O(1)$ extra space, at the price of more moves and much harder code. Most libraries accept a buffer of $n/2$ items instead: copy only the left half out, then merge into the original array from the left.</p>
+</section>
+
+<section>
+  <h2>9. Counting inversions for free</h2>
+  <p>An inversion is a pair $i < j$ with $a[i] > a[j]$. It measures how unsorted an array is, from $0$ for sorted to $\binom{n}{2}$ for reversed. Counting them pair by pair is $O(n^2)$, but the merge step sees them in bulk. When an item is taken from the right half, it jumps ahead of every item still waiting in the left half, and each of those is one inversion.</p>
+  <pre><span class="k">while</span> (i &lt; L.length &amp;&amp; j &lt; R.length) {
+  <span class="k">if</span> (L[i] &lt;= R[j]) a[k++] = L[i++];
+  <span class="k">else</span> { a[k++] = R[j++]; inversions += L.length - i; }
+}</pre>
+  <p>The total is $O(n \log n)$. The same trick computes Kendall's tau, a rank correlation used to compare two rankings, for example two search engines' results.</p>
+</section>
+
+<section>
+  <h2>10. Merge sort in production: Timsort</h2>
+  <p>Real data is rarely random. It has sorted stretches, appended tails and reversed blocks. Timsort, written by Tim Peters for Python in 2002, is a merge sort tuned for that.</p>
+  <ul class="tight">
+    <li><b>Find natural runs.</b> Scan for ascending runs, and reverse strictly descending ones (strictly, so equal items keep their order).</li>
+    <li><b>Minimum run length.</b> Runs shorter than a "minrun" of 32 to 64 items are extended with binary insertion sort, which is fast on small ranges.</li>
+    <li><b>A merge policy.</b> Runs go on a stack, and rules on their lengths decide which neighbors to merge, so merges stay balanced. Python 3.11 replaced the original rules with Powersort, which has provably near-optimal merge costs.</li>
+    <li><b>Galloping.</b> When one run keeps winning, switch to exponential search to find how many items to copy in one block. Merging a short run into a long one costs about $O(\log n)$ comparisons instead of $O(n)$.</li>
+  </ul>
+  <p>On already sorted input, Timsort does $n-1$ comparisons and no moves. Python's <code>sorted</code>, Java's <code>Arrays.sort</code> for objects, Android and V8's <code>Array.prototype.sort</code> all use Timsort or a close relative.</p>
+</section>
+
+<section>
+  <h2>11. Cost</h2>
   <div class="cards">
-    <div class="stat focal"><div class="eyebrow">Time</div><div class="big">O(n log n)</div><p>Best, average and worst.</p></div>
-    <div class="stat"><div class="eyebrow">Depth</div><div class="big">log₂ n</div><p>Halving until one item is left.</p></div>
-    <div class="stat"><div class="eyebrow">Extra space</div><div class="big">O(n)</div><p>The copies made during merges.</p></div>
+    <div class="stat focal"><div class="eyebrow">Time</div><div class="big">$\Theta(n \log n)$</div><p>Best, average and worst for the plain version. Timsort is $O(n)$ on sorted input.</p></div>
+    <div class="stat"><div class="eyebrow">Depth</div><div class="big">$\lceil \log_2 n \rceil$</div><p>Halving until one item is left.</p></div>
+    <div class="stat"><div class="eyebrow">Extra space</div><div class="big">$O(n)$</div><p>The merge buffer. $O(1)$ on linked lists.</p></div>
   </div>
   <table class="ops">
-    <thead><tr><th>Property</th><th>Merge sort</th></tr></thead>
+    <thead><tr><th>Property</th><th>Merge sort</th><th><a href="../quicksort/quicksort.html">Quicksort</a></th></tr></thead>
     <tbody>
-      <tr><td>Stable</td><td>Yes</td></tr>
-      <tr><td>In place</td><td>No, needs a buffer</td></tr>
-      <tr><td>Worst case</td><td>Same as average, <code>O(n log n)</code></td></tr>
-      <tr><td>Access pattern</td><td>Sequential, good for disks and linked lists</td></tr>
-      <tr><td>Parallel</td><td>Easy: the two halves are independent</td></tr>
+      <tr><td>Stable</td><td>Yes</td><td>No</td></tr>
+      <tr><td>In place</td><td>No, needs a buffer</td><td>Yes</td></tr>
+      <tr><td>Worst case</td><td>$O(n \log n)$</td><td>$O(n^2)$ without introsort</td></tr>
+      <tr><td>Comparisons, random input</td><td>about $n\log_2 n - 1.26n$</td><td>about $1.39\,n\log_2 n$</td></tr>
+      <tr><td>Access pattern</td><td>Sequential, good for disks and linked lists</td><td>Sequential, but needs random access to swap</td></tr>
+      <tr><td>Parallel</td><td>Easy: the two halves are independent</td><td>Easy after the first partition</td></tr>
     </tbody>
   </table>
+  <p>Merge sort does fewer comparisons than quicksort, but moves every item on every level. When comparisons are expensive, as with strings or user-supplied comparators, merge sort tends to win. When items are small numbers, quicksort usually does.</p>
 </section>
 
 <section>
-  <h2>5. Where it shows up</h2>
+  <h2>12. Common mistakes</h2>
+  <ul class="tight">
+    <li><b>Using <code>&lt;</code> in the merge.</b> Still sorted, but not stable.</li>
+    <li><b>Allocating a new buffer in every call.</b> Thousands of small allocations dominate the run time. Allocate one buffer of size $n$ once and pass it down.</li>
+    <li><b>Recursing down to one item.</b> Below about 16 items, insertion sort is faster. Every practical merge sort stops early.</li>
+    <li><b>Skipping the sorted check.</b> If <code>a[mid] &lt;= a[mid + 1]</code>, the two halves are already in order and the merge can be skipped. One comparison makes sorted input linear.</li>
+    <li><b>Overflow in <code>(lo + hi) / 2</code></b> with fixed-width integers. Use <code>lo + (hi - lo) / 2</code>. This exact bug sat in Java's binary search and merge sort for years.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>13. Where it shows up</h2>
   <ul class="tight">
     <li><b>Stable sorting:</b> many standard libraries use a merge sort variant, such as Timsort, for sorting objects.</li>
-    <li><b>External sorting:</b> sort chunks that fit in memory, then merge them from disk. A <a href="../heap/heap.html">heap</a> can pick the smallest head among many chunks.</li>
+    <li><b>External sorting:</b> databases and tools like Unix <code>sort</code> sort chunks that fit in memory, then merge them from disk. A <a href="../heap/heap.html">heap</a> picks the smallest head among many chunks.</li>
+    <li><b>LSM trees:</b> <a href="../lsm-tree/lsm-tree.html">compaction</a> is a k-way merge of sorted files.</li>
     <li><b>Linked lists:</b> merge sort needs no random access and no extra buffer there.</li>
-    <li><b>Counting inversions:</b> count how many items jump ahead during the merge step.</li>
-    <li><b>Compare with <a href="../quicksort/quicksort.html">quicksort</a>:</b> quicksort is in place and often faster in memory, but merge sort has a guaranteed bound and is stable.</li>
+    <li><b>Counting inversions</b> and rank correlation, during the merge step.</li>
+    <li><b>Parallel and distributed sorting:</b> sort parts on separate cores or machines, then merge. MapReduce's shuffle phase is a big merge.</li>
   </ul>
 </section>
 
@@ -292,6 +441,125 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
 
   load([62, 17, 85, 34, 91, 48, 23, 70, 56, 12, 39, 77]);
 })();
+</script>
+<script>
+(function () {
+  var N = 16, NS = 'http://www.w3.org/2000/svg';
+  var state = { input: 'random', mode: 'fixed' }, seed = 7;
+
+  function el(name, attrs, text) {
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (text != null) e.textContent = text;
+    return e;
+  }
+  function rng(s) { return function () { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
+
+  function makeInput(kind, rand) {
+    // 16 distinct two-digit values in ascending order, then arranged by kind.
+    var pool = [], a = [], i, j, t;
+    for (i = 10; i < 100; i++) pool.push(i);
+    for (i = 0; i < N; i++) { j = i + Math.floor(rand() * (pool.length - i)); t = pool[i]; pool[i] = pool[j]; pool[j] = t; a.push(pool[i]); }
+    if (kind === 'random') return a;
+    a.sort(function (x, y) { return x - y; });
+    if (kind === 'reversed') return a.reverse();
+    if (kind === 'nearly') {
+      // Two non-overlapping adjacent swaps.
+      [1 + Math.floor(rand() * 6), 9 + Math.floor(rand() * 5)].forEach(function (p) { t = a[p]; a[p] = a[p + 1]; a[p + 1] = t; });
+    }
+    return a;
+  }
+
+  function mergeRuns(x, y) {
+    var out = [], i = 0, j = 0, c = 0;
+    while (i < x.length && j < y.length) { c++; out.push(x[i] <= y[j] ? x[i++] : y[j++]); }
+    return { run: out.concat(x.slice(i), y.slice(j)), c: c };
+  }
+
+  function simulate() {
+    var a = makeInput(state.input, rng(seed)), runs = [], scan = 0, i;
+    if (state.mode === 'fixed') {
+      for (i = 0; i < N; i++) runs.push([a[i]]);
+    } else {
+      i = 0;
+      while (i < N) {
+        var j = i + 1;
+        if (j < N) {
+          scan++;
+          if (a[j] < a[i]) { // strictly descending run, reversed later
+            while (j + 1 < N) { scan++; if (a[j + 1] < a[j]) j++; else break; }
+            runs.push(a.slice(i, j + 1).reverse()); i = j + 1; continue;
+          }
+          while (j + 1 < N) { scan++; if (a[j + 1] >= a[j]) j++; else break; }
+        }
+        runs.push(a.slice(i, j + 1)); i = j + 1;
+      }
+    }
+    var rows = [{ runs: runs, c: scan, label: state.mode === 'fixed' ? 'input' : 'runs' }], total = scan, pass = 0;
+    while (runs.length > 1) {
+      var next = [], c = 0;
+      for (i = 0; i < runs.length; i += 2) {
+        if (i + 1 < runs.length) { var m = mergeRuns(runs[i], runs[i + 1]); next.push(m.run); c += m.c; }
+        else next.push(runs[i]);
+      }
+      runs = next; total += c; pass++;
+      rows.push({ runs: runs, c: c, label: 'pass ' + pass });
+    }
+    return { input: a, rows: rows, total: total, scan: scan, passes: pass, initRuns: rows[0].runs.length };
+  }
+
+  function render() {
+    var r = simulate(), g = document.getElementById('lab-g');
+    g.textContent = '';
+    var x0 = 76, cw = 45, rh = 62, top = 14;
+    r.rows.forEach(function (row, d) {
+      var y = top + d * rh, k = 0;
+      g.appendChild(el('text', { x: 16, y: y + 27, 'font-family': "'Geist Mono',monospace", 'font-size': 11, fill: '#5a6580' }, row.label));
+      row.runs.forEach(function (run) {
+        var last = d === r.rows.length - 1;
+        g.appendChild(el('rect', { x: x0 + k * cw + 2, y: y, width: run.length * cw - 4, height: 40, rx: 6, fill: last ? 'rgba(31,122,77,.10)' : 'rgba(46,90,168,.06)', stroke: last ? '#1f7a4d' : 'rgba(46,90,168,.6)', 'stroke-width': 1.5 }));
+        run.forEach(function (v, q) {
+          g.appendChild(el('text', { x: x0 + (k + q) * cw + cw / 2, y: y + 25, 'text-anchor': 'middle', 'font-family': "'Geist',sans-serif", 'font-size': 13, 'font-weight': 600, fill: '#2d3142' }, v));
+        });
+        k += run.length;
+      });
+      g.appendChild(el('text', { x: 866, y: y + 25, 'text-anchor': 'end', 'font-family': "'Geist Mono',monospace", 'font-size': 12, 'font-weight': 600, fill: d === 0 ? '#5a6580' : '#bf4520' }, d === 0 ? (row.c ? row.c + ' scan' : '') : row.c + ' cmp'));
+      if (d < r.rows.length - 1) g.appendChild(el('line', { x1: x0, x2: x0 + N * cw, y1: y + 51, y2: y + 51, stroke: 'rgba(45,49,66,.12)' }));
+    });
+    var bound = 45, worst = 49;
+    document.getElementById('lab-out').textContent =
+      'initial runs   ' + r.initRuns + '\n' +
+      'merge passes   ' + r.passes + '\n' +
+      'comparisons    ' + r.total + (r.scan ? '  (' + r.scan + ' to find runs)' : '') + '\n\n' +
+      '  n log2 n          64\n' +
+      '  worst case W(16)  ' + worst + '\n' +
+      '  ceil(log2 16!)    ' + bound + '  (worst-case lower bound)';
+    document.getElementById('lab-live').textContent = r.passes + ' passes · ' + r.total + ' comparisons';
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll('.seg'), function (seg) {
+    seg.addEventListener('click', function (e) {
+      var b = e.target.closest('button'); if (!b) return;
+      Array.prototype.forEach.call(seg.querySelectorAll('button'), function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+      state[seg.getAttribute('data-key')] = b.getAttribute('data-v');
+      render();
+    });
+  });
+  document.getElementById('reroll').addEventListener('click', function () { seed = 1 + Math.floor(Math.random() * 1e6); render(); });
+  render();
+})();
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  renderMathInElement(document.body, {
+    delimiters: [
+      { left: '$$', right: '$$', display: true },
+      { left: '$', right: '$', display: false }
+    ],
+    ignoredTags: ['script', 'style', 'textarea', 'pre', 'code'],
+    throwOnError: false
+  });
+});
 </script>
 </body>
 </html>
