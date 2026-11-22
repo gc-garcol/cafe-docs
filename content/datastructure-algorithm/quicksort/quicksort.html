@@ -7,6 +7,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
 <style>
 :root{
   --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
@@ -68,6 +71,21 @@ table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px so
 table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
 table.ops tr:last-child td{border-bottom:0}
 ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
+.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;text-align:center;overflow-x:auto}
+.formula .katex{font-size:1.25em}
+.katex{color:var(--ink)}
+p .katex,td .katex,li .katex{font-size:1.05em}
+.stat .big .katex{font-size:.8em}
+.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--ink);border-radius:6px;overflow:hidden}
+.seg button{min-height:36px;padding:0 12px;border:0;border-right:1px solid var(--rule-solid);background:transparent;color:var(--ink);font:500 13px var(--sans);cursor:pointer}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.lab-label{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);min-width:84px}
+.lab-out{margin:0;padding:0;border:0;background:none;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+.two pre{margin:0}
+.two h3,.panel h3{font-family:var(--serif);font-weight:400;font-size:22px;margin:0 0 8px}
+@media (max-width:860px){.two{grid-template-columns:1fr}}
 
 @media (max-width:860px){.controls{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
 @media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
@@ -106,7 +124,7 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
         <g id="bars"></g>
       </svg>
     </div>
-    <div class="card-bottom"><span class="hint">Average O(n log n) · worst case O(n²)</span><span class="live" id="live"></span></div>
+    <div class="card-bottom"><span class="hint">Average $O(n \log n)$ · worst case $O(n^2)$</span><span class="live" id="live"></span></div>
   </figure>
 
   <div class="controls">
@@ -159,26 +177,179 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
   quicksort(a, lo, p - 1);
   quicksort(a, p + 1, hi);
 }</pre>
-  <p>Partitioning takes one pass, so it costs <code>O(n)</code> for a range of size <code>n</code>.</p>
+  <p>Partitioning takes one pass, so it costs $\Theta(n)$ for a range of size $n$: exactly $n-1$ comparisons with the pivot. While <code>j</code> scans, the range is always split into four zones:</p>
+  <div class="formula">$$\underbrace{a[lo..i]}_{<\ \text{pivot}}\quad \underbrace{a[i{+}1..j{-}1]}_{\ge\ \text{pivot}}\quad \underbrace{a[j..hi{-}1]}_{\text{not seen yet}}\quad \underbrace{a[hi]}_{\text{pivot}}$$</div>
+  <p>This is the loop invariant. It is true before the first comparison (the first two zones are empty), each step keeps it true, and when <code>j</code> reaches <code>hi</code> the "not seen" zone is empty. One last swap puts the pivot between the two remaining zones, which is exactly its sorted position.</p>
 </section>
 
 <section>
-  <h2>3. Why the pivot matters</h2>
-  <p>If each pivot splits the range roughly in half, the recursion is <code>log₂ n</code> levels deep and each level does <code>O(n)</code> work. That gives <code>O(n log n)</code>.</p>
-  <p>If the pivot is always the smallest or largest item, one side is empty and the other has <code>n - 1</code> items. The depth becomes <code>n</code> and the total is <code>O(n²)</code>. Press <b>Sorted array (worst case)</b>: with the last item as pivot, an already sorted input does exactly this.</p>
+  <h2>3. Hoare's original partition</h2>
+  <p>Lomuto is the easiest to read, but Tony Hoare's 1961 scheme is what fast libraries build on. Two indexes walk toward each other. The left one stops on an item that is too big, the right one stops on an item that is too small, and the pair is swapped. It does about three times fewer swaps than Lomuto on random input, and it splits a range of equal items in the middle instead of sending them all to one side.</p>
+  <div class="two">
+    <div>
+      <h3>Lomuto</h3>
+      <pre><span class="c">// one index scans, pivot = last</span>
+<span class="k">let</span> i = lo - 1;
+<span class="k">for</span> (<span class="k">let</span> j = lo; j &lt; hi; j++)
+  <span class="k">if</span> (a[j] &lt; pivot) swap(a, ++i, j);
+swap(a, i + 1, hi);
+<span class="k">return</span> i + 1;      <span class="c">// pivot is final here</span></pre>
+    </div>
+    <div>
+      <h3>Hoare</h3>
+      <pre><span class="c">// two indexes meet, pivot = middle</span>
+<span class="k">let</span> i = lo - 1, j = hi + 1;
+<span class="k">while</span> (<span class="k">true</span>) {
+  <span class="k">do</span> i++; <span class="k">while</span> (a[i] &lt; pivot);
+  <span class="k">do</span> j--; <span class="k">while</span> (a[j] &gt; pivot);
+  <span class="k">if</span> (i &gt;= j) <span class="k">return</span> j;   <span class="c">// split point</span>
+  swap(a, i, j);
+}</pre>
+    </div>
+  </div>
+  <p>One difference matters when you write the recursion. Hoare returns a split point, not the pivot's final index, so the calls are <code>quicksort(a, lo, j)</code> and <code>quicksort(a, j + 1, hi)</code>. Using <code>j - 1</code> as with Lomuto loses items or loops forever.</p>
+</section>
+
+<section>
+  <h2>4. Why the pivot matters</h2>
+  <p>Let $T(n)$ be the time to sort $n$ items. One partition costs $cn$, then two recursive calls follow, of sizes $k$ and $n-1-k$ where $k$ is the pivot's rank:</p>
+  <div class="formula">$$T(n) = T(k) + T(n-1-k) + cn$$</div>
+  <p>The value of $k$ decides everything.</p>
+  <table class="ops">
+    <thead><tr><th>Case</th><th>Split</th><th>Recurrence</th><th>Result</th></tr></thead>
+    <tbody>
+      <tr><td>Best</td><td>Always in half</td><td>$T(n) = 2T(n/2) + cn$</td><td>$\Theta(n \log n)$</td></tr>
+      <tr><td>Lopsided but fixed</td><td>Always 1 : 9</td><td>$T(n) = T(\tfrac{n}{10}) + T(\tfrac{9n}{10}) + cn$</td><td>$\Theta(n \log n)$</td></tr>
+      <tr><td>Worst</td><td>Pivot is an extreme</td><td>$T(n) = T(n-1) + cn$</td><td>$\Theta(n^2)$</td></tr>
+    </tbody>
+  </table>
+  <p>The middle row is the surprising one. Even a 1 : 9 split every time keeps the depth at $\log_{10/9} n$, which is still logarithmic. Quicksort does not need good pivots, only pivots that are not terrible most of the time. The worst case needs the pivot to be the smallest or largest item again and again, and then the comparisons add up to</p>
+  <div class="formula">$$(n-1) + (n-2) + \dots + 1 = \frac{n(n-1)}{2}$$</div>
+  <p>With the last item as pivot, an already sorted input does exactly this. Press <b>Sorted array (worst case)</b> in Fig 1 to watch it.</p>
+
+  <h2 style="margin-top:40px;font-size:26px">The average case, exactly</h2>
+  <p>If the input is in random order, every rank $k$ is equally likely for the pivot. Averaging the recurrence over $k$ gives the expected number of comparisons $C(n)$:</p>
+  <div class="formula">$$C(n) = (n-1) + \frac{1}{n}\sum_{k=0}^{n-1}\bigl(C(k) + C(n-1-k)\bigr) = (n-1) + \frac{2}{n}\sum_{k=0}^{n-1} C(k)$$</div>
+  <p>Multiply by $n$, subtract the same line for $n-1$, and the sum telescopes to a closed form with the harmonic number $H_n = 1 + \tfrac12 + \dots + \tfrac1n \approx \ln n$:</p>
+  <div class="formula">$$C(n) = 2(n+1)H_n - 4n \;\approx\; 2n\ln n \;\approx\; 1.39\, n\log_2 n$$</div>
+  <p>There is a shorter way to see it. Call the items $z_1 < z_2 < \dots < z_n$ in sorted order. Two items $z_i$ and $z_j$ are compared only if one of them is the first pivot chosen among $z_i, \dots, z_j$. Any pivot strictly between them separates them for good. So the chance they are ever compared is $\tfrac{2}{j-i+1}$, and adding over all pairs gives the same $2n\ln n$:</p>
+  <div class="formula">$$\mathbb{E}[\text{comparisons}] = \sum_{i \lt j} \frac{2}{j-i+1} \le 2n H_n$$</div>
+  <p>So quicksort does about 39% more comparisons than the $n\log_2 n$ ideal, but each comparison is cheap: a tight loop over consecutive memory, few swaps, no extra array. That is why it usually beats <a href="../merge-sort/merge-sort.html">merge sort</a> in practice.</p>
+</section>
+
+<section>
+  <h2>5. Pivot lab</h2>
+  <p>Choose an input, a pivot rule and a partition scheme. Each row of the figure is one level of recursion. Each box is one call, as wide as the range it sorts, and the orange cells are the pivot items that become final in that call. A balanced run is short and wide. A bad run is a tall staircase.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 2</span><span class="card-title">Recursion tree of one sort</span></div>
+    <div class="scroll">
+      <svg id="tree" width="880" height="300" viewBox="0 0 880 300" style="min-width:880px" role="img" aria-labelledby="tree-title tree-desc">
+        <title id="tree-title">Recursion tree of quicksort, one row per depth</title>
+        <desc id="tree-desc">Each row is a recursion depth. Each box spans the index range sorted by one call. Orange cells mark pivot items placed by that call. The number of rows is the recursion depth.</desc>
+        <g id="tree-g"></g>
+      </svg>
+    </div>
+    <div class="card-bottom"><span class="hint">48 items · rows = recursion depth</span><span class="live" id="tree-live"></span></div>
+  </figure>
+
+  <div class="controls">
+    <div class="panel">
+      <div class="row"><span class="lab-label">Input</span>
+        <div class="seg" role="group" aria-label="Input" data-key="input">
+          <button type="button" data-v="random" aria-pressed="true">Random</button><button type="button" data-v="sorted" aria-pressed="false">Sorted</button><button type="button" data-v="reversed" aria-pressed="false">Reversed</button><button type="button" data-v="dups" aria-pressed="false">Few distinct</button>
+        </div>
+      </div>
+      <div class="row"><span class="lab-label">Pivot</span>
+        <div class="seg" role="group" aria-label="Pivot rule" data-key="pivot">
+          <button type="button" data-v="last" aria-pressed="true">Last item</button><button type="button" data-v="random" aria-pressed="false">Random</button><button type="button" data-v="median3" aria-pressed="false">Median of 3</button>
+        </div>
+      </div>
+      <div class="row"><span class="lab-label">Partition</span>
+        <div class="seg" role="group" aria-label="Partition scheme" data-key="scheme">
+          <button type="button" data-v="two" aria-pressed="true">Two-way</button><button type="button" data-v="three" aria-pressed="false">Three-way</button>
+        </div>
+      </div>
+      <div class="row"><button type="button" class="btn" id="reroll">New random draw</button></div>
+    </div>
+    <div class="panel"><pre class="lab-out" id="tree-out" aria-live="polite"></pre></div>
+  </div>
+  <p style="margin-top:16px">Things to try. <b>Sorted</b> with <b>Last item</b> gives a staircase 48 rows deep and $\tfrac{48\cdot 47}{2} = 1128$ comparisons. Switch to <b>Median of 3</b> and the same input splits perfectly. <b>Few distinct</b> with <b>Two-way</b> is bad for every pivot rule, because items equal to the pivot all go to one side. <b>Three-way</b> fixes it.</p>
+</section>
+
+<section>
+  <h2>6. Choosing a pivot</h2>
   <ul class="tight">
-    <li><b>Random pivot:</b> pick a random index and swap it to the end first. No input is reliably bad.</li>
-    <li><b>Median of three:</b> use the median of the first, middle and last items.</li>
-    <li><b>Three-way partition:</b> group items equal to the pivot together. It avoids quadratic time on many duplicates.</li>
+    <li><b>First or last item:</b> simple, and fine for random data, but sorted, reversed and almost sorted inputs are common in real life, and they hit the worst case.</li>
+    <li><b>Random item:</b> swap a random index to the end first. The expected cost becomes $2n\ln n$ for <i>every</i> input. Bad luck is still possible, but the chance of $\Theta(n^2)$ is tiny and no input triggers it reliably.</li>
+    <li><b>Median of three:</b> the median of the first, middle and last items. Sorted and reversed inputs become best cases, and the expected comparisons drop to about $1.19\,n\log_2 n$. Large ranges sometimes use the "ninther", a median of three medians.</li>
+    <li><b>Median of medians:</b> finds a pivot guaranteed to be in the middle 40% in linear time, which makes the worst case $O(n\log n)$. It is slow in practice and mostly used in theory and in selection.</li>
   </ul>
+  <p class="callout">An adversary who knows your pivot rule can always build a bad input for a deterministic rule. Randomness, or a fallback like introsort, is the defense.</p>
 </section>
 
 <section>
-  <h2>4. Cost</h2>
+  <h2>7. Duplicates and three-way partition</h2>
+  <p>With many equal keys, a two-way partition keeps putting equal items on the same side. An array of all equal items is the extreme case: Lomuto makes it $\Theta(n^2)$. Dijkstra's "Dutch national flag" partition splits the range into three zones, smaller, equal and larger, and recurses only into the outer two. The equal block is finished in one pass.</p>
+  <pre><span class="k">function</span> quicksort3(a, lo = 0, hi = a.length - 1) {
+  <span class="k">if</span> (lo &gt;= hi) <span class="k">return</span>;
+  <span class="k">const</span> pivot = a[lo];
+  <span class="k">let</span> lt = lo, i = lo + 1, gt = hi;
+  <span class="c">// a[lo..lt-1] &lt; pivot, a[lt..i-1] == pivot, a[gt+1..hi] &gt; pivot</span>
+  <span class="k">while</span> (i &lt;= gt) {
+    <span class="k">if</span> (a[i] &lt; pivot) swap(a, lt++, i++);
+    <span class="k">else if</span> (a[i] &gt; pivot) swap(a, i, gt--);
+    <span class="k">else</span> i++;
+  }
+  quicksort3(a, lo, lt - 1);
+  quicksort3(a, gt + 1, hi);
+}</pre>
+  <p>If there are only $d$ distinct keys, the recursion can never be deeper than $d$ levels, so the cost is $O(n \cdot \min(d, \log n))$ on average. With $d$ small, that is close to linear.</p>
+</section>
+
+<section>
+  <h2>8. Quickselect: half the work</h2>
+  <p>To find the $k$-th smallest item you do not need to sort. Partition once, see which side $k$ falls on, and recurse into that side only. The other side is thrown away.</p>
+  <pre><span class="k">function</span> select(a, k, lo = 0, hi = a.length - 1) {
+  <span class="k">while</span> (lo &lt; hi) {
+    <span class="k">const</span> p = partition(a, lo, hi);   <span class="c">// use a random pivot</span>
+    <span class="k">if</span> (k === p) <span class="k">return</span> a[k];
+    <span class="k">if</span> (k &lt; p) hi = p - 1; <span class="k">else</span> lo = p + 1;
+  }
+  <span class="k">return</span> a[lo];
+}</pre>
+  <p>A random pivot lands in the middle half of the range with probability $\tfrac12$, which shrinks the range to at most $\tfrac34$ of its size. The work forms a geometric series:</p>
+  <div class="formula">$$T(n) \le n + \tfrac34 n + \left(\tfrac34\right)^2 n + \dots = 4n \quad\Rightarrow\quad O(n) \text{ expected}$$</div>
+  <p>The exact expected comparison count for the median is about $3.39\,n$. C++ <code>std::nth_element</code> and NumPy <code>partition</code> work this way.</p>
+</section>
+
+<section>
+  <h2>9. Quicksort in production</h2>
+  <p>No real library ships the textbook version. They add a few tricks that keep the speed and remove the weak spots.</p>
+  <ul class="tight">
+    <li><b>Small ranges use insertion sort.</b> Below about 16 to 32 items, recursion overhead costs more than the quadratic inner loop of insertion sort.</li>
+    <li><b>Recurse into the smaller side, loop on the larger.</b> The smaller side has at most $n/2$ items, so the stack depth is at most $\log_2 n$ even when the splits are bad.</li>
+    <li><b>Introsort.</b> Count the depth, and when it passes about $2\log_2 n$, switch that range to <a href="../heap/heap.html">heapsort</a>. The worst case becomes $O(n\log n)$. Typical C++ <code>std::sort</code> implementations do this.</li>
+    <li><b>Dual pivot.</b> Two pivots split the range into three parts. Java uses Yaroslavskiy's dual-pivot quicksort for arrays of primitives.</li>
+    <li><b>Pattern-defeating quicksort (pdqsort).</b> Detects sorted runs and bad splits, shuffles a few items when it sees an adversarial pattern, and uses block partitioning to avoid branch mispredictions. Go's <code>sort</code> package and Rust's <code>sort_unstable</code> build on it.</li>
+  </ul>
+  <pre><span class="k">function</span> sort(a, lo, hi, depth) {
+  <span class="k">while</span> (hi - lo &gt; 16) {
+    <span class="k">if</span> (depth-- === 0) <span class="k">return</span> heapsort(a, lo, hi);  <span class="c">// introsort fallback</span>
+    <span class="k">const</span> p = partition(a, lo, hi);                 <span class="c">// median-of-3 pivot</span>
+    <span class="k">if</span> (p - lo &lt; hi - p) { sort(a, lo, p - 1, depth); lo = p + 1; }
+    <span class="k">else</span>                 { sort(a, p + 1, hi, depth); hi = p - 1; }
+  }
+  insertionSort(a, lo, hi);
+}</pre>
+</section>
+
+<section>
+  <h2>10. Cost</h2>
   <div class="cards">
-    <div class="stat focal"><div class="eyebrow">Average</div><div class="big">O(n log n)</div><p>Balanced enough splits.</p></div>
-    <div class="stat"><div class="eyebrow">Worst</div><div class="big">O(n²)</div><p>Pivot is always an extreme.</p></div>
-    <div class="stat"><div class="eyebrow">Extra space</div><div class="big">O(log n)</div><p>Recursion stack, if you recurse into the smaller side first.</p></div>
+    <div class="stat focal"><div class="eyebrow">Average</div><div class="big">$O(n \log n)$</div><p>About $1.39\,n\log_2 n$ comparisons on random input.</p></div>
+    <div class="stat"><div class="eyebrow">Worst</div><div class="big">$O(n^2)$</div><p>Pivot is always an extreme. Introsort caps it at $O(n\log n)$.</p></div>
+    <div class="stat"><div class="eyebrow">Extra space</div><div class="big">$O(\log n)$</div><p>Recursion stack, if you recurse into the smaller side first.</p></div>
   </div>
   <table class="ops">
     <thead><tr><th>Property</th><th>Quicksort</th></tr></thead>
@@ -186,17 +357,30 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
       <tr><td>In place</td><td>Yes, only swaps</td></tr>
       <tr><td>Stable</td><td>No, swaps can reorder equal items</td></tr>
       <tr><td>Cache behavior</td><td>Good: it scans memory in order</td></tr>
-      <tr><td>Adaptive</td><td>No, a plain version ignores existing order</td></tr>
+      <tr><td>Adaptive</td><td>No for the plain version. pdqsort is linear on sorted input</td></tr>
+      <tr><td>Parallel</td><td>Easy after the first partition: the two sides are independent</td></tr>
     </tbody>
   </table>
 </section>
 
 <section>
-  <h2>5. Where it shows up</h2>
+  <h2>11. Common mistakes</h2>
+  <ul class="tight">
+    <li><b>Fixed pivot on real data.</b> First or last item as pivot turns sorted input, a very common case, into $\Theta(n^2)$ time and an $n$-deep stack that can overflow.</li>
+    <li><b>Mixing partition schemes.</b> Lomuto returns the pivot's index, Hoare returns a split point. The recursive bounds differ.</li>
+    <li><b>Strict vs non-strict comparisons in Hoare.</b> The inner loops must use <code>&lt;</code> and <code>&gt;</code>, so they stop on items equal to the pivot. With <code>&lt;=</code> they can run off the end of the range.</li>
+    <li><b>Expecting stability.</b> Sorting records by one key and then by another with quicksort loses the first order. Use a stable sort for that.</li>
+    <li><b>Computing the middle as <code>(lo + hi) / 2</code></b> in languages with fixed-width integers. It can overflow. Use <code>lo + (hi - lo) / 2</code>.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>12. Where it shows up</h2>
   <ul class="tight">
     <li><b>General-purpose sorting</b> of arrays in memory. Many standard libraries use a quicksort variant, such as introsort, which falls back to <a href="../heap/heap.html">heapsort</a> when recursion gets too deep.</li>
-    <li><b>Quickselect:</b> run one side of the partition only, to find the k-th smallest item in <code>O(n)</code> average time.</li>
-    <li><b>Compare with <a href="../merge-sort/merge-sort.html">merge sort</a>:</b> choose merge sort when you need stability or a guaranteed <code>O(n log n)</code>.</li>
+    <li><b>Quickselect:</b> run one side of the partition only, to find the k-th smallest item, a median or a top-k in $O(n)$ average time.</li>
+    <li><b>Partition alone:</b> moving all items that pass a test to the front, as in C++ <code>std::partition</code>, is the same loop without recursion.</li>
+    <li><b>Compare with <a href="../merge-sort/merge-sort.html">merge sort</a>:</b> choose merge sort when you need stability, a guaranteed $O(n\log n)$, linked lists, or data that does not fit in memory.</li>
   </ul>
 </section>
 
@@ -302,6 +486,114 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
 
   load([62, 17, 85, 34, 91, 48, 23, 70, 56, 12, 39, 77]);
 })();
+</script>
+<script>
+(function () {
+  var N = 48, NS = 'http://www.w3.org/2000/svg';
+  var state = { input: 'random', pivot: 'last', scheme: 'two' }, seed = 1;
+
+  function el(name, attrs, text) {
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (text != null) e.textContent = text;
+    return e;
+  }
+  // Small seeded generator so a draw stays the same while you switch options.
+  function rng(s) { return function () { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
+
+  function makeInput(kind, rand) {
+    var a = [], i;
+    for (i = 0; i < N; i++) a.push(i + 1);
+    if (kind === 'reversed') return a.reverse();
+    if (kind === 'sorted') return a;
+    if (kind === 'dups') { for (i = 0; i < N; i++) a[i] = 1 + Math.floor(rand() * 3); return a; }
+    for (i = N - 1; i > 0; i--) { var j = Math.floor(rand() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; }
+    return a;
+  }
+
+  function simulate() {
+    var rand = rng(seed), a = makeInput(state.input, rand), pr = rng(seed * 7 + 3);
+    var nodes = [], comps = 0, calls = 0, maxD = 0;
+    function swap(x, y) { var t = a[x]; a[x] = a[y]; a[y] = t; }
+    function choosePivot(lo, hi) {
+      // Move the chosen pivot to a[hi].
+      if (state.pivot === 'random') swap(lo + Math.floor(pr() * (hi - lo + 1)), hi);
+      else if (state.pivot === 'median3' && hi - lo >= 2) {
+        var m = (lo + hi) >> 1, c = [lo, m, hi].sort(function (x, y) { return a[x] - a[y]; });
+        comps += 3; swap(c[1], hi);
+      }
+    }
+    (function qs(lo, hi, d) {
+      if (lo > hi) return;
+      calls++; if (d > maxD) maxD = d;
+      if (lo === hi) { nodes.push({ lo: lo, hi: hi, d: d, plo: lo, phi: hi }); return; }
+      choosePivot(lo, hi);
+      var pivot = a[hi], j;
+      if (state.scheme === 'two') {
+        var i = lo - 1;
+        for (j = lo; j < hi; j++) { comps++; if (a[j] < pivot) { i++; swap(i, j); } }
+        swap(i + 1, hi);
+        nodes.push({ lo: lo, hi: hi, d: d, plo: i + 1, phi: i + 1 });
+        qs(lo, i, d + 1); qs(i + 2, hi, d + 1);
+      } else {
+        swap(lo, hi);
+        var lt = lo, k = lo + 1, gt = hi;
+        while (k <= gt) {
+          comps++;
+          if (a[k] < pivot) { swap(lt, k); lt++; k++; }
+          else if (a[k] > pivot) { swap(k, gt); gt--; }
+          else k++;
+        }
+        nodes.push({ lo: lo, hi: hi, d: d, plo: lt, phi: gt });
+        qs(lo, lt - 1, d + 1); qs(gt + 1, hi, d + 1);
+      }
+    })(0, N - 1, 0);
+    return { nodes: nodes, comps: comps, calls: calls, depth: maxD + 1 };
+  }
+
+  function render() {
+    var r = simulate(), g = document.getElementById('tree-g');
+    g.textContent = '';
+    var x0 = 20, cw = (880 - 40) / N, top = 12, rh = Math.min(26, (300 - 2 * top) / r.depth);
+    r.nodes.forEach(function (n) {
+      var y = top + n.d * rh, h = Math.max(1.5, rh - (rh > 6 ? 3 : 1));
+      g.appendChild(el('rect', { x: x0 + n.lo * cw + .5, y: y, width: (n.hi - n.lo + 1) * cw - 1, height: h, rx: Math.min(3, h / 2), fill: 'rgba(46,90,168,.08)', stroke: 'rgba(46,90,168,.55)', 'stroke-width': 1 }));
+      g.appendChild(el('rect', { x: x0 + n.plo * cw + 1, y: y + .5, width: (n.phi - n.plo + 1) * cw - 2, height: Math.max(1, h - 1), rx: Math.min(2, h / 2), fill: '#bf4520' }));
+    });
+    var nlog = N * Math.log2(N), worst = N * (N - 1) / 2;
+    document.getElementById('tree-out').textContent =
+      'comparisons   ' + r.comps + '\n' +
+      '  n log2 n    ' + Math.round(nlog) + '   (ideal)\n' +
+      '  n(n-1)/2    ' + worst + '  (worst case)\n' +
+      'depth         ' + r.depth + ' levels  (log2 n = ' + Math.log2(N).toFixed(1) + ')\n' +
+      'calls         ' + r.calls + '\n\n' +
+      (r.depth > 3 * Math.log2(N) ? 'Unbalanced: the tree is a staircase.' : 'Balanced enough: depth stays logarithmic.');
+    document.getElementById('tree-live').textContent = r.comps + ' comparisons · depth ' + r.depth;
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll('.seg'), function (seg) {
+    seg.addEventListener('click', function (e) {
+      var b = e.target.closest('button'); if (!b) return;
+      Array.prototype.forEach.call(seg.querySelectorAll('button'), function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+      state[seg.getAttribute('data-key')] = b.getAttribute('data-v');
+      render();
+    });
+  });
+  document.getElementById('reroll').addEventListener('click', function () { seed = 1 + Math.floor(Math.random() * 1e6); render(); });
+  render();
+})();
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  renderMathInElement(document.body, {
+    delimiters: [
+      { left: '$$', right: '$$', display: true },
+      { left: '$', right: '$', display: false }
+    ],
+    ignoredTags: ['script', 'style', 'textarea', 'pre', 'code'],
+    throwOnError: false
+  });
+});
 </script>
 </body>
 </html>
