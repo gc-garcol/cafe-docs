@@ -29,6 +29,7 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);f
 .back:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
 h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+h3{font-family:var(--serif);font-weight:400;font-size:24px;line-height:1.2;margin:32px 0 10px}
 .lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
 section{margin-top:64px}
 section p{max-width:68ch;margin:0 0 14px}
@@ -44,11 +45,12 @@ a{color:var(--link)}
 .live{font-family:var(--mono);font-size:12px;font-weight:600}
 .scroll{overflow-x:auto;padding:0 8px;text-align:center}
 .scroll svg{display:inline-block;width:100%;max-width:720px;height:auto}
-.planes{display:grid;grid-template-columns:1fr 1fr}
-.planes svg{display:block;width:100%;height:auto}
-.planes svg+svg{border-left:1px solid var(--rule)}
-.single{max-width:420px;margin:0 auto}
-.single svg{display:block;width:100%;height:auto}
+.duo{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:0;border-top:1px solid var(--rule)}
+.duo>div+div{border-left:1px solid var(--rule)}
+.duo svg{display:block;width:100%;height:auto}
+#pl{touch-action:none;max-width:440px;margin:0 auto}
+#pl .handle{cursor:grab}
+.fig-pad{padding:12px 16px}
 
 .controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;margin-top:16px;align-items:start}
 .panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
@@ -58,53 +60,46 @@ a{color:var(--link)}
 input[type=range]{width:100%;accent-color:var(--accent);min-height:28px}
 .group-label{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);margin:16px 0 6px}
 .seg{display:flex;flex-wrap:wrap;border:1px solid var(--rule-solid);border-radius:6px;overflow:hidden}
-.seg button{flex:1;min-height:40px;border:0;background:transparent;font:500 13px var(--sans);color:var(--muted);cursor:pointer;padding:0 10px}
-.seg button+button{border-left:1px solid var(--rule-solid)}
+.seg button{flex:1 1 30%;min-height:40px;border:0;background:transparent;font:500 13px var(--sans);color:var(--muted);cursor:pointer;padding:0 10px;box-shadow:inset 1px 0 0 var(--rule-solid),inset 0 1px 0 var(--rule-solid)}
 .seg button:hover{background:var(--paper-2)}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
 button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
 .btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
 .btn:hover{background:var(--ink);color:var(--paper)}
+select{min-height:36px;border:1px solid var(--rule-solid);border-radius:6px;background:#fff;font:500 13px var(--sans);color:var(--ink);padding:0 8px}
 .big-answer{font-family:var(--serif);font-size:44px;line-height:1.1;margin:4px 0 8px;color:var(--accent)}
-.readout{margin:0;padding:0;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink);border:0;background:none}
-.calc{overflow-x:auto;margin-top:8px}
+.readout{margin:0;padding:0;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink);border:0;background:none;overflow-x:auto}
 .legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
 .legend span{display:inline-flex;align-items:center;gap:8px}
 .sw{width:14px;height:14px;border-radius:3px;border:1px solid var(--ink);display:inline-block}
 
 .mx{display:inline-grid;gap:6px;padding:6px 14px;border-left:2px solid var(--ink);border-right:2px solid var(--ink);border-radius:8px;vertical-align:middle;margin:4px 6px}
 .mx input{width:64px;min-height:36px;padding:0 6px;border:1px solid var(--rule-solid);border-radius:6px;font:500 14px var(--mono);color:var(--ink);background:#fff;text-align:center}
-.mx .cell{min-width:48px;min-height:36px;display:flex;align-items:center;justify-content:center;font:500 14px var(--mono);padding:0 4px}
 .mxrow{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px}
 .mxrow .lab{font-family:var(--serif);font-size:24px}
 input[type=number]{-moz-appearance:textfield}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:12px}
 
 pre.code{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
 .k{color:var(--accent)} .t{color:var(--link)} .c{color:var(--soft);font-style:italic}
-
 .formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;text-align:center;overflow-x:auto}
 .formula .katex{font-size:1.25em}
 .katex{color:var(--ink)}
 p .katex,td .katex,li .katex{font-size:1.05em}
-
 .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
 .stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
 .stat .big{font-family:var(--serif);font-size:30px;line-height:1.1;margin:6px 0}
 .stat p{font-size:14px;color:var(--muted);margin:0}
 .stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+.steps{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;max-width:760px}
+.steps ol{margin:0;padding-left:20px}.steps li{margin:8px 0}
 table.ops{border-collapse:collapse;width:100%;max-width:760px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
 table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
 table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
 table.ops tr:last-child td{border-bottom:0}
 ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
-
-@media (max-width:860px){.controls{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
-@media (max-width:520px){.planes{grid-template-columns:1fr}.planes svg+svg{border-left:0;border-top:1px solid var(--rule)}}
+@media (max-width:860px){.controls,.duo,.two{grid-template-columns:1fr}.duo>div+div{border-left:0;border-top:1px solid var(--rule)}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
 @media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
-
-
-
 .doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}.doc-tags a{font:500 12px "Geist Mono",ui-monospace,monospace;padding:4px 10px;border:1px solid var(--rule-solid,#bfc0c0);border-radius:4px;background:#fff;color:var(--muted,#4f5d75);text-decoration:none}.doc-tags a:hover{border-color:var(--ink,#2d3142);color:var(--ink,#2d3142)}.doc-tags a:focus-visible{outline:2px solid var(--accent,#bf4520);outline-offset:2px}
 </style>
 </head>
@@ -117,119 +112,254 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
 <header>
   <div class="eyebrow">Mathematics · Linear algebra</div>
   <h1>Determinants</h1>
-  <p class="lede">A single number attached to a square matrix. It says how much the matrix scales area or volume, whether it flips orientation, and whether it can be undone at all.</p>
-  
-  
-  
+  <p class="lede">A single number attached to a square matrix. It says how much the matrix scales area or volume, whether it flips orientation, and whether it can be undone at all. One formula, three meanings, and a surprising number of uses.</p>
   <nav class="doc-tags" aria-label="Main tags"><a href="../../../index.html#tag=determinant">#determinant</a><a href="../../../index.html#tag=area">#area</a><a href="../../../index.html#tag=volume">#volume</a><a href="../../../index.html#tag=invertible">#invertible</a></nav>
 </header>
 
 <section>
   <h2>Try it first</h2>
-  <p>The columns of the matrix are where the two unit vectors $e_1$ and $e_2$ land. The unit square becomes a parallelogram. Its area is $|\det A|$. Blue means orientation is kept. Orange means it is flipped. When the parallelogram collapses to a line, the determinant is zero.</p>
+  <p>Drag the two arrow tips, or use the sliders. The arrows are the columns of $A$, the places where $\mathbf{e}_1$ and $\mathbf{e}_2$ land. The unit square becomes a parallelogram with area $|\det A|$, and the circle becomes an ellipse whose area is scaled by exactly the same factor. Now move the morph slider $t$: it slides from $I$ to $A$. If $\det A \lt 0$, watch the lower plot cross zero. You cannot flip the plane over without squashing it flat on the way.</p>
 
   <figure class="card">
     <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">Unit square and its image</span></div>
-    <div class="single">
-      <svg id="pl" viewBox="0 0 360 360" role="img" aria-labelledby="pl-title pl-desc">
-        <title id="pl-title">Unit square and the parallelogram it becomes</title>
-        <desc id="pl-desc">A grid with the unit square outlined in grey. A filled parallelogram shows the image of that square under the matrix. Its sides are the two columns of the matrix, drawn as arrows. The fill is blue when the determinant is positive and orange when it is negative. The determinant and area are listed in the readout beside the figure.</desc>
-      </svg>
+    <div class="duo">
+      <div class="fig-pad">
+        <svg id="pl" viewBox="0 0 360 360" role="img" aria-labelledby="pl-title pl-desc">
+          <title id="pl-title">Unit square and the parallelogram it becomes</title>
+          <desc id="pl-desc">A grid with the unit square outlined in grey. A filled parallelogram shows the image of that square under the matrix; its sides are the two columns, drawn as draggable arrows. A small circle and its image ellipse show that every shape is scaled by the same factor. The fill is blue when the determinant is positive and orange when it is negative.</desc>
+        </svg>
+      </div>
+      <div class="fig-pad">
+        <div class="group-label" style="margin-top:0">det A</div>
+        <div class="big-answer" id="answer"></div>
+        <pre class="readout" id="readout" aria-live="polite"></pre>
+        <div class="group-label">det along the morph from I to A</div>
+        <svg id="morphPlot" viewBox="0 0 360 140" role="img" aria-labelledby="mp-title mp-desc">
+          <title id="mp-title">Determinant along the path from the identity to A</title>
+          <desc id="mp-desc">A curve of det of (1 minus t) times I plus t times A for t from 0 to 1. It starts at 1. A marker shows the current t. If the curve crosses zero, the plane is flattened at that moment.</desc>
+        </svg>
+      </div>
     </div>
-    <div class="card-bottom"><span class="hint">Sides = columns of the matrix</span><span class="live" id="live"></span></div>
+    <div class="card-bottom"><span class="hint">Drag the arrow tips. Sides of the parallelogram = columns of A</span><span class="live" id="live"></span></div>
   </figure>
 
   <div class="controls">
     <div class="panel">
-      <div class="row"><label for="a">$a$</label><input type="range" id="a" min="-3" max="3" step="0.1" value="1"><output id="o-a" for="a"></output></div><div class="row"><label for="b">$b$</label><input type="range" id="b" min="-3" max="3" step="0.1" value="0.5"><output id="o-b" for="b"></output></div><div class="row"><label for="c">$c$</label><input type="range" id="c" min="-3" max="3" step="0.1" value="0"><output id="o-c" for="c"></output></div><div class="row"><label for="d">$d$</label><input type="range" id="d" min="-3" max="3" step="0.1" value="1"><output id="o-d" for="d"></output></div>
-      <div class="group-label" id="pre-label">Presets</div>
+      <div class="row"><label for="a">a</label><input type="range" id="a" min="-3" max="3" step="0.1" value="1.5"><output id="o-a" for="a"></output></div>
+      <div class="row"><label for="b">b</label><input type="range" id="b" min="-3" max="3" step="0.1" value="0.5"><output id="o-b" for="b"></output></div>
+      <div class="row"><label for="c">c</label><input type="range" id="c" min="-3" max="3" step="0.1" value="0.3"><output id="o-c" for="c"></output></div>
+      <div class="row"><label for="d">d</label><input type="range" id="d" min="-3" max="3" step="0.1" value="1"><output id="o-d" for="d"></output></div>
+      <div class="row"><label for="t">morph t</label><input type="range" id="t" min="0" max="100" value="100"><output id="o-t" for="t"></output></div>
+    </div>
+    <div class="panel">
+      <div class="group-label" id="pre-label" style="margin-top:0">Presets</div>
       <div class="seg" role="group" aria-labelledby="pre-label">
         <button type="button" data-p="1,0,0,1">Identity</button>
-        <button type="button" data-p="0.71,-0.71,0.71,0.71">Rotate 45°</button>
-        <button type="button" data-p="1,1,0,1">Shear</button>
-        <button type="button" data-p="0,1,1,0">Flip</button>
+        <button type="button" data-p="0.7,-0.7,0.7,0.7">Rotate 45°</button>
+        <button type="button" data-p="1,1.5,0,1">Shear</button>
+        <button type="button" data-p="0,1,1,0">Swap axes</button>
+        <button type="button" data-p="2,0,0,1.5">Scale</button>
         <button type="button" data-p="1,2,0.5,1">Singular</button>
       </div>
       <div class="legend" aria-label="Legend">
-        <span><i class="sw" style="background:#2e5aa8"></i>first column</span>
-        <span><i class="sw" style="background:#bf4520"></i>second column</span>
+        <span><i class="sw" style="background:#2e5aa8"></i>column 1, A e₁</span>
+        <span><i class="sw" style="background:#bf4520"></i>column 2, A e₂</span>
         <span><i class="sw" style="background:rgba(46,90,168,.3)"></i>det &gt; 0</span>
         <span><i class="sw" style="background:rgba(191,69,32,.3)"></i>det &lt; 0</span>
       </div>
-    </div>
-    <div class="panel">
-      <div class="eyebrow">det A</div>
-      <div class="big-answer" id="answer"></div>
-      <pre class="readout" id="readout" aria-live="polite"></pre>
-      <div class="calc" id="calc"></div>
     </div>
   </div>
 </section>
 
 <section>
   <h2>1. Area scaling</h2>
-  <p>Every linear map scales all areas by the same factor. That factor is the absolute value of the determinant. The sign records whether the plane was reflected: negative means a mirror image. In three dimensions the same number scales volume.</p>
+  <p>A linear map keeps grid lines straight, parallel and evenly spaced. So every little grid square turns into the same parallelogram, and every shape, which is a pile of tiny squares, has its area multiplied by the same factor. That factor is $|\det A|$. In the lab the ellipse area is always $\pi r^2 \cdot |\det A|$, whatever you do.</p>
+  <p>In three dimensions the same number scales volume: the unit cube becomes a slanted box (a parallelepiped) with volume $|\det A|$. In $n$ dimensions it scales $n$-dimensional volume.</p>
   <div class="callout">$\det A$ is the signed factor by which $A$ stretches area or volume.</div>
 </section>
 
 <section>
-  <h2>2. The $2 \times 2$ formula</h2>
-  <div class="formula">$$\det\begin{bmatrix} a & b \\ c & d \end{bmatrix} = ad - bc$$</div>
-  <p>This is the signed area of the parallelogram spanned by the columns $(a, c)$ and $(b, d)$. If you drag the sliders until the two columns point along one line, the area is zero. A zero determinant means the matrix squashes the plane onto a line or a point. Information is lost, so no inverse exists.</p>
-  <p>When $\det A \neq 0$ the inverse is $A^{-1} = \frac{1}{ad - bc}\begin{bmatrix} d & -b \\ -c & a \end{bmatrix}$, and its determinant is $1/\det A$.</p>
+  <h2>2. Sign and orientation</h2>
+  <p>Go counter-clockwise from $\mathbf{e}_1$ to $\mathbf{e}_2$. If $A\mathbf{e}_1$ to $A\mathbf{e}_2$ is still counter-clockwise, the determinant is positive. If it turned clockwise, the plane was mirrored and the determinant is negative. "Swap axes" is a pure mirror: area kept, orientation reversed, $\det = -1$.</p>
+  <p>The morph slider shows why the sign is not a detail. Moving continuously from $I$ (determinant $1$) to a matrix with negative determinant, the determinant is a continuous function of $t$, so it must pass through $0$. At that instant the plane is flattened. In three dimensions this is why your left hand can never be rotated into your right hand.</p>
 </section>
 
 <section>
-  <h2>3. Larger matrices: cofactor expansion</h2>
-  <p>For bigger matrices, expand along a row. Each entry multiplies the determinant of the smaller matrix left after deleting its row and column, with alternating signs:</p>
-  <div class="formula">$$\det A = \sum_{j=1}^{n} (-1)^{1+j}\, a_{1j}\, \det M_{1j}$$</div>
-  <p>Here $M_{1j}$ is $A$ without row 1 and column $j$. Try your own $3 \times 3$ matrix. The readout lists the three terms.</p>
+  <h2>3. The $2 \times 2$ formula</h2>
+  <div class="formula">$$\det\begin{bmatrix} a & b \\ c & d \end{bmatrix} = ad - bc$$</div>
+  <p>This is the signed area of the parallelogram spanned by the columns $(a, c)$ and $(b, d)$. Here is why, for positive entries. Put the parallelogram in a box of size $(a + b) \times (c + d)$ and remove the corners.</p>
+  <div class="scroll">
+<svg width="720" height="270" viewBox="0 0 720 270" role="img" aria-labelledby="pf-title pf-desc">
+<title id="pf-title">Proof that the parallelogram area is ad minus bc</title>
+<desc id="pf-desc">A parallelogram with sides (a, c) = (3, 1) and (b, d) = (1, 2) sits inside a 4 by 3 box. The box minus two small rectangles of area bc and four right triangles leaves the parallelogram. Total box area 12, removed pieces add to 7, so the parallelogram has area 5, which equals ad minus bc = 6 minus 1.</desc>
+<rect x="40" y="40" width="240" height="180" fill="#fff" stroke="#4f5d75"/>
+<polygon points="40,220 220,160 280,40 100,100" fill="rgba(46,90,168,.25)" stroke="#2e5aa8" stroke-width="2"/>
+<polygon points="40,220 220,220 220,160" fill="rgba(191,69,32,.12)" stroke="#bf4520"/>
+<polygon points="100,100 100,40 280,40" fill="rgba(191,69,32,.12)" stroke="#bf4520"/>
+<polygon points="220,160 280,160 280,40" fill="rgba(45,49,66,.08)" stroke="#4f5d75"/>
+<polygon points="40,220 40,100 100,100" fill="rgba(45,49,66,.08)" stroke="#4f5d75"/>
+<rect x="220" y="160" width="60" height="60" fill="rgba(45,49,66,.2)" stroke="#4f5d75"/>
+<rect x="40" y="40" width="60" height="60" fill="rgba(45,49,66,.2)" stroke="#4f5d75"/>
+<g font-family="'Geist Mono',monospace" font-size="11" fill="#2d3142">
+<text x="236" y="194">bc</text><text x="56" y="74">bc</text><text x="150" y="208">ac/2</text><text x="160" y="62">ac/2</text><text x="252" y="120">bd/2</text><text x="46" y="150">bd/2</text><text x="146" y="140" font-weight="600">ad − bc</text>
+</g>
+<g font-family="'Instrument Serif',serif" font-size="19" fill="#2d3142">
+<text x="330" y="80">box: (a + b)(c + d) = ac + ad + bc + bd</text>
+<text x="330" y="118">remove: 2 · ac/2 + 2 · bd/2 + 2 · bc</text>
+<text x="330" y="156">left: ad − bc</text>
+<text x="330" y="204" fill="#4f5d75">here a = 3, c = 1, b = 1, d = 2:</text>
+<text x="330" y="232" fill="#4f5d75">12 − 7 = 5 = 3 · 2 − 1 · 1</text>
+</g>
+</svg>
+  </div>
+  <p>If you drag the arrows until both columns lie on one line, the area is zero. A zero determinant means the matrix squashes the plane onto a line or a point. Information is lost, so no inverse exists. When $\det A \neq 0$, the inverse is $A^{-1} = \frac{1}{ad - bc}\begin{bmatrix} d & -b \\ -c & a \end{bmatrix}$, and its determinant is $\frac{1}{\det A}$.</p>
+</section>
+
+<section>
+  <h2>4. Three rules define it</h2>
+  <p>The determinant is the only function of the columns of an $n \times n$ matrix that obeys three rules. All the other properties, and every formula, follow from them.</p>
+  <table class="ops">
+    <thead><tr><th>Rule</th><th>Statement</th><th>Area picture</th></tr></thead>
+    <tbody>
+      <tr><td>Normalized</td><td>$\det I = 1$</td><td>the unit square has area 1</td></tr>
+      <tr><td>Linear in each column</td><td>scaling a column by $c$ scales $\det$ by $c$; a column that is a sum splits the $\det$ into a sum</td><td>stretch one side, the area stretches the same</td></tr>
+      <tr><td>Alternating</td><td>swapping two columns flips the sign; two equal columns give $0$</td><td>reversing the order of the sides reverses orientation</td></tr>
+    </tbody>
+  </table>
+  <p>One consequence: adding a multiple of one column to another changes nothing. Geometrically that is a shear, which slides the parallelogram along its base without changing its height. Try the "Shear" preset: the shape tilts, the determinant stays $1$.</p>
+</section>
+
+<section>
+  <h2>5. Larger matrices: cofactor expansion</h2>
+  <p>For bigger matrices, expand along any row or column. Each entry multiplies the determinant of the smaller matrix left after deleting its row and column (its minor), with signs from a checkerboard pattern:</p>
+  <div class="formula">$$\det A = \sum_{j=1}^{n} (-1)^{i+j}\, a_{ij}\, \det M_{ij} \qquad \begin{bmatrix} + & - & + \\ - & + & - \\ + & - & + \end{bmatrix}$$</div>
+  <p>Choose the row or column with the most zeros: each zero kills a whole term. For $3 \times 3$ matrices there is also the rule of Sarrus: add the three down-right diagonal products, subtract the three up-right ones. For $\begin{bmatrix} 2 & 0 & 1 \\ 1 & 3 & 2 \\ 1 & 1 & 2 \end{bmatrix}$ that is $(12 + 0 + 1) - (3 + 4 + 0) = 6$. Sarrus does not extend to $4 \times 4$.</p>
 
   <figure class="card">
-    <div class="card-top"><span class="eyebrow">Fig 2</span><span class="card-title">$3 \times 3$ by the first row</span></div>
+    <div class="card-top"><span class="eyebrow">Fig 2</span><span class="card-title">A $3 \times 3$ determinant, two ways</span></div>
     <div style="padding:8px 16px 16px">
-      <div class="mxrow"><span class="lab">M</span><div class="mx" style="grid-template-columns:repeat(3,64px)"><input type="number" step="any" id="m00" value="2" aria-label="M row 1 column 1"><input type="number" step="any" id="m01" value="0" aria-label="M row 1 column 2"><input type="number" step="any" id="m02" value="1" aria-label="M row 1 column 3"><input type="number" step="any" id="m10" value="1" aria-label="M row 2 column 1"><input type="number" step="any" id="m11" value="3" aria-label="M row 2 column 2"><input type="number" step="any" id="m12" value="2" aria-label="M row 2 column 3"><input type="number" step="any" id="m20" value="1" aria-label="M row 3 column 1"><input type="number" step="any" id="m21" value="1" aria-label="M row 3 column 2"><input type="number" step="any" id="m22" value="1" aria-label="M row 3 column 3"></div><span class="lab">$\det$ =</span><span class="big-answer" style="margin:0" id="det3"></span></div>
-      <pre class="readout" id="expand" aria-live="polite" style="margin-top:12px"></pre>
+      <div class="mxrow"><span class="lab">M</span><div class="mx" style="grid-template-columns:repeat(3,64px)"><input type="number" step="any" id="m00" value="2" aria-label="M row 1 column 1"><input type="number" step="any" id="m01" value="0" aria-label="M row 1 column 2"><input type="number" step="any" id="m02" value="1" aria-label="M row 1 column 3"><input type="number" step="any" id="m10" value="1" aria-label="M row 2 column 1"><input type="number" step="any" id="m11" value="3" aria-label="M row 2 column 2"><input type="number" step="any" id="m12" value="2" aria-label="M row 2 column 3"><input type="number" step="any" id="m20" value="1" aria-label="M row 3 column 1"><input type="number" step="any" id="m21" value="1" aria-label="M row 3 column 2"><input type="number" step="any" id="m22" value="2" aria-label="M row 3 column 3"></div><span class="lab">det =</span><span class="big-answer" style="margin:0" id="det3"></span></div>
+      <div class="two">
+        <div>
+          <div class="group-label"><label for="expAlong">Cofactor expansion along</label></div>
+          <select id="expAlong">
+            <option value="r0">row 1</option><option value="r1">row 2</option><option value="r2">row 3</option>
+            <option value="c0">column 1</option><option value="c1">column 2</option><option value="c2">column 3</option>
+          </select>
+          <pre class="readout" id="expand" aria-live="polite" style="margin-top:12px"></pre>
+        </div>
+        <div>
+          <div class="group-label">Row reduction</div>
+          <pre class="readout" id="elim" aria-live="polite"></pre>
+        </div>
+      </div>
     </div>
+    <div class="card-bottom"><span class="hint">Every row and column gives the same total</span><span class="live" id="live3"></span></div>
   </figure>
 </section>
 
 <section>
-  <h2>4. Rules that save work</h2>
-  <table class="ops">
-    <thead><tr><th>Rule</th><th>Effect on the determinant</th></tr></thead>
-    <tbody>
-      <tr><td>Swap two rows</td><td>Changes the sign</td></tr>
-      <tr><td>Multiply one row by $c$</td><td>Multiplies the determinant by $c$</td></tr>
-      <tr><td>Add a multiple of one row to another</td><td>No change</td></tr>
-      <tr><td>Two equal or proportional rows</td><td>Determinant is $0$</td></tr>
-      <tr><td>Product</td><td>$\det(AB) = \det A \cdot \det B$</td></tr>
-      <tr><td>Transpose</td><td>$\det A^{\mathsf T} = \det A$</td></tr>
-      <tr><td>Triangular matrix</td><td>Product of the diagonal entries</td></tr>
-    </tbody>
-  </table>
-  <p>The third rule is how computers do it. Row reduce to a triangular matrix, track the sign changes, and multiply the diagonal. That takes about $n^3$ steps, while cofactor expansion takes about $n!$.</p>
+  <h2>6. How computers do it: row reduction</h2>
+  <p>Cofactor expansion of an $n \times n$ matrix calls itself $n$ times on $(n-1) \times (n-1)$ matrices, which adds up to about $n!$ products. For $n = 20$ that is $2.4 \times 10^{18}$. Row reduction needs about $\frac{2}{3}n^3$, around $5{,}000$ operations for the same matrix.</p>
+  <p>The idea: use the rule "adding a multiple of one row to another changes nothing" to clear everything below the diagonal. A triangular matrix has determinant equal to the product of its diagonal, so the answer is the product of the pivots, with a sign flip for every row swap.</p>
+  <div class="steps"><ol>
+    <li>Start with $\begin{bmatrix} 2 & 0 & 1 \\ 1 & 3 & 2 \\ 1 & 1 & 2 \end{bmatrix}$.</li>
+    <li>Subtract $\frac{1}{2}$ row 1 from rows 2 and 3: rows become $(0, 3, 1.5)$ and $(0, 1, 1.5)$.</li>
+    <li>Subtract $\frac{1}{3}$ row 2 from row 3: row 3 becomes $(0, 0, 1)$.</li>
+    <li>Pivots $2, 3, 1$, no swaps: $\det = 2 \cdot 3 \cdot 1 = 6$.</li>
+  </ol></div>
 </section>
 
 <section>
-  <h2>5. What a zero means</h2>
+  <h2>7. Rules that save work</h2>
+  <table class="ops">
+    <thead><tr><th>Rule</th><th>Effect on the determinant</th></tr></thead>
+    <tbody>
+      <tr><td>Swap two rows</td><td>changes the sign</td></tr>
+      <tr><td>Multiply one row by $c$</td><td>multiplies the determinant by $c$</td></tr>
+      <tr><td>Add a multiple of one row to another</td><td>no change</td></tr>
+      <tr><td>Two equal or proportional rows</td><td>determinant is $0$</td></tr>
+      <tr><td>Scale the whole matrix</td><td>$\det(cA) = c^n \det A$ for $n \times n$</td></tr>
+      <tr><td>Product</td><td>$\det(AB) = \det A \cdot \det B$</td></tr>
+      <tr><td>Inverse</td><td>$\det(A^{-1}) = \frac{1}{\det A}$</td></tr>
+      <tr><td>Transpose</td><td>$\det A^{\mathsf T} = \det A$, so every row rule is also a column rule</td></tr>
+      <tr><td>Triangular or diagonal</td><td>product of the diagonal entries</td></tr>
+      <tr><td>Eigenvalues</td><td>$\det A = \lambda_1 \lambda_2 \cdots \lambda_n$</td></tr>
+    </tbody>
+  </table>
+  <p>The product rule has a one-line geometric proof. $AB$ means "do $B$, then $A$". $B$ scales areas by $\det B$, then $A$ scales them by $\det A$, so together they scale by the product. It is remarkable because the determinant of a sum has no such rule: in general $\det(A + B) \ne \det A + \det B$.</p>
+</section>
+
+<section>
+  <h2>8. What a zero means</h2>
   <p>For an $n \times n$ matrix these statements are all equivalent. If one holds, they all do.</p>
   <ul class="tight">
     <li>$\det A \neq 0$</li>
     <li>$A$ has an inverse</li>
     <li>The columns are independent, so the <a href="../matrix-rank/matrix-rank.html">rank</a> is $n$</li>
+    <li>$A\mathbf{x} = \mathbf{b}$ has exactly one solution for every $\mathbf{b}$</li>
     <li>$A\mathbf{x} = \mathbf{0}$ has only the solution $\mathbf{x} = \mathbf{0}$</li>
     <li>Zero is not an <a href="../eigenvalues-eigenvectors/eigenvalues-eigenvectors.html">eigenvalue</a> of $A$</li>
   </ul>
-  <p>Cramer's rule uses determinants to solve $A\mathbf{x} = \mathbf{b}$: $x_i = \det A_i / \det A$, where $A_i$ has column $i$ replaced by $\mathbf{b}$. It is neat for small systems and slow for large ones.</p>
+  <h3>Cramer's rule</h3>
+  <p>Determinants also write down the solution of $A\mathbf{x} = \mathbf{b}$ directly: $x_i = \frac{\det A_i}{\det A}$, where $A_i$ is $A$ with column $i$ replaced by $\mathbf{b}$. For $2x + y = 5$, $x - y = 1$:</p>
+  <div class="formula">$$x = \frac{\det\begin{bmatrix} 5 & 1 \\ 1 & -1 \end{bmatrix}}{\det\begin{bmatrix} 2 & 1 \\ 1 & -1 \end{bmatrix}} = \frac{-6}{-3} = 2, \qquad y = \frac{\det\begin{bmatrix} 2 & 5 \\ 1 & 1 \end{bmatrix}}{-3} = \frac{-3}{-3} = 1$$</div>
+  <p>It is neat for $2 \times 2$ and $3 \times 3$ systems and for proofs. For large systems it is far slower than elimination.</p>
 </section>
 
 <section>
-  <h2>6. Where it shows up</h2>
+  <h2>9. Three dimensions</h2>
+  <p>For three vectors $\mathbf{u}, \mathbf{v}, \mathbf{w}$ in space, the determinant of the matrix with those columns is the signed volume of the box they span. It equals the scalar triple product:</p>
+  <div class="formula">$$\det[\,\mathbf{u}\;\mathbf{v}\;\mathbf{w}\,] = \mathbf{u} \cdot (\mathbf{v} \times \mathbf{w})$$</div>
+  <p>The sign follows the right-hand rule. The cross product itself is usually remembered as a determinant with the unit vectors in the top row:</p>
+  <div class="formula">$$\mathbf{v} \times \mathbf{w} = \det\begin{bmatrix} \mathbf{i} & \mathbf{j} & \mathbf{k} \\ v_1 & v_2 & v_3 \\ w_1 & w_2 & w_3 \end{bmatrix}$$</div>
+  <p>Four points lie on one plane exactly when the box spanned by three edges from one of them has zero volume.</p>
+</section>
+
+<section>
+  <h2>10. The same thing in code</h2>
+  <pre class="code"><span class="k">function</span> det(M) {
+  <span class="k">const</span> A = M.map(r =&gt; r.slice()), n = A.length;
+  <span class="k">let</span> d = <span class="t">1</span>;
+  <span class="k">for</span> (<span class="k">let</span> col = <span class="t">0</span>; col &lt; n; col++) {
+    <span class="c">// partial pivoting: use the largest entry for stability</span>
+    <span class="k">let</span> p = col;
+    <span class="k">for</span> (<span class="k">let</span> r = col + <span class="t">1</span>; r &lt; n; r++) <span class="k">if</span> (Math.abs(A[r][col]) &gt; Math.abs(A[p][col])) p = r;
+    <span class="k">if</span> (A[p][col] === <span class="t">0</span>) <span class="k">return</span> <span class="t">0</span>;
+    <span class="k">if</span> (p !== col) { [A[p], A[col]] = [A[col], A[p]]; d = -d; }  <span class="c">// swap flips the sign</span>
+    d *= A[col][col];
+    <span class="k">for</span> (<span class="k">let</span> r = col + <span class="t">1</span>; r &lt; n; r++) {
+      <span class="k">const</span> m = A[r][col] / A[col][col];
+      <span class="k">for</span> (<span class="k">let</span> k = col; k &lt; n; k++) A[r][k] -= m * A[col][k];
+    }
+  }
+  <span class="k">return</span> d;
+}
+
+det([[<span class="t">2</span>, <span class="t">0</span>, <span class="t">1</span>], [<span class="t">1</span>, <span class="t">3</span>, <span class="t">2</span>], [<span class="t">1</span>, <span class="t">1</span>, <span class="t">2</span>]]);  <span class="c">// 6</span></pre>
+  <p>In floating point, do not test "is this matrix singular?" with <code>det(A) === 0</code>, or even with a small threshold. The matrix $0.1 I$ of size $100 \times 100$ has determinant $10^{-100}$ and is perfectly well behaved. Use the rank or the condition number instead.</p>
+</section>
+
+<section>
+  <h2>11. Common mistakes</h2>
+  <ul class="tight">
+    <li>$\det(A + B) = \det A + \det B$. False in general. Only products behave.</li>
+    <li>$\det(2A) = 2\det A$. For an $n \times n$ matrix it is $2^n \det A$: every row gets doubled.</li>
+    <li>Forgetting the checkerboard signs in cofactor expansion, especially along row 2 or column 2, which start with $-$.</li>
+    <li>Using Sarrus on a $4 \times 4$ matrix.</li>
+    <li>Talking about the determinant of a non-square matrix. It is not defined.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>12. Where it shows up</h2>
   <div class="cards">
-    <div class="stat focal"><div class="eyebrow">Calculus</div><div class="big">Jacobian</div><p>Changing variables in an integral scales by the determinant of the Jacobian.</p></div>
-    <div class="stat"><div class="eyebrow">Geometry</div><div class="big">volume</div><p>The volume of a parallelepiped is the determinant of its edge vectors.</p></div>
-    <div class="stat"><div class="eyebrow">Eigenvalues</div><div class="big">$\det(A - \lambda I)$</div><p>The characteristic polynomial finds the eigenvalues of a matrix.</p></div>
+    <div class="stat focal"><div class="eyebrow">Calculus</div><div class="big">Jacobian</div><p>Changing variables in an integral scales by $|\det J|$. For polar coordinates $\det J = r$, which is where $dA = r\,dr\,d\theta$ comes from.</p></div>
+    <div class="stat"><div class="eyebrow">Eigenvalues</div><div class="big">$\det(A - \lambda I)$</div><p>Setting it to zero gives the characteristic polynomial, whose roots are the eigenvalues.</p></div>
+    <div class="stat"><div class="eyebrow">Geometry</div><div class="big">orientation tests</div><p>The sign of a $2 \times 2$ determinant tells whether three points turn left or right. Convex hull and mesh code rely on it.</p></div>
+    <div class="stat"><div class="eyebrow">Statistics</div><div class="big">Gaussian</div><p>The multivariate normal density has $\frac{1}{\sqrt{\det(2\pi\Sigma)}}$ in front, the volume correction for the covariance $\Sigma$.</p></div>
+    <div class="stat"><div class="eyebrow">Physics</div><div class="big">volume flow</div><p>A flow that keeps $\det = 1$ preserves volume. Liouville's theorem says Hamiltonian mechanics does.</p></div>
+    <div class="stat"><div class="eyebrow">Graphics</div><div class="big">mirrors</div><p>A negative model-matrix determinant flips triangle winding, so renderers swap back-face culling.</p></div>
   </div>
 </section>
 
@@ -246,24 +376,12 @@ document.addEventListener('DOMContentLoaded', function () {
     return e;
   }
   function num(id) { var v = parseFloat($(id).value); return isFinite(v) ? v : 0; }
-  // short number: no trailing zeros, no "-0"
   function f(x, d) {
     d = d === undefined ? 2 : d;
     if (!isFinite(x)) return String(x);
     var s = (Math.abs(x) < 0.5 * Math.pow(10, -d) ? 0 : x).toFixed(d);
     if (s.indexOf('.') >= 0) s = s.replace(/0+$/, '').replace(/\.$/, '');
     return s;
-  }
-  function pad(s, n) { s = String(s); while (s.length < n) s = ' ' + s; return s; }
-  function tex(id, s) {
-    var n = $(id);
-    if (window.katex) window.katex.render(s, n, { throwOnError: false, displayMode: false });
-    else n.textContent = s;
-  }
-  function mxHtml(M) {
-    var r = M.length, c = M[0].length, h = '<div class="mx" style="grid-template-columns:repeat(' + c + ',auto)">';
-    for (var i = 0; i < r; i++) for (var j = 0; j < c; j++) h += '<span class="cell">' + f(M[i][j]) + '</span>';
-    return h + '</div>';
   }
   function reset(svg) {
     Array.prototype.slice.call(svg.childNodes).forEach(function (n) {
@@ -272,121 +390,182 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     return el('g', {}, svg);
   }
-  // square plane, viewBox 0 0 360 360, data range [-R, R]
-  function plane(id, R, step) {
-    var svg = $(id), S = 360, M = 14, g = reset(svg);
-    var X = function (v) { return M + (v + R) / (2 * R) * (S - 2 * M); };
-    var Y = function (v) { return S - M - (v + R) / (2 * R) * (S - 2 * M); };
-    el('rect', { x: M, y: M, width: S - 2 * M, height: S - 2 * M, fill: '#fff', stroke: 'rgba(45,49,66,.25)' }, g);
-    step = step || 1;
-    for (var t = -R; t <= R + 1e-9; t += step) {
-      if (Math.abs(t) < 1e-9) continue;
-      el('line', { x1: X(t), x2: X(t), y1: M, y2: S - M, stroke: 'rgba(45,49,66,.07)' }, g);
-      el('line', { x1: M, x2: S - M, y1: Y(t), y2: Y(t), stroke: 'rgba(45,49,66,.07)' }, g);
+  var R = 4, S = 360, MG = 14;
+  var X = function (v) { return MG + (v + R) / (2 * R) * (S - 2 * MG); };
+  var Y = function (v) { return S - MG - (v + R) / (2 * R) * (S - 2 * MG); };
+  function plane(id) {
+    var svg = $(id), g = reset(svg);
+    el('rect', { x: MG, y: MG, width: S - 2 * MG, height: S - 2 * MG, fill: '#fff', stroke: 'rgba(45,49,66,.25)' }, g);
+    for (var t = -R; t <= R; t++) {
+      if (t === 0) continue;
+      el('line', { x1: X(t), x2: X(t), y1: MG, y2: S - MG, stroke: 'rgba(45,49,66,.07)' }, g);
+      el('line', { x1: MG, x2: S - MG, y1: Y(t), y2: Y(t), stroke: 'rgba(45,49,66,.07)' }, g);
     }
-    el('line', { x1: X(0), x2: X(0), y1: M, y2: S - M, stroke: '#2d3142', 'stroke-width': 0.8 }, g);
-    el('line', { x1: M, x2: S - M, y1: Y(0), y2: Y(0), stroke: '#2d3142', 'stroke-width': 0.8 }, g);
-    var cid = id + 'Clip';
-    var cp = el('clipPath', { id: cid }, g);
-    el('rect', { x: M, y: M, width: S - 2 * M, height: S - 2 * M }, cp);
-    var c = el('g', { 'clip-path': 'url(#' + cid + ')' }, g);
-    return { g: g, c: c, X: X, Y: Y, R: R };
+    el('line', { x1: X(0), x2: X(0), y1: MG, y2: S - MG, stroke: '#2d3142', 'stroke-width': 0.8 }, g);
+    el('line', { x1: MG, x2: S - MG, y1: Y(0), y2: Y(0), stroke: '#2d3142', 'stroke-width': 0.8 }, g);
+    var cp = el('clipPath', { id: id + 'Clip' }, g);
+    el('rect', { x: MG, y: MG, width: S - 2 * MG, height: S - 2 * MG }, cp);
+    return { g: g, c: el('g', { 'clip-path': 'url(#' + id + 'Clip)' }, g) };
   }
-  function line(P, x1, y1, x2, y2, color, w, dash) {
-    var a = { x1: P.X(x1), y1: P.Y(y1), x2: P.X(x2), y2: P.Y(y2), stroke: color, 'stroke-width': w || 1.5, 'stroke-linecap': 'round' };
-    if (dash) a['stroke-dasharray'] = dash;
-    return el('line', a, P.c);
-  }
-  function arrow(P, x, y, color, w, x0, y0) {
-    x0 = x0 || 0; y0 = y0 || 0;
-    var ax = P.X(x0), ay = P.Y(y0), bx = P.X(x), by = P.Y(y);
-    var dx = bx - ax, dy = by - ay, L = Math.hypot(dx, dy);
+  function arrow(P, x, y, color, w) {
+    var ax = X(0), ay = Y(0), bx = X(x), by = Y(y), dx = bx - ax, dy = by - ay, L = Math.hypot(dx, dy);
     if (L < 1) return;
     var ux = dx / L, uy = dy / L, h = 9;
     el('line', { x1: ax, y1: ay, x2: bx - ux * 6, y2: by - uy * 6, stroke: color, 'stroke-width': w || 2.4, 'stroke-linecap': 'round' }, P.c);
     el('polygon', { points: bx + ',' + by + ' ' + (bx - ux * h - uy * 4.5) + ',' + (by - uy * h + ux * 4.5) + ' ' + (bx - ux * h + uy * 4.5) + ',' + (by - uy * h - ux * 4.5), fill: color }, P.c);
   }
-  function dot(P, x, y, r, fill, stroke) {
-    return el('circle', { cx: P.X(x), cy: P.Y(y), r: r, fill: fill, stroke: stroke || '#fff', 'stroke-width': 1.4 }, P.c);
-  }
-  function label(P, x, y, s, color, dx, dy) {
-    var t = el('text', { x: P.X(x) + (dx || 6), y: P.Y(y) + (dy || -6), 'font-size': 12, fill: color || '#2d3142', 'font-family': 'Geist Mono, monospace', 'font-weight': 600 }, P.c);
-    t.textContent = s;
-  }
-  function poly(P, pts, fill, stroke, w) {
-    var s = pts.map(function (p) { return P.X(p[0]).toFixed(1) + ',' + P.Y(p[1]).toFixed(1); }).join(' ');
-    return el('polygon', { points: s, fill: fill, stroke: stroke || 'none', 'stroke-width': w || 1.5, 'stroke-linejoin': 'round' }, P.c);
-  }
-  function path(P, pts, color, w, dash) {
-    var d = '', pen = false;
-    pts.forEach(function (p) {
-      if (!isFinite(p[0]) || !isFinite(p[1])) { pen = false; return; }
-      d += (pen ? ' L' : ' M') + P.X(p[0]).toFixed(1) + ' ' + P.Y(p[1]).toFixed(1); pen = true;
-    });
-    var a = { d: d, fill: 'none', stroke: color, 'stroke-width': w || 1.5, 'stroke-linejoin': 'round' };
+  function poly(P, pts, fill, stroke, w, dash) {
+    var a = { points: pts.map(function (p) { return X(p[0]).toFixed(1) + ',' + Y(p[1]).toFixed(1); }).join(' '), fill: fill, stroke: stroke || 'none', 'stroke-width': w || 1.5, 'stroke-linejoin': 'round' };
     if (dash) a['stroke-dasharray'] = dash;
-    if (d) el('path', a, P.c);
-  }
-  function mul2(a, b) {
-    return [[a[0][0] * b[0][0] + a[0][1] * b[1][0], a[0][0] * b[0][1] + a[0][1] * b[1][1]],
-            [a[1][0] * b[0][0] + a[1][1] * b[1][0], a[1][0] * b[0][1] + a[1][1] * b[1][1]]];
+    return el('polygon', a, P.c);
   }
   function app(a, v) { return [a[0][0] * v[0] + a[0][1] * v[1], a[1][0] * v[0] + a[1][1] * v[1]]; }
   function det2(a) { return a[0][0] * a[1][1] - a[0][1] * a[1][0]; }
-  function inv2(a) {
-    var d = det2(a);
-    return [[a[1][1] / d, -a[0][1] / d], [-a[1][0] / d, a[0][0] / d]];
-  }
-  function pick(selector, attr, value) {
-    Array.prototype.forEach.call(document.querySelectorAll(selector), function (b) {
-      b.setAttribute('aria-pressed', String(b.getAttribute(attr) === String(value)));
-    });
-  }
   function listen(selector, ev, fn) {
     Array.prototype.forEach.call(document.querySelectorAll(selector), function (n) { n.addEventListener(ev, fn); });
   }
 
-
   function A() { return [[+$('a').value, +$('b').value], [+$('c').value, +$('d').value]]; }
-  function render() {
-    var a = A(), d = det2(a);
+  function morph(a, t) { return [[1 - t + t * a[0][0], t * a[0][1]], [t * a[1][0], 1 - t + t * a[1][1]]]; }
+
+  var CIRC_C = [-2.2, -2.2], CIRC_R = 0.6;
+  function render2() {
+    var full = A(), t = +$('t').value / 100, a = morph(full, t), d = det2(a);
     ['a', 'b', 'c', 'd'].forEach(function (k) { $('o-' + k).textContent = f(+$(k).value, 1); });
-    var P = plane('pl', 4);
+    $('o-t').textContent = f(t, 2);
+    var P = plane('pl');
     var c1 = [a[0][0], a[1][0]], c2 = [a[0][1], a[1][1]];
-    poly(P, [[0, 0], [1, 0], [1, 1], [0, 1]], 'rgba(45,49,66,.06)', '#9aa0ae', 1.2);
-    var col = d >= 0 ? 'rgba(46,90,168,.28)' : 'rgba(191,69,32,.28)';
-    poly(P, [[0, 0], c1, [c1[0] + c2[0], c1[1] + c2[1]], c2], col, d >= 0 ? '#2e5aa8' : '#bf4520', 1.4);
+    // transformed grid
+    for (var g = -6; g <= 6; g++) {
+      var p1 = app(a, [g, -6]), p2 = app(a, [g, 6]), q1 = app(a, [-6, g]), q2 = app(a, [6, g]);
+      el('line', { x1: X(p1[0]), y1: Y(p1[1]), x2: X(p2[0]), y2: Y(p2[1]), stroke: 'rgba(46,90,168,.12)' }, P.c);
+      el('line', { x1: X(q1[0]), y1: Y(q1[1]), x2: X(q2[0]), y2: Y(q2[1]), stroke: 'rgba(46,90,168,.12)' }, P.c);
+    }
+    poly(P, [[0, 0], [1, 0], [1, 1], [0, 1]], 'rgba(45,49,66,.05)', '#9aa0ae', 1.2, '4 3');
+    var fill = Math.abs(d) < 0.005 ? 'rgba(45,49,66,.2)' : (d > 0 ? 'rgba(46,90,168,.28)' : 'rgba(191,69,32,.28)');
+    var stroke = d >= 0 ? '#2e5aa8' : '#bf4520';
+    poly(P, [[0, 0], c1, [c1[0] + c2[0], c1[1] + c2[1]], c2], fill, stroke, 1.4);
+    // circle and its image
+    var circ = [], img = [];
+    for (var k = 0; k < 48; k++) {
+      var th = 2 * Math.PI * k / 48, p = [CIRC_C[0] + CIRC_R * Math.cos(th), CIRC_C[1] + CIRC_R * Math.sin(th)];
+      circ.push(p); img.push(app(a, p));
+    }
+    poly(P, circ, 'none', '#9aa0ae', 1.2, '4 3');
+    poly(P, img, fill, stroke, 1.2);
     arrow(P, c1[0], c1[1], '#2e5aa8', 2.6);
     arrow(P, c2[0], c2[1], '#bf4520', 2.6);
-    $('answer').textContent = f(d, 2);
-    $('live').textContent = Math.abs(d) < 0.005 ? 'collapsed: no inverse' : (d > 0 ? 'orientation kept' : 'orientation flipped');
-    $('readout').textContent =
-      'a·d − b·c = ' + f(a[0][0]) + '·' + f(a[1][1]) + ' − ' + f(a[0][1]) + '·' + f(a[1][0]) + ' = ' + f(d, 2) + '\n' +
-      'area of image = ' + f(Math.abs(d), 2) + '  (unit square has area 1)\n' +
-      (Math.abs(d) < 0.005 ? 'invertible: no' : 'invertible: yes, det of inverse = ' + f(1 / d, 2));
-    tex('calc', '\\det\\begin{bmatrix}' + f(a[0][0]) + '&' + f(a[0][1]) + '\\\\' + f(a[1][0]) + '&' + f(a[1][1]) + '\\end{bmatrix}=' + f(d, 2));
-
-    // 3x3 cofactor expansion
-    var m = [[0, 1, 2].map(function (j) { return num('m0' + j); }), [0, 1, 2].map(function (j) { return num('m1' + j); }), [0, 1, 2].map(function (j) { return num('m2' + j); })];
-    var terms = [], total = 0;
-    for (var j = 0; j < 3; j++) {
-      var cols = [0, 1, 2].filter(function (x) { return x !== j; });
-      var minor = [[m[1][cols[0]], m[1][cols[1]]], [m[2][cols[0]], m[2][cols[1]]]];
-      var dm = det2(minor), sg = j % 2 ? -1 : 1, t = sg * m[0][j] * dm;
-      total += t;
-      terms.push((sg > 0 ? '+' : '−') + ' ' + f(m[0][j]) + ' · det[[' + f(minor[0][0]) + ',' + f(minor[0][1]) + '],[' + f(minor[1][0]) + ',' + f(minor[1][1]) + ']] = ' + (sg > 0 ? '+' : '−') + ' ' + f(m[0][j]) + ' · ' + f(dm) + ' = ' + f(t));
+    // drag handles (only active for the full matrix)
+    if (t === 1) {
+      [[c1, 'c1', '#2e5aa8'], [c2, 'c2', '#bf4520']].forEach(function (h) {
+        el('circle', { cx: X(h[0][0]), cy: Y(h[0][1]), r: 11, fill: 'rgba(255,255,255,.01)', stroke: h[2], 'stroke-width': 1.5, 'stroke-dasharray': '3 2', 'class': 'handle', 'data-h': h[1] }, P.g);
+      });
     }
-    $('det3').textContent = f(total, 2);
-    $('expand').textContent = terms.join('\n') + '\n' + 'sum = ' + f(total, 2);
+    $('answer').textContent = f(d, 3);
+    var flat = Math.abs(d) < 0.005;
+    $('live').textContent = flat ? 'flattened: no inverse' : (d > 0 ? 'orientation kept' : 'orientation flipped');
+    $('readout').textContent =
+      'matrix = [[' + f(a[0][0]) + ', ' + f(a[0][1]) + '], [' + f(a[1][0]) + ', ' + f(a[1][1]) + ']]' + (t < 1 ? '  (t = ' + f(t, 2) + ')' : '') + '\n' +
+      'ad − bc = ' + f(a[0][0]) + '·' + f(a[1][1]) + ' − ' + f(a[0][1]) + '·' + f(a[1][0]) + ' = ' + f(d, 3) + '\n' +
+      'square area  1      → ' + f(Math.abs(d), 3) + '\n' +
+      'circle area  ' + f(Math.PI * CIRC_R * CIRC_R, 3) + '  → ' + f(Math.PI * CIRC_R * CIRC_R * Math.abs(d), 3) + '\n' +
+      (flat ? 'invertible: no' : 'invertible: yes, det A⁻¹ = ' + f(1 / d, 3));
+
+    // morph plot: det((1-t)I + tA) for t in [0,1]
+    var mp = $('morphPlot'), mg = reset(mp), vals = [], lo = 0, hi = 1;
+    for (var i = 0; i <= 100; i++) { var dv = det2(morph(full, i / 100)); vals.push(dv); lo = Math.min(lo, dv); hi = Math.max(hi, dv); }
+    var span = hi - lo || 1; lo -= span * 0.1; hi += span * 0.1;
+    var MX = function (tt) { return 36 + tt * 310; }, MY = function (v) { return 124 - (v - lo) / (hi - lo) * 112; };
+    el('rect', { x: 36, y: 12, width: 310, height: 112, fill: '#fff', stroke: 'rgba(45,49,66,.2)' }, mg);
+    el('line', { x1: 36, x2: 346, y1: MY(0), y2: MY(0), stroke: '#2d3142' }, mg);
+    var dd = '';
+    vals.forEach(function (v, idx) { dd += (idx ? ' L' : 'M') + MX(idx / 100).toFixed(1) + ' ' + MY(v).toFixed(1); });
+    el('path', { d: dd, fill: 'none', stroke: '#2e5aa8', 'stroke-width': 2 }, mg);
+    el('circle', { cx: MX(t), cy: MY(d), r: 5, fill: '#bf4520' }, mg);
+    [[0, 'I'], [1, 'A']].forEach(function (p) { var tx = el('text', { x: MX(p[0]), y: 138, 'text-anchor': 'middle', 'font-size': 10, fill: '#5a6580', 'font-family': 'Geist Mono, monospace' }, mg); tx.textContent = p[1]; });
+    var t0 = el('text', { x: 30, y: MY(0) + 3, 'text-anchor': 'end', 'font-size': 10, fill: '#5a6580', 'font-family': 'Geist Mono, monospace' }, mg); t0.textContent = '0';
+    for (var z = 1; z <= 100; z++) {
+      if (vals[z - 1] * vals[z] < 0 || vals[z] === 0) {
+        el('circle', { cx: MX(z / 100), cy: MY(0), r: 4, fill: '#fff', stroke: '#2d3142', 'stroke-width': 1.5 }, mg);
+        var tz = el('text', { x: MX(z / 100), y: MY(0) - 8, 'text-anchor': 'middle', 'font-size': 10, fill: '#2d3142', 'font-family': 'Geist Mono, monospace' }, mg); tz.textContent = 'flat';
+        break;
+      }
+    }
   }
-  listen('input', 'input', render);
+
+  // dragging the column tips
+  var dragging = null, svgPl = $('pl');
+  function toData(evt) {
+    var r = svgPl.getBoundingClientRect(), sx = (evt.clientX - r.left) / r.width * S, sy = (evt.clientY - r.top) / r.height * S;
+    var x = (sx - MG) / (S - 2 * MG) * 2 * R - R, y = (S - MG - sy) / (S - 2 * MG) * 2 * R - R;
+    var clamp = function (v) { return Math.max(-3, Math.min(3, Math.round(v * 10) / 10)); };
+    return [clamp(x), clamp(y)];
+  }
+  svgPl.addEventListener('pointerdown', function (e) {
+    var h = e.target.getAttribute && e.target.getAttribute('data-h');
+    if (!h) return;
+    dragging = h; svgPl.setPointerCapture(e.pointerId); e.preventDefault();
+  });
+  svgPl.addEventListener('pointermove', function (e) {
+    if (!dragging) return;
+    var p = toData(e);
+    if (dragging === 'c1') { $('a').value = p[0]; $('c').value = p[1]; } else { $('b').value = p[0]; $('d').value = p[1]; }
+    render2();
+  });
+  ['pointerup', 'pointercancel'].forEach(function (ev) { svgPl.addEventListener(ev, function () { dragging = null; }); });
+
+  listen('#a, #b, #c, #d, #t', 'input', render2);
   listen('[data-p]', 'click', function () {
     var v = this.getAttribute('data-p').split(',');
     ['a', 'b', 'c', 'd'].forEach(function (k, i) { $(k).value = v[i]; });
-    render();
+    $('t').value = 100;
+    render2();
   });
-  render();
 
+  // 3x3: cofactor expansion along any row or column, and row reduction
+  function M3() { return [0, 1, 2].map(function (i) { return [0, 1, 2].map(function (j) { return num('m' + i + j); }); }); }
+  function minor(m, i, j) {
+    var rows = [0, 1, 2].filter(function (r) { return r !== i; }), cols = [0, 1, 2].filter(function (c) { return c !== j; });
+    return rows.map(function (r) { return cols.map(function (c) { return m[r][c]; }); });
+  }
+  function render3() {
+    var m = M3(), along = $('expAlong').value, isRow = along[0] === 'r', idx = +along[1];
+    var terms = [], total = 0;
+    for (var k = 0; k < 3; k++) {
+      var i = isRow ? idx : k, j = isRow ? k : idx, mi = minor(m, i, j), dm = det2(mi), sg = (i + j) % 2 ? -1 : 1, t = sg * m[i][j] * dm;
+      total += t;
+      terms.push((sg > 0 ? '+' : '−') + ' ' + f(m[i][j]) + ' · det[[' + f(mi[0][0]) + ',' + f(mi[0][1]) + '],[' + f(mi[1][0]) + ',' + f(mi[1][1]) + ']]\n    = ' + (sg > 0 ? '+' : '−') + ' ' + f(m[i][j]) + ' · ' + f(dm) + ' = ' + f(t) + (m[i][j] === 0 ? '   (zero entry: free)' : ''));
+    }
+    $('expand').textContent = terms.join('\n') + '\nsum = ' + f(total, 3);
+    $('det3').textContent = f(total, 3);
+
+    // elimination log with partial pivoting
+    var A3 = m.map(function (r) { return r.slice(); }), sign = 1, log = [], piv = [], singular = false;
+    for (var col = 0; col < 3; col++) {
+      var p = col;
+      for (var r = col + 1; r < 3; r++) if (Math.abs(A3[r][col]) > Math.abs(A3[p][col])) p = r;
+      if (Math.abs(A3[p][col]) < 1e-12) { log.push('column ' + (col + 1) + ': no pivot → det = 0'); singular = true; break; }
+      if (p !== col) { var tmp = A3[p]; A3[p] = A3[col]; A3[col] = tmp; sign = -sign; log.push('swap R' + (col + 1) + ' ↔ R' + (p + 1) + '  (sign flips)'); }
+      piv.push(A3[col][col]);
+      for (var r2 = col + 1; r2 < 3; r2++) {
+        var mult = A3[r2][col] / A3[col][col];
+        if (Math.abs(mult) < 1e-12) continue;
+        for (var c = col; c < 3; c++) A3[r2][c] -= mult * A3[col][c];
+        log.push('R' + (r2 + 1) + ' ← R' + (r2 + 1) + ' − ' + f(mult, 3) + '·R' + (col + 1));
+      }
+    }
+    log.push('');
+    log.push('triangular:');
+    A3.forEach(function (row) { log.push('  [' + row.map(function (v) { return (Math.abs(v) < 1e-12 ? 0 : v).toFixed(2).padStart(6); }).join(' ') + ' ]'); });
+    if (!singular) log.push('det = ' + (sign < 0 ? '−' : '') + piv.map(function (v) { return f(v, 3); }).join(' · ') + ' = ' + f(sign * piv.reduce(function (s, v) { return s * v; }, 1), 3));
+    $('elim').textContent = log.join('\n');
+    $('live3').textContent = Math.abs(total) < 1e-9 ? 'singular: the three columns lie in one plane' : 'box volume = ' + f(Math.abs(total), 3);
+  }
+  listen('.mx input', 'input', render3);
+  $('expAlong').addEventListener('change', render3);
+
+  render2();
+  render3();
 
   if (window.renderMathInElement) {
     window.renderMathInElement(document.body, {
