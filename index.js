@@ -1218,6 +1218,17 @@ const DOCS = [
     summary: 'Build positions from calls, puts, forwards and stock, and read the payoff at expiry. Load spreads, straddles and covered calls, then edit the legs and watch the breakevens move.',
     related: ['Returns, Compounding and Time Value', 'No-Arbitrage and Put-Call Parity', 'Black-Scholes and the Greeks'],
   },
+  {
+    title: 'No-Arbitrage and Put-Call Parity',
+    path: 'content/quant/put-call-parity/put-call-parity.html',
+    category: 'Quant',
+    topic: 'Markets and derivatives',
+    order: 8,
+    level: 'Intermediate',
+    tags: ['no-arbitrage', 'put-call parity', 'arbitrage', 'replication', 'forward price', 'options', 'derivatives', 'law of one price'],
+    summary: 'Two portfolios with the same payoff must cost the same. Misprice a call or a put, and the simulator builds the trade that locks in a riskless profit whatever the stock does.',
+    related: ['Futures, Forwards and Option Payoffs', 'Returns, Compounding and Time Value', 'Black-Scholes and the Greeks', 'Binomial Trees'],
+  },
 ];
 
 // ---------- helpers ----------
