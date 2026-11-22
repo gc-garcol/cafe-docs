@@ -1125,6 +1125,28 @@ const DOCS = [
     summary: 'A seven-phase study path into quantitative finance: calculus and linear algebra, probability, derivatives pricing, time series, machine learning, and engineering, with a project for each phase.',
     related: ['Bayes\' Theorem', 'Gaussian Distribution', 'Linear Regression', 'Overfitting and Regularization', 'Machine Learning Algorithm Groups'],
   },
+  {
+    title: 'False Sharing',
+    path: 'content/engineering/false-sharing/false-sharing.html',
+    category: 'Engineering',
+    topic: 'Concurrency',
+    order: 1,
+    level: 'Intermediate',
+    tags: ['false sharing', 'cache line', 'concurrency', 'performance', 'mesi', 'cache coherence', 'padding', 'low latency'],
+    summary: 'Two threads write two different variables and still slow each other down, because they share one 64-byte cache line. Step through the MESI ping-pong, then pad the fields apart.',
+    related: ['Memory Fence', 'Aeron Transport'],
+  },
+  {
+    title: 'Memory Fence',
+    path: 'content/engineering/memory-fence/memory-fence.html',
+    category: 'Engineering',
+    topic: 'Concurrency',
+    order: 2,
+    level: 'Advanced',
+    tags: ['memory fence', 'memory ordering', 'concurrency', 'atomics', 'store buffer', 'acquire release', 'memory barrier', 'lock-free'],
+    summary: 'CPUs buffer stores and let later loads run first. Drive the store buffering test on two cores, get r0 = r1 = 0, then add a fence and see that outcome disappear. Covers acquire and release too.',
+    related: ['False Sharing', 'Aeron Transport'],
+  },
 ];
 
 // ---------- helpers ----------

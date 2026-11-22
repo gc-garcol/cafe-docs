@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Memory Fence: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+
+/* Fig 1: framed card */
+.lab{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:24px;align-items:start;margin-top:24px}
+.card{margin:0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--ink)}
+.stage{padding:0 8px}
+.stage svg{display:block;width:100%;height:auto;max-height:640px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:2px;border:1px solid var(--ink);display:inline-block}
+
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.seg{display:flex;gap:0;border:1px solid var(--rule-solid);border-radius:6px;overflow:hidden;margin-bottom:16px}
+.seg button{flex:1;min-height:40px;border:0;background:transparent;font:500 14px var(--sans);color:var(--muted);cursor:pointer}
+.seg button+button{border-left:1px solid var(--rule-solid)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.row{display:grid;grid-template-columns:96px 1fr 28px;gap:12px;align-items:center;margin:10px 0}
+.row label{font-family:var(--mono);font-size:12px;font-weight:600}
+.howto{margin:16px 0 0;padding:16px 20px;background:#fff;border:1px solid var(--rule-solid);border-left:3px solid var(--accent);border-radius:8px;max-width:760px}
+.howto h3{font:600 11px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--soft);margin:0 0 8px}
+.howto ol{margin:0;padding-left:20px}.howto li{margin:4px 0}
+.task{margin:0 0 16px;padding:12px 14px;background:var(--accent-tint);border:1px solid rgba(191,69,32,.25);border-radius:6px;font-size:13.5px;line-height:1.55}
+.task .rule{display:block;margin-top:6px;font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+.arr-label,.chips-label,.res-label{font:500 11px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--soft);margin:12px 0 6px}
+.arr{display:flex;gap:4px;margin-bottom:8px}
+.arr button{flex:1;min-width:0;min-height:48px;border:1px solid var(--rule-solid);border-radius:6px;background:#fff;font:600 15px var(--sans);color:var(--ink);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2px 0;line-height:1.25}
+.arr button small{font:400 9px var(--mono);color:var(--soft)}
+.arr button:hover{border-color:var(--ink)}
+.arr button[aria-pressed="true"]{background:var(--accent-tint);border-color:var(--accent)}
+.arr button.end{background:var(--accent);border-color:var(--accent);color:#fff}
+.arr button.end small{color:#fff}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 4px}
+.chip{min-height:34px;padding:0 12px;border:1px solid var(--rule-solid);border-radius:999px;background:#fff;color:var(--ink);font:500 12.5px var(--sans);cursor:pointer}
+.chip:hover{border-color:var(--ink)}
+.chip:focus-visible,.arr button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.row output{font-family:var(--mono);font-size:13px;text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);min-height:28px}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer;margin-top:8px}
+.btn:hover{background:var(--ink);color:var(--paper)}
+#readout{margin:0;padding:14px 16px;background:var(--paper);border:1px solid var(--rule);border-radius:6px;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink)}
+.na{color:var(--soft)}
+.c-a{color:var(--link);font-weight:600}.c-b{color:var(--accent);font-weight:600}
+
+/* static diagrams */
+.fig{margin:20px 0 8px}
+.scroll{overflow-x:auto;border:1px solid var(--rule);border-radius:8px;background:#fff;padding:8px}
+.scroll svg{display:block;height:auto}
+.cap{font-family:var(--mono);font-size:11px;color:var(--soft);margin:8px 0 0}
+
+pre{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .t{color:var(--link)} .c{color:var(--soft);font-style:italic}
+
+.cards{display:grid;grid-template-columns:1.1fr 1fr .9fr;gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:36px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+
+table.ops{border-collapse:collapse;width:100%;max-width:720px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);border-radius:6px;font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule)}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+.ok{color:#1d6b3a;font-weight:600}.no{color:var(--accent);font-weight:600}
+ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
+
+@media (max-width:860px){.lab{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+
+
+
+.doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}.doc-tags a{font:500 12px "Geist Mono",ui-monospace,monospace;padding:4px 10px;border:1px solid var(--rule-solid,#bfc0c0);border-radius:4px;background:#fff;color:var(--muted,#4f5d75);text-decoration:none}.doc-tags a:hover{border-color:var(--ink,#2d3142);color:var(--ink,#2d3142)}.doc-tags a:focus-visible{outline:2px solid var(--accent,#bf4520);outline-offset:2px}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px}
+.btns .btn{margin-top:0}
+.btn:disabled{opacity:.4;cursor:default}.btn:disabled:hover{background:transparent;color:var(--ink)}
+.btns.wide{grid-template-columns:repeat(3,1fr);margin-top:8px}
+.tally{display:grid;gap:6px}
+.bar{display:grid;grid-template-columns:84px 1fr 52px;gap:10px;align-items:center;font-family:var(--mono);font-size:12px}
+.bar .track{height:14px;background:var(--paper);border:1px solid var(--rule);border-radius:3px;overflow:hidden}
+.bar .fill{display:block;height:100%;background:var(--link)}
+.bar.bad .fill{background:var(--accent)}
+.bar.bad span:first-child{color:var(--accent);font-weight:600}
+.bar output{text-align:right}
+.lab{grid-template-columns:1fr}
+.stage svg{max-height:none}
+.lab>div{max-width:720px}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" style="margin-right:8px" href="../../../index.html">&larr; Back to home</a>
+<a class="back back-cat" href="../../../index.html#cat=Engineering">&larr; Back to Engineering</a>
+
+<header>
+  <div class="eyebrow">Engineering · Concurrency</div>
+  <h1>Memory Fence</h1>
+  <p class="lede">CPUs and compilers reorder memory operations to go faster. A single thread never notices, another thread can. A fence is the instruction that says: everything before me must be visible before anything after me.</p>
+  <nav class="doc-tags" aria-label="Main tags"><a href="../../../index.html#tag=memory%20fence">#memory fence</a><a href="../../../index.html#tag=memory%20ordering">#memory ordering</a><a href="../../../index.html#tag=concurrency">#concurrency</a><a href="../../../index.html#tag=atomics">#atomics</a></nav>
+</header>
+
+<section>
+  <h2>Break sequential consistency yourself</h2>
+  <p>This is the classic <b>store buffering</b> test. Both variables start at 0. Core 0 writes <code>x = 1</code> then reads <code>y</code>. Core 1 writes <code>y = 1</code> then reads <code>x</code>. If memory were one simple shared array, at least one core would read 1. Each core here has a <b>store buffer</b>, like every x86 and ARM core, and that is enough to get <code>r0 = r1 = 0</code>.</p>
+
+  <div class="howto">
+    <h3>How to use this simulator</h3>
+    <ol>
+      <li>Keep fences <b>Off</b> and press <b>Show the reordering</b>. Both stores wait in the buffers while both loads read the old 0 from memory.</li>
+      <li>Drive it by hand: <b>Next</b> runs a core's next instruction, <b>Drain</b> moves its oldest buffered store to memory. Try to find other outcomes.</li>
+      <li>Turn fences <b>On</b>. The fence stalls until its own store buffer is empty, so the store is visible before the load runs.</li>
+      <li>Press <b>Run 1000 random schedules</b> in both settings and compare the outcome counts.</li>
+    </ol>
+  </div>
+
+  <div class="lab">
+    <figure class="card">
+      <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">Two cores with store buffers</span></div>
+      <div class="stage">
+        <svg id="stage" viewBox="0 0 640 470" role="img" aria-labelledby="mf-title mf-desc">
+          <title id="mf-title">Store buffering litmus test</title>
+          <desc id="mf-desc">Two cores each run a store followed by a load, with an optional fence in between. Stores go into a per-core store buffer first and reach shared memory only when drained. Loads read shared memory, or the core's own buffer if it holds the address.</desc>
+          <g id="scene"></g>
+        </svg>
+      </div>
+      <div class="card-bottom"><span class="hint">Model: x86-style TSO, stores buffered in order</span><span class="live" id="live"></span></div>
+    </figure>
+
+    <div>
+      <div class="panel">
+        <div class="seg" role="group" aria-label="Fences">
+          <button type="button" id="fOff" aria-pressed="true">Fences off</button>
+          <button type="button" id="fOn" aria-pressed="false">Fences on</button>
+        </div>
+        <div class="task" id="task"></div>
+        <div class="btns">
+          <button type="button" class="btn" id="n0">Core 0 · Next</button>
+          <button type="button" class="btn" id="n1">Core 1 · Next</button>
+          <button type="button" class="btn" id="d0">Core 0 · Drain</button>
+          <button type="button" class="btn" id="d1">Core 1 · Drain</button>
+        </div>
+        <div class="btns wide">
+          <button type="button" class="btn" id="bDemo">Show the reordering</button>
+          <button type="button" class="btn" id="bRand">Run 1000 random schedules</button>
+          <button type="button" class="btn" id="bReset">Reset</button>
+        </div>
+        <div class="res-label">What happened</div>
+        <div id="readout" aria-live="polite"></div>
+        <div class="res-label" id="tallyLabel">Outcomes of random schedules</div>
+        <div class="tally" id="tally"></div>
+      </div>
+      <div class="legend" aria-label="Legend">
+        <span><i class="sw" style="background:#f4b79d;border-color:#bf4520"></i>store / drain</span>
+        <span><i class="sw" style="background:#dbe8fa;border-color:#2e5aa8"></i>load</span>
+        <span><i class="sw" style="background:#2d3142"></i>current instruction</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>1. Why hardware reorders</h2>
+  <p>A store has to wait for the cache line to be owned before it can land, which can take a hundred cycles or more. Instead of stalling, the core drops the store into a small <b>store buffer</b> and keeps running. Later loads go straight to the cache. The core checks its own buffer first, so a thread always sees its own writes in order.</p>
+  <p>Other cores cannot see inside that buffer. To them, the load happened <i>before</i> the store. That is a <b>StoreLoad</b> reordering. The compiler adds its own reorderings on top, by caching values in registers and moving loads and stores around.</p>
+
+  <div class="fig">
+    <div class="scroll"><svg width="920" height="250" viewBox="0 0 920 250" style="min-width:920px" role="img" aria-labelledby="sb-title sb-desc">
+<title id="sb-title">The store buffer sits between the core and the cache</title>
+<desc id="sb-desc">Stores enter the store buffer and drain to the cache later. Loads bypass the buffer and read the cache directly, so a later load can complete before an earlier store becomes visible.</desc>
+<defs><marker id="sb-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#bf4520" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></marker>
+<marker id="sb-al" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#2e5aa8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+<rect x="40" y="90" width="160" height="70" rx="8" fill="#fff" stroke="#2d3142" stroke-width="1.2"/>
+<text x="120" y="122" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">Core</text>
+<text x="120" y="142" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="10" fill="#5a6580">executes in order</text>
+<rect x="300" y="40" width="240" height="60" rx="8" fill="rgba(191,69,32,.06)" stroke="#bf4520" stroke-width="1.2"/>
+<text x="420" y="34" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="10" fill="#bf4520">store buffer (FIFO)</text>
+<g font-family="'Geist Mono',monospace" font-size="12" font-weight="600" text-anchor="middle" fill="#3d1405">
+<rect x="316" y="54" width="64" height="32" rx="5" fill="#f4b79d" stroke="#bf4520"/><text x="348" y="75">x = 1</text>
+<rect x="388" y="54" width="64" height="32" rx="5" fill="#f4b79d" stroke="#bf4520"/><text x="420" y="75">z = 7</text>
+</g>
+<rect x="660" y="90" width="220" height="70" rx="8" fill="#f5f5f5" stroke="#2d3142" stroke-width="1.2"/>
+<text x="770" y="122" text-anchor="middle" font-family="'Geist',sans-serif" font-size="15" font-weight="600" fill="#2d3142">L1 cache</text>
+<text x="770" y="142" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="10" fill="#5a6580">visible to other cores</text>
+<path d="M200,108 C250,108 250,70 296,70" fill="none" stroke="#bf4520" stroke-width="1.6" marker-end="url(#sb-ar)"/>
+<path d="M540,70 C600,70 600,108 656,108" fill="none" stroke="#bf4520" stroke-width="1.6" marker-end="url(#sb-ar)"/>
+<text x="248" y="62" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="10" fill="#bf4520">store</text>
+<text x="600" y="62" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="10" fill="#bf4520">drain, later</text>
+<path d="M656,142 C500,200 360,200 204,142" fill="none" stroke="#2e5aa8" stroke-width="1.6" marker-end="url(#sb-al)"/>
+<text x="430" y="206" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="10" fill="#2e5aa8">load y: reads the cache now, skipping the buffered x = 1</text>
+<text x="460" y="238" text-anchor="middle" font-family="'Instrument Serif',serif" font-style="italic" font-size="16" fill="#2d3142">Other cores see the load before the store. A full fence waits for the buffer to empty.</text>
+</svg></div>
+    <p class="cap">Fig 2 · Stores queue up, loads do not. This is the only reordering x86 allows, and it is the one the simulator shows.</p>
+  </div>
+</section>
+
+<section>
+  <h2>2. Four kinds of reordering</h2>
+  <p>Name each pair by the first and second operation in program order. A memory model says which pairs may appear swapped to other cores.</p>
+  <table class="ops">
+    <thead><tr><th>Pair</th><th>x86 (TSO)</th><th>ARMv8, RISC-V, POWER</th><th>Fence that forbids it</th></tr></thead>
+    <tbody>
+      <tr><td>LoadLoad</td><td class="ok">kept</td><td class="no">may reorder</td><td>acquire</td></tr>
+      <tr><td>LoadStore</td><td class="ok">kept</td><td class="no">may reorder</td><td>acquire or release</td></tr>
+      <tr><td>StoreStore</td><td class="ok">kept</td><td class="no">may reorder</td><td>release</td></tr>
+      <tr><td>StoreLoad</td><td class="no">may reorder</td><td class="no">may reorder</td><td>full fence only</td></tr>
+    </tbody>
+  </table>
+  <p>On x86, a full fence is <code>mfence</code> or any <code>lock</code>-prefixed instruction. On ARMv8 it is <code>dmb ish</code>, and <code>ldar</code> / <code>stlr</code> give acquire loads and release stores without a separate fence.</p>
+</section>
+
+<section>
+  <h2>3. Acquire and release: one-way fences</h2>
+  <p>Most code does not need a full fence. It needs to publish data: write the payload, then set a flag, and the reader must see the payload once it sees the flag. That needs only half a barrier on each side.</p>
+  <ul class="tight">
+    <li><b>Release</b> on the flag store: no earlier load or store may move below it.</li>
+    <li><b>Acquire</b> on the flag load: no later load or store may move above it.</li>
+  </ul>
+  <p>When the acquire load reads the value written by the release store, everything before the release <b>happens-before</b> everything after the acquire.</p>
+
+  <div class="fig">
+    <div class="scroll"><svg width="920" height="300" viewBox="0 0 920 300" style="min-width:920px" role="img" aria-labelledby="ar-title ar-desc">
+<title id="ar-title">Release and acquire as one-way barriers</title>
+<desc id="ar-desc">On the producer, writes to data cannot sink below the release store of ready. On the consumer, reads of data cannot rise above the acquire load of ready. Once the consumer sees ready = 1, it sees data = 42.</desc>
+<defs><marker id="ar-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#4f5d75" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></marker>
+<marker id="ar-ac" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#bf4520" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+<text x="230" y="28" text-anchor="middle" font-family="'Geist',sans-serif" font-size="14" font-weight="600" fill="#2d3142">Producer</text>
+<text x="690" y="28" text-anchor="middle" font-family="'Geist',sans-serif" font-size="14" font-weight="600" fill="#2d3142">Consumer</text>
+<g font-family="'Geist Mono',monospace" font-size="13" font-weight="500" fill="#2d3142">
+  <rect x="110" y="48" width="240" height="36" rx="6" fill="#fff" stroke="rgba(45,49,66,.45)"/><text x="126" y="71">data = 42</text>
+  <rect x="110" y="96" width="240" height="36" rx="6" fill="#fff" stroke="rgba(45,49,66,.45)"/><text x="126" y="119">meta = 7</text>
+  <rect x="110" y="156" width="240" height="40" rx="6" fill="#f4b79d" stroke="#bf4520" stroke-width="1.6"/><text x="126" y="181" fill="#3d1405" font-weight="600">ready.store(1, release)</text>
+  <rect x="110" y="220" width="240" height="36" rx="6" fill="#fff" stroke="rgba(45,49,66,.25)"/><text x="126" y="243" fill="#5a6580">later work</text>
+  <rect x="570" y="48" width="240" height="36" rx="6" fill="#fff" stroke="rgba(45,49,66,.25)"/><text x="586" y="71" fill="#5a6580">earlier work</text>
+  <rect x="570" y="104" width="240" height="40" rx="6" fill="#dbe8fa" stroke="#2e5aa8" stroke-width="1.6"/><text x="586" y="129" fill="#0f2347" font-weight="600">ready.load(acquire) == 1</text>
+  <rect x="570" y="168" width="240" height="36" rx="6" fill="#fff" stroke="rgba(45,49,66,.45)"/><text x="586" y="191">read data → 42</text>
+  <rect x="570" y="216" width="240" height="36" rx="6" fill="#fff" stroke="rgba(45,49,66,.45)"/><text x="586" y="239">read meta → 7</text>
+</g>
+<line x1="90" y1="206" x2="370" y2="206" stroke="#bf4520" stroke-width="2"/>
+<line x1="550" y1="94" x2="830" y2="94" stroke="#2e5aa8" stroke-width="2"/>
+<g font-family="'Geist Mono',monospace" font-size="11" fill="#bf4520" font-weight="600">
+  <path d="M380,90 V196" stroke="#bf4520" stroke-width="1.6" fill="none" stroke-dasharray="4 3"/><text x="390" y="140">✕ may not sink below</text>
+</g>
+<g font-family="'Geist Mono',monospace" font-size="11" fill="#5a6580">
+  <path d="M380,240 V216" stroke="#4f5d75" stroke-width="1.2" fill="none" marker-end="url(#ar-ar)"/><text x="390" y="236">may move up</text>
+  <path d="M540,66 V84" stroke="#4f5d75" stroke-width="1.2" fill="none" marker-end="url(#ar-ar)"/><text x="440" y="70">may move down</text>
+</g>
+<g font-family="'Geist Mono',monospace" font-size="11" fill="#2e5aa8" font-weight="600">
+  <path d="M540,240 V104" stroke="#2e5aa8" stroke-width="1.6" fill="none" stroke-dasharray="4 3"/><text x="418" y="184">may not rise above ✕</text>
+</g>
+<path d="M350,176 C450,176 470,124 566,124" fill="none" stroke="#bf4520" stroke-width="1.6" marker-end="url(#ar-ac)"/>
+<text x="460" y="290" text-anchor="middle" font-family="'Instrument Serif',serif" font-style="italic" font-size="16" fill="#2d3142">The consumer reads ready = 1, so it is guaranteed to see data = 42 and meta = 7.</text>
+</svg></div>
+    <p class="cap">Fig 3 · Release keeps earlier writes above the flag. Acquire keeps later reads below it. Together they form a synchronizes-with edge.</p>
+  </div>
+</section>
+
+<section>
+  <h2>4. Code</h2>
+  <p>In C++ you rarely write a raw fence. You attach an ordering to the atomic operation itself, and the compiler emits the right instructions for each CPU and stops its own reordering too.</p>
+<pre><span class="c">// Message passing: release / acquire is enough</span>
+<span class="k">int</span> data;
+std::atomic&lt;<span class="k">bool</span>&gt; ready{<span class="k">false</span>};
+
+<span class="k">void</span> producer() {
+    data = 42;
+    ready.store(<span class="k">true</span>, std::memory_order_release);
+}
+<span class="k">void</span> consumer() {
+    <span class="k">while</span> (!ready.load(std::memory_order_acquire)) {}
+    assert(data == 42);                           <span class="c">// guaranteed</span>
+}
+
+<span class="c">// Store buffering: needs StoreLoad ordering, so a full fence</span>
+std::atomic&lt;<span class="k">int</span>&gt; x{0}, y{0};
+<span class="k">void</span> t0() {
+    x.store(1, std::memory_order_relaxed);
+    std::atomic_thread_fence(std::memory_order_seq_cst);   <span class="c">// mfence on x86, dmb ish on ARM</span>
+    r0 = y.load(std::memory_order_relaxed);
+}
+<span class="c">// or simply use the default: x.store(1); r0 = y.load();  (both seq_cst)</span></pre>
+  <p>In Java, a <code>volatile</code> field gives sequentially consistent access, and <code>VarHandle</code> offers <code>setRelease</code>, <code>getAcquire</code> and explicit <code>fullFence()</code>. In Rust, <code>std::sync::atomic::Ordering</code> and <code>fence</code> mirror the C++ model.</p>
+</section>
+
+<section>
+  <h2>5. Cost</h2>
+  <div class="cards">
+    <div class="stat"><div class="eyebrow">Acquire / release on x86</div><div class="big">~free</div><p>Plain loads and stores already have that order. Only the compiler is restrained.</p></div>
+    <div class="stat focal"><div class="eyebrow">Full fence</div><div class="big">~20–100 cycles</div><p>Waits for the store buffer to drain. Hurts in hot loops.</p></div>
+    <div class="stat"><div class="eyebrow">Acquire / release on ARM</div><div class="big">cheap</div><p><code>ldar</code> / <code>stlr</code> are much lighter than <code>dmb</code>.</p></div>
+  </div>
+</section>
+
+<section>
+  <h2>Pitfalls</h2>
+  <ul class="tight">
+    <li><code>volatile</code> in C and C++ is not a fence. It stops the compiler from removing accesses, but it gives no ordering between threads.</li>
+    <li>A compiler barrier such as <code>asm volatile("" ::: "memory")</code> stops only the compiler. The CPU can still reorder.</li>
+    <li>Fences work in pairs. A release with no matching acquire on the reader side guarantees nothing.</li>
+    <li>Code that works on x86 can break on ARM, because x86 keeps three of the four orders for free. Test on weak hardware, or use tools such as ThreadSanitizer and model checkers like CDSChecker or GenMC.</li>
+    <li>Prefer atomics with the weakest ordering that is still correct over hand-placed fences, and prefer a mutex over both when performance allows.</li>
+  </ul>
+</section>
+
+</main>
+<script>
+(() => {
+  // ---------- model ----------
+  const st = { fence: false };
+  let S, demo = [], timer = 0, tally = null;
+  const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const prog = c => {
+    const me = c ? 'y' : 'x', other = c ? 'x' : 'y';
+    const p = [{ op: 'st', a: me, v: 1, t: `${me} = 1` }];
+    if (st.fence) p.push({ op: 'fence', t: 'fence  (mfence)' });
+    p.push({ op: 'ld', a: other, t: `r${c} = ${other}` });
+    return p;
+  };
+  function fresh() { return { pc: [0, 0], sb: [[], []], mem: { x: 0, y: 0 }, r: [null, null], last: null, log: [] }; }
+  const canNext = (s, c) => s.pc[c] < prog(c).length;
+  const canDrain = (s, c) => s.sb[c].length > 0;
+  function doNext(s, c) {
+    const ins = prog(c)[s.pc[c]]; s.pc[c]++;
+    if (ins.op === 'st') { s.sb[c].push({ a: ins.a, v: ins.v }); s.last = { k: 'st', c, a: ins.a }; return `core ${c}: ${ins.t} → into store buffer ${c}`; }
+    if (ins.op === 'fence') {
+      const n = s.sb[c].length;
+      while (s.sb[c].length) { const e = s.sb[c].shift(); s.mem[e.a] = e.v; }
+      s.last = { k: 'fence', c, n };
+      return n ? `core ${c}: fence stalls, drains ${n} store${n > 1 ? 's' : ''} to memory` : `core ${c}: fence, buffer already empty`;
+    }
+    const own = s.sb[c].filter(e => e.a === ins.a).pop();
+    s.r[c] = own ? own.v : s.mem[ins.a];
+    s.last = { k: 'ld', c, a: ins.a, src: own ? 'sb' : 'mem' };
+    return `core ${c}: r${c} = ${ins.a} → reads ${s.r[c]} from ${own ? 'its own buffer' : 'memory'}`;
+  }
+  function doDrain(s, c) {
+    const e = s.sb[c].shift(); s.mem[e.a] = e.v; s.last = { k: 'drain', c, a: e.a };
+    return `core ${c}: drain ${e.a} = ${e.v} → memory`;
+  }
+  const done = s => !canNext(s, 0) && !canNext(s, 1);
+  function randomRun() {
+    const s = fresh();
+    for (;;) {
+      const acts = [];
+      for (let c = 0; c < 2; c++) { if (canNext(s, c)) acts.push(['n', c]); if (canDrain(s, c)) acts.push(['d', c]); }
+      if (!acts.length) break;
+      const [k, c] = acts[Math.floor(Math.random() * acts.length)];
+      k === 'n' ? doNext(s, c) : doDrain(s, c);
+    }
+    return '' + s.r[0] + s.r[1];
+  }
+
+  // ---------- drawing ----------
+  const $ = id => document.getElementById(id);
+  const scene = $('scene');
+  const txt = (s, x, y, size, fill, weight, mono, anchor) =>
+    `<text x="${x}" y="${y}" text-anchor="${anchor || 'middle'}" font-size="${size}" font-weight="${weight || 400}" fill="${fill}" font-family="${mono ? "'Geist Mono',ui-monospace,monospace" : "'Geist',system-ui,sans-serif"}">${s}</text>`;
+  const CX = c => c ? 340 : 20, CW = 280;
+  const cellX = a => a === 'x' ? 220 : 340, CELLW = 80, MEMY = 340;
+
+  function drawCore(c) {
+    const x = CX(c), p = prog(c), L = S.last, act = L && L.c === c;
+    let s = `<rect x="${x}" y="16" width="${CW}" height="186" rx="8" fill="#fff" stroke="${act ? '#2d3142' : 'rgba(45,49,66,.45)'}" stroke-width="${act ? 2 : 1.2}"/>`;
+    s += txt(`Core ${c}`, x + 14, 42, 15, '#2d3142', 600, false, 'start');
+    s += txt(S.pc[c] >= p.length ? 'done' : `next: line ${S.pc[c] + 1}`, x + CW - 14, 42, 11, '#5a6580', 500, true, 'end');
+    p.forEach((ins, i) => {
+      const y = 58 + i * 34, cur = i === S.pc[c], past = i < S.pc[c];
+      const fence = ins.op === 'fence';
+      const f = cur ? '#2d3142' : fence ? 'rgba(191,69,32,.08)' : '#f8f9fb';
+      const sk = cur ? '#2d3142' : fence ? '#bf4520' : 'rgba(45,49,66,.18)';
+      s += `<rect x="${x + 14}" y="${y}" width="${CW - 28}" height="28" rx="5" fill="${f}" stroke="${sk}"${fence && !cur ? ' stroke-dasharray="4 3"' : ''}/>`;
+      s += txt(`${i + 1}`, x + 28, y + 19, 11, cur ? '#f5f5f5' : '#8a92a3', 500, true);
+      s += txt(ins.t, x + 44, y + 19, 13, cur ? '#f5f5f5' : past ? '#8a92a3' : fence ? '#bf4520' : '#2d3142', 600, true, 'start');
+      if (past) s += txt('✓', x + CW - 28, y + 19, 13, '#1d6b3a', 700, false);
+    });
+    const ry = 170, rv = S.r[c];
+    const hot = L && L.k === 'ld' && L.c === c;
+    s += `<rect x="${x + 14}" y="${ry}" width="${CW - 28}" height="24" rx="5" fill="${hot ? '#dbe8fa' : '#fff'}" stroke="${hot ? '#2e5aa8' : 'rgba(45,49,66,.25)'}"/>`;
+    s += txt(`register r${c} = ${rv === null ? '—' : rv}`, x + 26, ry + 17, 12.5, hot ? '#0f2347' : '#2d3142', 600, true, 'start');
+    // store buffer
+    const by = 222, drainHot = L && (L.k === 'drain' || (L.k === 'fence' && L.n)) && L.c === c, stHot = L && L.k === 'st' && L.c === c;
+    s += `<rect x="${x}" y="${by}" width="${CW}" height="56" rx="8" fill="rgba(191,69,32,.04)" stroke="${stHot || drainHot ? '#bf4520' : 'rgba(191,69,32,.45)'}" stroke-width="${stHot || drainHot ? 2 : 1.2}"/>`;
+    s += txt(`store buffer ${c}`, x + 14, by + 33, 11, '#bf4520', 600, true, 'start');
+    if (!S.sb[c].length) s += txt('empty', x + 150, by + 33, 12, '#aab0bd', 500, true, 'start');
+    S.sb[c].forEach((e, i) => {
+      const ex = x + 140 + i * 70;
+      s += `<rect x="${ex}" y="${by + 12}" width="62" height="32" rx="5" fill="#f4b79d" stroke="#bf4520" stroke-width="1.4"/>` + txt(`${e.a} = ${e.v}`, ex + 31, by + 33, 13, '#3d1405', 600, true);
+    });
+    return s;
+  }
+
+  function render() {
+    let s = `<defs>` +
+      `<marker id="mfS" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#bf4520" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></marker>` +
+      `<marker id="mfL" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#2e5aa8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>`;
+    s += drawCore(0) + drawCore(1);
+    // memory
+    s += `<rect x="160" y="${MEMY - 26}" width="320" height="100" rx="8" fill="#f5f5f5" stroke="#2d3142" stroke-width="1.2"/>`;
+    s += txt('shared memory', 320, MEMY + 68, 11, '#5a6580', 600, true);
+    const L = S.last;
+    ['x', 'y'].forEach(a => {
+      const hot = L && ((L.k === 'drain' && L.a === a) || (L.k === 'fence' && L.n && (L.c ? 'y' : 'x') === a));
+      const rd = L && L.k === 'ld' && L.src === 'mem' && L.a === a;
+      s += `<rect x="${cellX(a)}" y="${MEMY - 2}" width="${CELLW}" height="46" rx="6" fill="${hot ? '#f4b79d' : rd ? '#dbe8fa' : '#fff'}" stroke="${hot ? '#bf4520' : rd ? '#2e5aa8' : 'rgba(45,49,66,.45)'}" stroke-width="${hot || rd ? 2 : 1}"/>`;
+      s += txt(`${a} = ${S.mem[a]}`, cellX(a) + CELLW / 2, MEMY + 32, 18, '#2d3142', 600, true);
+    });
+    // arrows for the last action
+    if (L && (L.k === 'drain' || (L.k === 'fence' && L.n))) {
+      const a = L.k === 'drain' ? L.a : (L.c ? 'y' : 'x'), sx = CX(L.c) + CW / 2;
+      s += `<path d="M${sx},278 C${sx},310 ${cellX(a) + CELLW / 2},300 ${cellX(a) + CELLW / 2},${MEMY + 2}" fill="none" stroke="#bf4520" stroke-width="2.4" marker-end="url(#mfS)"/>`;
+    }
+    if (L && L.k === 'ld') {
+      const ex = CX(L.c) + (L.c ? 30 : CW - 30);
+      if (L.src === 'mem') {
+        const mx = cellX(L.a) + (L.c ? 10 : CELLW - 10);
+        s += `<path d="M${mx},${MEMY + 6} C${mx},250 ${ex + (L.c ? -40 : 40)},230 ${ex + (L.c ? -24 : 24)},196" fill="none" stroke="#2e5aa8" stroke-width="2.2" stroke-dasharray="6 4" marker-end="url(#mfL)"/>`;
+      } else {
+        s += `<path d="M${CX(L.c) + 170},222 L${CX(L.c) + 170},196" fill="none" stroke="#2e5aa8" stroke-width="2.2" marker-end="url(#mfL)"/>`;
+      }
+    }
+    // outcome banner
+    if (done(S)) {
+      const bad = S.r[0] === 0 && S.r[1] === 0;
+      s += '';
+      s += txt(bad ? 'r0 = 0 and r1 = 0 · impossible if memory were sequentially consistent' : `r0 = ${S.r[0]}, r1 = ${S.r[1]} · allowed under sequential consistency`, 320, 456, 12, bad ? '#bf4520' : '#1d6b3a', 700, true);
+    }
+    scene.innerHTML = s;
+  }
+
+  // ---------- readout ----------
+  function words() {
+    if (!S.log.length) return `<span class="na">Nothing has run yet. Press Next on either core.</span>`;
+    let s = S.log.slice(-6).map((l, i, arr) => `<span class="${i === arr.length - 1 ? '' : 'na'}">${S.log.length - arr.length + i + 1}. ${l}</span>`).join('\n');
+    if (done(S)) {
+      const bad = S.r[0] === 0 && S.r[1] === 0;
+      s += `\n<b class="${bad ? 'c-b' : 'c-a'}">result: r0 = ${S.r[0]}, r1 = ${S.r[1]}</b>` +
+        (bad ? `\n<span class="na">each load ran while the other core's store was still buffered</span>` : '');
+      if (S.sb[0].length || S.sb[1].length) s += `\n<span class="na">stores still buffered, drain them to finish</span>`;
+    }
+    return s;
+  }
+  function tallyHTML() {
+    if (!tally) return `<span class="na" style="font-family:var(--mono);font-size:12px">Not run yet.</span>`;
+    const mx = Math.max(...Object.values(tally), 1);
+    return ['00', '01', '10', '11'].map(k => `<div class="bar${k === '00' ? ' bad' : ''}"><span>r0=${k[0]} r1=${k[1]}</span><span class="track"><span class="fill" style="width:${(100 * tally[k] / mx).toFixed(1)}%"></span></span><output>${tally[k]}</output></div>`).join('');
+  }
+
+  function update() {
+    $('fOff').setAttribute('aria-pressed', !st.fence);
+    $('fOn').setAttribute('aria-pressed', st.fence);
+    $('task').innerHTML = st.fence
+      ? `<b>Fences on:</b> each core runs store, <b>fence</b>, load.<br><b>Expect:</b> the fence empties the buffer first, so at least one load sees 1. <code>r0 = r1 = 0</code> can no longer happen.`
+      : `<b>Fences off:</b> each core runs store, then load.<br><b>Expect:</b> if both loads run before either buffer drains, both read 0.`;
+    for (let c = 0; c < 2; c++) { $('n' + c).disabled = !canNext(S, c); $('d' + c).disabled = !canDrain(S, c); }
+    $('readout').innerHTML = words();
+    $('tallyLabel').textContent = `Outcomes of 1000 random schedules · fences ${st.fence ? 'on' : 'off'}`;
+    $('tally').innerHTML = tallyHTML();
+    $('live').textContent = done(S) ? `r0 = ${S.r[0]}, r1 = ${S.r[1]}` : `x = ${S.mem.x}, y = ${S.mem.y} in memory`;
+    render();
+  }
+
+  const stopDemo = () => { clearInterval(timer); timer = 0; demo = []; };
+  const act = (k, c) => { S.log.push(k === 'n' ? doNext(S, c) : doDrain(S, c)); };
+  const reset = () => { stopDemo(); S = fresh(); };
+  const setFence = on => { st.fence = on; tally = null; reset(); update(); };
+  $('fOff').onclick = () => setFence(false);
+  $('fOn').onclick = () => setFence(true);
+  for (let c = 0; c < 2; c++) {
+    $('n' + c).onclick = () => { stopDemo(); if (canNext(S, c)) act('n', c); update(); };
+    $('d' + c).onclick = () => { stopDemo(); if (canDrain(S, c)) act('d', c); update(); };
+  }
+  $('bReset').onclick = () => { reset(); update(); };
+  $('bRand').onclick = () => {
+    tally = { '00': 0, '01': 0, '10': 0, '11': 0 };
+    for (let i = 0; i < 1000; i++) tally[randomRun()]++;
+    update();
+  };
+  $('bDemo').onclick = () => {
+    reset();
+    const n = prog(0).length;
+    for (let i = 0; i < n; i++) demo.push(['n', 0], ['n', 1]);
+    demo.push(['d', 0], ['d', 1]);
+    const tick = () => {
+      while (demo.length) {
+        const [k, c] = demo.shift();
+        if (k === 'n' ? canNext(S, c) : canDrain(S, c)) { act(k, c); break; }
+      }
+      update();
+      if (!demo.length) { clearInterval(timer); timer = 0; }
+    };
+    update();
+    if (reduce) { while (demo.length) tick(); }
+    else timer = setInterval(tick, 900);
+  };
+
+  reset(); update();
+})();
+</script>
+</body>
+</html>
