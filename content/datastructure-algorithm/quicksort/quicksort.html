@@ -93,6 +93,8 @@ p .katex,td .katex,li .katex{font-size:1.05em}
 
 
 .doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}.doc-tags a{font:500 12px "Geist Mono",ui-monospace,monospace;padding:4px 10px;border:1px solid var(--rule-solid,#bfc0c0);border-radius:4px;background:#fff;color:var(--muted,#4f5d75);text-decoration:none}.doc-tags a:hover{border-color:var(--ink,#2d3142);color:var(--ink,#2d3142)}.doc-tags a:focus-visible{outline:2px solid var(--accent,#bf4520);outline-offset:2px}
+.size input[type=range]{width:180px;accent-color:var(--accent)}
+.size output{font-family:var(--mono);font-size:12px;font-weight:600;min-width:3ch}
 </style>
 </head>
 <body>
@@ -116,7 +118,7 @@ p .katex,td .katex,li .katex{font-size:1.05em}
   <p>This uses the <b>Lomuto partition</b> with the last item as the pivot. Press <b>Step</b> to move one comparison at a time. The blue bar is <code>j</code>, the item being compared. The amber bar is <code>i</code>, the end of the "smaller than pivot" zone. Use <b>Back</b> to rewind.</p>
 
   <figure class="card">
-    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">Quicksort on 12 numbers</span></div>
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title" id="t1">Quicksort on 12 numbers</span></div>
     <div class="scroll">
       <svg id="chart" width="880" height="300" viewBox="0 0 880 300" style="min-width:880px" role="img" aria-labelledby="chart-title chart-desc">
         <title id="chart-title">Bar chart of an array being sorted by quicksort</title>
@@ -138,6 +140,7 @@ p .katex,td .katex,li .katex{font-size:1.05em}
         <button type="button" class="btn" id="shuffle">New array</button>
         <button type="button" class="btn" id="sorted">Sorted array (worst case)</button>
       </div>
+      <div class="row size"><label for="n1" class="lab-label">Size</label><input type="range" id="n1" min="4" max="40" value="12"><output id="n1-out" for="n1">12</output></div>
       <div class="legend" aria-label="Legend">
         <span><i class="sw" style="background:#bf4520;border-color:#bf4520"></i>pivot</span>
         <span><i class="sw" style="background:#2e5aa8;border-color:#2e5aa8"></i>j (compared)</span>
@@ -250,7 +253,7 @@ swap(a, i + 1, hi);
         <g id="tree-g"></g>
       </svg>
     </div>
-    <div class="card-bottom"><span class="hint">48 items · rows = recursion depth</span><span class="live" id="tree-live"></span></div>
+    <div class="card-bottom"><span class="hint" id="tree-hint">48 items · rows = recursion depth</span><span class="live" id="tree-live"></span></div>
   </figure>
 
   <div class="controls">
@@ -270,11 +273,12 @@ swap(a, i + 1, hi);
           <button type="button" data-v="two" aria-pressed="true">Two-way</button><button type="button" data-v="three" aria-pressed="false">Three-way</button>
         </div>
       </div>
+      <div class="row size"><label for="n2" class="lab-label">Size</label><input type="range" id="n2" min="8" max="200" step="4" value="48"><output id="n2-out" for="n2">48</output></div>
       <div class="row"><button type="button" class="btn" id="reroll">New random draw</button></div>
     </div>
     <div class="panel"><pre class="lab-out" id="tree-out" aria-live="polite"></pre></div>
   </div>
-  <p style="margin-top:16px">Things to try. <b>Sorted</b> with <b>Last item</b> gives a staircase 48 rows deep and $\tfrac{48\cdot 47}{2} = 1128$ comparisons. Switch to <b>Median of 3</b> and the same input splits perfectly. <b>Few distinct</b> with <b>Two-way</b> is bad for every pivot rule, because items equal to the pivot all go to one side. <b>Three-way</b> fixes it.</p>
+  <p style="margin-top:16px">Things to try. <b>Sorted</b> with <b>Last item</b> gives a staircase $n$ rows deep and $\tfrac{n(n-1)}{2}$ comparisons, 1128 for 48 items. Drag <b>Size</b> up and watch the gap between the staircase and the balanced tree grow. Switch to <b>Median of 3</b> and the same input splits perfectly. <b>Few distinct</b> with <b>Two-way</b> is bad for every pivot rule, because items equal to the pivot all go to one side. <b>Three-way</b> fixes it.</p>
 </section>
 
 <section>
@@ -432,7 +436,8 @@ swap(a, i + 1, hi);
   }
 
   function load(arr) {
-    stop(); base = arr; frames = record(arr); pos = 0; render();
+    stop(); base = arr; N = arr.length;
+    document.getElementById('t1').textContent = 'Quicksort on ' + N + ' numbers'; frames = record(arr); pos = 0; render();
   }
   function randomArray() {
     var a = []; while (a.length < N) { var v = 10 + Math.floor(Math.random() * 90); if (a.indexOf(v) < 0) a.push(v); }
@@ -443,7 +448,7 @@ swap(a, i + 1, hi);
   function render() {
     var f = frames[pos], g = document.getElementById('bars');
     g.textContent = '';
-    var bw = 56, x0 = (880 - N * bw) / 2, base_y = 270, max = 100;
+    var bw = Math.min(56, 840 / N), pad = bw > 24 ? 4 : 1.5, fs = bw > 30 ? 13 : bw > 22 ? 10 : 8, x0 = (880 - N * bw) / 2, base_y = 270, max = 100;
     f.a.forEach(function (v, k) {
       var h = v / max * 220, inRange = f.lo === undefined || (k >= f.lo && k <= f.hi);
       var fill = '#fff', stroke = 'rgba(45,49,66,.45)', op = 1;
@@ -452,10 +457,10 @@ swap(a, i + 1, hi);
       else if (k === f.j) { fill = '#2e5aa8'; stroke = '#2e5aa8'; }
       else if (k === f.i) { fill = '#d9a03a'; stroke = '#d9a03a'; }
       if (!inRange && f.fixed.indexOf(k) < 0) op = .35;
-      g.appendChild(el('rect', { x: x0 + k * bw + 4, y: base_y - h, width: bw - 8, height: h, rx: 4, fill: fill, stroke: stroke, opacity: op }));
+      g.appendChild(el('rect', { x: x0 + k * bw + pad, y: base_y - h, width: bw - 2 * pad, height: h, rx: Math.min(4, bw / 6), fill: fill, stroke: stroke, opacity: op }));
       var dark = fill !== '#fff';
-      g.appendChild(el('text', { x: x0 + k * bw + bw / 2, y: base_y - h + 18, 'text-anchor': 'middle', 'font-family': "'Geist',sans-serif", 'font-size': 13, 'font-weight': 600, fill: dark ? '#fff' : '#2d3142', opacity: op }, v));
-      g.appendChild(el('text', { x: x0 + k * bw + bw / 2, y: base_y + 16, 'text-anchor': 'middle', 'font-family': "'Geist Mono',monospace", 'font-size': 10, fill: '#5a6580' }, k));
+      g.appendChild(el('text', { x: x0 + k * bw + bw / 2, y: base_y - h + 18, 'text-anchor': 'middle', 'font-family': "'Geist',sans-serif", 'font-size': fs, 'font-weight': 600, fill: dark ? '#fff' : '#2d3142', opacity: op }, v));
+      g.appendChild(el('text', { x: x0 + k * bw + bw / 2, y: base_y + 16, 'text-anchor': 'middle', 'font-family': "'Geist Mono',monospace", 'font-size': bw > 22 ? 10 : 8, fill: '#5a6580' }, k));
     });
     document.getElementById('readout').textContent = f.msg;
     document.getElementById('live').textContent = 'step ' + pos + ' / ' + (frames.length - 1);
@@ -483,6 +488,10 @@ swap(a, i + 1, hi);
   document.getElementById('run').addEventListener('click', run);
   document.getElementById('shuffle').addEventListener('click', function () { load(randomArray()); });
   document.getElementById('sorted').addEventListener('click', function () { load(sortedArray()); });
+
+  document.getElementById('n1').addEventListener('input', function () {
+    N = +this.value; document.getElementById('n1-out').textContent = N; load(randomArray());
+  });
 
   load([62, 17, 85, 34, 91, 48, 23, 70, 56, 12, 39, 77]);
 })();
@@ -554,6 +563,7 @@ swap(a, i + 1, hi);
   function render() {
     var r = simulate(), g = document.getElementById('tree-g');
     g.textContent = '';
+    document.getElementById('tree-hint').textContent = N + ' items · rows = recursion depth';
     var x0 = 20, cw = (880 - 40) / N, top = 12, rh = Math.min(26, (300 - 2 * top) / r.depth);
     r.nodes.forEach(function (n) {
       var y = top + n.d * rh, h = Math.max(1.5, rh - (rh > 6 ? 3 : 1));
@@ -580,6 +590,9 @@ swap(a, i + 1, hi);
     });
   });
   document.getElementById('reroll').addEventListener('click', function () { seed = 1 + Math.floor(Math.random() * 1e6); render(); });
+  document.getElementById('n2').addEventListener('input', function () {
+    N = +this.value; document.getElementById('n2-out').textContent = N; render();
+  });
   render();
 })();
 </script>
