@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Network Protocols: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible,a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+h3{font-family:var(--serif);font-weight:400;font-size:23px;margin:28px 0 8px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+a{color:var(--link)}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+
+.card{margin:24px 0 0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.stage{padding:0 8px;overflow-x:auto}
+.stage svg{display:block;width:100%;min-width:520px;height:auto}
+
+.controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;margin-top:16px;align-items:start}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.seg{display:flex;flex-wrap:wrap;border:1px solid var(--rule-solid);border-radius:6px;overflow:hidden;margin-bottom:16px}
+.seg button{flex:1 1 auto;min-height:40px;padding:0 12px;border:0;border-right:1px solid var(--rule-solid);background:transparent;font:500 13px var(--sans);color:var(--muted);cursor:pointer}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.slider{display:grid;grid-template-columns:auto 1fr 64px;gap:12px;align-items:center;font-family:var(--mono);font-size:12px;font-weight:600}
+.slider input{width:100%;accent-color:var(--accent)}
+.out{margin:0;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink)}
+
+pre{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .c2{color:var(--soft);font-style:italic}
+
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat p{font-size:14px;color:var(--muted);margin:6px 0 0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+
+table.ops{border-collapse:collapse;width:100%;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+table.ops td:first-child{white-space:nowrap;font-weight:600}
+.tablewrap{overflow-x:auto}
+ul.tight,ol.toc{padding-left:22px;max-width:68ch}ul.tight li,ol.toc li{margin:6px 0}
+.src{font-size:14px;color:var(--muted)}
+
+/* Fig 2: head-of-line blocking */
+.pkts{display:flex;flex-wrap:wrap;gap:4px;padding:8px 16px 4px}
+.cell{display:inline-flex;align-items:center;justify-content:center;width:40px;height:32px;border:1px solid var(--ink);border-radius:4px;background:#fff;font:600 11px var(--mono);color:var(--ink);padding:0;cursor:pointer}
+.cell.sA{background:rgba(46,90,168,.14)} .cell.sB{background:rgba(191,69,32,.12)} .cell.sC{background:rgba(45,49,66,.10)}
+.cell[aria-pressed="true"]{background:#fff;border:1px dashed var(--accent);color:var(--accent);text-decoration:line-through}
+.lanes{padding:8px 16px 12px}
+.lane{display:grid;grid-template-columns:84px 1fr 120px;gap:12px;align-items:center;margin:8px 0;font-family:var(--mono);font-size:12px}
+.track{position:relative;height:22px;background:var(--paper-2);border-radius:4px}
+.track i{position:absolute;top:0;bottom:0;left:0;border-radius:4px;transition:width .25s ease}
+.track i.ok{background:var(--ink)} .track i.stall{background:var(--accent)}
+.track b{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--accent)}
+
+/* Fig 3: FIX builder */
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 16px}
+label.f{display:flex;flex-direction:column;gap:4px;font-family:var(--mono);font-size:12px;font-weight:600}
+select,input[type=text],input[type=number]{min-height:40px;padding:0 10px;border:1px solid var(--rule-solid);border-radius:6px;font:500 14px var(--mono);color:var(--ink);background:#fff;width:100%}
+.wire{font-family:var(--mono);font-size:13px;word-break:break-all;padding:14px 16px;background:var(--ink);color:var(--paper);border-radius:6px;margin:0 0 12px;line-height:1.7}
+.wire .t{color:#f2b38f}
+
+.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;text-align:center;overflow-x:auto}
+.formula .katex{font-size:1.25em}
+.katex{color:var(--ink)}
+p .katex{font-size:1.05em}
+
+@media (max-width:860px){.controls,.cards,.grid2{grid-template-columns:1fr}.page{padding:32px 16px 72px}table.ops td:first-child{white-space:normal}.lane{grid-template-columns:64px 1fr 96px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+
+.doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}.doc-tags a{font:500 12px "Geist Mono",ui-monospace,monospace;padding:4px 10px;border:1px solid var(--rule-solid,#bfc0c0);border-radius:4px;background:#fff;color:var(--muted,#4f5d75);text-decoration:none}.doc-tags a:hover{border-color:var(--ink,#2d3142);color:var(--ink,#2d3142)}.doc-tags a:focus-visible{outline:2px solid var(--accent,#bf4520);outline-offset:2px}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" style="margin-right:8px" href="../../../../index.html">&larr; Back to home</a>
+<a class="back back-cat" href="../../../../index.html#cat=Architecture">&larr; Back to Architecture</a>
+
+<header>
+  <div class="eyebrow">Architecture · Protocols</div>
+  <h1>Network Protocols</h1>
+  <p class="lede">TCP, UDP, TLS, HTTP/1.1, HTTP/2, QUIC, HTTP/3, SSE, WebSocket, WebTransport, gRPC, MQTT, AMQP, WebRTC and FIX on one page. What each one adds on top of the layer below, what it costs in round trips, and when to pick it.</p>
+  <nav class="doc-tags" aria-label="Main tags"><a href="../../../../index.html#tag=protocols">#protocols</a><a href="../../../../index.html#tag=tcp">#tcp</a><a href="../../../../index.html#tag=udp">#udp</a><a href="../../../../index.html#tag=http">#http</a></nav>
+</header>
+
+<section>
+  <h2>Try it: round trips before the first byte</h2>
+  <p>Every protocol stack pays some round trips before the first byte of a response arrives. Pick a stack and a network round-trip time (RTT), and read the handshake off the sequence diagram. Each arrow takes half an RTT.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">Connection setup, client to server</span></div>
+    <div class="stage" id="seqStage"></div>
+    <div class="card-bottom"><span class="hint">dark = transport and TLS handshake · orange = request and response</span><span class="live" id="seqLive"></span></div>
+  </figure>
+
+  <div class="controls">
+    <div class="panel">
+      <div class="seg" role="group" aria-label="Protocol stack" id="stackSeg"></div>
+      <div class="slider"><label for="rtt">RTT</label><input type="range" id="rtt" min="5" max="300" step="5" value="80"><span id="rttVal">80 ms</span></div>
+    </div>
+    <div class="panel"><p class="out" id="seqOut" aria-live="polite"></p></div>
+  </div>
+</section>
+
+<section>
+  <h2>Contents</h2>
+  <ol class="toc">
+    <li><a href="#map">The layer map</a></li>
+    <li><a href="#udp">UDP</a></li>
+    <li><a href="#tcp">TCP</a></li>
+    <li><a href="#tls">TLS</a></li>
+    <li><a href="#http1">HTTP/1.1</a></li>
+    <li><a href="#http2">HTTP/2</a></li>
+    <li><a href="#hol">Head-of-line blocking</a></li>
+    <li><a href="#quic">QUIC</a></li>
+    <li><a href="#http3">HTTP/3</a></li>
+    <li><a href="#realtime">Real-time web: polling, SSE, WebSocket, WebTransport</a></li>
+    <li><a href="#grpc">gRPC</a></li>
+    <li><a href="#brokers">MQTT and AMQP</a></li>
+    <li><a href="#webrtc">WebRTC</a></li>
+    <li><a href="#fix">FIX</a></li>
+    <li><a href="#choose">Choosing a protocol</a></li>
+    <li><a href="#sources">Sources</a></li>
+  </ol>
+</section>
+
+<section id="map">
+  <h2>1. The layer map</h2>
+  <p>Each protocol solves one problem and hands the rest to the layer above or below. IP moves packets between hosts with no promises. TCP and UDP add ports. TCP also adds a reliable, ordered byte stream. QUIC rebuilds that reliability on top of UDP. HTTP, gRPC and FIX are application protocols that give the bytes a meaning.</p>
+  <div class="tablewrap">
+  <table class="ops">
+    <thead><tr><th>Protocol</th><th>Runs on</th><th>Unit</th><th>Reliable, ordered</th><th>Encryption</th><th>Typical use</th></tr></thead>
+    <tbody>
+      <tr><td>UDP</td><td>IP</td><td>Datagram</td><td>No</td><td>None (DTLS optional)</td><td>DNS, video calls, games, market data multicast</td></tr>
+      <tr><td>TCP</td><td>IP</td><td>Byte stream</td><td>Yes, one stream</td><td>None (TLS on top)</td><td>Almost everything that must not lose data</td></tr>
+      <tr><td>HTTP/1.1</td><td>TCP (+TLS)</td><td>Text message</td><td>From TCP</td><td>TLS optional</td><td>Web, REST APIs</td></tr>
+      <tr><td>HTTP/2</td><td>TCP + TLS</td><td>Binary frame</td><td>From TCP</td><td>TLS in practice</td><td>Web, gRPC</td></tr>
+      <tr><td>QUIC</td><td>UDP</td><td>Packet with frames</td><td>Yes, per stream</td><td>TLS 1.3, always</td><td>HTTP/3, mobile clients</td></tr>
+      <tr><td>HTTP/3</td><td>QUIC</td><td>Binary frame</td><td>From QUIC</td><td>Always</td><td>Web on lossy or mobile networks</td></tr>
+      <tr><td>SSE</td><td>HTTP</td><td>Text event</td><td>From HTTP, server to client only</td><td>From HTTPS</td><td>Live feeds, notifications, LLM token streams</td></tr>
+      <tr><td>WebSocket</td><td>HTTP/1.1 Upgrade (or HTTP/2, HTTP/3)</td><td>Frame</td><td>From TCP, two-way</td><td><code>wss://</code> uses TLS</td><td>Chat, trading UIs, multiplayer lobbies</td></tr>
+      <tr><td>WebTransport</td><td>HTTP/3</td><td>Stream or datagram</td><td>Streams yes, datagrams no</td><td>Always</td><td>Browser games, live media</td></tr>
+      <tr><td>gRPC</td><td>HTTP/2</td><td>Protobuf message</td><td>From HTTP/2</td><td>TLS usual</td><td>Service-to-service RPC</td></tr>
+      <tr><td>MQTT</td><td>TCP (or WebSocket)</td><td>Packet on a topic</td><td>Chosen per message (QoS 0, 1, 2)</td><td>TLS on port 8883</td><td>IoT devices, telemetry</td></tr>
+      <tr><td>AMQP</td><td>TCP</td><td>Frame on a channel</td><td>Yes, with broker acks</td><td>TLS on port 5671</td><td>Work queues, routing between services</td></tr>
+      <tr><td>WebRTC</td><td>UDP (ICE, DTLS, SRTP, SCTP)</td><td>Media packet or data message</td><td>Media no, data channels configurable</td><td>Always</td><td>Video calls, peer-to-peer data</td></tr>
+      <tr><td>FIX</td><td>TCP</td><td>Tag=value message</td><td>Yes, plus sequence numbers</td><td>TLS or private lines</td><td>Orders and executions in finance</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>The cost of a new connection is mostly handshake round trips. If a stack needs <span>$h$</span> round trips of setup before it can send a request, the first response byte arrives after about</p>
+  <div class="formula">$$T_{\text{first byte}} \approx (h + 1)\cdot \text{RTT}$$</div>
+  <p>On a 100 ms intercontinental link, one saved round trip is 100 ms saved on every new connection. That is why TLS 1.3, QUIC and connection reuse matter more than raw bandwidth for small requests.</p>
+</section>
+
+<section id="udp">
+  <h2>2. UDP</h2>
+  <p>UDP (RFC 768) is IP plus ports and a checksum. Its header is 8 bytes: source port, destination port, length and checksum. There is no connection, no acknowledgment, no retransmission and no ordering. A datagram arrives once, arrives twice, arrives out of order, or does not arrive at all.</p>
+  <p>What it does keep is message boundaries. One <code>send</code> becomes one datagram, and the receiver reads it whole. It also supports multicast, so one packet can reach many subscribers, which is how exchanges publish market data.</p>
+  <ul class="tight">
+    <li><b>Pick it when</b> late data is worthless (voice, game state, live prices), when you want your own reliability scheme (QUIC, Aeron), or for tiny request and response exchanges (DNS).</li>
+    <li><b>You own</b> loss handling, pacing, congestion control and packet size. Keep datagrams under the path MTU, around 1200 to 1472 bytes of payload, to avoid IP fragmentation.</li>
+  </ul>
+</section>
+
+<section id="tcp">
+  <h2>3. TCP</h2>
+  <p>TCP (RFC 9293) turns lossy packets into a reliable, ordered byte stream between two endpoints. Its header is 20 to 60 bytes. Every byte has a sequence number, and the receiver acknowledges the highest contiguous byte it has.</p>
+  <div class="cards">
+    <div class="stat focal"><div class="eyebrow">Handshake</div><p>SYN, SYN-ACK, ACK. One round trip before data. Data can ride on the final ACK.</p></div>
+    <div class="stat"><div class="eyebrow">Reliability</div><p>Lost segments are resent after a timeout, or sooner after three duplicate ACKs (fast retransmit).</p></div>
+    <div class="stat"><div class="eyebrow">Two windows</div><p>The receive window protects the receiver. The congestion window protects the network.</p></div>
+  </div>
+  <p>The sender may have at most the smaller of the two windows unacknowledged. One window is sent per round trip, so throughput is capped by</p>
+  <div class="formula">$$\text{throughput} \le \frac{\min(\text{cwnd},\ \text{rwnd})}{\text{RTT}}$$</div>
+  <p>To fill a link you need a window at least the size of the bandwidth-delay product, <span>$\text{BDP} = \text{bandwidth} \times \text{RTT}$</span>. A 1 Gbit/s link with 50 ms RTT needs about 6 MB in flight. Congestion control (slow start, then CUBIC or BBR) grows the window until it sees loss or rising delay.</p>
+  <h3>Details that bite in production</h3>
+  <ul class="tight">
+    <li><b>Nagle and delayed ACK.</b> Nagle holds small writes until earlier data is acknowledged, and the peer may delay its ACK. Together they add tens of milliseconds. Low-latency systems set <code>TCP_NODELAY</code>.</li>
+    <li><b>Head-of-line blocking.</b> One lost segment stalls every byte behind it, even bytes that already arrived. See section 7.</li>
+    <li><b>TIME_WAIT.</b> The side that closes first keeps the connection state for twice the maximum segment lifetime. Many short connections can exhaust ports. Reuse connections.</li>
+    <li><b>Keepalive and idle timeouts.</b> Load balancers and NATs drop idle flows silently. Send application heartbeats or enable keepalive.</li>
+    <li><b>No message boundaries.</b> TCP is a stream. Every protocol above it needs framing: a length prefix, a delimiter, or a header with a length field.</li>
+  </ul>
+</section>
+
+<section id="tls">
+  <h2>4. TLS</h2>
+  <p>TLS (version 1.3 is RFC 8446) adds encryption, integrity and server authentication on top of a reliable stream. It sits under HTTPS, gRPC, <code>wss://</code>, MQTT over 8883 and most FIX links. QUIC uses the same TLS 1.3 handshake but carries it in its own packets.</p>
+  <div class="cards">
+    <div class="stat focal"><div class="eyebrow">Handshake</div><p>Client and server agree a key with ephemeral Diffie-Hellman. The server proves its identity with a certificate chain and a signature.</p></div>
+    <div class="stat"><div class="eyebrow">Record layer</div><p>Data is cut into records of up to 16 KB, each encrypted and authenticated with an AEAD cipher such as AES-GCM or ChaCha20-Poly1305.</p></div>
+    <div class="stat"><div class="eyebrow">Extensions</div><p>SNI names the host so one IP can serve many sites. ALPN picks the application protocol: <code>h2</code>, <code>http/1.1</code> or <code>h3</code>.</p></div>
+  </div>
+  <ul class="tight">
+    <li><b>TLS 1.3 vs 1.2.</b> 1.3 needs one round trip instead of two, drops RSA key exchange and old ciphers, and encrypts the certificate. Every new connection gets forward secrecy.</li>
+    <li><b>Resumption.</b> A pre-shared key from an earlier session skips the certificate check. With 0-RTT the client sends data in its first flight, at the risk of replay.</li>
+    <li><b>Mutual TLS.</b> The client also presents a certificate. Service meshes use mTLS so every service call is authenticated in both directions.</li>
+    <li><b>Where to end TLS.</b> At the load balancer is simple and lets it route on HTTP. End to end keeps traffic encrypted inside the network. Many systems do both: terminate, then re-encrypt.</li>
+  </ul>
+</section>
+
+<section id="http1">
+  <h2>5. HTTP/1.1</h2>
+  <p>HTTP/1.1 (semantics in RFC 9110, wire format in RFC 9112) is text over TCP. A request is a request line, headers, a blank line and an optional body. Connections are persistent by default, so many requests can reuse one TCP and TLS handshake.</p>
+  <pre>GET /orders/42 HTTP/1.1
+Host: api.example.com
+Accept: application/json
+
+HTTP/1.1 200 OK
+Content-Type: application/json
+Content-Length: 27
+
+{"id":42,"status":"FILLED"}</pre>
+  <p>One connection carries one response at a time. Pipelining exists but is effectively unused, since a slow response blocks the ones behind it. Browsers work around this by opening about six connections per origin. Bodies are framed by <code>Content-Length</code> or by chunked transfer encoding. The <code>Upgrade</code> header turns a connection into a WebSocket for two-way messages (section 10).</p>
+</section>
+
+<section id="http2">
+  <h2>6. HTTP/2</h2>
+  <p>HTTP/2 (RFC 9113) keeps HTTP semantics (methods, status codes, headers) and changes the wire format. Everything is a binary <b>frame</b> with a 9-byte header: 24-bit length, 8-bit type, 8-bit flags and a 31-bit stream id.</p>
+  <ul class="tight">
+    <li><b>Streams and multiplexing.</b> Each request and response is a stream. Frames of many streams interleave on one TCP connection, so one connection replaces six. Client streams use odd ids.</li>
+    <li><b>HPACK header compression</b> (RFC 7541). A static table plus a per-connection dynamic table means repeated headers cost a byte or two.</li>
+    <li><b>Flow control</b> per stream and per connection, with <code>WINDOW_UPDATE</code> frames. The initial window is 65,535 bytes.</li>
+    <li><b>Frame types:</b> <code>DATA</code>, <code>HEADERS</code>, <code>SETTINGS</code>, <code>WINDOW_UPDATE</code>, <code>RST_STREAM</code>, <code>PING</code>, <code>GOAWAY</code> and a few more. <code>RST_STREAM</code> cancels one request without closing the connection.</li>
+    <li><b>Negotiation.</b> TLS ALPN with the token <code>h2</code>. Server push is defined but browsers have removed it, so do not design around it.</li>
+  </ul>
+  <p class="callout">HTTP/2 fixed head-of-line blocking at the HTTP layer and moved it down into TCP.</p>
+</section>
+
+<section id="hol">
+  <h2>7. Head-of-line blocking</h2>
+  <p>Three responses A, B and C are sent as four packets each. Click packets to lose them. A lost packet is resent and arrives 8 ticks late. Compare when each response is fully delivered to the application.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 2</span><span class="card-title">Packets on the wire, in send order</span></div>
+    <div class="pkts" id="pkts" role="group" aria-label="Packets, press to toggle loss"></div>
+    <div class="lanes" id="lanes"></div>
+    <div class="card-bottom"><span class="hint">dark = delivered on time · orange = waiting for a resent packet · line = no-loss finish</span><span class="live" id="holLive"></span></div>
+  </figure>
+
+  <div class="controls">
+    <div class="panel">
+      <div class="seg" role="group" aria-label="Protocol" id="holSeg"></div>
+      <p class="src">HTTP/1.1 here uses one connection, so responses go one after another. HTTP/2 interleaves them on one TCP stream. HTTP/3 interleaves them on independent QUIC streams.</p>
+    </div>
+    <div class="panel"><p class="out" id="holOut" aria-live="polite"></p></div>
+  </div>
+  <p>TCP must hand bytes to the application in order. When packet B2 is lost, TCP holds back A3, C2 and everything else behind it, even though they arrived. QUIC knows which stream each frame belongs to, so it only holds back stream B.</p>
+</section>
+
+<section id="quic">
+  <h2>8. QUIC</h2>
+  <p>QUIC (RFC 9000) is a reliable, multiplexed, encrypted transport built on UDP, usually on port 443. It runs in user space, so it can evolve without kernel upgrades.</p>
+  <div class="cards">
+    <div class="stat focal"><div class="eyebrow">TLS 1.3 inside</div><p>Transport and crypto handshakes are one. New connections take 1 RTT, resumed ones can send data in 0 RTT.</p></div>
+    <div class="stat"><div class="eyebrow">Independent streams</div><p>Loss on one stream does not stall the others. No head-of-line blocking across streams.</p></div>
+    <div class="stat"><div class="eyebrow">Connection IDs</div><p>A connection survives an IP change, such as Wi-Fi to cellular, because it is not keyed by the address 4-tuple.</p></div>
+  </div>
+  <ul class="tight">
+    <li><b>Better loss recovery</b> (RFC 9002). Packet numbers never repeat, even for resent data, so RTT samples are never ambiguous.</li>
+    <li><b>Encrypted headers.</b> Almost everything past the first bytes is encrypted and authenticated. Middleboxes cannot inspect or ossify it.</li>
+    <li><b>0-RTT has a cost.</b> Early data can be replayed by an attacker. Only send idempotent requests in 0-RTT.</li>
+    <li><b>Anti-amplification.</b> Before the client address is validated, a server sends at most three times what it received. Client Initial packets are padded to 1200 bytes.</li>
+    <li><b>Trade-offs.</b> More CPU per byte than kernel TCP with offloads. Some networks block or throttle UDP, so clients keep a TCP fallback.</li>
+  </ul>
+</section>
+
+<section id="http3">
+  <h2>9. HTTP/3</h2>
+  <p>HTTP/3 (RFC 9114) is HTTP mapped onto QUIC. Each request uses its own bidirectional QUIC stream, and control data uses unidirectional streams. Stream multiplexing and flow control move into QUIC, so the HTTP/3 framing layer is thinner than HTTP/2.</p>
+  <ul class="tight">
+    <li><b>QPACK</b> (RFC 9204) replaces HPACK. HPACK assumes frames arrive in order, which QUIC streams do not guarantee across each other.</li>
+    <li><b>Discovery.</b> A client first connects over TCP and sees an <code>Alt-Svc: h3=":443"</code> header, or finds an HTTPS DNS record, then switches to QUIC with ALPN <code>h3</code>.</li>
+    <li><b>Where it helps.</b> High RTT, packet loss and moving clients. On a clean data center network the gain over HTTP/2 is small.</li>
+  </ul>
+</section>
+
+<section id="realtime">
+  <h2>10. Real-time web: polling, SSE, WebSocket, WebTransport</h2>
+  <p>Plain HTTP is request and response: the server cannot speak first. Four techniques get updates to a browser as they happen. They differ in direction, framing and what the network in between has to support.</p>
+  <div class="tablewrap">
+  <table class="ops">
+    <thead><tr><th>Technique</th><th>Direction</th><th>Transport</th><th>Data</th><th>Reconnect</th><th>Cost</th></tr></thead>
+    <tbody>
+      <tr><td>Short polling</td><td>Client asks</td><td>Repeated HTTP requests</td><td>Any</td><td>Not needed</td><td>Delay up to the poll interval, many empty responses</td></tr>
+      <tr><td>Long polling</td><td>Client asks, server holds</td><td>HTTP request held open until data or timeout</td><td>Any</td><td>Client sends the next request</td><td>One round trip after each message, header overhead</td></tr>
+      <tr><td>SSE</td><td>Server to client</td><td>One long HTTP response</td><td>UTF-8 text</td><td>Built in, with <code>Last-Event-ID</code></td><td>Uplink needs separate HTTP requests</td></tr>
+      <tr><td>WebSocket</td><td>Both ways</td><td>Upgraded HTTP connection</td><td>Text or binary frames</td><td>Write it yourself</td><td>Stateful connections, custom protocol on top</td></tr>
+      <tr><td>WebTransport</td><td>Both ways</td><td>HTTP/3 session</td><td>Many streams plus unreliable datagrams</td><td>Write it yourself</td><td>Needs HTTP/3 and UDP end to end</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>Server-sent events</h3>
+  <p>SSE is defined in the WHATWG HTML standard. The server answers a normal GET with <code>Content-Type: text/event-stream</code> and never ends the body. Each event is a few <code>field: value</code> lines followed by a blank line.</p>
+  <pre><span class="c2">: comment lines like this one keep idle proxies from closing the stream</span>
+retry: 3000
+
+event: price
+id: 1042
+data: {"sym":"AAPL","px":187.25}
+
+event: price
+id: 1043
+data: {"sym":"AAPL","px":187.30}</pre>
+  <pre><span class="k">const</span> es = <span class="k">new</span> EventSource(<span class="c2">'/prices'</span>);
+es.addEventListener(<span class="c2">'price'</span>, e =&gt; render(JSON.parse(e.data)));
+<span class="c2">// After a drop the browser reconnects and sends Last-Event-ID: 1043</span></pre>
+  <ul class="tight">
+    <li><b>Strengths.</b> Plain HTTP, so it passes proxies, uses normal auth cookies, and works with HTTP/2 multiplexing. Reconnect and resume come for free.</li>
+    <li><b>Limits.</b> One direction and text only. <code>EventSource</code> cannot set custom headers, so token auth often uses <code>fetch</code> with a streamed body instead. On HTTP/1.1 each stream holds one of the browser's six connections per origin.</li>
+    <li><b>Watch for buffering.</b> A proxy or compression layer that buffers the response delays every event. Disable buffering for the stream route.</li>
+  </ul>
+
+  <h3>WebSocket</h3>
+  <p>WebSocket (RFC 6455) starts as an HTTP/1.1 request and then switches the TCP connection to its own framing. The server proves it understood the upgrade by hashing the client's key with a fixed GUID.</p>
+  <pre>GET /stream HTTP/1.1
+Host: api.example.com
+Upgrade: websocket
+Connection: Upgrade
+Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==
+Sec-WebSocket-Version: 13
+Origin: https://app.example.com
+
+HTTP/1.1 101 Switching Protocols
+Upgrade: websocket
+Connection: Upgrade
+Sec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=
+<span class="c2">// accept = base64( SHA-1( key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11" ) )</span></pre>
+  <p>After the 101, each message is one or more frames. The header is 2 to 14 bytes: a FIN bit, an opcode, a mask bit, a 7-bit length that can grow to 16 or 64 bits, and a 4-byte masking key on frames from the client. Build one below.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 4</span><span class="card-title">One WebSocket frame, byte by byte</span></div>
+    <div style="padding:0 16px 8px"><div class="wire" id="wsWire" aria-live="polite"></div></div>
+    <div class="card-bottom"><span class="hint">orange = header · light = payload (first 16 bytes shown)</span><span class="live" id="wsLive"></span></div>
+  </figure>
+  <div class="controls">
+    <div class="panel">
+      <div class="seg" role="group" aria-label="Frame direction" id="wsDir"></div>
+      <div class="grid2">
+        <label class="f" for="wsText">Text message<input type="text" id="wsText" value="Hello" maxlength="200"></label>
+        <label class="f" for="wsRep">Repeat it<select id="wsRep"><option value="1">x 1</option><option value="30">x 30</option><option value="20000">x 20,000</option></select></label>
+      </div>
+      <p class="src" style="margin-top:12px">Repeat the text to push the length past 125 bytes (16-bit length) and past 65,535 bytes (64-bit length).</p>
+    </div>
+    <div class="panel"><p class="out" id="wsOut"></p></div>
+  </div>
+
+  <ul class="tight">
+    <li><b>Opcodes.</b> <code>0x1</code> text, <code>0x2</code> binary, <code>0x0</code> continuation, and the control frames <code>0x8</code> close, <code>0x9</code> ping, <code>0xA</code> pong.</li>
+    <li><b>Why mask.</b> Client frames are XORed with a random key so a hostile page cannot craft bytes that confuse a caching proxy. It is not encryption. Use <code>wss://</code> for that.</li>
+    <li><b>Close codes.</b> 1000 normal, 1001 going away, 1011 server error. 1006 means the connection died without a close frame; it is never sent on the wire.</li>
+    <li><b>You build the rest.</b> Message types, request ids, acknowledgments, reconnect with backoff, resubscribe after reconnect and heartbeats are all application work. Libraries such as Socket.IO add some of it with their own protocol.</li>
+    <li><b>Operations.</b> Check the <code>Origin</code> header to stop cross-site WebSocket hijacking. Connections are long-lived and stateful, so plan for draining on deploys and for idle timeouts on load balancers. WebSocket also runs over HTTP/2 (RFC 8441) and HTTP/3 (RFC 9220) with extended CONNECT.</li>
+  </ul>
+
+  <h3>WebTransport</h3>
+  <p>WebTransport is a W3C browser API over an HTTP/3 session, with an HTTP/2 fallback in progress at the IETF. One session gives many independent reliable streams, so there is no head-of-line blocking between them, plus unreliable datagrams for data that is stale once late, such as game state. Browser support is still growing, so check it before you depend on it, and keep a WebSocket fallback.</p>
+</section>
+
+<section id="grpc">
+  <h2>11. gRPC</h2>
+  <p>gRPC is an RPC framework on top of HTTP/2. You define services and messages in Protocol Buffers, and code generators build typed clients and servers in many languages.</p>
+  <pre><span class="k">service</span> Orders {
+  <span class="k">rpc</span> Place (Order) <span class="k">returns</span> (Ack);                <span class="c2">// unary</span>
+  <span class="k">rpc</span> Watch (Filter) <span class="k">returns</span> (<span class="k">stream</span> Fill);       <span class="c2">// server streaming</span>
+  <span class="k">rpc</span> Upload (<span class="k">stream</span> Order) <span class="k">returns</span> (Summary);    <span class="c2">// client streaming</span>
+  <span class="k">rpc</span> Trade (<span class="k">stream</span> Order) <span class="k">returns</span> (<span class="k">stream</span> Fill);  <span class="c2">// bidirectional</span>
+}</pre>
+  <p>On the wire, a call is an HTTP/2 <code>POST</code> to <code>/package.Service/Method</code> with <code>content-type: application/grpc</code>. Each message gets a 5-byte prefix: one compressed flag byte and a 4-byte big-endian length. The result travels in HTTP trailers.</p>
+  <pre>HEADERS   :method POST  :path /shop.Orders/Place  grpc-timeout 200m
+DATA      00 | 00 00 00 1d | &lt;29 bytes of protobuf&gt;
+HEADERS   :status 200   <span class="c2">(response headers)</span>
+DATA      00 | 00 00 00 08 | &lt;8 bytes of protobuf&gt;
+HEADERS   grpc-status 0  grpc-message ""   <span class="c2">(trailers)</span></pre>
+  <ul class="tight">
+    <li><b>Status codes</b> are separate from HTTP status: 0 OK, 4 DEADLINE_EXCEEDED, 5 NOT_FOUND, 14 UNAVAILABLE and so on. Retry only on codes that are safe to retry.</li>
+    <li><b>Deadlines</b> propagate in <code>grpc-timeout</code>. Always set one, so a stuck downstream call fails fast instead of piling up.</li>
+    <li><b>Load balancing.</b> One long-lived HTTP/2 connection carries every call, so an L4 load balancer pins a client to one backend. Use an L7 proxy (Envoy, a service mesh) or client-side balancing.</li>
+    <li><b>Browsers</b> cannot read HTTP/2 trailers through fetch, so they use gRPC-Web through a proxy.</li>
+  </ul>
+</section>
+
+<section id="brokers">
+  <h2>12. MQTT and AMQP</h2>
+  <p>Both are broker protocols. Producers and consumers never talk to each other directly; they connect to a broker that stores and routes messages. They solve different problems.</p>
+
+  <h3>MQTT</h3>
+  <p>MQTT (OASIS, versions 3.1.1 and 5.0) is a small publish and subscribe protocol for devices on weak networks. The fixed header is as small as 2 bytes. Clients publish to topics such as <code>plant/3/line/7/temp</code> and subscribe with wildcards: <code>+</code> matches one level, <code>#</code> matches the rest.</p>
+  <table class="ops">
+    <thead><tr><th>QoS</th><th>Guarantee</th><th>Packets</th></tr></thead>
+    <tbody>
+      <tr><td>0</td><td>At most once. Fire and forget.</td><td>PUBLISH</td></tr>
+      <tr><td>1</td><td>At least once. Duplicates possible.</td><td>PUBLISH, PUBACK</td></tr>
+      <tr><td>2</td><td>Exactly once between two hops.</td><td>PUBLISH, PUBREC, PUBREL, PUBCOMP</td></tr>
+    </tbody>
+  </table>
+  <ul class="tight">
+    <li><b>Retained messages.</b> The broker keeps the last message on a topic and hands it to new subscribers, so a dashboard sees the current state at once.</li>
+    <li><b>Last Will.</b> A client registers a message the broker publishes if the client disappears without a clean disconnect.</li>
+    <li><b>Sessions and keep-alive.</b> A persistent session queues messages while a device is offline. The keep-alive interval lets both sides detect dead links.</li>
+    <li><b>Ports.</b> 1883 plain, 8883 with TLS, and MQTT over WebSocket for browsers.</li>
+  </ul>
+
+  <h3>AMQP</h3>
+  <p>AMQP comes in two different protocols that share a name. <b>AMQP 0-9-1</b> is the RabbitMQ model: a producer publishes to an <b>exchange</b>, <b>bindings</b> route copies into <b>queues</b>, and consumers read queues. Exchange types are direct (exact routing key), fanout (every bound queue), topic (wildcard keys) and headers. <b>AMQP 1.0</b> (OASIS and ISO standard) is a lower-level, symmetric link protocol used by Azure Service Bus, ActiveMQ Artemis and others, and RabbitMQ supports it too.</p>
+  <ul class="tight">
+    <li><b>Channels.</b> Many lightweight channels share one TCP connection, so a process does not need a connection per thread.</li>
+    <li><b>Acknowledgments.</b> A consumer acks after it has processed a message. Unacked messages go back to the queue if the consumer dies. Publisher confirms tell the producer the broker has the message.</li>
+    <li><b>Prefetch.</b> <code>basic.qos</code> caps how many unacked messages a consumer holds, which spreads work evenly and limits memory.</li>
+    <li><b>Versus Kafka.</b> AMQP brokers delete a message once it is acked and route per message. Kafka keeps an ordered log that many consumer groups replay at their own pace, over its own binary TCP protocol.</li>
+  </ul>
+</section>
+
+<section id="webrtc">
+  <h2>13. WebRTC</h2>
+  <p>WebRTC lets two browsers or apps send audio, video and data straight to each other, usually over UDP. It is a bundle of IETF protocols behind a W3C API.</p>
+  <div class="cards">
+    <div class="stat focal"><div class="eyebrow">Signaling</div><p>Not part of WebRTC. Peers swap SDP offers and answers and ICE candidates over any channel you choose, often a WebSocket.</p></div>
+    <div class="stat"><div class="eyebrow">ICE, STUN, TURN</div><p>ICE tries candidate address pairs. STUN tells a peer its public address behind NAT. TURN relays traffic when no direct path works.</p></div>
+    <div class="stat"><div class="eyebrow">Encryption</div><p>Mandatory. DTLS sets up keys. Media travels as SRTP, and data channels as SCTP over DTLS.</p></div>
+  </div>
+  <ul class="tight">
+    <li><b>Media</b> uses RTP with congestion control and feedback (RTCP). Late packets are dropped or concealed rather than resent, because latency matters more than completeness.</li>
+    <li><b>Data channels</b> can be reliable and ordered like TCP, or unordered with limited retransmits, which suits game state.</li>
+    <li><b>Scaling.</b> Full mesh works for a handful of peers. Larger calls send each stream once to a selective forwarding unit (SFU) that fans it out.</li>
+  </ul>
+</section>
+
+<section id="fix">
+  <h2>14. FIX</h2>
+  <p>The Financial Information eXchange protocol carries orders, executions and market data between brokers, buy-side firms and exchanges. The classic encoding is <code>tag=value</code> pairs separated by the SOH byte (0x01), sent over a long-lived TCP connection. Below, SOH is shown as <code>|</code>.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 3</span><span class="card-title">Build a NewOrderSingle (35=D)</span></div>
+    <div style="padding:0 16px 8px"><div class="wire" id="fixWire" aria-live="polite"></div></div>
+    <div class="card-bottom"><span class="hint">orange = computed by the engine</span><span class="live" id="fixLive"></span></div>
+  </figure>
+  <div class="controls">
+    <div class="panel">
+      <div class="grid2">
+        <label class="f" for="fSender">SenderCompID (49)<input type="text" id="fSender" value="BUYSIDE" maxlength="16"></label>
+        <label class="f" for="fTarget">TargetCompID (56)<input type="text" id="fTarget" value="BROKER" maxlength="16"></label>
+        <label class="f" for="fSeq">MsgSeqNum (34)<input type="number" id="fSeq" value="42" min="1" max="999999"></label>
+        <label class="f" for="fSym">Symbol (55)<input type="text" id="fSym" value="AAPL" maxlength="12"></label>
+        <label class="f" for="fSide">Side (54)<select id="fSide"><option value="1">1 = Buy</option><option value="2">2 = Sell</option></select></label>
+        <label class="f" for="fQty">OrderQty (38)<input type="number" id="fQty" value="100" min="1" max="10000000"></label>
+        <label class="f" for="fType">OrdType (40)<select id="fType"><option value="2">2 = Limit</option><option value="1">1 = Market</option></select></label>
+        <label class="f" for="fPx">Price (44)<input type="text" id="fPx" value="187.25" maxlength="12"></label>
+      </div>
+    </div>
+    <div class="panel"><p class="out" id="fixOut"></p></div>
+  </div>
+
+  <p>Every message starts with a standard header and ends with a checksum trailer. <code>9=</code> BodyLength counts the bytes after the BodyLength field up to and including the SOH before <code>10=</code>. <code>10=</code> CheckSum is the sum of every byte before it, modulo 256, written as three digits:</p>
+  <div class="formula">$$\text{CheckSum} = \Big(\sum_{i} b_i\Big) \bmod 256$$</div>
+  <table class="ops">
+    <thead><tr><th>Tag</th><th>Field</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td>8</td><td>BeginString</td><td>Protocol version, such as <code>FIX.4.4</code> or <code>FIXT.1.1</code>. Always first.</td></tr>
+      <tr><td>9</td><td>BodyLength</td><td>Byte count of the body. Always second.</td></tr>
+      <tr><td>35</td><td>MsgType</td><td>What the message is. Always third.</td></tr>
+      <tr><td>49 / 56</td><td>Sender / TargetCompID</td><td>Who is talking to whom. Identifies the session.</td></tr>
+      <tr><td>34</td><td>MsgSeqNum</td><td>Per-direction sequence number for gap detection.</td></tr>
+      <tr><td>52</td><td>SendingTime</td><td>UTC timestamp.</td></tr>
+      <tr><td>10</td><td>CheckSum</td><td>Three-digit checksum. Always last.</td></tr>
+    </tbody>
+  </table>
+  <h3>The session layer</h3>
+  <p>FIX sessions outlive TCP connections. Sequence numbers keep counting across reconnects, often for a whole trading day, so neither side loses an order during a network blip.</p>
+  <ul class="tight">
+    <li><b>Logon (A)</b> opens the session and sets <code>HeartBtInt</code> (108). <b>Logout (5)</b> closes it.</li>
+    <li><b>Heartbeat (0)</b> is sent when the line is idle. <b>TestRequest (1)</b> forces the peer to answer with a heartbeat.</li>
+    <li><b>ResendRequest (2)</b> asks for a range when an incoming sequence number jumps. Replays carry <code>PossDupFlag</code> (43) = Y. <b>SequenceReset (4)</b> skips messages that should not be replayed, such as stale orders.</li>
+    <li><b>Reject (3)</b> refuses a malformed message at the session level.</li>
+  </ul>
+  <p>Common application messages are NewOrderSingle (D), ExecutionReport (8), OrderCancelRequest (F), OrderCancelReplaceRequest (G) and market data (W, X). FIX 5.0 split the session layer into FIXT.1.1. For lower latency, FIX also defines binary encodings: Simple Binary Encoding (SBE), FAST for market data, and the lightweight FIXP session protocol. Many exchanges offer their own binary order protocols next to FIX.</p>
+</section>
+
+<section id="choose">
+  <h2>15. Choosing a protocol</h2>
+  <div class="tablewrap">
+  <table class="ops">
+    <thead><tr><th>Need</th><th>Good fit</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td>Public REST API</td><td>HTTP/1.1 or HTTP/2</td><td>Every client, proxy, cache and tool speaks it.</td></tr>
+      <tr><td>Web pages on mobile</td><td>HTTP/3, fallback HTTP/2</td><td>Fewer round trips, no cross-stream stalls, survives network changes.</td></tr>
+      <tr><td>Internal service calls</td><td>gRPC</td><td>Typed contracts, streaming, deadlines, compact payloads.</td></tr>
+      <tr><td>Live feed to a browser</td><td>SSE</td><td>One-way push over plain HTTP, reconnect and resume built in.</td></tr>
+      <tr><td>Chat, collaborative editing, trading UI</td><td>WebSocket</td><td>Low-overhead messages in both directions on one connection.</td></tr>
+      <tr><td>Browser game state, live media</td><td>WebTransport or WebRTC data channels</td><td>Unreliable delivery, so stale data is never waited for.</td></tr>
+      <tr><td>Video and voice calls</td><td>WebRTC</td><td>Peer-to-peer media with NAT traversal and built-in encryption.</td></tr>
+      <tr><td>IoT sensors and devices</td><td>MQTT</td><td>Tiny headers, per-message QoS, retained state and Last Will.</td></tr>
+      <tr><td>Background jobs and routing</td><td>AMQP (RabbitMQ)</td><td>Queues, acks and flexible routing with exchanges.</td></tr>
+      <tr><td>Order entry with brokers</td><td>FIX over TCP</td><td>Industry standard, session recovery with sequence numbers.</td></tr>
+      <tr><td>Market data fan-out</td><td>UDP multicast (with SBE or a venue format)</td><td>One packet reaches every subscriber. Gaps are filled from a recovery feed.</td></tr>
+      <tr><td>Ultra-low-latency messaging</td><td>UDP or shared memory with a custom layer (Aeron)</td><td>No kernel TCP stack in the way, control over batching and retransmits.</td></tr>
+      <tr><td>Bulk transfer, databases</td><td>TCP</td><td>Mature congestion control and kernel offloads, nothing to build.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="callout">Pick the highest layer that meets your latency and loss needs. Every layer you build yourself is code you have to own.</p>
+</section>
+
+<section id="sources">
+  <h2>Sources</h2>
+  <p class="src">Written from the IETF specifications: <a href="https://www.rfc-editor.org/rfc/rfc768">RFC 768 (UDP)</a>, <a href="https://www.rfc-editor.org/rfc/rfc9293">RFC 9293 (TCP)</a>, <a href="https://www.rfc-editor.org/rfc/rfc9110">RFC 9110</a> and <a href="https://www.rfc-editor.org/rfc/rfc9112">RFC 9112 (HTTP/1.1)</a>, <a href="https://www.rfc-editor.org/rfc/rfc9113">RFC 9113 (HTTP/2)</a>, <a href="https://www.rfc-editor.org/rfc/rfc9000">RFC 9000</a>, <a href="https://www.rfc-editor.org/rfc/rfc9001">RFC 9001</a> and <a href="https://www.rfc-editor.org/rfc/rfc9002">RFC 9002 (QUIC)</a>, <a href="https://www.rfc-editor.org/rfc/rfc9114">RFC 9114 (HTTP/3)</a>, <a href="https://www.rfc-editor.org/rfc/rfc9204">RFC 9204 (QPACK)</a>, <a href="https://www.rfc-editor.org/rfc/rfc8446">RFC 8446 (TLS 1.3)</a>, <a href="https://www.rfc-editor.org/rfc/rfc6455">RFC 6455 (WebSocket)</a>, <a href="https://www.rfc-editor.org/rfc/rfc8441">RFC 8441</a> and <a href="https://www.rfc-editor.org/rfc/rfc9220">RFC 9220</a> (WebSocket over HTTP/2 and HTTP/3), and <a href="https://www.rfc-editor.org/rfc/rfc8825">RFC 8825 (WebRTC overview)</a>; the <a href="https://html.spec.whatwg.org/multipage/server-sent-events.html">WHATWG server-sent events section</a>; the <a href="https://www.w3.org/TR/webtransport/">W3C WebTransport draft</a>; the <a href="https://mqtt.org/mqtt-specification/">OASIS MQTT specifications</a>; the <a href="https://www.rabbitmq.com/tutorials/amqp-concepts">RabbitMQ AMQP 0-9-1 concepts guide</a>; the <a href="https://github.com/grpc/grpc/blob/master/doc/PROTOCOL-HTTP2.md">gRPC over HTTP/2 protocol document</a>; and the <a href="https://www.fixtrading.org/standards/">FIX Trading Community standards</a>. The text and the demos are original summaries. Handshake diagrams are simplified and leave out optional messages.</p>
+</section>
+
+</main>
+
+<script>
+(function () {
+  /* ---------- Fig 1: handshake sequence diagram ---------- */
+  // Each arrow is one half round trip. kind: 'h' = handshake, 'd' = request or response data.
+  var STACKS = [
+    { id: 'udp', name: 'UDP', label: 'UDP request and response (DNS style)', note: 'No handshake. Loss is the application\'s problem: it must time out and retry.',
+      msgs: [['c', 'query', 'd'], ['s', 'answer', 'd']] },
+    { id: 'tcp', name: 'TCP', label: 'TCP + HTTP/1.1, no TLS', note: 'One round trip for the TCP handshake. The request rides on the final ACK.',
+      msgs: [['c', 'SYN', 'h'], ['s', 'SYN-ACK', 'h'], ['c', 'ACK + GET /', 'd'], ['s', '200 OK', 'd']] },
+    { id: 'tls12', name: 'TLS 1.2', label: 'TCP + TLS 1.2 + HTTP/1.1', note: 'TLS 1.2 needs two extra round trips for the key exchange.',
+      msgs: [['c', 'SYN', 'h'], ['s', 'SYN-ACK', 'h'], ['c', 'ACK, ClientHello', 'h'], ['s', 'ServerHello, Certificate, Done', 'h'],
+             ['c', 'KeyExchange, Finished', 'h'], ['s', 'Finished', 'h'], ['c', 'GET /', 'd'], ['s', '200 OK', 'd']] },
+    { id: 'tls13', name: 'TLS 1.3', label: 'TCP + TLS 1.3 + HTTP/2', note: 'TLS 1.3 sends key shares in the first flight, so it needs one round trip.',
+      msgs: [['c', 'SYN', 'h'], ['s', 'SYN-ACK', 'h'], ['c', 'ACK, ClientHello + key share', 'h'], ['s', 'ServerHello, Cert, Finished', 'h'],
+             ['c', 'Finished + HEADERS GET', 'd'], ['s', 'HEADERS 200 + DATA', 'd']] },
+    { id: 'quic', name: 'QUIC', label: 'QUIC + HTTP/3, new connection', note: 'Transport and TLS 1.3 handshakes are merged into one round trip.',
+      msgs: [['c', 'Initial: ClientHello', 'h'], ['s', 'Initial + Handshake: ServerHello..Finished', 'h'],
+             ['c', 'Handshake Finished + GET', 'd'], ['s', '200 + DATA', 'd']] },
+    { id: 'quic0', name: 'QUIC 0-RTT', label: 'QUIC + HTTP/3, resumed with 0-RTT', note: 'The request is sent with the first packet using a key from an earlier session. It can be replayed, so only send idempotent requests.',
+      msgs: [['c', 'Initial: ClientHello + 0-RTT GET', 'd'], ['s', 'ServerHello..Finished + 200', 'd']] }
+  ];
+  var cur = 2, rtt = 80;
+  var NS = 'http://www.w3.org/2000/svg';
+  function el(name, attrs, text) {
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (text != null) e.textContent = text;
+    return e;
+  }
+  function drawSeq() {
+    var s = STACKS[cur], n = s.msgs.length, step = 46, top = 56, W = 720, H = top + n * step + 44;
+    var cx = 220, sx = 640;
+    var svg = el('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img', 'aria-labelledby': 'seqT seqD' });
+    svg.appendChild(el('title', { id: 'seqT' }, 'Sequence diagram: ' + s.label));
+    var desc = s.msgs.map(function (m, i) { return (m[0] === 'c' ? 'client to server: ' : 'server to client: ') + m[1]; }).join('; ');
+    svg.appendChild(el('desc', { id: 'seqD' }, desc + '. First response byte after ' + (n / 2) + ' round trips.'));
+    var defs = el('defs', {});
+    ['ink', 'acc'].forEach(function (id) {
+      var mk = el('marker', { id: 'ah-' + id, viewBox: '0 0 10 10', refX: '9', refY: '5', markerWidth: '7', markerHeight: '7', orient: 'auto-start-reverse' });
+      mk.appendChild(el('path', { d: 'M0,0 L10,5 L0,10 z', fill: id === 'ink' ? '#2d3142' : '#bf4520' }));
+      defs.appendChild(mk);
+    });
+    svg.appendChild(defs);
+    // endpoints
+    [[cx, 'Client'], [sx, 'Server']].forEach(function (p) {
+      svg.appendChild(el('rect', { x: p[0] - 46, y: 12, width: 92, height: 28, rx: 5, fill: '#2d3142' }));
+      svg.appendChild(el('text', { x: p[0], y: 31, 'text-anchor': 'middle', fill: '#f5f5f5', 'font-family': 'Geist, sans-serif', 'font-size': 13, 'font-weight': 600 }, p[1]));
+      svg.appendChild(el('line', { x1: p[0], y1: 40, x2: p[0], y2: H - 20, stroke: '#bfc0c0', 'stroke-width': 2 }));
+    });
+    // time axis labels
+    for (var i = 0; i <= n; i++) {
+      var y = top + i * step;
+      svg.appendChild(el('line', { x1: 146, y1: y, x2: cx, y2: y, stroke: 'rgba(45,49,66,.12)', 'stroke-dasharray': '3 3' }));
+      svg.appendChild(el('text', { x: 140, y: y + 4, 'text-anchor': 'end', fill: '#5a6580', 'font-family': 'Geist Mono, monospace', 'font-size': 11 },
+        (i % 2 === 0 ? (i / 2) + ' RTT · ' : '') + Math.round(i * rtt / 2) + ' ms'));
+    }
+    s.msgs.forEach(function (m, i) {
+      var y1 = top + i * step, y2 = y1 + step, fromC = m[0] === 'c', data = m[2] === 'd';
+      var x1 = fromC ? cx : sx, x2 = fromC ? sx : cx;
+      svg.appendChild(el('line', { x1: x1, y1: y1, x2: x2, y2: y2, stroke: data ? '#bf4520' : '#2d3142', 'stroke-width': data ? 2.2 : 1.6, 'marker-end': 'url(#ah-' + (data ? 'acc' : 'ink') + ')' }));
+      var t = el('text', { x: (cx + sx) / 2, y: (y1 + y2) / 2 - 6, 'text-anchor': 'middle', fill: data ? '#bf4520' : '#2d3142', 'font-family': 'Geist Mono, monospace', 'font-size': 12, 'font-weight': 500,
+        stroke: '#fff', 'stroke-width': 4, 'paint-order': 'stroke' }, m[1]);
+      svg.appendChild(t);
+    });
+    var yEnd = top + n * step;
+    svg.appendChild(el('circle', { cx: cx, cy: yEnd, r: 5, fill: '#bf4520' }));
+    svg.appendChild(el('text', { x: cx + 12, y: yEnd + 22, fill: '#bf4520', 'font-family': 'Geist Mono, monospace', 'font-size': 12, 'font-weight': 600 }, 'first response byte at ' + Math.round(n * rtt / 2) + ' ms'));
+    var stage = document.getElementById('seqStage');
+    stage.textContent = '';
+    stage.appendChild(svg);
+    var rts = n / 2, setup = s.msgs.filter(function (m) { return m[2] === 'h'; }).length;
+    document.getElementById('seqLive').textContent = rts + ' RTT = ' + Math.round(rts * rtt) + ' ms';
+    var lines = [s.label, '', 'handshake round trips  ' + Math.ceil(setup / 2), 'total to first byte    ' + rts + ' RTT = ' + Math.round(rts * rtt) + ' ms', '', s.note];
+    if (cur > 0) {
+      var base = STACKS[2].msgs.length / 2;
+      if (rts < base) lines.push('', 'Saves ' + (base - rts) + ' RTT (' + Math.round((base - rts) * rtt) + ' ms) versus TCP + TLS 1.2.');
+    }
+    document.getElementById('seqOut').textContent = lines.join('\n');
+  }
+  var seg = document.getElementById('stackSeg');
+  STACKS.forEach(function (s, i) {
+    var b = document.createElement('button');
+    b.type = 'button'; b.textContent = s.name; b.setAttribute('aria-pressed', i === cur ? 'true' : 'false');
+    b.addEventListener('click', function () {
+      cur = i;
+      Array.prototype.forEach.call(seg.children, function (c, j) { c.setAttribute('aria-pressed', j === cur ? 'true' : 'false'); });
+      drawSeq();
+    });
+    seg.appendChild(b);
+  });
+  var rttIn = document.getElementById('rtt');
+  rttIn.addEventListener('input', function () { rtt = +rttIn.value; document.getElementById('rttVal').textContent = rtt + ' ms'; drawSeq(); });
+  drawSeq();
+
+  /* ---------- Fig 2: head-of-line blocking ---------- */
+  var MODES = [
+    { id: 'h1', name: 'HTTP/1.1', inOrder: true, serial: true },
+    { id: 'h2', name: 'HTTP/2 on TCP', inOrder: true, serial: false },
+    { id: 'h3', name: 'HTTP/3 on QUIC', inOrder: false, serial: false }
+  ];
+  var STREAMS = ['A', 'B', 'C'], PER = 4, DELAY = 8, mode = 1, lost = { B2: true };
+  function order() {
+    var out = [];
+    if (MODES[mode].serial) STREAMS.forEach(function (s) { for (var k = 1; k <= PER; k++) out.push(s + k); });
+    else for (var k = 1; k <= PER; k++) STREAMS.forEach(function (s) { out.push(s + k); });
+    return out;
+  }
+  // Delivery tick of each stream: in-order transports wait for every earlier packet on the connection,
+  // QUIC waits only for earlier packets of the same stream.
+  function finish(useLoss) {
+    var seq = order(), arr = {}, res = {};
+    seq.forEach(function (id, i) { arr[id] = (i + 1) + (useLoss && lost[id] ? DELAY : 0); });
+    STREAMS.forEach(function (s) {
+      var done = 0;
+      seq.forEach(function (id, i) {
+        if (id.charAt(0) !== s) return;
+        var d = 0;
+        for (var j = 0; j <= i; j++) if (MODES[mode].inOrder || seq[j].charAt(0) === s) d = Math.max(d, arr[seq[j]]);
+        done = Math.max(done, d);
+      });
+      res[s] = done;
+    });
+    return res;
+  }
+  function drawHol() {
+    var seq = order(), box = document.getElementById('pkts');
+    box.textContent = '';
+    seq.forEach(function (id) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'cell s' + id.charAt(0); b.textContent = id;
+      b.setAttribute('aria-pressed', lost[id] ? 'true' : 'false');
+      b.setAttribute('aria-label', 'Packet ' + id + (lost[id] ? ', lost' : ', delivered'));
+      b.addEventListener('click', function () { if (lost[id]) delete lost[id]; else lost[id] = true; drawHol(); box.querySelector('[aria-label^="Packet ' + id + '"]').focus(); });
+      box.appendChild(b);
+    });
+    var withL = finish(true), noL = finish(false), MAX = seq.length + DELAY, lanes = document.getElementById('lanes');
+    lanes.textContent = '';
+    var lines = [MODES[mode].name + ', lost: ' + (Object.keys(lost).sort().join(', ') || 'none'), ''], stalled = 0;
+    STREAMS.forEach(function (s) {
+      var row = document.createElement('div'); row.className = 'lane';
+      var name = document.createElement('span'); name.textContent = 'stream ' + s;
+      var tr = document.createElement('div'); tr.className = 'track'; tr.setAttribute('aria-hidden', 'true');
+      var ok = document.createElement('i'); ok.className = 'ok'; ok.style.width = (Math.min(noL[s], withL[s]) / MAX * 100) + '%';
+      var st = document.createElement('i'); st.className = 'stall';
+      st.style.left = (noL[s] / MAX * 100) + '%'; st.style.width = ((withL[s] - noL[s]) / MAX * 100) + '%';
+      var mark = document.createElement('b'); mark.style.left = (noL[s] / MAX * 100) + '%';
+      tr.appendChild(ok); tr.appendChild(st); tr.appendChild(mark);
+      var t = document.createElement('span'); t.textContent = 'done at ' + withL[s] + (withL[s] > noL[s] ? ' (+' + (withL[s] - noL[s]) + ')' : '');
+      row.appendChild(name); row.appendChild(tr); row.appendChild(t);
+      lanes.appendChild(row);
+      var hasOwnLoss = Object.keys(lost).some(function (id) { return id.charAt(0) === s; });
+      if (withL[s] > noL[s]) {
+        lines.push('stream ' + s + ' delayed ' + (withL[s] - noL[s]) + ' ticks' + (hasOwnLoss ? ' (lost its own packet)' : ' (blocked by another stream)'));
+        if (!hasOwnLoss) stalled++;
+      } else lines.push('stream ' + s + ' on time');
+    });
+    lines.push('', stalled ? stalled + ' stream(s) waited for a packet they did not need. That is head-of-line blocking.' :
+      (Object.keys(lost).length ? 'Only streams that lost a packet waited.' : 'Click a packet to lose it.'));
+    document.getElementById('holOut').textContent = lines.join('\n');
+    document.getElementById('holLive').textContent = 'all done at tick ' + Math.max(withL.A, withL.B, withL.C);
+  }
+  var hseg = document.getElementById('holSeg');
+  MODES.forEach(function (m, i) {
+    var b = document.createElement('button');
+    b.type = 'button'; b.textContent = m.name; b.setAttribute('aria-pressed', i === mode ? 'true' : 'false');
+    b.addEventListener('click', function () {
+      mode = i;
+      Array.prototype.forEach.call(hseg.children, function (c, j) { c.setAttribute('aria-pressed', j === mode ? 'true' : 'false'); });
+      drawHol();
+    });
+    hseg.appendChild(b);
+  });
+  drawHol();
+
+  /* ---------- Fig 4: WebSocket frame builder ---------- */
+  var MASK = [0x37, 0xfa, 0x21, 0x3d]; // example key from RFC 6455; real clients pick a random one per frame
+  var fromClient = true, wsDir = document.getElementById('wsDir');
+  function hx(b) { return (b < 16 ? '0' : '') + b.toString(16); }
+  function buildWs() {
+    var text = document.getElementById('wsText').value, rep = +document.getElementById('wsRep').value;
+    var one = new TextEncoder().encode(text), len = one.length * rep;
+    var payload = function (i) { return one.length ? one[i % one.length] : 0; };
+    var head = [0x80 | 0x1], lenNote;
+    var maskBit = fromClient ? 0x80 : 0;
+    if (len <= 125) { head.push(maskBit | len); lenNote = '7-bit length = ' + len; }
+    else if (len <= 65535) { head.push(maskBit | 126, (len >> 8) & 255, len & 255); lenNote = '7-bit field = 126, then 16-bit length = ' + len; }
+    else {
+      head.push(maskBit | 127);
+      for (var s = 7; s >= 0; s--) head.push(s >= 4 ? 0 : Math.floor(len / Math.pow(256, s)) & 255);
+      lenNote = '7-bit field = 127, then 64-bit length = ' + len;
+    }
+    if (fromClient) head = head.concat(MASK);
+    var wire = document.getElementById('wsWire');
+    wire.textContent = '';
+    var h = document.createElement('span'); h.className = 't'; h.textContent = head.map(hx).join(' ');
+    wire.appendChild(h);
+    var shown = [];
+    for (var i = 0; i < Math.min(len, 16); i++) shown.push(hx(fromClient ? payload(i) ^ MASK[i % 4] : payload(i)));
+    if (shown.length) wire.appendChild(document.createTextNode(' ' + shown.join(' ') + (len > 16 ? ' …' : '')));
+    var total = head.length + len;
+    document.getElementById('wsLive').textContent = head.length + ' header + ' + len + ' payload = ' + total + ' bytes';
+    document.getElementById('wsOut').textContent = [
+      'byte 0  ' + hx(head[0]) + '  FIN = 1, opcode = 0x1 (text)',
+      'byte 1  ' + hx(head[1]) + '  MASK = ' + (fromClient ? 1 : 0) + ', ' + lenNote,
+      fromClient ? 'mask    ' + MASK.map(hx).join(' ') + '  payload XORed with this key' : 'no mask: server frames are sent as is',
+      '',
+      'header ' + head.length + ' bytes, overhead ' + (len ? (head.length / total * 100).toFixed(1) : '100') + '%',
+      len && fromClient ? 'first byte: ' + hx(payload(0)) + ' XOR ' + hx(MASK[0]) + ' = ' + hx(payload(0) ^ MASK[0]) : ''
+    ].join('\n');
+  }
+  [['Client to server', true], ['Server to client', false]].forEach(function (d) {
+    var b = document.createElement('button');
+    b.type = 'button'; b.textContent = d[0]; b.setAttribute('aria-pressed', d[1] === fromClient ? 'true' : 'false');
+    b.addEventListener('click', function () {
+      fromClient = d[1];
+      Array.prototype.forEach.call(wsDir.children, function (c) { c.setAttribute('aria-pressed', c === b ? 'true' : 'false'); });
+      buildWs();
+    });
+    wsDir.appendChild(b);
+  });
+  document.getElementById('wsText').addEventListener('input', buildWs);
+  document.getElementById('wsRep').addEventListener('change', buildWs);
+  buildWs();
+
+  /* ---------- Fig 3: FIX message builder ---------- */
+  var SOH = '\x01';
+  function pad(n, w) { n = String(n); while (n.length < w) n = '0' + n; return n; }
+  function utcStamp(d) {
+    return d.getUTCFullYear() + pad(d.getUTCMonth() + 1, 2) + pad(d.getUTCDate(), 2) + '-' +
+      pad(d.getUTCHours(), 2) + ':' + pad(d.getUTCMinutes(), 2) + ':' + pad(d.getUTCSeconds(), 2) + '.' + pad(d.getUTCMilliseconds(), 3);
+  }
+  var stamp = utcStamp(new Date());
+  // Keep printable ASCII only, and drop the characters that would break tag=value framing.
+  function clean(v) { return String(v).replace(/[^\x20-\x7e]/g, '').replace(/[=|]/g, '').trim(); }
+  function val(id) { return clean(document.getElementById(id).value); }
+  function buildFix() {
+    var ordType = val('fType');
+    var body = [['35', 'D'], ['49', val('fSender') || 'X'], ['56', val('fTarget') || 'Y'], ['34', val('fSeq') || '1'], ['52', stamp],
+      ['11', 'ORD-' + (val('fSeq') || '1')], ['55', val('fSym') || 'SYM'], ['54', val('fSide')], ['60', stamp],
+      ['38', val('fQty') || '1'], ['40', ordType]];
+    if (ordType === '2') body.push(['44', val('fPx') || '0']);
+    var bodyStr = body.map(function (f) { return f[0] + '=' + f[1] + SOH; }).join('');
+    var head = '8=FIX.4.4' + SOH + '9=' + bodyStr.length + SOH;
+    var sum = 0, pre = head + bodyStr;
+    for (var i = 0; i < pre.length; i++) sum += pre.charCodeAt(i);
+    var cs = pad(sum % 256, 3), full = pre + '10=' + cs + SOH;
+    // Render with SOH shown as |, computed fields highlighted.
+    var wire = document.getElementById('fixWire');
+    wire.textContent = '';
+    full.split(SOH).filter(Boolean).forEach(function (f) {
+      var span = document.createElement('span');
+      var tag = f.split('=')[0];
+      if (tag === '9' || tag === '10') span.className = 't';
+      span.textContent = f + '|';
+      wire.appendChild(span);
+    });
+    document.getElementById('fixLive').textContent = full.length + ' bytes on the wire';
+    document.getElementById('fixOut').textContent = [
+      'BodyLength (9)  = ' + bodyStr.length + ' bytes',
+      '  from "35=" up to the SOH before "10="',
+      'byte sum        = ' + sum,
+      'CheckSum (10)   = ' + sum + ' mod 256 = ' + cs,
+      '',
+      ordType === '2' ? 'Limit order: Price (44) is required.' : 'Market order: no Price (44) field.',
+      'Change any field and both computed values change.'
+    ].join('\n');
+  }
+  ['fSender', 'fTarget', 'fSeq', 'fSym', 'fSide', 'fQty', 'fType', 'fPx'].forEach(function (id) {
+    document.getElementById(id).addEventListener('input', buildFix);
+    document.getElementById(id).addEventListener('change', buildFix);
+  });
+  buildFix();
+})();
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  renderMathInElement(document.body, {
+    delimiters: [
+      { left: '$$', right: '$$', display: true },
+      { left: '$', right: '$', display: false }
+    ],
+    ignoredTags: ['script', 'style', 'textarea', 'pre', 'code'],
+    throwOnError: false
+  });
+});
+</script>
+</body>
+</html>
