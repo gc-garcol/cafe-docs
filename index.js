@@ -1557,7 +1557,7 @@ const reduceMotion = () => window.matchMedia && matchMedia('(prefers-reduced-mot
 const G = {
   nodes: [], links: [], byId: new Map(), adj: new Map(), alpha: 0, alphaTarget: 0, raf: 0,
   view: { k: 1, x: 0, y: 0 }, W: 0, H: 0, dpr: 1, sized: false, fitted: false,
-  hover: null, live: new Set(), hubs: false, built: '',
+  hover: null, live: new Set(), hubs: true, built: '',
 };
 const catColor = c => CAT_COLORS[allCats().sort().indexOf(c) % CAT_COLORS.length];
 const hash01 = s => { let h = 2166136261; for (const ch of s) h = Math.imul(h ^ ch.charCodeAt(0), 16777619); return ((h >>> 0) % 10000) / 10000; };
