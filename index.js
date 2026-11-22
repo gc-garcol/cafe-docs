@@ -1344,6 +1344,17 @@ const DOCS = [
     summary: 'Regress a stock on the market to split its return into beta times the market plus alpha plus noise. See how hard alpha is to detect, then plot assets against the security market line.',
     related: ['Mean-Variance Portfolios', 'Linear Regression', 'Hypothesis Tests and p-values', 'Principal Component Analysis'],
   },
+  {
+    title: 'Value at Risk and Drawdown',
+    path: 'content/quant/value-at-risk-drawdown/value-at-risk-drawdown.html',
+    category: 'Quant',
+    topic: 'Time series and portfolios',
+    order: 18,
+    level: 'Intermediate',
+    tags: ['value at risk', 'expected shortfall', 'drawdown', 'risk management', 'fat tails', 'var backtest', 'tail risk', 'volatility'],
+    summary: 'Measure how much a portfolio can lose: one-day Value at Risk, the expected shortfall beyond it, and the worst peak-to-trough drawdown of the equity curve. Switch to fat tails and see the normal model underestimate the damage.',
+    related: ['ARMA and GARCH', 'Mean-Variance Portfolios', 'Expectation, Variance and Covariance', 'Backtesting Without Look-Ahead'],
+  },
 ];
 
 // ---------- helpers ----------
