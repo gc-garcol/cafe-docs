@@ -1114,6 +1114,17 @@ const DOCS = [
     summary: 'Step an event through five Kafka use cases: data pipelines, event-driven services, stream processing, centralized logs and change data capture.',
     related: ['Aeron Transport', 'AWS Compute'],
   },
+  {
+    title: 'Quant Roadmap',
+    path: 'content/quant/quant-roadmap/quant-roadmap.html',
+    category: 'Quant',
+    topic: 'Roadmap',
+    order: 1,
+    level: 'Beginner',
+    tags: ['quant', 'roadmap', 'finance', 'machine learning', 'probability', 'derivatives', 'backtesting', 'career'],
+    summary: 'A seven-phase study path into quantitative finance: calculus and linear algebra, probability, derivatives pricing, time series, machine learning, and engineering, with a project for each phase.',
+    related: ['Bayes\' Theorem', 'Gaussian Distribution', 'Linear Regression', 'Overfitting and Regularization', 'Machine Learning Algorithm Groups'],
+  },
 ];
 
 // ---------- helpers ----------

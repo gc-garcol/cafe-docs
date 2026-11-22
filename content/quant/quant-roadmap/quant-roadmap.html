@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quant Roadmap: math, code and AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible,a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+h3{font-family:var(--serif);font-weight:400;font-size:24px;line-height:1.2;margin:0 0 6px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+a{color:var(--link)}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
+.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;text-align:center;overflow-x:auto}
+.formula .katex{font-size:1.25em}
+.katex{color:var(--ink)}
+p .katex,td .katex,li .katex{font-size:1.05em}
+
+table.ops{border-collapse:collapse;width:100%;max-width:820px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin:20px 0 4px}
+.chip-btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
+.chip-btn:hover{background:var(--paper-2)}
+.chip-btn[aria-pressed=true]{background:var(--ink);color:var(--paper)}
+
+.phases{list-style:none;margin:24px 0 0;padding:0;display:grid;gap:16px}
+.phase{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px 22px;display:grid;grid-template-columns:72px minmax(0,1fr);gap:4px 20px}
+.phase .num{font-family:var(--serif);font-size:56px;line-height:1;color:var(--accent)}
+.phase .when{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft)}
+.phase p{margin:6px 0 10px;max-width:none;color:var(--muted);font-size:15px}
+.topics{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.topic{font:500 12px var(--mono);padding:4px 10px;border:1px solid var(--rule-solid);border-radius:4px;background:#fff;color:var(--ink);text-decoration:none}
+a.topic{color:var(--link);border-color:var(--link)}
+a.topic:hover{background:var(--link);color:#fff}
+.topic[data-track=math]{border-left:3px solid #bf4520}
+.topic[data-track=code]{border-left:3px solid #2e5aa8}
+.topic[data-track=fin]{border-left:3px solid #3d7a4f}
+.topic[data-track=ml]{border-left:3px solid #7a4fa8}
+.topic.off{display:none}
+.proj{margin:10px 0 0;padding:10px 14px;background:var(--accent-tint);border-left:2px solid var(--accent);font-size:14px;max-width:none}
+.proj b{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-right:6px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.legend i{width:14px;height:14px;border-radius:3px;border:1px solid var(--rule-solid);display:inline-block}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat h3{margin:0 0 6px;font-size:22px}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+
+@media (max-width:860px){.page{padding:32px 16px 72px}.stats{grid-template-columns:1fr}.phase{grid-template-columns:1fr}.phase .num{font-size:44px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+
+.doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}.doc-tags a{font:500 12px "Geist Mono",ui-monospace,monospace;padding:4px 10px;border:1px solid var(--rule-solid,#bfc0c0);border-radius:4px;background:#fff;color:var(--muted,#4f5d75);text-decoration:none}.doc-tags a:hover{border-color:var(--ink,#2d3142);color:var(--ink,#2d3142)}.doc-tags a:focus-visible{outline:2px solid var(--accent,#bf4520);outline-offset:2px}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" style="margin-right:8px" href="../../../index.html">&larr; Back to home</a>
+<a class="back back-cat" href="../../../index.html#cat=Quant">&larr; Back to Quant</a>
+
+<header>
+  <div class="eyebrow">Quant · Roadmap</div>
+  <h1>Quant Roadmap</h1>
+  <p class="lede">A study path into quantitative finance that mixes math, programming, markets and machine learning. Seven phases, each with what to learn, the docs in this site that cover it, and one project that proves you learned it.</p>
+  <nav class="doc-tags" aria-label="Main tags"><a href="../../../index.html#tag=quant">#quant</a><a href="../../../index.html#tag=roadmap">#roadmap</a><a href="../../../index.html#tag=finance">#finance</a><a href="../../../index.html#tag=machine%20learning">#machine learning</a></nav>
+</header>
+
+<section>
+  <h2>Before you start: pick a target</h2>
+  <p>"Quant" is not one job. The three common roles share the same base, then split. Choose a lean early, but keep phases 0 to 3 common to all of them.</p>
+  <div class="stats">
+    <div class="stat"><h3>Quant researcher</h3><p>Finds signals and builds models. Heavy on statistics, machine learning and careful testing.</p></div>
+    <div class="stat"><h3>Quant trader</h3><p>Makes pricing and risk decisions live. Heavy on probability, fast mental math and market intuition.</p></div>
+    <div class="stat"><h3>Quant developer</h3><p>Builds the pricing, data and execution systems. Heavy on software engineering and performance.</p></div>
+  </div>
+  <p class="callout" style="margin-top:24px">Math gives you the language, code gives you the proof, markets tell you what is true.</p>
+</section>
+
+<section>
+  <h2>The path</h2>
+  <p>Blue topics with a link are docs on this site. The rest are outside topics to study from books or courses. Use the filter to see one track at a time.</p>
+
+  <div class="filters" role="group" aria-label="Filter topics by track">
+    <button type="button" class="chip-btn" data-f="all" aria-pressed="true">All</button>
+    <button type="button" class="chip-btn" data-f="math" aria-pressed="false">Math</button>
+    <button type="button" class="chip-btn" data-f="code" aria-pressed="false">Code</button>
+    <button type="button" class="chip-btn" data-f="fin" aria-pressed="false">Finance</button>
+    <button type="button" class="chip-btn" data-f="ml" aria-pressed="false">ML and AI</button>
+  </div>
+  <div class="legend" aria-label="Legend">
+    <span><i style="border-left:3px solid #bf4520"></i>math</span>
+    <span><i style="border-left:3px solid #2e5aa8"></i>code</span>
+    <span><i style="border-left:3px solid #3d7a4f"></i>finance</span>
+    <span><i style="border-left:3px solid #7a4fa8"></i>ML and AI</span>
+  </div>
+
+  <ol class="phases">
+    <li class="phase">
+      <div class="num">0</div>
+      <div>
+        <div class="when">Months 0 to 3</div>
+        <h3>Calculus and linear algebra</h3>
+        <p>Everything later is built on these two. You should be able to differentiate, integrate, expand a function in a series, and work with matrices and eigenvalues without a lookup.</p>
+        <div class="topics">
+          <a class="topic" data-track="math" href="../../math/limits/limits.html">Limits</a>
+          <a class="topic" data-track="math" href="../../math/derivatives/derivatives.html">Derivatives</a>
+          <a class="topic" data-track="math" href="../../math/integrals/integrals.html">Integrals</a>
+          <a class="topic" data-track="math" href="../../math/taylor-series/taylor-series.html">Taylor Series</a>
+          <a class="topic" data-track="math" href="../../math/matrices/matrices.html">Matrices</a>
+          <a class="topic" data-track="math" href="../../math/determinants/determinants.html">Determinants</a>
+          <a class="topic" data-track="math" href="../../math/vector-spaces/vector-spaces.html">Vector Spaces</a>
+          <a class="topic" data-track="math" href="../../math/eigenvalues-eigenvectors/eigenvalues-eigenvectors.html">Eigenvalues and Eigenvectors</a>
+          <a class="topic" data-track="math" href="../../math/matrix-diagonalization/matrix-diagonalization.html">Matrix Diagonalization</a>
+          <span class="topic" data-track="code">Python, NumPy, pandas</span>
+          <span class="topic" data-track="code">SQL basics</span>
+        </div>
+        <p class="proj"><b>Project</b>Fit a straight line to price data using only NumPy and the normal equations, then check it against a library.</p>
+      </div>
+    </li>
+
+    <li class="phase">
+      <div class="num">1</div>
+      <div>
+        <div class="when">Months 3 to 6</div>
+        <h3>Probability and statistics</h3>
+        <p>The core of the job. Expectation, variance, conditional probability, the main distributions, the law of large numbers and the central limit theorem, then estimation and hypothesis tests.</p>
+        <div class="topics">
+          <a class="topic" data-track="math" href="../../math/binomial-theorem/binomial-theorem.html">Binomial Theorem</a>
+          <a class="topic" data-track="math" href="../../math/bayes-theorem/bayes-theorem.html">Bayes' Theorem</a>
+          <a class="topic" data-track="math" href="../../math/gaussian-distribution/gaussian-distribution.html">Gaussian Distribution</a>
+          <span class="topic" data-track="math">Expectation, variance, covariance</span>
+          <span class="topic" data-track="math">LLN and CLT</span>
+          <span class="topic" data-track="math">Maximum likelihood</span>
+          <span class="topic" data-track="math">Hypothesis tests, p-values</span>
+          <a class="topic" data-track="ml" href="../../AI/machine-learning/linear-regression/linear-regression.html">Linear Regression</a>
+        </div>
+        <p class="proj"><b>Project</b>Simulate a million coin-flip strategies and show how many look "profitable" by pure luck. This is the multiple testing problem in its simplest form.</p>
+      </div>
+    </li>
+
+    <li class="phase">
+      <div class="num">2</div>
+      <div>
+        <div class="when">Months 6 to 9</div>
+        <h3>Markets and derivatives pricing</h3>
+        <p>Learn what is traded and how it is priced. Start with returns, bonds, futures and options, then move to the model that ties them together. Stochastic calculus is the hardest step here, so go slowly.</p>
+        <div class="topics">
+          <span class="topic" data-track="fin">Returns, compounding, time value</span>
+          <span class="topic" data-track="fin">Futures, forwards, options payoffs</span>
+          <span class="topic" data-track="fin">No-arbitrage and put-call parity</span>
+          <span class="topic" data-track="math">Random walks, Brownian motion</span>
+          <span class="topic" data-track="math">Itô's lemma</span>
+          <span class="topic" data-track="fin">Black-Scholes and the Greeks</span>
+          <span class="topic" data-track="fin">Binomial trees</span>
+          <span class="topic" data-track="code">Monte Carlo pricing</span>
+          <a class="topic" data-track="math" href="../../math/fourier-transform/fourier-transform.html">Fourier Transform</a>
+        </div>
+        <p>The standard model for a stock price $S$ is geometric Brownian motion, with drift $\mu$, volatility $\sigma$ and a Wiener process $W$:</p>
+        <div class="formula">$$dS_t=\mu S_t\,dt+\sigma S_t\,dW_t$$</div>
+        <p class="proj"><b>Project</b>Price a European call three ways: the closed form, a binomial tree and Monte Carlo. Make all three agree, then plot how fast each converges.</p>
+      </div>
+    </li>
+
+    <li class="phase">
+      <div class="num">3</div>
+      <div>
+        <div class="when">Months 9 to 12</div>
+        <h3>Time series, portfolios and backtesting</h3>
+        <p>Real prices are noisy, dependent and non-stationary. This phase is about measuring that honestly, building portfolios from several assets, and testing a strategy without fooling yourself.</p>
+        <div class="topics">
+          <span class="topic" data-track="math">Stationarity, autocorrelation</span>
+          <span class="topic" data-track="math">ARMA and GARCH</span>
+          <span class="topic" data-track="fin">Mean-variance portfolios</span>
+          <span class="topic" data-track="fin">CAPM and factor models</span>
+          <a class="topic" data-track="ml" href="../../AI/machine-learning/principal-component-analysis/principal-component-analysis.html">Principal Component Analysis</a>
+          <span class="topic" data-track="fin">Risk: VaR, drawdown</span>
+          <span class="topic" data-track="code">Backtesting without look-ahead</span>
+          <span class="topic" data-track="fin">Transaction costs and slippage</span>
+        </div>
+        <p>The usual yardstick for a strategy is the Sharpe ratio, the mean excess return over its standard deviation:</p>
+        <div class="formula">$$\text{Sharpe}=\frac{\mathbb{E}[R-R_f]}{\sigma(R-R_f)}$$</div>
+        <p class="proj"><b>Project</b>Build a simple momentum or mean-reversion backtest on daily data. Add costs, split the data into in-sample and out-of-sample, and report what survives.</p>
+      </div>
+    </li>
+
+    <li class="phase">
+      <div class="num">4</div>
+      <div>
+        <div class="when">Months 12 to 15</div>
+        <h3>Machine learning for markets</h3>
+        <p>Financial data has a very low signal-to-noise ratio, so the main skill is not picking a fancy model but controlling overfitting. Learn the standard models, then learn how to validate them on time-ordered data.</p>
+        <div class="topics">
+          <a class="topic" data-track="ml" href="../../AI/machine-learning/ml-algorithm-groups/ml-algorithm-groups.html">ML Algorithm Groups</a>
+          <a class="topic" data-track="ml" href="../../AI/machine-learning/ridge-lasso-regression/ridge-lasso-regression.html">Ridge and Lasso Regression</a>
+          <a class="topic" data-track="ml" href="../../AI/machine-learning/logistic-regression/logistic-regression.html">Logistic Regression</a>
+          <a class="topic" data-track="ml" href="../../AI/machine-learning/decision-tree/decision-tree.html">Decision Tree</a>
+          <a class="topic" data-track="ml" href="../../AI/machine-learning/random-forest/random-forest.html">Random Forest</a>
+          <a class="topic" data-track="ml" href="../../AI/machine-learning/gradient-descent/gradient-descent.html">Gradient Descent</a>
+          <a class="topic" data-track="ml" href="../../AI/machine-learning/optimizers-sgd-adam-newton/optimizers-sgd-adam-newton.html">Optimizers</a>
+          <a class="topic" data-track="ml" href="../../AI/deep-learning/overfitting-regularization/overfitting-regularization.html">Overfitting and Regularization</a>
+          <span class="topic" data-track="ml">Gradient boosting</span>
+          <span class="topic" data-track="ml">Walk-forward and purged cross-validation</span>
+          <span class="topic" data-track="ml">Feature engineering, leakage</span>
+        </div>
+        <p class="proj"><b>Project</b>Predict next-day direction with regularized regression and a tree model. Use walk-forward validation. Expect weak results, and write down why a small edge is still hard to keep.</p>
+      </div>
+    </li>
+
+    <li class="phase">
+      <div class="num">5</div>
+      <div>
+        <div class="when">Months 15 to 18</div>
+        <h3>Deep learning and reinforcement learning</h3>
+        <p>Optional for some roles, central for others. Neural nets help with rich inputs such as order books and text. Reinforcement learning fits problems where actions change the next state, such as execution and market making.</p>
+        <div class="topics">
+          <a class="topic" data-track="ml" href="../../AI/deep-learning/deep-learning-overview/deep-learning-overview.html">Deep Learning Overview</a>
+          <a class="topic" data-track="ml" href="../../AI/deep-learning/backpropagation/backpropagation.html">Backpropagation</a>
+          <a class="topic" data-track="ml" href="../../AI/deep-learning/activation-functions/activation-functions.html">Activation Functions</a>
+          <a class="topic" data-track="ml" href="../../AI/deep-learning/convolution/convolution.html">Convolution and CNNs</a>
+          <a class="topic" data-track="ml" href="../../AI/machine-learning/autoencoder/autoencoder.html">Autoencoder</a>
+          <a class="topic" data-track="ml" href="../../AI/machine-learning/q-learning/q-learning.html">Q-learning and Dyna-Q</a>
+          <a class="topic" data-track="ml" href="../../AI/machine-learning/policy-gradient/policy-gradient.html">Policy Gradients</a>
+          <span class="topic" data-track="ml">Sequence models, transformers</span>
+        </div>
+        <p class="proj"><b>Project</b>Train a small agent to execute a large order over a day in a simulated market, and compare it with a plain time-sliced schedule.</p>
+      </div>
+    </li>
+
+    <li class="phase">
+      <div class="num">6</div>
+      <div>
+        <div class="when">In parallel, all along</div>
+        <h3>Engineering and interview skills</h3>
+        <p>Run this track next to the others, not after them. Trading systems care about correctness and latency, and interviews test fast probability and clean code under pressure.</p>
+        <div class="topics">
+          <span class="topic" data-track="code">C++ or Rust for speed</span>
+          <span class="topic" data-track="code">Python for research</span>
+          <span class="topic" data-track="code">Data structures and algorithms</span>
+          <a class="topic" data-track="code" href="../../datastructure-algorithm/heap/heap.html">Heap</a>
+          <a class="topic" data-track="code" href="../../datastructure-algorithm/skiplist/skiplist.html">Skip List</a>
+          <a class="topic" data-track="code" href="../../datastructure-algorithm/timer-wheel/timer-wheel.html">Timer Wheel</a>
+          <a class="topic" data-track="code" href="../../architecture/aeron/aeron-transport/aeron-transport.html">Aeron Transport</a>
+          <span class="topic" data-track="math">Probability puzzles</span>
+          <span class="topic" data-track="math">Mental arithmetic and estimation</span>
+        </div>
+        <p class="proj"><b>Project</b>Write a limit order book that matches buy and sell orders by price and time. Use heaps or ordered maps, add tests, and measure its throughput.</p>
+      </div>
+    </li>
+  </ol>
+</section>
+
+<section>
+  <h2>How to use this path</h2>
+  <ul class="tight">
+    <li><b>Do the project before moving on.</b> Reading a chapter is not the same as being able to use it. Each project is small on purpose.</li>
+    <li><b>Keep a notebook of mistakes.</b> Most quant skill is knowing the ways a result can be wrong: look-ahead bias, survivorship bias, overfitting, costs you forgot.</li>
+    <li><b>Be sceptical of your own edge.</b> If a backtest looks great, assume a bug first. Test on data you never touched while building it.</li>
+    <li><b>Revisit math often.</b> Phases 2 to 4 reuse phases 0 and 1 constantly. A second pass is faster and teaches more.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>Books worth owning</h2>
+  <table class="ops">
+    <thead><tr><th>Phase</th><th>Book</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>A first course in probability, such as Sheldon Ross</td><td>Many worked problems, close to interview style.</td></tr>
+      <tr><td>2</td><td>John Hull, <i>Options, Futures, and Other Derivatives</i></td><td>The standard introduction to products and pricing.</td></tr>
+      <tr><td>2</td><td>Steven Shreve, <i>Stochastic Calculus for Finance</i> I and II</td><td>Rigorous but readable path from trees to Black-Scholes.</td></tr>
+      <tr><td>4</td><td>Hastie, Tibshirani and Friedman, <i>The Elements of Statistical Learning</i></td><td>The reference for classical machine learning.</td></tr>
+      <tr><td>4</td><td>Marcos López de Prado, <i>Advances in Financial Machine Learning</i></td><td>Focuses on validating models on financial data.</td></tr>
+      <tr><td>6</td><td>Xinfeng Zhou, <i>A Practical Guide to Quantitative Finance Interviews</i></td><td>Puzzles and questions in the style firms ask.</td></tr>
+    </tbody>
+  </table>
+  <p>This is a map, not a promise. The timings assume steady part-time study, and a strong math background can shorten phases 0 and 1 a lot.</p>
+</section>
+
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var buttons = Array.prototype.slice.call(document.querySelectorAll('.chip-btn'));
+  var topics = Array.prototype.slice.call(document.querySelectorAll('.topic'));
+  buttons.forEach(function (b) {
+    b.addEventListener('click', function () {
+      var f = b.getAttribute('data-f');
+      buttons.forEach(function (o) { o.setAttribute('aria-pressed', o === b ? 'true' : 'false'); });
+      topics.forEach(function (t) {
+        t.classList.toggle('off', f !== 'all' && t.getAttribute('data-track') !== f);
+      });
+    });
+  });
+  if (window.renderMathInElement) {
+    window.renderMathInElement(document.body, {
+      delimiters: [{ left: '$$', right: '$$', display: true }, { left: '$', right: '$', display: false }],
+      ignoredTags: ['script', 'style', 'textarea', 'pre', 'code'],
+      throwOnError: false
+    });
+  }
+});
+</script>
+</body>
+</html>
