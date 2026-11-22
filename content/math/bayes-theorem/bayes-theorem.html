@@ -44,51 +44,60 @@ p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4
 .live{font-family:var(--mono);font-size:12px;font-weight:600}
 .scroll{overflow-x:auto;padding:0 8px;text-align:center}
 .scroll svg{display:inline-block;max-width:100%;height:auto}
+.duo{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--rule)}
+.duo>div{padding:8px 12px}
+.duo>div+div{border-left:1px solid var(--rule)}
+.duo svg{display:block;width:100%;height:auto}
 
 .controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;margin-top:16px;align-items:start}
 .panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
 .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:0 0 12px}
 .row label{font-family:var(--mono);font-size:13px;font-weight:600}
-input[type=number]{width:90px;min-height:40px;padding:0 10px;border:1px solid var(--rule-solid);border-radius:6px;font:500 14px var(--mono);color:var(--ink);background:#fff}
+.row label.wide{min-width:150px}
+input[type=range]{width:200px;max-width:100%;accent-color:#bf4520;min-height:28px}
+.val{font-family:var(--mono);font-size:13px;font-weight:600;min-width:52px}
+.group-label{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);margin:16px 0 6px}
+.group-label:first-child{margin-top:0}
+.seg{display:flex;flex-wrap:wrap;border:1px solid var(--rule-solid);border-radius:6px;overflow:hidden;margin-bottom:12px}
+.seg button{flex:1 1 30%;min-height:40px;border:0;background:transparent;font:500 13px var(--sans);color:var(--muted);cursor:pointer;padding:0 10px;box-shadow:inset 1px 0 0 var(--rule-solid),inset 0 1px 0 var(--rule-solid)}
+.seg button:hover{background:var(--paper-2)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
 button:focus-visible,input:focus-visible,svg:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btns{display:flex;gap:10px;flex-wrap:wrap}
 .btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
 .btn:hover{background:var(--ink);color:var(--paper)}
-#readout{margin:0;padding:0;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink);border:0;background:none}
+.readout{margin:0;padding:0;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink);border:0;background:none;overflow-x:auto}
 .legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
 .legend span{display:inline-flex;align-items:center;gap:8px}
 .sw{width:14px;height:14px;border-radius:3px;border:1px solid var(--ink);display:inline-block}
+.big-answer{font-family:var(--serif);font-size:44px;line-height:1.1;margin:4px 0 8px;color:var(--accent)}
+#calc{overflow-x:auto;margin-top:8px}
 
 pre{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+pre.readout{background:none;border:0;padding:0;margin:0}
 .k{color:var(--accent)} .t{color:var(--link)} .c{color:var(--soft);font-style:italic}
 
 .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
 .stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
-.stat .big{font-family:var(--serif);font-size:36px;line-height:1.1;margin:6px 0}
+.stat .big{font-family:var(--serif);font-size:30px;line-height:1.1;margin:6px 0}
 .stat p{font-size:14px;color:var(--muted);margin:0}
 .stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+.steps{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;max-width:760px}
+.steps ol{margin:0;padding-left:20px}.steps li{margin:8px 0}
 
-table.ops{border-collapse:collapse;width:100%;max-width:720px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
-table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule)}
+table.ops{border-collapse:collapse;width:100%;max-width:760px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
 table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
 table.ops tr:last-child td{border-bottom:0}
 ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
-
-@media (max-width:860px){.controls{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
-@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
 
 .formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;text-align:center;overflow-x:auto}
 .formula .katex{font-size:1.25em}
 .katex{color:var(--ink)}
 p .katex,td .katex,li .katex{font-size:1.05em}
-input[type=range]{width:200px;accent-color:#bf4520}
-.row label.wide{min-width:150px}
-.val{font-family:var(--mono);font-size:13px;font-weight:600;min-width:52px}
-.big-answer{font-family:var(--serif);font-size:44px;line-height:1.1;margin:4px 0 8px;color:var(--accent)}
-#calc{overflow-x:auto;margin-top:8px}
-.sw.sq{border-radius:3px}
 
-
-
+@media (max-width:860px){.controls,.duo{grid-template-columns:1fr}.duo>div+div{border-left:0;border-top:1px solid var(--rule)}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
 .doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}.doc-tags a{font:500 12px "Geist Mono",ui-monospace,monospace;padding:4px 10px;border:1px solid var(--rule-solid,#bfc0c0);border-radius:4px;background:#fff;color:var(--muted,#4f5d75);text-decoration:none}.doc-tags a:hover{border-color:var(--ink,#2d3142);color:var(--ink,#2d3142)}.doc-tags a:focus-visible{outline:2px solid var(--accent,#bf4520);outline-offset:2px}
 </style>
 </head>
@@ -101,60 +110,94 @@ input[type=range]{width:200px;accent-color:#bf4520}
 <header>
   <div class="eyebrow">Mathematics · Probability</div>
   <h1>Bayes' Theorem</h1>
-  <p class="lede">How to update a belief when new evidence arrives. Start from how common something is, weigh it against how well the evidence points to it, and get the probability you should believe now.</p>
-  
-  
-  
+  <p class="lede">How to update a belief when new evidence arrives. Start from how common something is, weigh it against how well the evidence points to it, and get the probability you should believe now. It is one line of algebra, and it corrects one of the most common mistakes in reasoning.</p>
   <nav class="doc-tags" aria-label="Main tags"><a href="../../../index.html#tag=probability">#probability</a><a href="../../../index.html#tag=bayes">#bayes</a><a href="../../../index.html#tag=prior">#prior</a><a href="../../../index.html#tag=posterior">#posterior</a></nav>
 </header>
 
 <section>
   <h2>Try the machine first</h2>
-  <p>A test for a condition comes back <b>positive</b>. How likely is it that the person really has the condition? Move the sliders. Each dot is one person out of 1000. The answer is the share of orange among all the filled dots, which are the people who tested positive.</p>
+  <p>A test for a condition comes back. How likely is it that the person really has the condition? Move the sliders and switch the result between positive and negative. Look at the same numbers three ways: 1000 people as dots, a square split by area, or a probability tree. In every view the answer is the same ratio: the people who have the condition <b>and</b> got this result, out of everyone who got this result.</p>
 
   <figure class="card">
-    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">1000 people, one positive test</span></div>
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title" id="figTitle">1000 people, one positive test</span></div>
     <div class="scroll">
-      <svg id="dots" width="460" height="290" viewBox="0 0 460 290" role="img" aria-labelledby="dots-title dots-desc">
-        <title id="dots-title">Icon array of 1000 people sorted by condition and test result</title>
-        <desc id="dots-desc">A grid of 1000 dots in four groups. Solid orange dots have the condition and tested positive. Hollow orange dots have the condition and tested negative. Solid blue dots do not have the condition but tested positive. Grey dots do not have the condition and tested negative. The probability of having the condition given a positive test is the number of solid orange dots divided by the number of solid dots. The numbers are also given in the readout beside the figure.</desc>
-        <rect width="100%" height="100%" fill="#fff"/>
-        <g id="grid"></g>
+      <svg id="viz" width="480" height="300" viewBox="0 0 480 300" role="img" aria-labelledby="viz-title viz-desc">
+        <title id="viz-title">The population split by condition and test result</title>
+        <desc id="viz-desc">Depending on the chosen view: an icon array of 1000 dots, a unit square whose left strip is the people with the condition and whose shaded heights are the test rates, or a probability tree. Orange marks people with the condition, blue marks people without it. Filled or highlighted parts are the people who got the selected test result. The posterior is the orange share of the highlighted parts. All numbers are repeated in the readout.</desc>
       </svg>
     </div>
-    <div class="card-bottom"><span class="hint">Groups run top to bottom, left to right</span><span class="live" id="live"></span></div>
+    <div class="card-bottom"><span class="hint" id="vizHint">Groups run top to bottom, left to right</span><span class="live" id="live"></span></div>
   </figure>
 
   <div class="controls">
     <div class="panel">
-      <div class="row"><label class="wide" for="prior">Base rate $P(H)$</label><input type="range" id="prior" min="0" max="1000" value="10"><span class="val" id="v-prior"></span></div>
-      <div class="row"><label class="wide" for="sens">Hit rate $P(E \mid H)$</label><input type="range" id="sens" min="0" max="100" value="90"><span class="val" id="v-sens"></span></div>
-      <div class="row"><label class="wide" for="fpr">False alarm $P(E \mid \neg H)$</label><input type="range" id="fpr" min="0" max="1000" value="90"><span class="val" id="v-fpr"></span></div>
-      <div class="row">
-        <button type="button" class="btn" id="p-med">Rare disease</button>
-        <button type="button" class="btn" id="p-spam">Spam filter</button>
-        <button type="button" class="btn" id="p-good">Good test</button>
+      <div class="row"><label class="wide" for="prior">Base rate P(H)</label><input type="range" id="prior" min="1" max="999" value="10"><span class="val" id="v-prior"></span></div>
+      <div class="row"><label class="wide" for="sens">Hit rate P(E | H)</label><input type="range" id="sens" min="1" max="999" value="900"><span class="val" id="v-sens"></span></div>
+      <div class="row"><label class="wide" for="fpr">False alarm P(E | ¬H)</label><input type="range" id="fpr" min="1" max="999" value="90"><span class="val" id="v-fpr"></span></div>
+      <div class="group-label" id="res-label">Test result</div>
+      <div class="seg" role="group" aria-labelledby="res-label">
+        <button type="button" data-res="pos" aria-pressed="true">Positive</button>
+        <button type="button" data-res="neg" aria-pressed="false">Negative</button>
+      </div>
+      <div class="group-label" id="view-label">View</div>
+      <div class="seg" role="group" aria-labelledby="view-label">
+        <button type="button" data-view="dots" aria-pressed="true">1000 people</button>
+        <button type="button" data-view="area" aria-pressed="false">Area</button>
+        <button type="button" data-view="tree" aria-pressed="false">Tree</button>
+      </div>
+      <div class="group-label" id="pre-label">Presets</div>
+      <div class="seg" role="group" aria-labelledby="pre-label">
+        <button type="button" data-p="10,900,90">Rare disease</button>
+        <button type="button" data-p="100,800,50">Fraud check</button>
+        <button type="button" data-p="400,950,300">Spam filter</button>
+        <button type="button" data-p="10,990,10">Good test</button>
+        <button type="button" data-p="1,999,1">Very rare</button>
+        <button type="button" data-p="300,900,90">Common</button>
       </div>
       <div class="legend" aria-label="Legend">
-        <span><i class="sw" style="background:#bf4520;border-color:#bf4520"></i>has it, positive</span>
-        <span><i class="sw" style="border-color:#bf4520;border-width:2px"></i>has it, negative</span>
-        <span><i class="sw" style="background:#2e5aa8;border-color:#2e5aa8"></i>does not, positive</span>
-        <span><i class="sw" style="background:#d6d8dd;border-color:#d6d8dd"></i>does not, negative</span>
+        <span><i class="sw" style="background:#bf4520;border-color:#bf4520"></i>has it, this result</span>
+        <span><i class="sw" style="border-color:#bf4520;border-width:2px"></i>has it, other result</span>
+        <span><i class="sw" style="background:#2e5aa8;border-color:#2e5aa8"></i>does not, this result</span>
+        <span><i class="sw" style="background:#d6d8dd;border-color:#d6d8dd"></i>does not, other result</span>
       </div>
     </div>
     <div class="panel">
-      <div class="eyebrow">P(has it | positive)</div>
+      <div class="group-label" id="ansLabel">P(has it | positive)</div>
       <div class="big-answer" id="answer"></div>
-      <pre id="readout" aria-live="polite"></pre>
+      <pre class="readout" id="readout" aria-live="polite"></pre>
       <div id="calc"></div>
     </div>
   </div>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 2</span><span class="card-title">The same test, different worlds</span></div>
+    <div class="duo">
+      <div>
+        <svg id="curve" viewBox="0 0 400 260" role="img" aria-labelledby="cu-title cu-desc">
+          <title id="cu-title">Posterior as a function of the base rate</title>
+          <desc id="cu-desc">For the current test, the orange curve gives the probability of the condition after a positive result, and the blue curve after a negative result, for every base rate from 0 to 100 percent. The diagonal is "no change". A dot marks the current base rate.</desc>
+        </svg>
+      </div>
+      <div>
+        <svg id="seq" viewBox="0 0 400 260" role="img" aria-labelledby="sq-title sq-desc">
+          <title id="sq-title">Belief after a sequence of test results</title>
+          <desc id="sq-desc">Each step is one more independent test result, positive or negative, added with the buttons below. The line shows the probability of the condition after each step, starting from the base rate.</desc>
+        </svg>
+        <div class="btns" style="justify-content:center;margin:4px 0 8px">
+          <button type="button" class="btn" id="addPos">+ positive</button>
+          <button type="button" class="btn" id="addNeg">+ negative</button>
+          <button type="button" class="btn" id="seqReset">Reset</button>
+        </div>
+      </div>
+    </div>
+    <div class="card-bottom"><span class="hint">Left: one test across all base rates. Right: one person, many tests.</span><span class="live" id="seqLive"></span></div>
+  </figure>
 </section>
 
 <section>
   <h2>1. The idea</h2>
   <p>You start with a belief, the <b>prior</b>. You see some evidence. The evidence is more likely if your belief is true than if it is false, so you raise the belief. The new belief is the <b>posterior</b>. How far it moves depends on two things: how strong the evidence is, and how likely the belief was to begin with.</p>
-  <p>The second part is the one people forget. A strong test for a very rare thing still gives mostly false alarms, because there are so many more healthy people to be wrong about.</p>
+  <p>The second part is the one people forget. A strong test for a very rare thing still gives mostly false alarms, because there are so many more healthy people to be wrong about. Try the "Very rare" preset: a test that is right 99.9% of the time, for a condition 1 in 1000 people have, gives a coin flip.</p>
   <p class="callout">New belief = old belief, scaled by how well the evidence fits.</p>
 </section>
 
@@ -167,7 +210,7 @@ input[type=range]{width:200px;accent-color:#bf4520}
   <p>Textbooks often write the pair as $A$ and $B$ instead of $H$ and $E$. It is the same formula with different letters.</p>
 
   <h3>A worked example: fraud detection</h3>
-  <p>Let $H$ be "this transaction is fraud" and $E$ be "the transaction comes from an unusual IP". Suppose the numbers are:</p>
+  <p>Let $H$ be "this transaction is fraud" and $E$ be "the transaction comes from an unusual IP". The "Fraud check" preset loads these numbers:</p>
   <table class="ops">
     <thead><tr><th>Quantity</th><th>Name</th><th>Meaning here</th><th>Value</th></tr></thead>
     <tbody>
@@ -182,7 +225,7 @@ input[type=range]{width:200px;accent-color:#bf4520}
   <div class="formula">$$P(E)=\underbrace{0.80\times0.10}_{\text{fraud, unusual IP}=0.08}+\underbrace{0.05\times0.90}_{\text{honest, unusual IP}=0.045}=0.125$$</div>
   <p>Now apply Bayes' theorem:</p>
   <div class="formula">$$P(H \mid E)=\frac{P(E \mid H)\,P(H)}{P(E)}=\frac{0.08}{0.125}=0.64$$</div>
-  <p>Before the evidence the chance of fraud was 10%. After seeing the unusual IP it is 64%. The evidence changed the probability of the hypothesis, and the size of the change came from how much more often fraud produces that IP than honest traffic does: $0.80$ against $0.05$.</p>
+  <p>Before the evidence the chance of fraud was 10%. After seeing the unusual IP it is 64%. The size of the change came from how much more often fraud produces that IP than honest traffic does: $0.80$ against $0.05$, a factor of 16.</p>
   <p>Notice the denominator. Of every 1000 transactions, 100 are fraud and 80 of those come from an unusual IP. Of the 900 honest ones, 45 do too. So 125 transactions look like this, and 80 of them are fraud, which is $80/125=64\%$.</p>
 
   <h3>Three words that are easy to mix up</h3>
@@ -197,22 +240,12 @@ input[type=range]{width:200px;accent-color:#bf4520}
   <p>The likelihood $P(E \mid H)$ and the posterior $P(H \mid E)$ look alike but ask opposite questions. The first starts from the hypothesis and asks how likely the evidence is. The second starts from the evidence and asks how likely the hypothesis is. Bayes' theorem is the bridge between them.</p>
 
   <h3>The roles are not fixed</h3>
-  <p>Nothing makes a statement a hypothesis or evidence by itself. It depends on the question you are asking. The same observation can serve in different problems:</p>
+  <p>Nothing makes a statement a hypothesis or evidence by itself. It depends on the question you are asking:</p>
   <ul class="tight">
     <li>Question one: is this transaction fraud? Hypothesis: "the transaction is fraud". Evidence: "it came from an unusual IP".</li>
     <li>Question two: has this account been hacked? Hypothesis: "the account is compromised". Evidence: "there was a login from an unusual IP".</li>
   </ul>
   <p>The data is nearly the same, but the hypothesis differs, so the priors and likelihoods differ, and so does the answer. Always begin by writing down the hypothesis in one sentence.</p>
-
-  <h3>In short</h3>
-  <ul class="tight">
-    <li><b>Hypothesis $H$</b>: what you want to know is true or not.</li>
-    <li><b>Evidence $E$</b>: what you have observed.</li>
-    <li><b>Prior $P(H)$</b>: how much you believed $H$ before the evidence.</li>
-    <li><b>Likelihood $P(E \mid H)$</b>: how likely the evidence is if $H$ is true.</li>
-    <li><b>Posterior $P(H \mid E)$</b>: how much you believe $H$ after the evidence.</li>
-  </ul>
-  <p>This pattern, a prior updated by evidence into a posterior, is the foundation of Bayesian statistics and Bayesian machine learning.</p>
 </section>
 
 <section>
@@ -221,17 +254,19 @@ input[type=range]{width:200px;accent-color:#bf4520}
   <div class="formula">$$P(H \cap E) = P(E \mid H)\,P(H) = P(H \mid E)\,P(E)$$</div>
   <p>Divide both sides by $P(E)$ and you get Bayes' theorem:</p>
   <div class="formula">$$P(H \mid E) = \frac{P(E \mid H)\,P(H)}{P(E)}$$</div>
-  <p>The bottom part, $P(E)$, is all the ways the evidence can show up. Split it into two cases, with the hypothesis true and false:</p>
+  <p>The bottom part, $P(E)$, is all the ways the evidence can show up. Split it into two cases, with the hypothesis true and false. This is the law of total probability:</p>
   <div class="formula">$$P(E) = P(E \mid H)\,P(H) + P(E \mid \neg H)\,P(\neg H)$$</div>
   <table class="ops">
     <thead><tr><th>Term</th><th>Name</th><th>Meaning</th></tr></thead>
     <tbody>
       <tr><td>$P(H)$</td><td>Prior</td><td>Belief before the evidence</td></tr>
       <tr><td>$P(E \mid H)$</td><td>Likelihood</td><td>Chance of the evidence if $H$ is true</td></tr>
-      <tr><td>$P(E)$</td><td>Evidence</td><td>Chance of the evidence overall</td></tr>
+      <tr><td>$P(E)$</td><td>Evidence, or marginal likelihood</td><td>Chance of the evidence overall</td></tr>
       <tr><td>$P(H \mid E)$</td><td>Posterior</td><td>Belief after the evidence</td></tr>
     </tbody>
   </table>
+  <h3>The area picture</h3>
+  <p>Switch Fig 1 to "Area". The square is everyone, total area 1. The left strip, of width $P(H)$, is the people with the condition; the right strip is the rest. Inside each strip, the shaded height is the chance of a positive result: $P(E \mid H)$ on the left, $P(E \mid \neg H)$ on the right. So the shaded orange area is $P(E \mid H)P(H)$, the shaded blue area is $P(E \mid \neg H)P(\neg H)$, and together they are $P(E)$. Bayes' theorem is just "orange shaded area divided by all shaded area". Conditioning on $E$ means throwing away everything unshaded.</p>
 </section>
 
 <section>
@@ -242,31 +277,49 @@ input[type=range]{width:200px;accent-color:#bf4520}
     <li>990 do not, and about 89 of them test positive anyway.</li>
     <li>So 98 people test positive, and only 9 of them have it.</li>
   </ul>
-  <p>A positive result means about $9 / 98 \approx 9\%$, not 90%. That is the same number the formula gives. Counting is just Bayes' theorem with the fractions multiplied out.</p>
+  <p>A positive result means about $9 / 98 \approx 9\%$, not 90%. That is the same number the formula gives. Counting in whole people like this is called using <b>natural frequencies</b>, and studies of doctors and juries find it cuts reasoning errors dramatically compared with the same problem stated in percentages.</p>
 </section>
 
 <section>
-  <h2>5. Base rate neglect</h2>
-  <p>People often answer with the hit rate, 90%, because it is the number the test advertises. That swaps $P(E \mid H)$ for $P(H \mid E)$. They are different questions: "how many sick people test positive" and "how many positive people are sick". Drag the base rate slider up to 30% and watch the answer climb. The test did not change. Only the population did.</p>
+  <h2>5. Test vocabulary</h2>
+  <p>Medicine and machine learning name the four groups of Fig 1 and the ratios between them. Most arguments about "how accurate is this test" are about which ratio someone means.</p>
+  <table class="ops">
+    <thead><tr><th></th><th>has it ($H$)</th><th>does not ($\neg H$)</th></tr></thead>
+    <tbody>
+      <tr><td>test positive</td><td>true positive, TP</td><td>false positive, FP</td></tr>
+      <tr><td>test negative</td><td>false negative, FN</td><td>true negative, TN</td></tr>
+    </tbody>
+  </table>
+  <table class="ops">
+    <thead><tr><th>Name</th><th>Formula</th><th>As a probability</th><th>Default value</th></tr></thead>
+    <tbody>
+      <tr><td>Prevalence</td><td>$\frac{TP + FN}{\text{all}}$</td><td>$P(H)$</td><td>1%</td></tr>
+      <tr><td>Sensitivity, recall</td><td>$\frac{TP}{TP + FN}$</td><td>$P(E \mid H)$</td><td>90%</td></tr>
+      <tr><td>Specificity</td><td>$\frac{TN}{TN + FP}$</td><td>$1 - P(E \mid \neg H)$</td><td>91%</td></tr>
+      <tr><td>Positive predictive value, precision</td><td>$\frac{TP}{TP + FP}$</td><td>$P(H \mid E)$</td><td>9.2%</td></tr>
+      <tr><td>Negative predictive value</td><td>$\frac{TN}{TN + FN}$</td><td>$P(\neg H \mid \neg E)$</td><td>99.9%</td></tr>
+    </tbody>
+  </table>
+  <p>Sensitivity and specificity describe the test and stay fixed. Predictive values describe what a result means for a person, and they change with prevalence. That is why a test approved with excellent sensitivity and specificity can still produce mostly false positives in a low-risk population.</p>
+  <p>Switch the lab to "Negative". With the default numbers a negative result drops the probability from 1% to about 0.11%. Negative results of a sensitive test are very reassuring; positive results of a rare condition rarely are.</p>
 </section>
 
 <section>
-  <h2>6. Updating again and again</h2>
+  <h2>6. Base rate neglect</h2>
+  <p>People often answer with the hit rate, 90%, because it is the number the test advertises. That swaps $P(E \mid H)$ for $P(H \mid E)$. They are different questions: "how many sick people test positive" and "how many positive people are sick".</p>
+  <p>The left plot in Fig 2 shows the whole picture for the current test. The orange curve is the posterior after a positive result for every possible base rate. It starts near zero, so a positive result for a rare condition is still probably a false alarm, and rises steeply once the condition is common. The test did not change. Only the population did. The blue curve is the same for a negative result, and the diagonal is "the evidence changed nothing".</p>
+  <p>A practical consequence: screening the whole population and testing people who already show symptoms are different situations, even with the identical test, because the symptoms have already raised the prior.</p>
+</section>
+
+<section>
+  <h2>7. Updating again and again</h2>
   <p>Today's posterior is tomorrow's prior. In odds form, each piece of evidence just multiplies the odds by a fixed number, the <b>likelihood ratio</b>:</p>
   <div class="formula">$$\underbrace{\frac{P(H \mid E)}{P(\neg H \mid E)}}_{\text{posterior odds}} = \underbrace{\frac{P(H)}{P(\neg H)}}_{\text{prior odds}} \times \underbrace{\frac{P(E \mid H)}{P(E \mid \neg H)}}_{\text{likelihood ratio}}$$</div>
-  <p>With the defaults the ratio is $0.90 / 0.09 = 10$. Prior odds of about $1 : 99$ become about $10 : 99$ after one positive test, which is roughly 9%. A second independent positive test multiplies by 10 again, giving about $100 : 99$, or roughly 50%.</p>
+  <p>With the defaults the ratio is $0.90 / 0.09 = 10$. Prior odds of about $1 : 99$ become about $10 : 99$ after one positive test, which is roughly 9%. A second independent positive test multiplies by 10 again, giving about $100 : 99$, or roughly 50%. Use the buttons under the right plot of Fig 2 to run this yourself.</p>
 
   <h3>How the new prior is set</h3>
   <p>After each piece of evidence, the new prior is simply the posterior you just computed. Nothing else is added or adjusted:</p>
   <div class="formula">$$P_{\text{new}}(H) = P(H \mid E_1) = \frac{P(E_1 \mid H)\,P_{\text{old}}(H)}{P(E_1 \mid H)\,P_{\text{old}}(H) + P(E_1 \mid \neg H)\,\bigl(1-P_{\text{old}}(H)\bigr)}$$</div>
-  <p>Then use $P_{\text{new}}(H)$ in the next round, with its complement $1-P_{\text{new}}(H)$ as the new $P(\neg H)$. Steps for each new piece of evidence $E_n$:</p>
-  <ul class="tight">
-    <li>Take the current belief as the prior: $P(H) \leftarrow$ last posterior.</li>
-    <li>Compute $P(E_n) = P(E_n \mid H)\,P(H) + P(E_n \mid \neg H)\,(1-P(H))$ with that prior.</li>
-    <li>Compute the posterior $P(H \mid E_n) = P(E_n \mid H)\,P(H) / P(E_n)$.</li>
-    <li>Store it as the prior for the next round.</li>
-  </ul>
-  <p>Worked example with the default test (hit rate 0.90, false alarm 0.09):</p>
   <table class="ops">
     <thead><tr><th>Round</th><th>Prior $P(H)$</th><th>$P(E)$</th><th>Posterior $P(H \mid E)$</th></tr></thead>
     <tbody>
@@ -274,24 +327,17 @@ input[type=range]{width:200px;accent-color:#bf4520}
       <tr><td>2nd positive</td><td>0.092 (from round 1)</td><td>$0.90 \cdot 0.092 + 0.09 \cdot 0.908 \approx 0.1646$</td><td>$0.0828 / 0.1646 \approx 0.503$</td></tr>
     </tbody>
   </table>
-  <p>Note that $P(E)$ changes every round, because it depends on the prior. The hit rate and false alarm rate stay the same, since they describe the test, not your belief.</p>
-  <p>A negative result updates the same way, but uses the complementary likelihoods: $P(\neg E \mid H) = 1 - 0.90$ and $P(\neg E \mid \neg H) = 1 - 0.09$. The belief goes down instead of up.</p>
+  <p>$P(E)$ changes every round, because it depends on the prior. The hit rate and false alarm rate stay the same, since they describe the test, not your belief. A negative result updates the same way, but uses the complementary likelihoods $P(\neg E \mid H) = 0.10$ and $P(\neg E \mid \neg H) = 0.91$, a ratio of about $0.11$. The belief goes down instead of up.</p>
   <p class="callout">Two conditions must hold: each new piece of evidence must be a fresh observation, and the pieces must be independent given $H$. Counting the same evidence twice, or treating two linked signals as independent, pushes the belief too far.</p>
 
-  <h3>The general formula for many pieces of evidence</h3>
-  <p>Instead of updating one piece at a time, you can use all the evidence $E_1, E_2, \dots, E_n$ at once. Bayes' theorem still holds, with the evidence now a whole list:</p>
-  <div class="formula">$$P(H \mid E_1,\dots,E_n)=\frac{P(E_1,\dots,E_n \mid H)\,P(H)}{P(E_1,\dots,E_n \mid H)\,P(H)+P(E_1,\dots,E_n \mid \neg H)\,P(\neg H)}$$</div>
-  <p>This form is always true, but the joint likelihood $P(E_1,\dots,E_n \mid H)$ is hard to know. By the chain rule it expands to $P(E_1 \mid H)\,P(E_2 \mid H,E_1)\cdots P(E_n \mid H,E_1,\dots,E_{n-1})$, and you would need every link of that chain.</p>
-  <p>The usual simplification is <b>conditional independence</b>: once you know whether $H$ is true, one piece of evidence tells you nothing new about another. Then the joint likelihood becomes a plain product, and the general formula is:</p>
-  <div class="formula">$$P(H \mid E_1,\dots,E_n)=\frac{P(H)\prod_{i=1}^{n}P(E_i \mid H)}{P(H)\prod_{i=1}^{n}P(E_i \mid H)+P(\neg H)\prod_{i=1}^{n}P(E_i \mid \neg H)}$$</div>
-  <p>In odds form it is even simpler. Every piece of evidence multiplies the prior odds by its own likelihood ratio:</p>
+  <h3>Many pieces of evidence at once</h3>
+  <p>With conditional independence (once you know whether $H$ is true, one piece of evidence tells you nothing new about another), the joint likelihood is a product and every piece multiplies the odds by its own ratio:</p>
   <div class="formula">$$\frac{P(H \mid E_1,\dots,E_n)}{P(\neg H \mid E_1,\dots,E_n)}=\frac{P(H)}{P(\neg H)}\times\prod_{i=1}^{n}\frac{P(E_i \mid H)}{P(E_i \mid \neg H)}$$</div>
   <p>Take the logarithm and the product turns into a sum. Each piece of evidence adds or subtracts a fixed amount of "weight" to the log-odds. This is exactly what a naive Bayes classifier does:</p>
   <div class="formula">$$\ln\frac{P(H \mid E_1,\dots,E_n)}{P(\neg H \mid E_1,\dots,E_n)}=\ln\frac{P(H)}{P(\neg H)}+\sum_{i=1}^{n}\ln\frac{P(E_i \mid H)}{P(E_i \mid \neg H)}$$</div>
   <p>To get the probability back from odds $O$, use $P = \dfrac{O}{1+O}$.</p>
-  <p>Check with the default test. For $n$ positive results the likelihood ratio is $10$ each time, so the odds are $\frac{1}{99}\times 10^{n}$:</p>
   <table class="ops">
-    <thead><tr><th>Positive tests $n$</th><th>Posterior odds</th><th>Posterior $P(H \mid E_1,\dots,E_n)$</th></tr></thead>
+    <thead><tr><th>Positive tests $n$</th><th>Posterior odds</th><th>Posterior</th></tr></thead>
     <tbody>
       <tr><td>0</td><td>$1 : 99$</td><td>$\approx 0.010$</td></tr>
       <tr><td>1</td><td>$10 : 99$</td><td>$\approx 0.092$</td></tr>
@@ -299,107 +345,314 @@ input[type=range]{width:200px;accent-color:#bf4520}
       <tr><td>3</td><td>$1000 : 99$</td><td>$\approx 0.910$</td></tr>
     </tbody>
   </table>
-  <p>These match the round by round updates above, so updating one piece at a time and using the product formula always agree. The order of the evidence does not matter either, because multiplication does not care about order.</p>
-  <p>Evidence of different kinds just uses its own ratio. A negative test has ratio $\frac{1-0.90}{1-0.09}\approx 0.11$. Two positives and one negative give odds $\frac{1}{99}\times 10\times 10\times 0.11\approx 0.111$, which is about 10%. The negative result cancelled most of the gain.</p>
+  <p>Updating one piece at a time and using the product formula always agree, and the order of the evidence does not matter. Two positives and one negative give odds $\frac{1}{99}\times 10\times 10\times 0.11\approx 0.111$, about 10%: the negative result cancelled most of the gain.</p>
 </section>
 
 <section>
-  <h2>7. The same thing in code</h2>
-  <pre><span class="k">function</span> posterior(prior, hit, falseAlarm) {
-  <span class="k">const</span> pEvidence = hit * prior + falseAlarm * (<span class="t">1</span> - prior);
-  <span class="k">return</span> (hit * prior) / pEvidence;
+  <h2>8. More than two hypotheses</h2>
+  <p>Nothing in the derivation needs $H$ to be a yes-or-no question. With competing hypotheses $H_1, \dots, H_k$ that are mutually exclusive and cover every case, the evidence term sums over all of them:</p>
+  <div class="formula">$$P(H_i \mid E) = \frac{P(E \mid H_i)\,P(H_i)}{\sum_{j=1}^{k} P(E \mid H_j)\,P(H_j)}$$</div>
+  <p>A factory has three machines. A, B and C make 50%, 30% and 20% of the parts, with defect rates 1%, 2% and 3%. A part is defective. Which machine made it?</p>
+  <table class="ops">
+    <thead><tr><th>Machine</th><th>Prior $P(H_i)$</th><th>Likelihood $P(D \mid H_i)$</th><th>Product</th><th>Posterior</th></tr></thead>
+    <tbody>
+      <tr><td>A</td><td>0.50</td><td>0.01</td><td>0.005</td><td>$5/17 \approx 0.29$</td></tr>
+      <tr><td>B</td><td>0.30</td><td>0.02</td><td>0.006</td><td>$6/17 \approx 0.35$</td></tr>
+      <tr><td>C</td><td>0.20</td><td>0.03</td><td>0.006</td><td>$6/17 \approx 0.35$</td></tr>
+      <tr><td>Sum</td><td>1</td><td></td><td>$P(D) = 0.017$</td><td>1</td></tr>
+    </tbody>
+  </table>
+  <p>A practical shortcut: compute prior times likelihood for every hypothesis, then divide each by the total so they add up to 1. You often do not need $P(E)$ at all, only the ranking, which is why people write $P(H \mid E) \propto P(E \mid H)\,P(H)$.</p>
+</section>
+
+<section>
+  <h2>9. Two famous traps</h2>
+  <h3>The prosecutor's fallacy</h3>
+  <p>A DNA profile found at a crime scene occurs in 1 in a million people. A suspect matches. The prosecutor says: "there is a one in a million chance the defendant is innocent." That is $P(\text{match} \mid \text{innocent})$ presented as $P(\text{innocent} \mid \text{match})$, the same swap as base rate neglect.</p>
+  <p>In a city of 10 million, about 10 innocent people would also match. If nothing else points to the suspect, the match alone makes guilt about $\frac{1}{11} \approx 9\%$. The match is strong evidence (a likelihood ratio of a million) but it has to be combined with a prior, and a random person's prior of guilt is tiny. Real cases add other evidence, which is how the posterior becomes convincing.</p>
+  <h3>Monty Hall</h3>
+  <p>Three doors, one car. You pick door 1. The host, who knows where the car is and always opens a door with a goat, opens door 3. Should you switch to door 2?</p>
+  <div class="formula">$$P(\text{car}_2 \mid \text{opens}_3) = \frac{P(\text{opens}_3 \mid \text{car}_2)\,P(\text{car}_2)}{P(\text{opens}_3)} = \frac{1 \cdot \frac{1}{3}}{\frac{1}{2}} = \frac{2}{3}$$</div>
+  <p>If the car is behind door 2, the host is forced to open door 3, likelihood $1$. If it is behind door 1, he picks door 2 or 3 at random, likelihood $\frac{1}{2}$. If it is behind door 3 he cannot open it, likelihood $0$. So $P(\text{opens}_3) = \frac{1}{3}(\frac{1}{2} + 1 + 0) = \frac{1}{2}$, and switching wins two times in three. The host's choice is evidence, because it depends on where the car is.</p>
+</section>
+
+<section>
+  <h2>10. From events to parameters</h2>
+  <p>So far the hypothesis was a single yes-or-no statement. Bayesian statistics applies the same formula to an unknown number, such as the probability $\theta$ that a coin lands heads. The prior and posterior become whole distributions over $\theta$:</p>
+  <div class="formula">$$p(\theta \mid \text{data}) = \frac{p(\text{data} \mid \theta)\,p(\theta)}{\int p(\text{data} \mid \theta')\,p(\theta')\,d\theta'} \;\propto\; p(\text{data} \mid \theta)\,p(\theta)$$</div>
+  <p>For a coin the algebra is especially clean. Start with a Beta prior, $p(\theta) \propto \theta^{a-1}(1-\theta)^{b-1}$. Observe $h$ heads and $t$ tails; the likelihood is $\theta^h(1-\theta)^t$. Multiply and the posterior is again a Beta, with the counts simply added:</p>
+  <div class="formula">$$\text{Beta}(a, b) \;\xrightarrow{\;h \text{ heads},\ t \text{ tails}\;}\; \text{Beta}(a + h,\ b + t)$$</div>
+  <p>With a flat prior $\text{Beta}(1, 1)$ and 7 heads in 10 flips, the posterior is $\text{Beta}(8, 4)$. Its mean is $\frac{8}{12} \approx 0.67$, a little closer to $\frac{1}{2}$ than the raw $0.7$, because the prior counts as two imaginary flips. With 700 heads in 1000 flips the prior barely matters. That is the general pattern: with little data the prior matters, with lots of data the evidence dominates.</p>
+</section>
+
+<section>
+  <h2>11. The same thing in code</h2>
+  <pre><span class="k">function</span> posterior(prior, hit, falseAlarm, positive = <span class="k">true</span>) {
+  <span class="k">const</span> lh = positive ? hit : <span class="t">1</span> - hit;              <span class="c">// P(result | H)</span>
+  <span class="k">const</span> ln = positive ? falseAlarm : <span class="t">1</span> - falseAlarm; <span class="c">// P(result | not H)</span>
+  <span class="k">return</span> (lh * prior) / (lh * prior + ln * (<span class="t">1</span> - prior));
 }
 
-posterior(<span class="t">0.01</span>, <span class="t">0.90</span>, <span class="t">0.09</span>);   <span class="c">// 0.092  (about 9%)</span>
-posterior(<span class="t">0.092</span>, <span class="t">0.90</span>, <span class="t">0.09</span>);  <span class="c">// 0.503  (a second positive test)</span>
+posterior(<span class="t">0.01</span>, <span class="t">0.90</span>, <span class="t">0.09</span>);          <span class="c">// 0.092   (positive)</span>
+posterior(<span class="t">0.01</span>, <span class="t">0.90</span>, <span class="t">0.09</span>, <span class="k">false</span>);   <span class="c">// 0.0011  (negative)</span>
 
-<span class="c">// many pieces of evidence at once (assumes independence given H)</span>
-<span class="k">function</span> posteriorMany(prior, evidence) {
-  <span class="k">let</span> odds = prior / (<span class="t">1</span> - prior);
-  <span class="k">for</span> (<span class="k">const</span> { hit, falseAlarm } <span class="k">of</span> evidence) {
-    odds *= hit / falseAlarm;            <span class="c">// multiply by the likelihood ratio</span>
+<span class="c">// Many results at once, in log-odds (assumes independence given H)</span>
+<span class="k">function</span> posteriorMany(prior, results, hit, falseAlarm) {
+  <span class="k">let</span> logOdds = Math.log(prior / (<span class="t">1</span> - prior));
+  <span class="k">for</span> (<span class="k">const</span> positive <span class="k">of</span> results) {
+    logOdds += positive ? Math.log(hit / falseAlarm)
+                        : Math.log((<span class="t">1</span> - hit) / (<span class="t">1</span> - falseAlarm));
   }
-  <span class="k">return</span> odds / (<span class="t">1</span> + odds);
+  <span class="k">return</span> <span class="t">1</span> / (<span class="t">1</span> + Math.exp(-logOdds));          <span class="c">// odds back to probability</span>
 }
 
-<span class="k">const</span> pos = { hit: <span class="t">0.90</span>, falseAlarm: <span class="t">0.09</span> };
-posteriorMany(<span class="t">0.01</span>, [pos, pos, pos]);  <span class="c">// 0.910  (three positive tests)</span></pre>
+posteriorMany(<span class="t">0.01</span>, [<span class="k">true</span>, <span class="k">true</span>, <span class="k">true</span>], <span class="t">0.90</span>, <span class="t">0.09</span>);   <span class="c">// 0.910</span>
+posteriorMany(<span class="t">0.01</span>, [<span class="k">true</span>, <span class="k">true</span>, <span class="k">false</span>], <span class="t">0.90</span>, <span class="t">0.09</span>);  <span class="c">// 0.100</span></pre>
+  <p>Working in log-odds is not just tidy. Multiplying hundreds of small likelihoods underflows to zero in floating point; adding their logarithms does not. Spam filters that weigh thousands of words rely on this.</p>
 </section>
 
 <section>
-  <h2>8. Where it shows up</h2>
+  <h2>12. Common mistakes</h2>
   <ul class="tight">
-    <li><b>Spam filters</b>: how likely is a message to be spam, given that it contains a certain word?</li>
-    <li><b>Medicine</b>: reading screening tests and weighing a result against how common the disease is.</li>
-    <li><b>Machine learning</b>: naive Bayes classifiers, Bayesian optimization, and Bayesian inference over model weights.</li>
-    <li><b>Search and robotics</b>: Kalman and particle filters keep updating where an object is, as sensor readings come in.</li>
-    <li><b>Probabilistic data structures</b>: a <i>Bloom Filter</i> says "maybe present", and Bayes' theorem tells you how much to trust that answer.</li>
+    <li>Confusing $P(E \mid H)$ with $P(H \mid E)$. "Most terrorists are young men" does not mean most young men are terrorists.</li>
+    <li>Ignoring the base rate, or using one from the wrong population.</li>
+    <li>Treating correlated evidence as independent, for example two tests that fail for the same biological reason.</li>
+    <li>Using a prior of exactly 0 or 1. No evidence can move it, since every likelihood ratio gets multiplied by zero or infinity.</li>
+    <li>Forgetting the false-alarm term in the denominator, which gives $P(E \mid H)P(H)$ instead of a probability.</li>
   </ul>
-  <p>The result is only as good as the inputs. A wrong base rate or independence that does not hold will give a confident, wrong answer.</p>
+</section>
+
+<section>
+  <h2>13. Where it shows up</h2>
+  <div class="cards">
+    <div class="stat focal"><div class="eyebrow">Email</div><div class="big">spam filters</div><p>Each word nudges the log-odds of spam. Naive Bayes was the first filter that worked at scale.</p></div>
+    <div class="stat"><div class="eyebrow">Medicine</div><div class="big">screening</div><p>Reading a test result against prevalence decides whether to retest, treat or reassure.</p></div>
+    <div class="stat"><div class="eyebrow">Robotics</div><div class="big">filters</div><p>Kalman and particle filters alternate predict and Bayes-update steps as sensor readings arrive.</p></div>
+    <div class="stat"><div class="eyebrow">Machine learning</div><div class="big">inference</div><p>Bayesian neural networks, Gaussian processes and Bayesian optimization all keep a posterior over unknowns.</p></div>
+    <div class="stat"><div class="eyebrow">A/B testing</div><div class="big">Beta posteriors</div><p>"Probability that B beats A" comes straight from two Beta posteriors over conversion rates.</p></div>
+    <div class="stat"><div class="eyebrow">Data structures</div><div class="big">Bloom filters</div><p>A Bloom filter says "maybe present". Bayes' theorem says how much to trust that answer.</p></div>
+  </div>
+  <p style="margin-top:20px">The result is only as good as the inputs. A wrong base rate or independence that does not hold will give a confident, wrong answer.</p>
 </section>
 
 </main>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-  var NS = 'http://www.w3.org/2000/svg', COLS = 40, ROWS = 25, C = 11, X0 = 10, Y0 = 8, TOTAL = 1000;
+  var NS = 'http://www.w3.org/2000/svg', TOTAL = 1000;
+  var ORANGE = '#bf4520', BLUE = '#2e5aa8', GREY = '#d6d8dd', INK = '#2d3142', SOFT = '#5a6580';
   var $ = function (id) { return document.getElementById(id); };
-
-  function el(name, attrs) {
+  function el(name, attrs, parent) {
     var e = document.createElementNS(NS, name);
     for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
     return e;
   }
-  function pct(x, d) { return (x * 100).toFixed(d === undefined ? 1 : d) + '%'; }
-
-  function values() {
-    return { p: +$('prior').value / 1000, h: +$('sens').value / 100, f: +$('fpr').value / 1000 };
+  function txt(parent, x, y, s, extra) {
+    var a = { x: x, y: y, 'font-size': 11, fill: INK, 'font-family': 'Geist Mono, monospace' };
+    for (var k in extra) a[k] = extra[k];
+    var t = el('text', a, parent); t.textContent = s; return t;
   }
-  function render() {
-    var v = values(), p = v.p, h = v.h, f = v.f;
-    $('v-prior').textContent = pct(p);
-    $('v-sens').textContent = pct(h, 0);
-    $('v-fpr').textContent = pct(f);
+  function clear(svg) {
+    Array.prototype.slice.call(svg.childNodes).forEach(function (n) {
+      var nm = (n.localName || '').toLowerCase();
+      if (nm !== 'title' && nm !== 'desc') svg.removeChild(n);
+    });
+    return el('g', {}, svg);
+  }
+  function pct(x, d) {
+    var v = x * 100;
+    if (d === undefined) d = v < 1 && v > 0 ? 2 : 1;
+    return v.toFixed(d) + '%';
+  }
+  function post(p, lh, ln) { var pe = lh * p + ln * (1 - p); return pe > 0 ? lh * p / pe : 0; }
 
-    var pe = h * p + f * (1 - p), post = pe > 0 ? (h * p) / pe : 0;
-    var sick = Math.round(TOTAL * p), tp = Math.round(sick * h), fn = sick - tp;
-    var healthy = TOTAL - sick, fp = Math.round(healthy * f), tn = healthy - fp;
+  var result = 'pos', view = 'dots', seqResults = [];
+  function values() { return { p: +$('prior').value / 1000, h: +$('sens').value / 1000, f: +$('fpr').value / 1000 }; }
 
-    var g = $('grid'); g.textContent = '';
-    var kinds = [[tp, 'tp'], [fn, 'fn'], [fp, 'fp'], [tn, 'tn']], i = 0;
-    kinds.forEach(function (k) {
-      for (var n = 0; n < k[0]; n++, i++) {
-        var col = Math.floor(i / ROWS), row = i % ROWS, cx = X0 + col * C + C / 2, cy = Y0 + row * C + C / 2;
-        var a = { cx: cx, cy: cy, r: 3.6 };
-        if (k[1] === 'tp') { a.fill = '#bf4520'; a.stroke = '#bf4520'; }
-        else if (k[1] === 'fn') { a.fill = '#fff'; a.stroke = '#bf4520'; a['stroke-width'] = 1.4; }
-        else if (k[1] === 'fp') { a.fill = '#2e5aa8'; a.stroke = '#2e5aa8'; }
-        else { a.fill = '#d6d8dd'; a.stroke = '#d6d8dd'; }
-        g.appendChild(el('circle', a));
+  function drawDots(g, n) {
+    var COLS = 40, ROWS = 25, C = 11, X0 = 20, Y0 = 12, i = 0;
+    [[n.a, 'a'], [n.b, 'b'], [n.c, 'c'], [n.d, 'd']].forEach(function (k) {
+      for (var m = 0; m < k[0]; m++, i++) {
+        var col = Math.floor(i / ROWS), row = i % ROWS, at = { cx: X0 + col * C + C / 2, cy: Y0 + row * C + C / 2, r: 3.6 };
+        if (k[1] === 'a') { at.fill = ORANGE; at.stroke = ORANGE; }
+        else if (k[1] === 'b') { at.fill = '#fff'; at.stroke = ORANGE; at['stroke-width'] = 1.4; }
+        else if (k[1] === 'c') { at.fill = BLUE; at.stroke = BLUE; }
+        else { at.fill = GREY; at.stroke = GREY; }
+        el('circle', at, g);
       }
     });
-
-    $('answer').textContent = pct(post);
-    $('live').textContent = (tp + fp) + ' positive · ' + tp + ' truly have it';
-    $('readout').textContent =
-      'out of ' + TOTAL + ' people\n' +
-      sick + ' have it: ' + tp + ' test positive, ' + fn + ' test negative\n' +
-      healthy + ' do not: ' + fp + ' test positive, ' + tn + ' test negative\n\n' +
-      'positives: ' + tp + ' + ' + fp + ' = ' + (tp + fp) + '\n' +
-      'truly have it: ' + tp + ' of ' + (tp + fp) + '\n' +
-      'base rate was ' + pct(p) + ', now ' + pct(post) + (p > 0 ? ' (x' + (post / p).toFixed(1) + ')' : '');
-
-    var tex = 'P(H\\mid E)=\\frac{' + h.toFixed(2) + '\\cdot' + p.toFixed(3) + '}{' + h.toFixed(2) + '\\cdot' + p.toFixed(3) +
-      '+' + f.toFixed(3) + '\\cdot' + (1 - p).toFixed(3) + '}=' + post.toFixed(3);
-    if (window.katex) window.katex.render(tex, $('calc'), { throwOnError: false, displayMode: false });
-    else $('calc').textContent = tex;
   }
 
-  function preset(p, h, f) { $('prior').value = p; $('sens').value = h; $('fpr').value = f; render(); }
+  function drawArea(g, v, lh, ln) {
+    var S = 260, X0 = 24, Y0 = 20, minW = 6;
+    var wH = Math.max(minW, v.p * S), wN = S - wH, widened = v.p * S < minW;
+    // result rows: shaded part is "this result"; positive shades from the bottom, negative from the top
+    function strip(x, w, rate, col) {
+      el('rect', { x: x, y: Y0, width: w, height: S, fill: '#fff', stroke: col, 'stroke-width': 1 }, g);
+      var hgt = rate * S, y = result === 'pos' ? Y0 + S - hgt : Y0;
+      el('rect', { x: x, y: y, width: w, height: hgt, fill: col, opacity: 0.75 }, g);
+    }
+    strip(X0, wH, lh, ORANGE);
+    strip(X0 + wH, wN, ln, BLUE);
+    txt(g, X0, Y0 + S + 16, 'P(H) = ' + pct(v.p) + (widened ? ' (widened to be visible)' : ''), { 'font-size': 10, fill: SOFT });
+    txt(g, X0 + S, Y0 + S + 16, 'P(¬H)', { 'font-size': 10, fill: SOFT, 'text-anchor': 'end' });
+    var rx = X0 + S + 22, word = result === 'pos' ? 'positive' : 'negative';
+    txt(g, rx, Y0 + 14, 'shaded = tested ' + word, { 'font-size': 11, 'font-weight': 600 });
+    txt(g, rx, Y0 + 44, 'orange area', { fill: ORANGE, 'font-weight': 600 });
+    txt(g, rx, Y0 + 60, '= ' + lh.toFixed(3) + ' × ' + v.p.toFixed(3));
+    txt(g, rx, Y0 + 76, '= ' + (lh * v.p).toFixed(4));
+    txt(g, rx, Y0 + 106, 'blue area', { fill: BLUE, 'font-weight': 600 });
+    txt(g, rx, Y0 + 122, '= ' + ln.toFixed(3) + ' × ' + (1 - v.p).toFixed(3));
+    txt(g, rx, Y0 + 138, '= ' + (ln * (1 - v.p)).toFixed(4));
+    txt(g, rx, Y0 + 172, 'posterior =', { 'font-weight': 600 });
+    txt(g, rx, Y0 + 188, 'orange / (orange + blue)');
+    txt(g, rx, Y0 + 210, '= ' + pct(post(v.p, lh, ln)), { 'font-size': 16, fill: ORANGE, 'font-weight': 600 });
+  }
+
+  function drawTree(g, v, lh, ln) {
+    var root = [30, 150], nH = [175, 75], nN = [175, 225];
+    var leaves = [[330, 40, 'H, +', v.p * v.h, ORANGE, result === 'pos'], [330, 110, 'H, −', v.p * (1 - v.h), ORANGE, result === 'neg'],
+                  [330, 190, '¬H, +', (1 - v.p) * v.f, BLUE, result === 'pos'], [330, 260, '¬H, −', (1 - v.p) * (1 - v.f), BLUE, result === 'neg']];
+    function edge(a, b, label, col) {
+      el('line', { x1: a[0], y1: a[1], x2: b[0] - 8, y2: b[1], stroke: col, 'stroke-width': 1.6 }, g);
+      var up = b[1] < a[1], mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2;
+      txt(g, mx + (up ? -6 : 10), my - 8, label, { 'font-size': 10, fill: SOFT, 'text-anchor': up ? 'end' : 'start' });
+    }
+    edge(root, nH, 'P(H)=' + v.p.toFixed(3), ORANGE);
+    edge(root, nN, 'P(¬H)=' + (1 - v.p).toFixed(3), BLUE);
+    edge(nH, [leaves[0][0], leaves[0][1]], '+ ' + v.h.toFixed(3), ORANGE);
+    edge(nH, [leaves[1][0], leaves[1][1]], '− ' + (1 - v.h).toFixed(3), ORANGE);
+    edge(nN, [leaves[2][0], leaves[2][1]], '+ ' + v.f.toFixed(3), BLUE);
+    edge(nN, [leaves[3][0], leaves[3][1]], '− ' + (1 - v.f).toFixed(3), BLUE);
+    el('circle', { cx: root[0], cy: root[1], r: 6, fill: INK }, g);
+    [[nH, 'has it', ORANGE], [nN, 'does not', BLUE]].forEach(function (n) {
+      el('circle', { cx: n[0][0], cy: n[0][1], r: 6, fill: n[2] }, g);
+      txt(g, n[0][0] - 10, n[0][1] + 20, n[1], { 'font-size': 10, fill: n[2] });
+    });
+    leaves.forEach(function (L) {
+      el('rect', { x: L[0] - 6, y: L[1] - 14, width: 140, height: 26, rx: 4, fill: L[5] ? L[4] : '#fff', 'fill-opacity': L[5] ? 0.15 : 1, stroke: L[5] ? L[4] : GREY, 'stroke-width': L[5] ? 1.6 : 1 }, g);
+      txt(g, L[0], L[1] + 4, L[2] + '  ' + L[3].toFixed(4) + '  (' + (L[3] * TOTAL).toFixed(1) + ')', { 'font-size': 10.5, fill: L[5] ? INK : SOFT, 'font-weight': L[5] ? 600 : 400 });
+    });
+    txt(g, 470, 292, 'joint probability (count per 1000)', { 'font-size': 9.5, fill: SOFT, 'text-anchor': 'end' });
+  }
+
+  function drawCurve(v) {
+    var svg = $('curve'), g = clear(svg), L = 44, T = 16, W = 336, H = 200;
+    var X = function (x) { return L + x * W; }, Y = function (y) { return T + H - y * H; };
+    el('rect', { x: L, y: T, width: W, height: H, fill: '#fff', stroke: 'rgba(45,49,66,.2)' }, g);
+    [0, 0.25, 0.5, 0.75, 1].forEach(function (t) {
+      el('line', { x1: X(t), x2: X(t), y1: T, y2: T + H, stroke: 'rgba(45,49,66,.07)' }, g);
+      el('line', { x1: L, x2: L + W, y1: Y(t), y2: Y(t), stroke: 'rgba(45,49,66,.07)' }, g);
+      txt(g, X(t), T + H + 14, pct(t, 0), { 'font-size': 9, fill: SOFT, 'text-anchor': 'middle' });
+      txt(g, L - 6, Y(t) + 3, pct(t, 0), { 'font-size': 9, fill: SOFT, 'text-anchor': 'end' });
+    });
+    el('line', { x1: X(0), y1: Y(0), x2: X(1), y2: Y(1), stroke: SOFT, 'stroke-dasharray': '4 4' }, g);
+    var dp = '', dn = '';
+    for (var i = 0; i <= 200; i++) {
+      var p = i / 200;
+      dp += (i ? ' L' : 'M') + X(p).toFixed(1) + ' ' + Y(post(p, v.h, v.f)).toFixed(1);
+      dn += (i ? ' L' : 'M') + X(p).toFixed(1) + ' ' + Y(post(p, 1 - v.h, 1 - v.f)).toFixed(1);
+    }
+    el('path', { d: dp, fill: 'none', stroke: ORANGE, 'stroke-width': 2.2 }, g);
+    el('path', { d: dn, fill: 'none', stroke: BLUE, 'stroke-width': 2.2 }, g);
+    var cp = result === 'pos' ? post(v.p, v.h, v.f) : post(v.p, 1 - v.h, 1 - v.f);
+    el('line', { x1: X(v.p), x2: X(v.p), y1: T, y2: T + H, stroke: INK, 'stroke-dasharray': '2 3', opacity: 0.6 }, g);
+    el('circle', { cx: X(v.p), cy: Y(cp), r: 5, fill: result === 'pos' ? ORANGE : BLUE, stroke: '#fff', 'stroke-width': 1.5 }, g);
+    txt(g, L + 6, T + 14, 'after positive', { 'font-size': 10, fill: ORANGE, 'font-weight': 600 });
+    txt(g, L + 6, T + 28, 'after negative', { 'font-size': 10, fill: BLUE, 'font-weight': 600 });
+    txt(g, L + W - 6, T + H - 8, 'no change', { 'font-size': 9, fill: SOFT, 'text-anchor': 'end' });
+    txt(g, L + W / 2, T + H + 30, 'base rate P(H)', { 'font-size': 10, fill: SOFT, 'text-anchor': 'middle' });
+  }
+
+  function drawSeq(v) {
+    var svg = $('seq'), g = clear(svg), L = 44, T = 16, W = 336, H = 200, N = Math.max(8, seqResults.length);
+    var X = function (k) { return L + k / N * W; }, Y = function (y) { return T + H - y * H; };
+    el('rect', { x: L, y: T, width: W, height: H, fill: '#fff', stroke: 'rgba(45,49,66,.2)' }, g);
+    [0, 0.25, 0.5, 0.75, 1].forEach(function (t) {
+      el('line', { x1: L, x2: L + W, y1: Y(t), y2: Y(t), stroke: 'rgba(45,49,66,.07)' }, g);
+      txt(g, L - 6, Y(t) + 3, pct(t, 0), { 'font-size': 9, fill: SOFT, 'text-anchor': 'end' });
+    });
+    var probs = [v.p], cur = v.p;
+    seqResults.forEach(function (r) { cur = r ? post(cur, v.h, v.f) : post(cur, 1 - v.h, 1 - v.f); probs.push(cur); });
+    var d = probs.map(function (q, k) { return (k ? 'L' : 'M') + X(k).toFixed(1) + ' ' + Y(q).toFixed(1); }).join(' ');
+    el('path', { d: d, fill: 'none', stroke: INK, 'stroke-width': 1.8 }, g);
+    probs.forEach(function (q, k) {
+      var col = k === 0 ? INK : (seqResults[k - 1] ? ORANGE : BLUE);
+      el('circle', { cx: X(k), cy: Y(q), r: 4.5, fill: col, stroke: '#fff', 'stroke-width': 1.2 }, g);
+      txt(g, X(k), T + H + 14, k === 0 ? 'start' : (seqResults[k - 1] ? '+' : '−'), { 'font-size': 10, fill: col, 'text-anchor': 'middle' });
+    });
+    txt(g, L + 6, T + 14, 'P(H) after each result', { 'font-size': 10, fill: INK, 'font-weight': 600 });
+    txt(g, L + W / 2, T + H + 30, 'test number', { 'font-size': 10, fill: SOFT, 'text-anchor': 'middle' });
+    var lrP = v.h / v.f, lrN = (1 - v.h) / (1 - v.f);
+    $('seqLive').textContent = 'LR(+) = ' + lrP.toFixed(2) + '   LR(−) = ' + lrN.toFixed(3) + '   now ' + pct(cur);
+  }
+
+  function render() {
+    var v = values(), pos = result === 'pos';
+    $('v-prior').textContent = pct(v.p);
+    $('v-sens').textContent = pct(v.h);
+    $('v-fpr').textContent = pct(v.f);
+    var lh = pos ? v.h : 1 - v.h, ln = pos ? v.f : 1 - v.f, pe = lh * v.p + ln * (1 - v.p), q = post(v.p, lh, ln);
+    var word = pos ? 'positive' : 'negative';
+
+    // counts per 1000 for the icon array (rounded) and exact expected counts for the readout
+    var sick = Math.round(TOTAL * v.p), healthy = TOTAL - sick;
+    var sickThis = Math.round(sick * lh), healthyThis = Math.round(healthy * ln);
+    var n = { a: sickThis, b: sick - sickThis, c: healthyThis, d: healthy - healthyThis };
+
+    var svg = $('viz'), g = clear(svg);
+    el('rect', { width: '100%', height: '100%', fill: '#fff' }, g);
+    if (view === 'dots') drawDots(g, n);
+    else if (view === 'area') drawArea(g, v, lh, ln);
+    else drawTree(g, v, lh, ln);
+    $('figTitle').textContent = view === 'dots' ? '1000 people, one ' + word + ' test' : (view === 'area' ? 'Everyone as a unit square' : 'Probability tree');
+    $('vizHint').textContent = view === 'dots' ? 'Groups run top to bottom, left to right' : (view === 'area' ? 'Width = P(H), shaded height = chance of this result' : 'Multiply along a path, then compare the highlighted leaves');
+
+    $('ansLabel').textContent = 'P(has it | ' + word + ')';
+    $('answer').textContent = pct(q);
+    var eH = TOTAL * v.p * lh, eN = TOTAL * (1 - v.p) * ln;
+    $('live').textContent = view === 'dots' ? (n.a + n.c) + ' ' + word + ' · ' + n.a + ' truly have it' : 'posterior ' + pct(q);
+    $('readout').textContent =
+      'expected, per ' + TOTAL + ' people:\n' +
+      (TOTAL * v.p).toFixed(1) + ' have it → ' + eH.toFixed(1) + ' test ' + word + '\n' +
+      (TOTAL * (1 - v.p)).toFixed(1) + ' do not → ' + eN.toFixed(1) + ' test ' + word + '\n\n' +
+      word + ' results: ' + (eH + eN).toFixed(1) + ', of which ' + eH.toFixed(1) + ' have it\n' +
+      'base rate ' + pct(v.p) + ' → ' + pct(q) + '  (×' + (q / v.p).toFixed(2) + ')\n' +
+      'likelihood ratio = ' + lh.toFixed(3) + ' / ' + ln.toFixed(3) + ' = ' + (lh / ln).toFixed(3);
+
+    var tex = 'P(H\\mid ' + (pos ? 'E' : '\\neg E') + ')=\\frac{' + lh.toFixed(3) + '\\cdot' + v.p.toFixed(3) + '}{' + lh.toFixed(3) + '\\cdot' + v.p.toFixed(3) +
+      '+' + ln.toFixed(3) + '\\cdot' + (1 - v.p).toFixed(3) + '}=' + q.toFixed(4);
+    if (window.katex) window.katex.render(tex, $('calc'), { throwOnError: false, displayMode: false });
+    else $('calc').textContent = tex;
+
+    drawCurve(v);
+    drawSeq(v);
+  }
+
+  function wireSeg(attr, set) {
+    var btns = document.querySelectorAll('[' + attr + ']');
+    Array.prototype.forEach.call(btns, function (b) {
+      b.addEventListener('click', function () {
+        set(b.getAttribute(attr));
+        Array.prototype.forEach.call(btns, function (o) { o.setAttribute('aria-pressed', o === b ? 'true' : 'false'); });
+        render();
+      });
+    });
+  }
+  wireSeg('data-res', function (r) { result = r; });
+  wireSeg('data-view', function (r) { view = r; });
+  Array.prototype.forEach.call(document.querySelectorAll('[data-p]'), function (b) {
+    b.addEventListener('click', function () {
+      var p = b.getAttribute('data-p').split(',');
+      $('prior').value = p[0]; $('sens').value = p[1]; $('fpr').value = p[2];
+      seqResults = []; render();
+    });
+  });
   ['prior', 'sens', 'fpr'].forEach(function (id) { $(id).addEventListener('input', render); });
-  $('p-med').addEventListener('click', function () { preset(10, 90, 90); });
-  $('p-spam').addEventListener('click', function () { preset(400, 95, 30); });
-  $('p-good').addEventListener('click', function () { preset(10, 99, 10); });
+  $('addPos').addEventListener('click', function () { if (seqResults.length < 14) seqResults.push(true); render(); });
+  $('addNeg').addEventListener('click', function () { if (seqResults.length < 14) seqResults.push(false); render(); });
+  $('seqReset').addEventListener('click', function () { seqResults = []; render(); });
 
   render();
   if (window.renderMathInElement) {
