@@ -29,12 +29,12 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);f
 .back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
 h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+h3{font-family:var(--serif);font-weight:400;font-size:24px;line-height:1.2;margin:32px 0 10px}
 .lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
 section{margin-top:64px}
 section p{max-width:68ch;margin:0 0 14px}
 code,.mono{font-family:var(--mono);font-size:.88em}
 p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
-.math{font-family:var(--serif);font-size:1.15em;font-style:italic}
 .callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
 .formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;text-align:center;overflow-x:auto}
 .formula .katex{font-size:1.25em}
@@ -43,23 +43,29 @@ p .katex,td .katex,li .katex{font-size:1.05em}
 
 .lab{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:24px;align-items:start;margin-top:24px}
 .card{margin:0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
-.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
 .card-title{font-family:var(--serif);font-size:20px}
 .hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
 .live{font-family:var(--mono);font-size:12px;font-weight:600}
 .stage{padding:0 8px}
 .stage svg{display:block;width:100%;height:auto}
 .panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
-.seg{display:flex;border:1px solid var(--rule-solid);border-radius:6px;overflow:hidden;margin-bottom:16px}
-.seg button{flex:1;min-height:40px;border:0;background:transparent;font:500 13px var(--sans);color:var(--muted);cursor:pointer;padding:0 8px}
-.seg button+button{border-left:1px solid var(--rule-solid)}
+.seg{display:flex;flex-wrap:wrap;border:1px solid var(--rule-solid);border-radius:6px;overflow:hidden;margin-bottom:12px}
+.seg button{flex:1 1 30%;min-height:40px;border:0;background:transparent;font:500 13px var(--sans);color:var(--muted);cursor:pointer;padding:0 8px;box-shadow:inset 1px 0 0 var(--rule-solid),inset 0 1px 0 var(--rule-solid)}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.seg-label{font-family:var(--mono);font-size:11px;color:var(--soft);margin:0 0 6px;letter-spacing:.08em;text-transform:uppercase}
 button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.row{display:grid;grid-template-columns:70px 1fr 64px;gap:12px;align-items:center;margin:12px 0}
+.row{display:grid;grid-template-columns:70px 1fr 72px;gap:12px;align-items:center;margin:10px 0}
 .row label{font-family:var(--mono);font-size:13px;font-weight:600}
 .row output{font-family:var(--mono);font-size:12px;text-align:right}
 input[type=range]{width:100%;accent-color:var(--accent);min-height:28px}
-#readout{margin:16px 0 0;padding:14px 16px;background:var(--paper);border:1px solid var(--rule);border-radius:6px;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;min-height:120px}
+input[type=checkbox]{accent-color:var(--accent);width:16px;height:16px}
+.check{display:flex;gap:8px;align-items:center;font:500 13px var(--sans);color:var(--muted);margin:6px 0 4px}
+#readout{margin:14px 0 0;padding:14px 16px;background:var(--paper);border:1px solid var(--rule);border-radius:6px;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;min-height:96px}
+table.vals{border-collapse:collapse;width:100%;margin-top:12px;font-family:var(--mono);font-size:12px}
+table.vals th,table.vals td{padding:5px 8px;text-align:right;border-bottom:1px solid var(--rule)}
+table.vals th{font-weight:500;color:var(--soft);font-size:11px}
+table.vals tr:last-child td{border-bottom:0}
 .legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
 .legend span{display:inline-flex;align-items:center;gap:8px}
 .sw{width:14px;height:14px;border-radius:2px;border:1px solid var(--ink);display:inline-block}
@@ -73,16 +79,17 @@ input[type=range]{width:100%;accent-color:var(--accent);min-height:28px}
 .stat .big{font-family:var(--serif);font-size:30px;line-height:1.1;margin:6px 0}
 .stat p{font-size:14px;color:var(--muted);margin:0}
 .stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+.steps{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;max-width:760px}
+.steps ol{margin:0;padding-left:20px}.steps li{margin:8px 0}
+pre{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .t{color:var(--link)} .c{color:var(--soft);font-style:italic}
 table.ops{border-collapse:collapse;width:100%;max-width:760px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);border-radius:6px;font-size:14px}
 table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule)}
 table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
 table.ops tr:last-child td{border-bottom:0}
 ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
 @media (max-width:860px){.lab{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
-@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
-
-
-
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
 .doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}.doc-tags a{font:500 12px "Geist Mono",ui-monospace,monospace;padding:4px 10px;border:1px solid var(--rule-solid,#bfc0c0);border-radius:4px;background:#fff;color:var(--muted,#4f5d75);text-decoration:none}.doc-tags a:hover{border-color:var(--ink,#2d3142);color:var(--ink,#2d3142)}.doc-tags a:focus-visible{outline:2px solid var(--accent,#bf4520);outline-offset:2px}
 </style>
 </head>
@@ -95,16 +102,13 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
 <header>
   <div class="eyebrow">Mathematics · Calculus</div>
   <h1>Limits</h1>
-  <p class="lede">What value does a function head toward as its input gets close to a point? A limit answers that, even when the function is undefined at the point itself.</p>
-  
-  
-  
+  <p class="lede">What value does a function head toward as its input gets close to a point? A limit answers that, even when the function is undefined at the point itself. It is the one idea that derivatives, integrals and series are all built on.</p>
   <nav class="doc-tags" aria-label="Main tags"><a href="../../../index.html#tag=limit">#limit</a><a href="../../../index.html#tag=continuity">#continuity</a><a href="../../../index.html#tag=epsilon-delta">#epsilon-delta</a><a href="../../../index.html#tag=one-sided">#one-sided</a></nav>
 </header>
 
 <section>
   <h2>Try it first</h2>
-  <p>Pick a function, choose a side, and slide the input toward the target point $a$. Watch the output $f(x)$ settle on a value, or fail to agree between the two sides.</p>
+  <p>Pick a function and slide $x$ toward the target point $a$. The table shows $f(a-h)$ and $f(a+h)$ for shrinking gaps $h$. Turn on the $\varepsilon$ band to play the game from section 4: choose a tolerance and the lab finds the widest window $\delta$ that keeps the curve inside it, or reports that none exists.</p>
 
   <div class="lab">
     <figure class="card">
@@ -112,29 +116,43 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
       <div class="stage">
         <svg id="plot" viewBox="0 0 560 400" role="img" aria-labelledby="plot-title plot-desc">
           <title id="plot-title">Graph of a function near a target point</title>
-          <desc id="plot-desc">A moving point slides along the curve toward the target x value. A dashed horizontal line marks the limit when it exists.</desc>
+          <desc id="plot-desc">Points slide along the curve toward the target x value a. A dashed horizontal line marks the limit when it exists. An optional orange band shows the tolerance epsilon around the limit and a blue band shows the matching window delta around a.</desc>
+          <defs><clipPath id="plotClip"><rect x="36" y="20" width="504" height="344"/></clipPath></defs>
         </svg>
       </div>
-      <div class="card-bottom"><span class="hint">Drag the slider to move x closer to a</span><span class="live" id="live"></span></div>
+      <div class="card-bottom"><span class="hint">Drag "closer" to shrink the gap |x − a|</span><span class="live" id="live"></span></div>
     </figure>
 
     <div>
       <div class="panel">
+        <p class="seg-label">Function</p>
         <div class="seg" role="group" aria-label="Function">
           <button type="button" data-fn="0" aria-pressed="true">Hole</button>
           <button type="button" data-fn="1" aria-pressed="false">sin x / x</button>
-          <button type="button" data-fn="2" aria-pressed="false">Jump</button>
+          <button type="button" data-fn="2" aria-pressed="false">Moved point</button>
+          <button type="button" data-fn="3" aria-pressed="false">Jump</button>
+          <button type="button" data-fn="4" aria-pressed="false">Blow-up</button>
+          <button type="button" data-fn="5" aria-pressed="false">Oscillate</button>
         </div>
-        <div class="seg" role="group" aria-label="Side">
-          <button type="button" data-side="-1" aria-pressed="true">From the left</button>
-          <button type="button" data-side="1" aria-pressed="false">From the right</button>
+        <p class="seg-label">Approach from</p>
+        <div class="seg" role="group" aria-label="Approach side">
+          <button type="button" data-side="-1" aria-pressed="false">Left</button>
+          <button type="button" data-side="0" aria-pressed="true">Both</button>
+          <button type="button" data-side="1" aria-pressed="false">Right</button>
         </div>
-        <div class="row"><label for="dist">closer</label><input type="range" id="dist" min="0" max="100" value="10"><output id="outDist"></output></div>
+        <div class="row"><label for="dist">closer</label><input type="range" id="dist" min="0" max="100" value="15"><output id="outDist" for="dist"></output></div>
+        <label class="check"><input type="checkbox" id="epsOn"> Show the ε–δ game</label>
+        <div class="row"><label for="eps">ε</label><input type="range" id="eps" min="1" max="100" value="40" disabled><output id="outEps" for="eps"></output></div>
         <div id="readout" aria-live="polite"></div>
+        <table class="vals" aria-label="Values near a">
+          <thead><tr><th scope="col">h</th><th scope="col">f(a − h)</th><th scope="col">f(a + h)</th></tr></thead>
+          <tbody id="valsBody"></tbody>
+        </table>
       </div>
       <div class="legend" aria-label="Legend">
-        <span><i class="sw" style="background:#bf4520;border-color:#bf4520"></i>current point</span>
-        <span><i class="sw" style="background:#fff;border-color:#2e5aa8"></i>missing point</span>
+        <span><i class="sw" style="background:#bf4520;border-color:#bf4520"></i>current point(s)</span>
+        <span><i class="sw" style="background:#fff;border-color:#2e5aa8"></i>missing value</span>
+        <span><i class="sw" style="background:#2d3142;border-color:#2d3142;border-radius:50%"></i>actual f(a)</span>
         <span><i class="sw" style="background:transparent;border-style:dashed"></i>limit L</span>
       </div>
     </div>
@@ -143,17 +161,27 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
 
 <section>
   <h2>1. The idea</h2>
-  <p>Take $f(x) = \frac{x^2 - 1}{x - 1}$. At $x = 1$ it is $\frac{0}{0}$, so $f(1)$ does not exist. For every other $x$ the fraction simplifies to $x + 1$.</p>
-  <p>Try $x = 0.9,\ 0.99,\ 0.999$. The outputs are $1.9,\ 1.99,\ 1.999$. They crowd toward $2$. From the right, $1.1,\ 1.01,\ 1.001$ give $2.1,\ 2.01,\ 2.001$. Same target, so we write:</p>
+  <p>Take $f(x) = \frac{x^2 - 1}{x - 1}$. At $x = 1$ it is $\frac{0}{0}$, so $f(1)$ does not exist. For every other $x$ the fraction factors as $\frac{(x-1)(x+1)}{x-1} = x + 1$.</p>
+  <table class="ops" aria-label="Values of f near 1">
+    <thead><tr><th>x (from the left)</th><th>f(x)</th><th>x (from the right)</th><th>f(x)</th></tr></thead>
+    <tbody>
+      <tr><td>$0.9$</td><td>$1.9$</td><td>$1.1$</td><td>$2.1$</td></tr>
+      <tr><td>$0.99$</td><td>$1.99$</td><td>$1.01$</td><td>$2.01$</td></tr>
+      <tr><td>$0.999$</td><td>$1.999$</td><td>$1.001$</td><td>$2.001$</td></tr>
+    </tbody>
+  </table>
+  <p>Both columns crowd toward $2$. The function never has to reach $2$, and it does not even have to be defined at $1$. We write:</p>
   <div class="formula">$$\lim_{x \to 1} \frac{x^2 - 1}{x - 1} = 2$$</div>
+  <p>Read it as "the limit of $f(x)$ as $x$ approaches $1$ is $2$". Informally: you can make $f(x)$ as close to $2$ as you like by taking $x$ close enough to $1$, but not equal to it.</p>
   <div class="callout">A limit is about the neighborhood of a point, not the point itself.</div>
+  <p>The "Moved point" example in the lab makes this concrete. It is $x^2$ everywhere except that $f(1)$ has been redefined to $3$. The limit at $1$ is still $1$, because no amount of fiddling with the single value $f(1)$ changes what nearby values do.</p>
 </section>
 
 <section>
   <h2>2. One-sided limits</h2>
   <p>You can approach $a$ from below ($x \to a^-$) or from above ($x \to a^+$). The two-sided limit exists only when both one-sided limits exist and are equal.</p>
   <div class="formula">$$\lim_{x \to a} f(x) = L \iff \lim_{x \to a^-} f(x) = L \text{ and } \lim_{x \to a^+} f(x) = L$$</div>
-  <p>In the Jump example, $\frac{|x|}{x}$ equals $-1$ on the left of 0 and $+1$ on the right. The two sides disagree, so the limit does not exist.</p>
+  <p>In the Jump example, $\frac{|x|}{x}$ equals $-1$ on the left of $0$ and $+1$ on the right. Each side has a limit, but they disagree, so $\lim_{x \to 0} \frac{|x|}{x}$ does not exist.</p>
 
   <div class="fig">
     <div class="scroll">
@@ -173,12 +201,24 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
     </div>
     <p class="cap">Fig 2 · Both sides settle, but on different values.</p>
   </div>
+  <p>One-sided limits are also the natural tool at the edge of a domain. $\sqrt{x}$ is only defined for $x \ge 0$, so at $0$ only $\lim_{x \to 0^+} \sqrt{x} = 0$ makes sense.</p>
 </section>
 
 <section>
-  <h2>3. The precise definition</h2>
-  <p>"Gets close" needs a measuring stick. Someone picks a tolerance $\varepsilon \gt 0$ around $L$. You must answer with a window $\delta \gt 0$ around $a$ such that every $x$ in the window (except $a$ itself) lands inside the tolerance.</p>
-  <div class="formula">$$\forall \varepsilon \gt 0\ \exists \delta \gt 0 : 0 \lt |x - a| \lt \delta \Rightarrow |f(x) - L| \lt \varepsilon$$</div>
+  <h2>3. Three ways a limit fails</h2>
+  <p>The lab has one example of each. They are worth telling apart, because each needs a different fix or a different answer.</p>
+  <div class="cards">
+    <div class="stat"><div class="eyebrow">Jump</div><div class="big">sides disagree</div><p>Both one-sided limits exist but differ, as with $\frac{|x|}{x}$ at $0$. Floor, sign and step functions do this.</p></div>
+    <div class="stat"><div class="eyebrow">Blow-up</div><div class="big">unbounded</div><p>$\frac{1}{x^2}$ grows past every bound near $0$. We write $\lim = +\infty$, which is a precise way to say the limit does not exist as a number.</p></div>
+    <div class="stat focal"><div class="eyebrow">Oscillation</div><div class="big">no settling</div><p>$\sin\frac{1}{x}$ swings between $-1$ and $1$ infinitely often near $0$. No single value attracts it from either side.</p></div>
+  </div>
+  <p style="margin-top:20px">A quick test for oscillation: find two sequences that both approach $a$ but give different outputs. For $\sin\frac{1}{x}$, take $x_n = \frac{1}{2\pi n}$ (outputs all $0$) and $x_n = \frac{1}{2\pi n + \pi/2}$ (outputs all $1$). Two different targets, so no limit.</p>
+</section>
+
+<section>
+  <h2>4. The precise definition</h2>
+  <p>"Gets close" needs a measuring stick. Think of it as a game. A challenger picks a tolerance $\varepsilon \gt 0$ around $L$. You must answer with a window $\delta \gt 0$ around $a$ such that every $x$ in the window (except $a$ itself) lands inside the tolerance. If you can always answer, however small $\varepsilon$ gets, the limit is $L$.</p>
+  <div class="formula">$$\lim_{x \to a} f(x) = L \iff \forall \varepsilon \gt 0\ \exists \delta \gt 0 : 0 \lt |x - a| \lt \delta \Rightarrow |f(x) - L| \lt \varepsilon$$</div>
   <div class="fig">
     <div class="scroll">
 <svg width="700" height="300" viewBox="0 0 700 300" style="min-width:700px" role="img" aria-labelledby="ed-title ed-desc">
@@ -197,11 +237,20 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
     </div>
     <p class="cap">Fig 3 · Inside the blue window the curve never leaves the orange band.</p>
   </div>
+
+  <h3>A worked proof</h3>
+  <p>Claim: $\lim_{x \to 2} (3x + 1) = 7$. Work backwards from what we need.</p>
+  <div class="steps"><ol>
+    <li>We want $|f(x) - 7| \lt \varepsilon$, that is $|3x + 1 - 7| = |3x - 6| = 3|x - 2| \lt \varepsilon$.</li>
+    <li>That holds exactly when $|x - 2| \lt \frac{\varepsilon}{3}$.</li>
+    <li>So answer every challenge with $\delta = \frac{\varepsilon}{3}$. Then $0 \lt |x - 2| \lt \delta$ gives $|f(x) - 7| = 3|x-2| \lt 3\delta = \varepsilon$. Done.</li>
+  </ol></div>
+  <p>For a line, $\delta$ is a fixed fraction of $\varepsilon$. For curves, $\delta$ usually depends on $\varepsilon$ in a more complicated way, which is what the lab computes numerically. Turn on the game with "Jump" and "Both" selected: once $\varepsilon \lt 1$, no window works, because points on the two sides are $2$ apart.</p>
 </section>
 
 <section>
-  <h2>4. Limit laws</h2>
-  <p>If $\lim f = L$ and $\lim g = M$, limits behave well with arithmetic.</p>
+  <h2>5. Limit laws</h2>
+  <p>Proving every limit from $\varepsilon$ and $\delta$ would be slow. Instead, prove a few rules once. If $\lim f = L$ and $\lim g = M$ (both at the same point $a$, both finite), then:</p>
   <table class="ops">
     <thead><tr><th>Rule</th><th>Statement</th></tr></thead>
     <tbody>
@@ -209,32 +258,129 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
       <tr><td>Constant multiple</td><td>$\lim (c f) = c L$</td></tr>
       <tr><td>Product</td><td>$\lim (f g) = L M$</td></tr>
       <tr><td>Quotient</td><td>$\lim \frac{f}{g} = \frac{L}{M}$ if $M \ne 0$</td></tr>
-      <tr><td>Power</td><td>$\lim f^n = L^n$</td></tr>
-      <tr><td>Squeeze</td><td>if $g \le f \le h$ and $\lim g = \lim h = L$, then $\lim f = L$</td></tr>
+      <tr><td>Power and root</td><td>$\lim f^n = L^n$, and $\lim \sqrt[n]{f} = \sqrt[n]{L}$ when the root is defined</td></tr>
+      <tr><td>Composition</td><td>$\lim g(f(x)) = g(L)$ if $g$ is continuous at $L$</td></tr>
     </tbody>
   </table>
-  <p>The squeeze rule gives the famous result below. It is the base of the derivative of sine.</p>
+  <p>Together these say that polynomials, rational functions (away from zeros of the denominator), roots, $\sin$, $\cos$, $e^x$ and $\ln$ are continuous on their domains. For all of them, the limit is found by plugging in.</p>
+</section>
+
+<section>
+  <h2>6. Techniques for $\frac{0}{0}$</h2>
+  <p>When plugging in gives $\frac{0}{0}$, the expression is hiding a common factor that vanishes at $a$. The job is to expose and cancel it.</p>
+  <table class="ops">
+    <thead><tr><th>Technique</th><th>Example</th></tr></thead>
+    <tbody>
+      <tr><td>Factor and cancel</td><td>$\lim_{x \to 3} \frac{x^2 - 9}{x - 3} = \lim_{x \to 3} (x + 3) = 6$</td></tr>
+      <tr><td>Multiply by the conjugate</td><td>$\lim_{x \to 0} \frac{\sqrt{x + 4} - 2}{x} = \lim_{x \to 0} \frac{1}{\sqrt{x + 4} + 2} = \frac{1}{4}$</td></tr>
+      <tr><td>Known trig limit</td><td>$\lim_{x \to 0} \frac{\sin 5x}{x} = 5 \lim_{u \to 0} \frac{\sin u}{u} = 5$</td></tr>
+      <tr><td>Trig identity</td><td>$\lim_{x \to 0} \frac{1 - \cos x}{x^2} = \lim_{x \to 0} \frac{\sin^2 x}{x^2 (1 + \cos x)} = \frac{1}{2}$</td></tr>
+      <tr><td>L'Hôpital's rule</td><td>if $f(a) = g(a) = 0$, then $\lim \frac{f}{g} = \lim \frac{f'}{g'}$ when the right side exists</td></tr>
+    </tbody>
+  </table>
+  <p>L'Hôpital's rule needs derivatives, which are themselves limits. It also handles $\frac{\infty}{\infty}$. Other indeterminate forms such as $0 \cdot \infty$, $\infty - \infty$, $1^\infty$, $0^0$ and $\infty^0$ are first rewritten into one of those two.</p>
+  <div class="callout">$\frac{0}{0}$ is not an answer. It is a sign that more work is needed.</div>
+</section>
+
+<section>
+  <h2>7. The squeeze theorem</h2>
+  <p>Sometimes you cannot simplify $f$, but you can trap it. If $g(x) \le f(x) \le h(x)$ near $a$, and $g$ and $h$ share the same limit $L$, then $f$ has no room to go anywhere else.</p>
+  <div class="formula">$$g \le f \le h \text{ near } a, \quad \lim_{x \to a} g = \lim_{x \to a} h = L \;\Rightarrow\; \lim_{x \to a} f = L$$</div>
+  <div class="fig">
+    <div class="scroll">
+      <svg id="squeeze" width="700" height="280" viewBox="0 0 700 280" style="min-width:700px" role="img" aria-labelledby="sq-title sq-desc">
+        <title id="sq-title">The squeeze theorem with x squared times sine of one over x</title>
+        <desc id="sq-desc">The curve x squared times sine of one over x oscillates faster and faster near zero, but it stays between the parabolas x squared above and minus x squared below. Both parabolas go to zero at the origin, so the trapped curve does too.</desc>
+      </svg>
+    </div>
+    <p class="cap">Fig 4 · $x^2 \sin\frac{1}{x}$ (dark) wiggles forever, but is pinned between $-x^2$ and $x^2$ (orange). Its limit at 0 is 0.</p>
+  </div>
+  <p>The same idea, with a geometric picture of the unit circle, shows $\cos x \le \frac{\sin x}{x} \le 1$ for small $x \ne 0$. Both bounds go to $1$, which gives the most used trig limit in calculus. It is the reason the derivative of $\sin x$ is $\cos x$.</p>
   <div class="formula">$$\lim_{x \to 0} \frac{\sin x}{x} = 1$$</div>
 </section>
 
 <section>
-  <h2>5. Common forms</h2>
-  <div class="cards">
-    <div class="stat focal"><div class="eyebrow">Direct</div><div class="big">plug in</div><p>If $f$ is continuous at $a$, the limit is just $f(a)$.</p></div>
-    <div class="stat"><div class="eyebrow">0/0</div><div class="big">factor</div><p>Cancel the common factor, as in the hole example, then plug in.</p></div>
-    <div class="stat"><div class="eyebrow">At infinity</div><div class="big">divide</div><p>Divide top and bottom by the highest power of $x$. Example: $\frac{3x^2+1}{x^2-5} \to 3$.</p></div>
-  </div>
-  <p style="margin-top:20px">A function is <b>continuous</b> at $a$ when $\lim f(x) = f(a)$. That one line says three things: the limit exists, $f(a)$ exists, and they match.</p>
+  <h2>8. Limits at infinity and infinite limits</h2>
+  <p>Two other questions use the same language. What happens as $x$ grows without bound? And what happens when the output does?</p>
+  <div class="formula">$$\lim_{x \to \infty} f(x) = L \quad \text{(horizontal asymptote)} \qquad \lim_{x \to a} f(x) = \infty \quad \text{(vertical asymptote)}$$</div>
+  <p>For rational functions, divide top and bottom by the highest power of $x$ in the denominator. Every term $\frac{c}{x^k}$ with $k \ge 1$ goes to $0$, and the leading terms decide.</p>
+  <table class="ops">
+    <thead><tr><th>Degrees</th><th>Example</th><th>Limit as x → ∞</th></tr></thead>
+    <tbody>
+      <tr><td>top &lt; bottom</td><td>$\frac{5x + 1}{x^2 + 3}$</td><td>$0$</td></tr>
+      <tr><td>top = bottom</td><td>$\frac{3x^2 + 1}{x^2 - 5}$</td><td>$3$, the ratio of leading coefficients</td></tr>
+      <tr><td>top &gt; bottom</td><td>$\frac{x^3}{x + 1}$</td><td>$\infty$</td></tr>
+    </tbody>
+  </table>
+  <p>Growth rates also order themselves: for large $x$, $\ln x \ll x^p \ll e^x \ll x!$ for any $p \gt 0$. So $\lim_{x \to \infty} \frac{x^{100}}{e^x} = 0$, even though the top wins for a very long time first.</p>
+  <p>One limit at infinity defines a constant. Compound interest at rate $100\%$ split into $n$ periods gives</p>
+  <div class="formula">$$e = \lim_{n \to \infty} \left(1 + \frac{1}{n}\right)^n \approx 2.71828$$</div>
+  <p>It is a $1^\infty$ form: the base tends to $1$ while the exponent tends to $\infty$, and neither wins outright.</p>
+</section>
+
+<section>
+  <h2>9. Continuity</h2>
+  <p>A function is <b>continuous</b> at $a$ when the limit equals the value:</p>
+  <div class="formula">$$\lim_{x \to a} f(x) = f(a)$$</div>
+  <p>That one line packs three checks: $f(a)$ exists, the limit exists, and they match. Each lab example breaks at least one of them.</p>
+  <table class="ops">
+    <thead><tr><th>Discontinuity</th><th>What breaks</th><th>Lab example</th></tr></thead>
+    <tbody>
+      <tr><td>Removable</td><td>the limit exists, but $f(a)$ is missing or different</td><td>Hole, sin x / x, Moved point</td></tr>
+      <tr><td>Jump</td><td>one-sided limits exist but differ</td><td>Jump</td></tr>
+      <tr><td>Infinite</td><td>the output is unbounded</td><td>Blow-up</td></tr>
+      <tr><td>Essential (oscillating)</td><td>no one-sided limit exists</td><td>Oscillate</td></tr>
+    </tbody>
+  </table>
+  <p>A removable discontinuity can be repaired by defining (or redefining) $f(a) = L$. Defining $\frac{\sin x}{x}$ to be $1$ at $0$ gives the smooth function called $\operatorname{sinc}$, which shows up in signal processing.</p>
+  <h3>Why continuity pays off</h3>
+  <p>The <b>Intermediate Value Theorem</b> says a function continuous on $[a, b]$ takes every value between $f(a)$ and $f(b)$. If $f(a) \lt 0 \lt f(b)$, there is a root in between. Bisection, the simplest root finder, is this theorem turned into a loop: halve the interval, keep the half where the sign changes, repeat.</p>
+</section>
+
+<section>
+  <h2>10. The same thing in code</h2>
+  <p>A computer can estimate a limit by evaluating closer and closer points. It works until floating point arithmetic gets in the way.</p>
+  <pre><span class="k">function</span> estimateLimit(f, a) {
+  <span class="k">for</span> (<span class="k">let</span> k = <span class="t">1</span>; k &lt;= <span class="t">7</span>; k++) {
+    <span class="k">const</span> h = <span class="t">10</span> ** -k;
+    console.log(h, f(a - h), f(a + h));
+  }
+}
+
+estimateLimit(x =&gt; Math.sin(x) / x, <span class="t">0</span>);      <span class="c">// both columns approach 1</span>
+
+<span class="c">// The trap: (1 - cos x) / x^2 should approach 0.5</span>
+<span class="k">const</span> g = x =&gt; (<span class="t">1</span> - Math.cos(x)) / (x * x);
+g(<span class="t">1e-4</span>);   <span class="c">// 0.4999999969612645  (fine)</span>
+g(<span class="t">1e-8</span>);   <span class="c">// 0                   (cos(1e-8) rounds to exactly 1)</span>
+
+<span class="c">// The fix is the same algebra as section 6: 1 - cos x = 2 sin^2(x/2)</span>
+<span class="k">const</span> g2 = x =&gt; <span class="t">2</span> * Math.sin(x / <span class="t">2</span>) ** <span class="t">2</span> / (x * x);
+g2(<span class="t">1e-8</span>);  <span class="c">// 0.5000000000000001</span></pre>
+  <p>Subtracting two nearly equal numbers loses digits, an effect called catastrophic cancellation. Rewriting the expression so the cancellation happens on paper, not in the machine, is the practical version of "factor and cancel".</p>
+</section>
+
+<section>
+  <h2>11. Common mistakes</h2>
   <ul class="tight">
-    <li>Hole: the limit exists but $f(a)$ is missing or different. Removable.</li>
-    <li>Jump: both one-sided limits exist but differ.</li>
-    <li>Infinite: the output grows without bound, like $\frac{1}{x^2}$ at 0.</li>
+    <li>Treating $\frac{0}{0}$ as $0$, $1$ or "undefined, so no limit". It is indeterminate: the limit may be any number, or may not exist.</li>
+    <li>Checking only one side. A table that approaches from the right only can miss a jump.</li>
+    <li>Confusing $f(a)$ with $\lim_{x \to a} f(x)$. They agree only when $f$ is continuous at $a$.</li>
+    <li>Using $\infty$ as a number. $\infty - \infty$ and $\frac{\infty}{\infty}$ have no fixed value.</li>
+    <li>Trusting a few sample points. $\sin\frac{\pi}{x}$ is exactly $0$ at $x = 1, 0.1, 0.01, \dots$, yet it has no limit at $0$.</li>
   </ul>
 </section>
 
 <section>
-  <h2>6. Why it matters</h2>
-  <p>Limits are the base of calculus. The derivative is a limit of slopes of secant lines, and the integral is a limit of sums of thin rectangles. The next two guides build on this one.</p>
+  <h2>12. Where it shows up</h2>
+  <ul class="tight">
+    <li><b>Derivatives</b> are the limit of secant slopes: $f'(a) = \lim_{h \to 0} \frac{f(a+h) - f(a)}{h}$.</li>
+    <li><b>Integrals</b> are the limit of Riemann sums of thinner and thinner rectangles.</li>
+    <li><b>Series</b> such as Taylor series are limits of partial sums.</li>
+    <li><b>Algorithms</b> use limits to describe growth: $O(n \log n)$ is a statement about the ratio of two functions as $n \to \infty$.</li>
+    <li><b>Numerics</b>: convergence of iterative methods such as Newton's method or gradient descent is a limit of a sequence.</li>
+  </ul>
+  <p>The next guides, on derivatives and integrals, both start from this one.</p>
 </section>
 
 </main>
@@ -242,15 +388,19 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
 <script>
 (function () {
   var NSV = 'http://www.w3.org/2000/svg';
-  var W = 560, H = 400, M = 36;
+  var W = 560, H = 400, M = 36, TOP = 20;
   var $ = function (s) { return document.querySelector(s); };
 
+  // a: target, left/right: one-sided limits (null if none, Infinity if unbounded), fa: actual value at a (NaN if undefined)
   var FNS = [
-    { name: '(x² − 1) / (x − 1),  x → 1', f: function (x) { return x === 1 ? NaN : (x * x - 1) / (x - 1); }, a: 1, left: 2, right: 2, view: [-1, 3, -1, 4], hole: true },
-    { name: 'sin(x) / x,  x → 0', f: function (x) { return x === 0 ? NaN : Math.sin(x) / x; }, a: 0, left: 1, right: 1, view: [-8, 8, -1, 2], hole: true },
-    { name: '|x| / x,  x → 0', f: function (x) { return x === 0 ? NaN : Math.abs(x) / x; }, a: 0, left: -1, right: 1, view: [-3, 3, -2, 2], hole: false }
+    { name: '(x² − 1) / (x − 1),  x → 1', f: function (x) { return x === 1 ? NaN : (x * x - 1) / (x - 1); }, a: 1, left: 2, right: 2, fa: NaN, view: [-1, 3, -1, 4] },
+    { name: 'sin(x) / x,  x → 0', f: function (x) { return x === 0 ? NaN : Math.sin(x) / x; }, a: 0, left: 1, right: 1, fa: NaN, view: [-8, 8, -1, 2] },
+    { name: 'x² with f(1) = 3,  x → 1', f: function (x) { return x === 1 ? 3 : x * x; }, a: 1, left: 1, right: 1, fa: 3, view: [-1, 2.5, -1, 4] },
+    { name: '|x| / x,  x → 0', f: function (x) { return x === 0 ? NaN : Math.abs(x) / x; }, a: 0, left: -1, right: 1, fa: NaN, view: [-3, 3, -2, 2] },
+    { name: '1 / x²,  x → 0', f: function (x) { return x === 0 ? NaN : 1 / (x * x); }, a: 0, left: Infinity, right: Infinity, fa: NaN, view: [-3, 3, -1, 8] },
+    { name: 'sin(1 / x),  x → 0', f: function (x) { return x === 0 ? NaN : Math.sin(1 / x); }, a: 0, left: null, right: null, fa: NaN, view: [-1, 1, -1.6, 1.6] }
   ];
-  var cur = 0, side = -1;
+  var cur = 0, side = 0;
 
   function el(n, attrs, parent) {
     var e = document.createElementNS(NSV, n);
@@ -258,9 +408,61 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
     if (parent) parent.appendChild(e);
     return e;
   }
-  function fmt(v) { return isFinite(v) ? (Math.abs(v) < 1e-9 ? '0' : v.toFixed(6).replace(/0+$/, '').replace(/\.$/, '')) : 'undefined'; }
+  function fmt(v, d) {
+    if (!isFinite(v)) return isNaN(v) ? 'undef' : (v > 0 ? '∞' : '−∞');
+    if (Math.abs(v) >= 1e6) return v.toExponential(2);
+    if (Math.abs(v) < 1e-12) return '0';
+    return v.toFixed(d || 6).replace(/0+$/, '').replace(/\.$/, '');
+  }
+  function fmtH(h) { return h < 0.001 ? h.toExponential(1) : String(+h.toPrecision(3)); }
+  function dist() { return Math.pow(10, -0.3 - 3.7 * (+$('#dist').value) / 100); }
+  function epsVal() { return Math.pow(10, -2 + 2.3 * (+$('#eps').value) / 100); }
 
-  function dist() { return 2 * Math.pow(10, -3 * (+$('#dist').value) / 100); }
+  // Target L for the current side choice; null when no finite limit exists
+  function target(F) {
+    if (side < 0) return isFinite(F.left) && F.left !== null ? F.left : null;
+    if (side > 0) return isFinite(F.right) && F.right !== null ? F.right : null;
+    if (F.left === null || !isFinite(F.left) || F.left !== F.right) return null;
+    return F.left;
+  }
+
+  // Largest delta (on a log grid) that keeps sampled points inside the epsilon band
+  function findDelta(F, L, eps) {
+    var sides = side === 0 ? [-1, 1] : [side];
+    var maxD = (F.view[1] - F.view[0]) / 2;
+    for (var j = 0; j <= 240; j++) {
+      var d = maxD * Math.pow(10, -6 * j / 240), ok = true;
+      for (var s = 0; s < sides.length && ok; s++) {
+        for (var k = 1; k <= 400; k++) {
+          var x = F.a + sides[s] * d * k / 400, y = F.f(x);
+          if (!(Math.abs(y - L) < eps)) { ok = false; break; }
+        }
+      }
+      if (ok) return d;
+    }
+    return null;
+  }
+
+  function drawSqueeze() {
+    var svg = $('#squeeze'); if (!svg) return;
+    var X = function (x) { return 350 + x * 600; }, Y = function (y) { return 140 - y * 900; };
+    el('line', { x1: 40, x2: 660, y1: 140, y2: 140, stroke: '#bfc0c0' }, svg);
+    el('line', { x1: 350, x2: 350, y1: 10, y2: 270, stroke: '#bfc0c0' }, svg);
+    var up = '', dn = '', mid = '';
+    for (var i = 0; i <= 4000; i++) {
+      var x = -0.5 + i / 4000;
+      up += (i ? ' L' : 'M') + X(x).toFixed(1) + ' ' + Y(x * x).toFixed(1);
+      dn += (i ? ' L' : 'M') + X(x).toFixed(1) + ' ' + Y(-x * x).toFixed(1);
+      var v = x === 0 ? 0 : x * x * Math.sin(1 / x);
+      mid += (i ? ' L' : 'M') + X(x).toFixed(1) + ' ' + Y(v).toFixed(1);
+    }
+    el('path', { d: up, fill: 'none', stroke: '#bf4520', 'stroke-width': 1.8, 'stroke-dasharray': '6 4' }, svg);
+    el('path', { d: dn, fill: 'none', stroke: '#bf4520', 'stroke-width': 1.8, 'stroke-dasharray': '6 4' }, svg);
+    el('path', { d: mid, fill: 'none', stroke: '#2d3142', 'stroke-width': 1.4 }, svg);
+    el('circle', { cx: 350, cy: 140, r: 4, fill: '#2d3142' }, svg);
+    var labels = [[560, 40, 'h(x) = x²'], [560, 252, 'g(x) = −x²'], [60, 110, 'f(x) = x² sin(1/x)']];
+    labels.forEach(function (l) { var t = el('text', { x: l[0], y: l[1], 'font-family': "'Geist Mono',monospace", 'font-size': 11, fill: '#4f5d75' }, svg); t.textContent = l[2]; });
+  }
 
   function render() {
     var F = FNS[cur], v = F.view;
@@ -268,69 +470,107 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
     Array.prototype.slice.call(svg.querySelectorAll('.dyn')).forEach(function (n) { n.remove(); });
     var g = el('g', { 'class': 'dyn' }, svg);
     var X = function (x) { return M + (x - v[0]) / (v[1] - v[0]) * (W - 2 * M); };
-    var Y = function (y) { return H - M - (y - v[2]) / (v[3] - v[2]) * (H - 2 * M); };
+    var Y = function (y) { return H - M - (y - v[2]) / (v[3] - v[2]) * (H - M - TOP); };
+    var mono = 'Geist Mono, monospace';
 
     // grid and axes
-    for (var gx = Math.ceil(v[0]); gx <= v[1]; gx += (v[1] - v[0] > 10 ? 2 : 1)) {
-      el('line', { x1: X(gx), x2: X(gx), y1: Y(v[2]), y2: Y(v[3]), stroke: gx === 0 ? '#2d3142' : 'rgba(45,49,66,.1)' }, g);
-      var t = el('text', { x: X(gx), y: H - M + 16, 'text-anchor': 'middle', 'font-size': 10, fill: '#5a6580', 'font-family': 'Geist Mono, monospace' }, g); t.textContent = gx;
+    var stepX = v[1] - v[0] > 10 ? 2 : (v[1] - v[0] <= 2 ? 0.5 : 1);
+    for (var gx = Math.ceil(v[0] / stepX) * stepX; gx <= v[1] + 1e-9; gx += stepX) {
+      el('line', { x1: X(gx), x2: X(gx), y1: Y(v[2]), y2: Y(v[3]), stroke: Math.abs(gx) < 1e-9 ? '#2d3142' : 'rgba(45,49,66,.1)' }, g);
+      var t = el('text', { x: X(gx), y: H - M + 16, 'text-anchor': 'middle', 'font-size': 10, fill: '#5a6580', 'font-family': mono }, g); t.textContent = +gx.toFixed(2);
     }
-    for (var gy = Math.ceil(v[2]); gy <= v[3]; gy += 1) {
+    var stepY = v[3] - v[2] > 6 ? 2 : 1;
+    for (var gy = Math.ceil(v[2] / stepY) * stepY; gy <= v[3]; gy += stepY) {
       el('line', { x1: X(v[0]), x2: X(v[1]), y1: Y(gy), y2: Y(gy), stroke: gy === 0 ? '#2d3142' : 'rgba(45,49,66,.1)' }, g);
-      var t2 = el('text', { x: M - 6, y: Y(gy) + 3, 'text-anchor': 'end', 'font-size': 10, fill: '#5a6580', 'font-family': 'Geist Mono, monospace' }, g); t2.textContent = gy;
+      var t2 = el('text', { x: M - 6, y: Y(gy) + 3, 'text-anchor': 'end', 'font-size': 10, fill: '#5a6580', 'font-family': mono }, g); t2.textContent = gy;
     }
 
-    // curve with gaps at holes and jumps
-    var d = '', prev = null, n = 600;
+    // epsilon-delta bands
+    var L = target(F), epsOn = $('#epsOn').checked, eps = epsVal(), delta = null;
+    $('#outEps').textContent = epsOn ? fmt(eps, 3) : 'off';
+    if (epsOn && L !== null) {
+      delta = findDelta(F, L, eps);
+      el('rect', { x: X(v[0]), y: Y(L + eps), width: X(v[1]) - X(v[0]), height: Y(L - eps) - Y(L + eps), fill: 'rgba(191,69,32,.10)', 'clip-path': 'url(#plotClip)' }, g);
+      if (delta !== null) {
+        var lo = side > 0 ? F.a : F.a - delta, hi = side < 0 ? F.a : F.a + delta;
+        el('rect', { x: X(lo), y: Y(v[3]), width: Math.max(1, X(hi) - X(lo)), height: Y(v[2]) - Y(v[3]), fill: 'rgba(46,90,168,.12)' }, g);
+      }
+    } else if (epsOn && F.left !== null && isFinite(F.left) && side === 0) {
+      // Jump with both sides: show the band around the midpoint to illustrate failure
+      var mid = (F.left + F.right) / 2;
+      el('rect', { x: X(v[0]), y: Y(mid + eps), width: X(v[1]) - X(v[0]), height: Y(mid - eps) - Y(mid + eps), fill: 'rgba(191,69,32,.10)', 'clip-path': 'url(#plotClip)' }, g);
+    }
+
+    // curve, broken at gaps, jumps and off-screen excursions
+    var d = '', prevY = null, n = cur === 5 ? 6000 : 1200, range = v[3] - v[2];
     for (var i = 0; i <= n; i++) {
       var x = v[0] + (v[1] - v[0]) * i / n, y = F.f(x);
-      if (!isFinite(y)) { prev = null; continue; }
-      var jump = prev !== null && Math.abs(y - prev) > (v[3] - v[2]) * 0.4;
-      d += (prev === null || jump ? ' M' : ' L') + X(x).toFixed(1) + ' ' + Y(y).toFixed(1);
-      prev = y;
+      if (cur === 2 && Math.abs(x - 1) < 1e-9) y = 1; // draw the hole, not the moved point
+      if (!isFinite(y) || y > v[3] + range || y < v[2] - range) { prevY = null; continue; }
+      var jump = prevY !== null && Math.abs(y - prevY) > range * 0.4 && cur !== 5;
+      d += (prevY === null || jump ? ' M' : ' L') + X(x).toFixed(1) + ' ' + Y(y).toFixed(1);
+      prevY = y;
     }
-    el('path', { d: d.trim(), fill: 'none', stroke: '#2e5aa8', 'stroke-width': 2.4 }, g);
+    el('path', { d: d.trim(), fill: 'none', stroke: '#2e5aa8', 'stroke-width': cur === 5 ? 1.2 : 2.4, 'clip-path': 'url(#plotClip)' }, g);
 
-    // limit line and holes
-    var L = side < 0 ? F.left : F.right;
+    // markers at a
     el('line', { x1: X(F.a), x2: X(F.a), y1: Y(v[2]), y2: Y(v[3]), stroke: '#4f5d75', 'stroke-dasharray': '4 3' }, g);
-    el('line', { x1: X(v[0]), x2: X(v[1]), y1: Y(L), y2: Y(L), stroke: '#bf4520', 'stroke-dasharray': '5 4' }, g);
-    if (F.hole) el('circle', { cx: X(F.a), cy: Y(F.left), r: 5, fill: '#fff', stroke: '#2e5aa8', 'stroke-width': 2 }, g);
-    else { el('circle', { cx: X(F.a), cy: Y(F.left), r: 5, fill: '#fff', stroke: '#2e5aa8', 'stroke-width': 2 }, g); el('circle', { cx: X(F.a), cy: Y(F.right), r: 5, fill: '#fff', stroke: '#2e5aa8', 'stroke-width': 2 }, g); }
+    if (L !== null) el('line', { x1: X(v[0]), x2: X(v[1]), y1: Y(L), y2: Y(L), stroke: '#bf4520', 'stroke-dasharray': '5 4' }, g);
+    [F.left, F.right].forEach(function (lv, idx) {
+      if (lv !== null && isFinite(lv) && (idx === 0 || F.right !== F.left)) el('circle', { cx: X(F.a), cy: Y(lv), r: 5, fill: '#fff', stroke: '#2e5aa8', 'stroke-width': 2 }, g);
+    });
+    if (isFinite(F.fa)) el('circle', { cx: X(F.a), cy: Y(F.fa), r: 5, fill: '#2d3142' }, g);
 
-    // moving point
-    var h = dist(), px = F.a + side * h, py = F.f(px);
-    el('line', { x1: X(px), x2: X(px), y1: Y(0 > v[2] ? 0 : v[2]), y2: Y(py), stroke: '#bf4520', 'stroke-width': 1 }, g);
-    el('circle', { cx: X(px), cy: Y(py), r: 6, fill: '#bf4520' }, g);
-
-    var dne = F.left !== F.right;
-    $('#outDist').textContent = h < 0.01 ? h.toExponential(1) : h.toFixed(3);
-    $('#live').textContent = 'f(x) = ' + fmt(py);
+    // moving point(s)
+    var h = dist(), sides = side === 0 ? [-1, 1] : [side], liveTxt = [];
+    sides.forEach(function (s) {
+      var px = F.a + s * h, py = F.f(px);
+      if (!isFinite(py)) return;
+      var cy = Math.max(TOP, Math.min(H - M, Y(py)));
+      el('line', { x1: X(px), x2: X(px), y1: Y(Math.max(v[2], Math.min(v[3], 0))), y2: cy, stroke: '#bf4520', 'stroke-width': 1 }, g);
+      el('circle', { cx: X(px), cy: cy, r: 6, fill: '#bf4520' }, g);
+      liveTxt.push('f(' + (s < 0 ? 'a−h' : 'a+h') + ') = ' + fmt(py, 4));
+    });
+    $('#outDist').textContent = fmtH(h);
+    $('#live').textContent = liveTxt.join('   ');
     $('#fnTitle').textContent = F.name;
-    $('#readout').textContent =
-      'a      = ' + F.a + '\n' +
-      'x      = ' + fmt(px) + '   (|x − a| = ' + $('#outDist').textContent + ')\n' +
-      'f(x)   = ' + fmt(py) + '\n' +
-      (side < 0 ? 'left' : 'right') + ' limit = ' + L + '\n' +
-      '|f(x) − L| = ' + fmt(Math.abs(py - L)) + '\n\n' +
-      (dne ? 'Left (' + F.left + ') and right (' + F.right + ') differ:\nthe two-sided limit does not exist.' : 'Both sides agree: lim f(x) = ' + F.left + '.');
+
+    // verdict
+    var msg;
+    if (cur === 5) msg = 'The output keeps swinging between −1 and 1\nhowever small h gets: no limit from either side.';
+    else if (cur === 4) msg = 'The output grows past every bound:\nlim f(x) = +∞, so there is no finite limit.';
+    else if (side === 0 && F.left !== F.right) msg = 'Left limit (' + F.left + ') and right limit (' + F.right + ') differ:\nthe two-sided limit does not exist.';
+    else msg = (side === 0 ? 'Both sides agree: lim f(x) = ' : (side < 0 ? 'Left limit = ' : 'Right limit = ')) + L + (isFinite(F.fa) ? '\nbut f(a) = ' + F.fa + ', so f is not continuous at a.' : '\nf(a) is undefined: a removable hole.');
+    if (epsOn) {
+      if (L !== null) msg += '\n\nε = ' + fmt(eps, 3) + '  →  ' + (delta !== null ? 'widest δ ≈ ' + fmtH(delta) : 'no δ found');
+      else msg += '\n\nε = ' + fmt(eps, 3) + '  →  no L to aim at, so no δ can win.' + (cur === 3 && side === 0 ? '\nThe two sides are 2 apart; any band\nnarrower than 2 misses one of them.' : '');
+    }
+    $('#readout').textContent = msg;
+
+    // value table
+    var rows = '';
+    [0.1, 0.01, 0.001, 0.0001].forEach(function (hh) {
+      rows += '<tr><td>' + hh + '</td><td>' + fmt(F.f(F.a - hh), 8) + '</td><td>' + fmt(F.f(F.a + hh), 8) + '</td></tr>';
+    });
+    $('#valsBody').innerHTML = rows;
   }
 
-  Array.prototype.forEach.call(document.querySelectorAll('[data-fn]'), function (b) {
-    b.addEventListener('click', function () {
-      cur = +b.dataset.fn;
-      Array.prototype.forEach.call(document.querySelectorAll('[data-fn]'), function (o) { o.setAttribute('aria-pressed', o === b); });
-      render();
+  function wireSeg(attr, set) {
+    var btns = document.querySelectorAll('[' + attr + ']');
+    Array.prototype.forEach.call(btns, function (b) {
+      b.addEventListener('click', function () {
+        set(+b.getAttribute(attr));
+        Array.prototype.forEach.call(btns, function (o) { o.setAttribute('aria-pressed', o === b ? 'true' : 'false'); });
+        render();
+      });
     });
-  });
-  Array.prototype.forEach.call(document.querySelectorAll('[data-side]'), function (b) {
-    b.addEventListener('click', function () {
-      side = +b.dataset.side;
-      Array.prototype.forEach.call(document.querySelectorAll('[data-side]'), function (o) { o.setAttribute('aria-pressed', o === b); });
-      render();
-    });
-  });
+  }
+  wireSeg('data-fn', function (v) { cur = v; });
+  wireSeg('data-side', function (v) { side = v; });
   $('#dist').addEventListener('input', render);
+  $('#eps').addEventListener('input', render);
+  $('#epsOn').addEventListener('change', function () { $('#eps').disabled = !this.checked; render(); });
+  drawSqueeze();
   render();
 })();
 </script>
