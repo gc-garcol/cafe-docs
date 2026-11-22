@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>L'Hôpital's Rule: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;text-align:center;overflow-x:auto}
+.formula .katex{font-size:1.25em}
+.katex{color:var(--ink)}
+p .katex,td .katex,li .katex{font-size:1.05em}
+
+.lab{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:24px;align-items:start;margin-top:24px}
+.card{margin:0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.stage{padding:0 8px}
+.stage svg{display:block;width:100%;height:auto}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.seg{display:flex;flex-wrap:wrap;border:1px solid var(--rule-solid);border-radius:6px;overflow:hidden;margin-bottom:16px}
+.seg button{flex:1 1 40%;min-height:40px;border:0;background:transparent;font:500 13px var(--sans);color:var(--muted);cursor:pointer;padding:0 8px}
+.seg button+button{border-left:1px solid var(--rule-solid)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.row{display:grid;grid-template-columns:70px 1fr 64px;gap:12px;align-items:center;margin:12px 0}
+.row label{font-family:var(--mono);font-size:13px;font-weight:600}
+.row output{font-family:var(--mono);font-size:12px;text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);min-height:28px}
+#readout{margin:16px 0 0;padding:14px 16px;background:var(--paper);border:1px solid var(--rule);border-radius:6px;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;min-height:180px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:2px;border:1px solid var(--ink);display:inline-block}
+
+.fig{margin:20px 0 8px}
+.scroll{overflow-x:auto;border:1px solid var(--rule);border-radius:8px;background:#fff;padding:8px}
+.scroll svg{display:block;height:auto}
+.cap{font-family:var(--mono);font-size:11px;color:var(--soft);margin:8px 0 0}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:30px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+.tbl{overflow-x:auto;max-width:860px}
+table.ops{border-collapse:collapse;width:100%;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);border-radius:6px;font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:middle}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:8px 0}
+@media (max-width:860px){.lab{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+
+.doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}.doc-tags a{font:500 12px "Geist Mono",ui-monospace,monospace;padding:4px 10px;border:1px solid var(--rule-solid,#bfc0c0);border-radius:4px;background:#fff;color:var(--muted,#4f5d75);text-decoration:none}.doc-tags a:hover{border-color:var(--ink,#2d3142);color:var(--ink,#2d3142)}.doc-tags a:focus-visible{outline:2px solid var(--accent,#bf4520);outline-offset:2px}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" style="margin-right:8px" href="../../../index.html">&larr; Back to home</a>
+<a class="back back-cat" href="../../../index.html#cat=Mathematics">&larr; Back to Mathematics</a>
+
+<header>
+  <div class="eyebrow">Mathematics · Calculus</div>
+  <h1>L'Hôpital's Rule</h1>
+  <p class="lede">When plugging in gives $\frac{0}{0}$ or $\frac{\infty}{\infty}$, the limit is not decided yet. L'Hôpital's rule settles it by comparing how fast the top and the bottom change.</p>
+  <nav class="doc-tags" aria-label="Main tags"><a href="../../../index.html#tag=lhopital">#lhopital</a><a href="../../../index.html#tag=indeterminate%20form">#indeterminate form</a><a href="../../../index.html#tag=limit">#limit</a><a href="../../../index.html#tag=derivative">#derivative</a></nav>
+</header>
+
+<section>
+  <h2>Try it first</h2>
+  <p>Pick a quotient $\frac{f(x)}{g(x)}$ where both $f$ and $g$ pass through zero at $x = 0$. Slide $x$ toward 0. The two vertical bars are $f(x)$ and $g(x)$; their ratio is the quotient. Compare it with the ratio of slopes $\frac{f'(x)}{g'(x)}$.</p>
+
+  <div class="lab">
+    <figure class="card">
+      <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title" id="fnTitle">Two curves through zero</span></div>
+      <div class="stage">
+        <svg id="plot" viewBox="0 0 560 400" role="img" aria-labelledby="plot-title plot-desc">
+          <title id="plot-title">Numerator and denominator near the point x equals 0</title>
+          <desc id="plot-desc">The numerator f is drawn in blue and the denominator g in orange. Both cross zero at x equals 0. Dashed lines are their tangent lines at 0. Vertical bars at the current x show the heights f of x and g of x, whose ratio is the quotient.</desc>
+        </svg>
+      </div>
+      <div class="card-bottom"><span class="hint">Drag the slider to move x closer to 0</span><span class="live" id="live"></span></div>
+    </figure>
+
+    <div>
+      <div class="panel">
+        <div class="seg" role="group" aria-label="Example">
+          <button type="button" data-fn="0" aria-pressed="true">sin x / x</button>
+          <button type="button" data-fn="1" aria-pressed="false">(eˣ − 1) / x</button>
+          <button type="button" data-fn="2" aria-pressed="false">(e²ˣ − 1) / sin x</button>
+          <button type="button" data-fn="3" aria-pressed="false">(1 − cos x) / x²</button>
+        </div>
+        <div class="seg" role="group" aria-label="Side">
+          <button type="button" data-side="-1" aria-pressed="false">From the left</button>
+          <button type="button" data-side="1" aria-pressed="true">From the right</button>
+        </div>
+        <div class="row"><label for="dist">closer</label><input type="range" id="dist" min="0" max="100" value="10"><output id="outDist" for="dist"></output></div>
+        <div id="readout" aria-live="polite"></div>
+      </div>
+      <div class="legend" aria-label="Legend">
+        <span><i class="sw" style="background:#2e5aa8;border-color:#2e5aa8"></i>f (top)</span>
+        <span><i class="sw" style="background:#bf4520;border-color:#bf4520"></i>g (bottom)</span>
+        <span><i class="sw" style="background:transparent;border-style:dashed"></i>tangent at 0</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>1. The rule</h2>
+  <p>Suppose $f$ and $g$ are differentiable near $a$, $g'(x) \ne 0$ near $a$ (except possibly at $a$), and the quotient has one of the two indeterminate forms:</p>
+  <div class="formula">$$\lim_{x \to a} f(x) = \lim_{x \to a} g(x) = 0 \quad \text{or} \quad \lim_{x \to a} f(x) = \pm\infty,\ \lim_{x \to a} g(x) = \pm\infty$$</div>
+  <p>If the limit of the ratio of derivatives exists (or is $\pm\infty$), then the original limit equals it:</p>
+  <div class="formula">$$\lim_{x \to a} \frac{f(x)}{g(x)} = \lim_{x \to a} \frac{f'(x)}{g'(x)}$$</div>
+  <p>The same statement holds for one-sided limits ($x \to a^-$, $x \to a^+$) and for $x \to \pm\infty$. If the new quotient is still $\frac{0}{0}$ or $\frac{\infty}{\infty}$, apply the rule again.</p>
+  <div class="callout">Differentiate the top and the bottom separately. This is not the quotient rule.</div>
+</section>
+
+<section>
+  <h2>2. Why it works</h2>
+  <p>Zoom in on $a$. A differentiable function looks like its tangent line there. Since $f(a) = g(a) = 0$, both tangent lines pass through $(a, 0)$:</p>
+  <div class="formula">$$f(x) \approx f'(a)\,(x - a), \qquad g(x) \approx g'(a)\,(x - a)$$</div>
+  <p>The common factor $(x - a)$ cancels, so the ratio of heights becomes the ratio of slopes:</p>
+  <div class="formula">$$\frac{f(x)}{g(x)} \approx \frac{f'(a)\,(x - a)}{g'(a)\,(x - a)} = \frac{f'(a)}{g'(a)}$$</div>
+
+  <div class="fig">
+    <div class="scroll">
+<svg width="700" height="300" viewBox="0 0 700 300" style="min-width:700px" role="img" aria-labelledby="zoom-title zoom-desc">
+<title id="zoom-title">Two lines through the same point</title>
+<desc id="zoom-desc">Two straight lines start at the point a on the x axis. The blue line has slope 2 and the orange line has slope 1. At any distance h to the right of a, the blue height is 2 h and the orange height is h, so their ratio is always 2, the ratio of the slopes.</desc>
+<line x1="40" y1="250" x2="660" y2="250" stroke="#bfc0c0"/>
+<line x1="100" y1="250" x2="620" y2="20" stroke="#2e5aa8" stroke-width="2.4"/>
+<line x1="100" y1="250" x2="620" y2="135" stroke="#bf4520" stroke-width="2.4"/>
+<circle cx="100" cy="250" r="5" fill="#2d3142"/>
+<line x1="300" y1="250" x2="300" y2="161.5" stroke="#2e5aa8" stroke-width="6" opacity=".35"/>
+<line x1="308" y1="250" x2="308" y2="205.8" stroke="#bf4520" stroke-width="6" opacity=".35"/>
+<line x1="520" y1="250" x2="520" y2="64.2" stroke="#2e5aa8" stroke-width="6" opacity=".35"/>
+<line x1="528" y1="250" x2="528" y2="157.1" stroke="#bf4520" stroke-width="6" opacity=".35"/>
+<g font-family="'Geist Mono',monospace" font-size="11" fill="#4f5d75">
+<text x="94" y="270">a</text>
+<text x="292" y="270">a + h</text><text x="510" y="270">a + 2h</text>
+<text x="560" y="36">f ≈ f′(a)(x − a)</text><text x="560" y="128">g ≈ g′(a)(x − a)</text>
+</g>
+<text x="140" y="60" font-family="'Instrument Serif',serif" font-style="italic" font-size="20" fill="#2d3142">blue ÷ orange = f′(a) ÷ g′(a) at every x</text>
+</svg>
+    </div>
+    <p class="cap">Fig 2 · Near a, the heights scale with the distance from a, so only the slopes survive in the ratio.</p>
+  </div>
+
+  <p>The full proof uses Cauchy's mean value theorem. For $x$ near $a$ there is a point $c$ between $a$ and $x$ with</p>
+  <div class="formula">$$\frac{f(x) - f(a)}{g(x) - g(a)} = \frac{f'(c)}{g'(c)}$$</div>
+  <p>With $f(a) = g(a) = 0$ the left side is just $\frac{f(x)}{g(x)}$. As $x \to a$, the point $c$ is squeezed toward $a$ too, so the two limits agree. This version does not need $f'(a)$ or $g'(a)$ to exist, only the limit of $\frac{f'}{g'}$.</p>
+</section>
+
+<section>
+  <h2>3. Worked examples</h2>
+  <div class="tbl">
+  <table class="ops">
+    <thead><tr><th>Limit</th><th>Form</th><th>After the rule</th><th>Result</th></tr></thead>
+    <tbody>
+      <tr><td>$\displaystyle\lim_{x \to 0} \frac{\sin x}{x}$</td><td>$\frac{0}{0}$</td><td>$\displaystyle\lim_{x \to 0} \frac{\cos x}{1}$</td><td>$1$</td></tr>
+      <tr><td>$\displaystyle\lim_{x \to 0} \frac{e^x - 1}{x}$</td><td>$\frac{0}{0}$</td><td>$\displaystyle\lim_{x \to 0} \frac{e^x}{1}$</td><td>$1$</td></tr>
+      <tr><td>$\displaystyle\lim_{x \to 1} \frac{\ln x}{x - 1}$</td><td>$\frac{0}{0}$</td><td>$\displaystyle\lim_{x \to 1} \frac{1/x}{1}$</td><td>$1$</td></tr>
+      <tr><td>$\displaystyle\lim_{x \to 0} \frac{1 - \cos x}{x^2}$</td><td>$\frac{0}{0}$</td><td>$\displaystyle\lim_{x \to 0} \frac{\sin x}{2x} = \lim_{x \to 0} \frac{\cos x}{2}$</td><td>$\frac{1}{2}$</td></tr>
+      <tr><td>$\displaystyle\lim_{x \to \infty} \frac{\ln x}{x}$</td><td>$\frac{\infty}{\infty}$</td><td>$\displaystyle\lim_{x \to \infty} \frac{1/x}{1}$</td><td>$0$</td></tr>
+      <tr><td>$\displaystyle\lim_{x \to \infty} \frac{x^2}{e^x}$</td><td>$\frac{\infty}{\infty}$</td><td>$\displaystyle\lim_{x \to \infty} \frac{2x}{e^x} = \lim_{x \to \infty} \frac{2}{e^x}$</td><td>$0$</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>The fourth row needs two rounds. After one round, $\frac{\sin x}{2x}$ is still $\frac{0}{0}$, so you differentiate again. In the lab, pick $(1 - \cos x)/x^2$: both tangent lines at 0 are flat, which is the picture of "first derivatives are both zero, go one level deeper".</p>
+  <p>The last two rows give a growth ranking. Applying the rule $n$ times to $\frac{x^n}{e^x}$ leaves $\frac{n!}{e^x} \to 0$, so for large $x$:</p>
+  <div class="formula">$$\ln x \ll x^n \ll e^x$$</div>
+</section>
+
+<section>
+  <h2>4. Other indeterminate forms</h2>
+  <p>The rule only reads quotients. Five other forms are also undecided, and each can be rewritten as $\frac{0}{0}$ or $\frac{\infty}{\infty}$ first.</p>
+  <div class="cards">
+    <div class="stat"><div class="eyebrow">0 · ∞</div><div class="big">flip one</div><p>Write $f g = \frac{f}{1/g}$ or $\frac{g}{1/f}$.</p></div>
+    <div class="stat"><div class="eyebrow">∞ − ∞</div><div class="big">combine</div><p>Put both terms over a common denominator.</p></div>
+    <div class="stat focal"><div class="eyebrow">1^∞, 0^0, ∞^0</div><div class="big">take logs</div><p>Set $y = f^g$, so $\ln y = g \ln f$, a $0 \cdot \infty$ form.</p></div>
+  </div>
+
+  <p style="margin-top:24px">$0 \cdot \infty$: move $x$ to the bottom as $1/x$.</p>
+  <div class="formula">$$\lim_{x \to 0^+} x \ln x = \lim_{x \to 0^+} \frac{\ln x}{1/x} = \lim_{x \to 0^+} \frac{1/x}{-1/x^2} = \lim_{x \to 0^+} (-x) = 0$$</div>
+
+  <p>$\infty - \infty$: combine, then apply the rule twice.</p>
+  <div class="formula">$$\lim_{x \to 0} \left( \frac{1}{x} - \frac{1}{\sin x} \right) = \lim_{x \to 0} \frac{\sin x - x}{x \sin x} = \lim_{x \to 0} \frac{\cos x - 1}{\sin x + x \cos x} = \lim_{x \to 0} \frac{-\sin x}{2 \cos x - x \sin x} = 0$$</div>
+
+  <p>$1^\infty$: the classic limit that defines $e$. Take logs and substitute $t = 1/x$.</p>
+  <div class="formula">$$\ln \left(1 + \tfrac{1}{x}\right)^x = \frac{\ln(1 + t)}{t} \xrightarrow{\;t \to 0^+\;} \frac{1/(1+t)}{1} \to 1 \quad\Rightarrow\quad \lim_{x \to \infty} \left(1 + \frac{1}{x}\right)^x = e$$</div>
+  <p>Always finish by undoing the log: the limit of $\ln y$ is 1, so the limit of $y$ is $e^1$.</p>
+</section>
+
+<section>
+  <h2>5. Pitfalls</h2>
+  <ul class="tight">
+    <li><b>Check the form first.</b> $\lim_{x \to 0} \frac{x + 1}{x + 2} = \frac{1}{2}$ by plugging in. Applying the rule anyway gives $\frac{1}{1} = 1$, which is wrong.</li>
+    <li><b>Not the quotient rule.</b> Use $\frac{f'}{g'}$, never $\left(\frac{f}{g}\right)'$.</li>
+    <li><b>It only works one way.</b> If $\lim \frac{f'}{g'}$ does not exist, the original limit may still exist. For $\lim_{x \to \infty} \frac{x + \sin x}{x}$ the rule gives $1 + \cos x$, which oscillates. Dividing by $x$ instead gives $1 + \frac{\sin x}{x} \to 1$.</li>
+    <li><b>It can loop.</b> For $\lim_{x \to \infty} \frac{e^x + e^{-x}}{e^x - e^{-x}}$ each round swaps the top and the bottom. Divide by $e^x$ and the limit is $1$.</li>
+    <li><b>Circular proofs.</b> Using the rule on $\frac{\sin x}{x}$ assumes $(\sin x)' = \cos x$, and that derivative is usually proved from this same limit. It is a fine check, not a proof.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>6. Connection to Taylor series</h2>
+  <p>Taylor series explain the rule and are often faster. Expand the top and the bottom around $a$ and keep the first nonzero term of each:</p>
+  <div class="formula">$$\frac{1 - \cos x}{x^2} = \frac{\frac{x^2}{2} - \frac{x^4}{24} + \cdots}{x^2} = \frac{1}{2} - \frac{x^2}{24} + \cdots \to \frac{1}{2}$$</div>
+  <p>The number of rounds you need equals the order of the first nonzero term. The rule is named after Guillaume de l'Hôpital, who published it in 1696 in the first calculus textbook. The result itself came from his teacher, Johann Bernoulli.</p>
+</section>
+
+</main>
+
+<script>
+(function () {
+  var NSV = 'http://www.w3.org/2000/svg';
+  var W = 560, H = 400, M = 36;
+  var $ = function (s) { return document.querySelector(s); };
+
+  // Each example lists [top, bottom] pairs: the functions, then their derivatives, and so on.
+  var FNS = [
+    { name: 'sin x / x', L: 1, hmax: 2, view: [-3, 3, -2, 2],
+      steps: [[Math.sin, function (x) { return x; }], [Math.cos, function () { return 1; }]],
+      slope: [1, 1] },
+    { name: '(eˣ − 1) / x', L: 1, hmax: 1.5, view: [-2, 2, -2, 3],
+      steps: [[function (x) { return Math.exp(x) - 1; }, function (x) { return x; }], [Math.exp, function () { return 1; }]],
+      slope: [1, 1] },
+    { name: '(e²ˣ − 1) / sin x', L: 2, hmax: 1, view: [-1.5, 1.5, -2, 4],
+      steps: [[function (x) { return Math.exp(2 * x) - 1; }, Math.sin], [function (x) { return 2 * Math.exp(2 * x); }, Math.cos]],
+      slope: [2, 1] },
+    { name: '(1 − cos x) / x²', L: 0.5, hmax: 2, view: [-2.5, 2.5, -1, 4],
+      steps: [[function (x) { return 1 - Math.cos(x); }, function (x) { return x * x; }],
+              [Math.sin, function (x) { return 2 * x; }],
+              [Math.cos, function () { return 2; }]],
+      slope: [0, 0] }
+  ];
+  var cur = 0, side = 1;
+  var PRIMES = ['', '′', '″'];
+
+  function el(n, attrs, parent) {
+    var e = document.createElementNS(NSV, n);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function fmt(v) { return isFinite(v) ? (Math.abs(v) < 1e-12 ? '0' : v.toPrecision(8).replace(/(\.\d*?)0+$/, '$1').replace(/\.$/, '')) : 'undefined'; }
+  function pad(s, n) { while (s.length < n) s += ' '; return s; }
+
+  function render() {
+    var F = FNS[cur], v = F.view;
+    var h = F.hmax * Math.pow(10, -3 * (+$('#dist').value) / 100);
+    var x0 = side * h;
+    var svg = $('#plot');
+    Array.prototype.slice.call(svg.querySelectorAll('.dyn')).forEach(function (n) { n.remove(); });
+    var g = el('g', { 'class': 'dyn' }, svg);
+    var X = function (x) { return M + (x - v[0]) / (v[1] - v[0]) * (W - 2 * M); };
+    var Y = function (y) { return H - M - (y - v[2]) / (v[3] - v[2]) * (H - 2 * M); };
+    var clampY = function (y) { return Math.max(v[2], Math.min(v[3], y)); };
+
+    // grid and axes
+    for (var gx = Math.ceil(v[0]); gx <= v[1]; gx++) {
+      el('line', { x1: X(gx), x2: X(gx), y1: Y(v[2]), y2: Y(v[3]), stroke: gx === 0 ? '#2d3142' : 'rgba(45,49,66,.1)' }, g);
+      var t = el('text', { x: X(gx), y: H - M + 16, 'text-anchor': 'middle', 'font-size': 10, fill: '#5a6580', 'font-family': 'Geist Mono, monospace' }, g); t.textContent = gx;
+    }
+    for (var gy = Math.ceil(v[2]); gy <= v[3]; gy++) {
+      el('line', { x1: X(v[0]), x2: X(v[1]), y1: Y(gy), y2: Y(gy), stroke: gy === 0 ? '#2d3142' : 'rgba(45,49,66,.1)' }, g);
+      var t2 = el('text', { x: M - 6, y: Y(gy) + 3, 'text-anchor': 'end', 'font-size': 10, fill: '#5a6580', 'font-family': 'Geist Mono, monospace' }, g); t2.textContent = gy;
+    }
+
+    // tangent lines at 0
+    var colors = ['#2e5aa8', '#bf4520'];
+    [0, 1].forEach(function (k) {
+      var s = F.slope[k];
+      el('line', { x1: X(v[0]), y1: Y(s * v[0]), x2: X(v[1]), y2: Y(s * v[1]), stroke: colors[k], 'stroke-width': 1.2, 'stroke-dasharray': '5 4', opacity: 0.7 }, g);
+    });
+
+    // curves, broken where they leave the view
+    [0, 1].forEach(function (k) {
+      var fn = F.steps[0][k], d = '', pen = false, n = 500;
+      for (var i = 0; i <= n; i++) {
+        var x = v[0] + (v[1] - v[0]) * i / n, y = fn(x);
+        if (!isFinite(y) || y < v[2] - 0.5 || y > v[3] + 0.5) { pen = false; continue; }
+        d += (pen ? ' L' : ' M') + X(x).toFixed(1) + ' ' + Y(y).toFixed(1);
+        pen = true;
+      }
+      el('path', { d: d.trim(), fill: 'none', stroke: colors[k], 'stroke-width': 2.4 }, g);
+    });
+
+    // height bars at the current x
+    var fx = F.steps[0][0](x0), gxv = F.steps[0][1](x0);
+    el('line', { x1: X(x0) - 4, x2: X(x0) - 4, y1: Y(0), y2: Y(clampY(fx)), stroke: '#2e5aa8', 'stroke-width': 6, opacity: 0.4 }, g);
+    el('line', { x1: X(x0) + 4, x2: X(x0) + 4, y1: Y(0), y2: Y(clampY(gxv)), stroke: '#bf4520', 'stroke-width': 6, opacity: 0.4 }, g);
+    el('circle', { cx: X(x0), cy: Y(clampY(fx)), r: 5, fill: '#2e5aa8' }, g);
+    el('circle', { cx: X(x0), cy: Y(clampY(gxv)), r: 5, fill: '#bf4520' }, g);
+    el('circle', { cx: X(0), cy: Y(0), r: 5, fill: '#fff', stroke: '#2d3142', 'stroke-width': 2 }, g);
+
+    // readout
+    var lines = [
+      'x          = ' + fmt(x0),
+      'f(x)       = ' + fmt(fx),
+      'g(x)       = ' + fmt(gxv),
+      ''
+    ];
+    for (var s = 0; s < F.steps.length; s++) {
+      var p = PRIMES[s];
+      var r = F.steps[s][0](x0) / F.steps[s][1](x0);
+      lines.push(pad('f' + p + '/g' + p + '(x)', 11) + '= ' + fmt(r));
+    }
+    lines.push('');
+    if (F.steps.length > 2) {
+      lines.push('At 0: f′(0) = g′(0) = 0, still 0/0.');
+      lines.push('Apply the rule again: f″(0)/g″(0) = 1/2.');
+    } else {
+      lines.push('Slopes at 0: f′(0) = ' + F.slope[0] + ', g′(0) = ' + F.slope[1]);
+    }
+    lines.push('Limit L = ' + F.L);
+
+    $('#outDist').textContent = h < 0.01 ? h.toExponential(1) : h.toFixed(3);
+    $('#live').textContent = 'f/g = ' + fmt(fx / gxv);
+    $('#fnTitle').textContent = F.name + ',  x → 0';
+    $('#readout').textContent = lines.join('\n');
+  }
+
+  function bindGroup(attr, apply) {
+    var btns = document.querySelectorAll('[data-' + attr + ']');
+    Array.prototype.forEach.call(btns, function (b) {
+      b.addEventListener('click', function () {
+        apply(+b.getAttribute('data-' + attr));
+        Array.prototype.forEach.call(btns, function (o) { o.setAttribute('aria-pressed', o === b ? 'true' : 'false'); });
+        render();
+      });
+    });
+  }
+  bindGroup('fn', function (n) { cur = n; });
+  bindGroup('side', function (n) { side = n; });
+  $('#dist').addEventListener('input', render);
+  render();
+})();
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  renderMathInElement(document.body, {
+    delimiters: [
+      { left: '$$', right: '$$', display: true },
+      { left: '$', right: '$', display: false }
+    ],
+    ignoredTags: ['script', 'style', 'textarea', 'pre', 'code'],
+    throwOnError: false
+  });
+});
+</script>
+</body>
+</html>
