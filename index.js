@@ -1147,6 +1147,17 @@ const DOCS = [
     summary: 'CPUs buffer stores and let later loads run first. Drive the store buffering test on two cores, get r0 = r1 = 0, then add a fence and see that outcome disappear. Covers acquire and release too.',
     related: ['False Sharing', 'Aeron Transport'],
   },
+  {
+    title: 'Expectation, Variance and Covariance',
+    path: 'content/quant/expectation-variance/expectation-variance.html',
+    category: 'Quant',
+    topic: 'Probability and statistics',
+    order: 2,
+    level: 'Beginner',
+    tags: ['expectation', 'variance', 'covariance', 'correlation', 'diversification', 'portfolio risk', 'probability', 'statistics'],
+    summary: 'The three numbers behind every risk model. Draw returns for two assets, change their correlation, and watch how covariance decides the risk of a mix.',
+    related: ['Gaussian Distribution', 'Law of Large Numbers and the CLT', 'Mean-Variance Portfolios'],
+  },
 ];
 
 // ---------- helpers ----------
