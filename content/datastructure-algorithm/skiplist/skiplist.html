@@ -42,8 +42,7 @@ p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4
 .live{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--ink)}
 .stage{padding:0 8px}
 .stage svg{display:block;width:100%;height:auto;max-height:640px}
-#rack [data-k]{cursor:pointer}
-#rack [data-k]:hover polygon{filter:brightness(.97)}
+#rack [data-key]:hover rect{filter:brightness(.96)}
 .legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
 .legend span{display:inline-flex;align-items:center;gap:8px}
 .sw{width:14px;height:14px;border-radius:2px;border:1px solid var(--ink);display:inline-block}
@@ -129,11 +128,11 @@ table.ops td:first-child{white-space:nowrap}
 
   <div class="lab">
     <figure class="card">
-      <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">The express-lane rack</span></div>
+      <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">The skip list</span></div>
       <div class="stage">
         <svg id="rack" viewBox="0 0 560 520" role="img" aria-labelledby="rack-title rack-desc">
-          <title id="rack-title">Skip list as towers joined by rails</title>
-          <desc id="rack-desc">Each key is a tower. Rail level l connects the towers tall enough to reach level l. A search probe starts on the top rail of the head and drops a level whenever the next key is too large.</desc>
+          <title id="rack-title">Skip list as towers joined by arrows</title>
+          <desc id="rack-desc">Each key is a tower. Lane l links the towers tall enough to reach lane l. A search starts on the top lane of the head and drops a lane whenever the next key is too large.</desc>
           <g id="scene"></g>
         </svg>
       </div>
@@ -170,8 +169,8 @@ table.ops td:first-child{white-space:nowrap}
         <div id="readout" aria-live="polite"></div>
       </div>
       <div class="legend" aria-label="Legend">
-        <span><i class="sw" style="background:#f09a78;border-color:#7a2a10"></i>probe / path</span>
-        <span><i class="sw" style="background:#8db3ec;border-color:#1f3f7a"></i>next key compared</span>
+        <span><i class="sw" style="background:#f4b79d;border-color:#bf4520"></i>probe / path</span>
+        <span><i class="sw" style="background:#bcd2ef;border-color:#2e5aa8"></i>next key compared</span>
         <span><i class="sw" style="background:#fbe6dd;border-color:#7a2a10"></i>new node</span>
       </div>
     </div>
@@ -347,7 +346,7 @@ x = x.next[0]
   <h2>3. Insert: find the predecessors, flip coins, splice</h2>
   <p>Insert is a search that remembers where it dropped down. On each lane, the last node before the new key is its <b>predecessor</b>. Then flip a coin until you get tails. The number of heads plus one is the new tower height. On every lane up to that height, splice the new node in right after its predecessor.</p>
   <p>Delete works in reverse. Find the same predecessors, and on each lane where they point at the victim, make them point past it. Then shrink the top lane if it became empty.</p>
-  <p>Switch Fig 1 to <b>Insert</b>, pick a key and a height, and the highlighted rails are exactly the links that change.</p>
+  <p>Switch Fig 1 to <b>Insert</b>, pick a key and a height, and the highlighted arrows are exactly the links that change.</p>
 </section>
 
 <section>
@@ -451,53 +450,30 @@ x = x.next[0]
 <script>
 (() => {
   // ---------- constants ----------
-  const L = 4, SLOTS = 12, P = 44, LS = 24, PH = 16;
+  const L = 4, SLOTS = 12;
   const BASE_NODES = [[3, 2], [6, 1], [7, 3], [9, 1], [12, 2], [17, 1], [19, 4], [21, 1], [25, 2]];
-  const C30 = Math.sqrt(3) / 2;
-  const TH = 20 * Math.PI / 180, cT = Math.cos(TH), sT = Math.sin(TH), EL = 0.58;   // camera: low azimuth so the row reads left to right
-  const pj = (x, y, z) => [x * cT - y * sT, (x * sT + y * cT) * EL - z];
-  const f1 = n => n.toFixed(1);
-  const poly = (pts, fill, stroke, sw, dash) =>
-    `<polygon points="${pts.map(p => f1(p[0]) + ',' + f1(p[1])).join(' ')}" fill="${fill}" stroke="${stroke}" stroke-width="${sw || .7}" stroke-linejoin="round"${dash ? ' stroke-dasharray="2 2"' : ''}/>`;
-  function box(x, y, z, w, d, h, c, sw) {
-    const top = [pj(x, y, z + h), pj(x + w, y, z + h), pj(x + w, y + d, z + h), pj(x, y + d, z + h)];
-    const right = [pj(x + w, y, z), pj(x + w, y + d, z), pj(x + w, y + d, z + h), pj(x + w, y, z + h)];
-    const left = [pj(x, y + d, z), pj(x + w, y + d, z), pj(x + w, y + d, z + h), pj(x, y + d, z + h)];
-    return poly(left, c.left, c.stroke, sw) + poly(right, c.right, c.stroke, sw) + poly(top, c.top, c.stroke, sw);
-  }
-  const flat = (str, x, y, z, size, fill, weight, mono) =>
-    `<text transform="matrix(${cT.toFixed(4)},${(sT * EL).toFixed(4)},${(-sT).toFixed(4)},${(cT * EL).toFixed(4)},0,${f1(-z)})" x="${x}" y="${y}" font-size="${size}" font-weight="${weight || 600}" fill="${fill}" text-anchor="middle" font-family="${mono ? "'Geist Mono',ui-monospace,monospace" : "'Geist',system-ui,sans-serif"}">${str}</text>`;
-  // text on the +y (front-left) face; local y is -z
-  const faceText = (str, x, y0, z, size, fill) =>
-    `<text transform="matrix(${cT.toFixed(4)},${(sT * EL).toFixed(4)},0,1,${f1(-y0 * sT)},${f1(y0 * cT * EL)})" x="${x}" y="${f1(-z)}" font-size="${size}" font-weight="600" fill="${fill}" text-anchor="middle" font-family="'Geist Mono',ui-monospace,monospace">${str}</text>`;
-  const dot = (x, y, z, r) => { const p = pj(x, y, z); return `<circle cx="${f1(p[0])}" cy="${f1(p[1])}" r="${r}" fill="#2d3142" opacity=".55"/>`; };
-  const seg = (a, b, w, o) => `<line x1="${f1(a[0])}" y1="${f1(a[1])}" x2="${f1(b[0])}" y2="${f1(b[1])}" stroke="#4f5d75" stroke-width="${w}" opacity="${o}"/>`;
 
-  const BASEC = { top: '#dfe3ea', right: '#c6cbd6', left: '#b2b9c7', stroke: '#4f5d75' };
-  const FOOT = { top: '#9aa3b5', right: '#7d8699', left: '#6b7488', stroke: '#2d3142' };
-  const RAIL = { top: '#c4cad6', right: '#a7afc0', left: '#98a1b5', stroke: '#4f5d75' };
+  // ---------- flat 2D layout ----------
+  const GX = 64, CW = 66, CELLW = 56, CELLH = 34, LH = 54, TOP = 14;
+  const W = GX + SLOTS * CW, H = TOP + (L - 1) * LH + CELLH + 16;
+  const xOf = m => GX + m * CW;
+  const yOf = l => TOP + (L - 1 - l) * LH;
   const PAL = {
-    def: { top: '#ffffff', right: '#e3e6ec', left: '#cdd2dc', stroke: '#4f5d75', text: '#2d3142' },
-    dim: { top: '#f0f1f4', right: '#e6e8ed', left: '#dcdfe6', stroke: '#aab0bd', text: '#8a92a3' },
-    A: { top: '#8db3ec', right: '#4f7fc4', left: '#3f6bb0', stroke: '#1f3f7a', text: '#0f2347' },
-    B: { top: '#f09a78', right: '#cf6a45', left: '#b95533', stroke: '#7a2a10', text: '#3d1405' },
-    G: { top: '#fbe6dd', right: '#e9b7a3', left: '#d99d84', stroke: '#7a2a10', text: '#bf4520' }
+    def: { f: '#ffffff', s: '#2d3142', t: '#2d3142', w: 1.2 },
+    end: { f: 'rgba(45,49,66,.05)', s: 'rgba(45,49,66,.4)', t: '#2d3142', w: 1.2 },
+    A: { f: '#bcd2ef', s: '#2e5aa8', t: '#0f2347', w: 2 },
+    B: { f: '#f4b79d', s: '#bf4520', t: '#3d1405', w: 2.2 },
+    G: { f: '#fbe6dd', s: '#bf4520', t: '#bf4520', w: 1.6 }
   };
 
   // ---------- state ----------
   const $ = id => document.getElementById(id);
   const scene = $('scene'), rack = $('rack');
-  const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  rack.setAttribute('viewBox', `0 0 ${W} ${H}`);
   let nodes = BASE_NODES.map(([key, h]) => ({ key, h }));
   const st = { mode: 'search', target: 17, s: 0, insKey: 15, insH: 2 };
   let E = [], ghostIdx = -1, steps = [], playTimer = 0;
-  let probe = { x: 0, z: 0, tx: 0, tz: 0, init: false };
 
-  // ---------- layout helpers ----------
-  const colW = m => (E[m].kind === 'head' ? 22 : 12);
-  const colX0 = m => m * P + (E[m].kind === 'head' ? 5 : 10);
-  const colL = colX0, colR = m => colX0(m) + colW(m);
-  const zc = l => PH + l * LS + 12;
   const name = j => E[j].kind === 'head' ? 'HEAD' : E[j].kind === 'tail' ? 'NIL' : String(E[j].key);
   const nextAt = (i, l) => { for (let j = i + 1; j < E.length; j++) if (E[j].h > l) return j; return E.length - 1; };
   const predAt = (i, l) => { for (let j = i - 1; j >= 0; j--) if (E[j].h > l) return j; return 0; };
@@ -528,103 +504,70 @@ x = x.next[0]
     }
   }
 
-  // ---------- fit ----------
-  let mnX = 1e9, mxX = -1e9, mnY = 1e9, mxY = -1e9;
-  [[-24, -20], [SLOTS * P + 8, -20], [-24, 58], [SLOTS * P + 8, 58]].forEach(([x, y]) => [-18, PH + L * LS + 16].forEach(z => {
-    const p = pj(x, y, z);
-    mnX = Math.min(mnX, p[0]); mxX = Math.max(mxX, p[0]); mnY = Math.min(mnY, p[1]); mxY = Math.max(mxY, p[1]);
-  }));
-  const PAD = 14;
-  scene.setAttribute('transform', `translate(${f1(-mnX + PAD)},${f1(-mnY + PAD)})`);
-  rack.setAttribute('viewBox', `0 0 ${Math.ceil(mxX - mnX + 2 * PAD)} ${Math.ceil(mxY - mnY + 2 * PAD)}`);
-
   // ---------- render ----------
-  function render() {
-    const hr = new Set(), ho = new Set(), hv = new Set(), sr = {};
-    const markRail = (l, i, j) => { for (let m = i; m < j; m++) hr.add(l + ':' + m); for (let m = i + 1; m < j; m++) ho.add(l + ':' + m); };
-    let foundIdx = -1;
+  const txt = (s, x, y, size, fill, weight, mono, anchor) =>
+    `<text x="${x}" y="${y}" text-anchor="${anchor || 'middle'}" font-size="${size}" font-weight="${weight}" fill="${fill}" font-family="${mono ? "'Geist Mono',ui-monospace,monospace" : "'Geist',system-ui,sans-serif"}">${s}</text>`;
 
+  function render() {
+    const he = new Set(), hv = new Set(), sr = {};
     if (st.mode === 'search') {
       for (let q = 0; q < st.s; q++) {
         const a = steps[q];
-        if (a.kind === 'right') markRail(a.l, a.cur, a.peek);
+        if (a.kind === 'right') he.add(a.l + ':' + a.cur + ':' + a.peek);
         else if (a.kind === 'down') hv.add(a.cur + ':' + a.l);
       }
       const q = steps[st.s];
       if (q.peek < E.length - 1) sr[q.peek + ':' + q.l] = 'A';
-      if (q.kind === 'found') { sr[q.peek + ':0'] = 'B'; foundIdx = q.peek; }
+      sr[q.cur + ':' + q.l] = 'B';
+      if (q.kind === 'found') sr[q.peek + ':0'] = 'B';
     } else if (ghostIdx > 0) {
       for (let l = 0; l < st.insH; l++) {
         const p = predAt(ghostIdx, l), n = nextAt(ghostIdx, l);
-        markRail(l, p, ghostIdx); markRail(l, ghostIdx, n);
+        he.add(l + ':' + p + ':' + ghostIdx); he.add(l + ':' + ghostIdx + ':' + n);
         sr[p + ':' + l] = 'A';
       }
     }
 
-    // probe tween target
-    if (st.mode === 'search') {
-      const q = steps[st.s];
-      probe.tx = colR(q.cur) + 6; probe.tz = zc(q.l) + 2;
-      if (!probe.init || reduce) { probe.x = probe.tx; probe.z = probe.tz; probe.init = true; }
-    }
-
-    let out = '';
-    [[-18, -14], [SLOTS * P - 8, -14], [-18, 46], [SLOTS * P - 8, 46]].forEach(f => { out += box(f[0], f[1], -18, 12, 12, 8, FOOT, .7); });
-    out += box(-24, -20, -10, SLOTS * P + 32, 78, 10, BASEC, .8);
-    for (let s = 0; s < SLOTS; s++) {
-      const x = s * P, t = [pj(x - 2, -2, 0), pj(x + 34, -2, 0), pj(x + 34, 34, 0), pj(x - 2, 34, 0)];
-      out += poly(t, '#d3d8e1', '#8a92a3', .6, true);
-      out += seg(pj(x + 16, 40, 0), pj(x + 16, 46, 0), .6, .7);
-    }
-    out += seg(pj(0, 40, 0), pj((SLOTS - 1) * P + 32, 40, 0), .6, .7);
-    [[-18, -14], [SLOTS * P + 2, -14], [-18, 52], [SLOTS * P + 2, 52]].forEach(c => { out += dot(c[0], c[1], 0, 1.5); });
-
     const last = E.length - 1;
-    const probeSlot = Math.max(0, Math.min(last, Math.floor(probe.x / P)));
+    let out = `<defs>` +
+      `<marker id="skA" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#4f5d75" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></marker>` +
+      `<marker id="skB" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#bf4520" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>`;
+
+    for (let l = 0; l < L; l++) {
+      out += txt('lane ' + l, 8, yOf(l) + CELLH / 2 + 4, 12, '#2d3142', 600, false, 'start');
+      for (let m = 0; m < last; m++) {
+        if (E[m].h <= l) continue;
+        const j = nextAt(m, l), on = he.has(l + ':' + m + ':' + j), y = yOf(l) + CELLH / 2;
+        out += `<line x1="${xOf(m) + CELLW}" y1="${y}" x2="${xOf(j) - 1}" y2="${y}" stroke="${on ? '#bf4520' : '#4f5d75'}" stroke-width="${on ? 2.4 : 1.2}" marker-end="url(#${on ? 'skB' : 'skA'})"/>`;
+      }
+    }
     for (let m = 0; m <= last; m++) {
-      const e = E[m], x = m * P, cw = colW(m), x0 = colX0(m);
-      const tone = e.kind === 'tail' ? PAL.dim : e.kind === 'ghost' ? PAL.G : (m === foundIdx ? PAL.B : PAL.def);
-      const colT = e.kind === 'tail' ? PAL.dim : e.kind === 'ghost' ? PAL.G : m === foundIdx ? PAL.B : PAL.def;
-      const label = e.kind === 'head' ? 'HEAD' : e.kind === 'tail' ? 'NIL' : e.key;
-      const attrs = e.kind === 'node' ? ` data-key="${e.key}"` : '';
+      const e = E[m], cxm = xOf(m) + CELLW / 2;
+      for (let l = 0; l < e.h - 1; l++) {
+        const on = hv.has(m + ':' + (l + 1));
+        out += `<line x1="${cxm}" y1="${yOf(l + 1) + CELLH}" x2="${cxm}" y2="${yOf(l) - 1}" stroke="${on ? '#bf4520' : 'rgba(45,49,66,.3)'}" stroke-width="${on ? 2.4 : 1.2}"${on ? ' marker-end="url(#skB)"' : ''}/>`;
+      }
+    }
+    for (let m = 0; m <= last; m++) {
+      const e = E[m], attrs = e.kind === 'node' ? ` data-key="${e.key}" style="cursor:pointer"` : '';
       out += `<g${attrs}>`;
-      out += box(x, 0, 0, 32, 32, PH, tone, .8);
-      out += faceText(label, x + 16, 32, 4, e.kind === 'node' || e.kind === 'ghost' ? 13 : 9, tone.text || '#2d3142');
-      out += box(x0, 6, PH, cw, 12, e.h * LS, colT, .8);
-      for (let l = 0; l < L; l++) if (hv.has(m + ':' + (l + 1))) out += box(x0 - 1.5, 4.5, zc(l) + 5, cw + 3, 15, zc(l + 1) - zc(l) - 6 + 6, PAL.B, .6);
+      if (e.kind === 'node') out += `<title>click to search for ${e.key}</title>`;
       for (let l = 0; l < e.h; l++) {
-        const role = sr[m + ':' + l], c = role ? PAL[role] : (e.kind === 'ghost' ? PAL.G : e.kind === 'tail' ? PAL.dim : PAL.def);
-        const sw = cw + 8, up = role ? 4 : 0, zb = zc(l) - 6;
-        out += box(x0 - 4, 3, zb, sw, 18, 12 + up, c, .7);
-        if (e.kind === 'head') out += faceText('L' + l, x0 - 4 + sw / 2, 21, zb + 3 + up, 9, '#2d3142');
-        else if (e.kind !== 'tail') out += faceText(e.key, x0 - 4 + sw / 2, 21, zb + 3 + up, 9, c.text || '#2d3142');
+        const role = sr[m + ':' + l];
+        const c = PAL[role || (e.kind === 'ghost' ? 'G' : (e.kind === 'head' || e.kind === 'tail') ? 'end' : 'def')];
+        const label = e.kind === 'head' ? 'HEAD' : e.kind === 'tail' ? 'NIL' : e.key;
+        const big = e.kind === 'node' || e.kind === 'ghost';
+        out += `<rect x="${xOf(m)}" y="${yOf(l)}" width="${CELLW}" height="${CELLH}" rx="7" fill="${c.f}" stroke="${c.s}" stroke-width="${c.w}"/>` +
+          txt(label, xOf(m) + CELLW / 2, yOf(l) + CELLH / 2 + (big ? 6 : 4), big ? 17 : 12, c.t, 600, !big);
       }
       out += '</g>';
-      if (m < last) for (let l = 0; l < L; l++) {
-        const zr = zc(l) - 2;
-        if (e.h <= l) out += box(colL(m), 10, zr, colR(m) - colL(m), 4, 4, ho.has(l + ':' + m) ? PAL.B : RAIL, .6);
-        out += box(colR(m), 10, zr, colL(m + 1) - colR(m), 4, 4, hr.has(l + ':' + m) ? PAL.B : RAIL, .6);
-      }
-      if (st.mode === 'search' && m === probeSlot) out += box(probe.x, 7, probe.z, 10, 10, 10, PAL.B, .8);
     }
     scene.innerHTML = out;
   }
 
-  // ---------- tween ----------
-  let raf = 0, last = 0;
-  function tick(t) {
-    const dt = Math.min(.05, (t - last) / 1000 || .016); last = t;
-    const f = 1 - Math.exp(-dt * 10);
-    probe.x += (probe.tx - probe.x) * f; probe.z += (probe.tz - probe.z) * f;
-    const moving = Math.abs(probe.tx - probe.x) > .2 || Math.abs(probe.tz - probe.z) > .2;
-    if (!moving) { probe.x = probe.tx; probe.z = probe.tz; }
-    render();
-    raf = moving ? requestAnimationFrame(tick) : 0;
-  }
-
   // ---------- readout ----------
   function searchWords() {
-    const q = steps[st.s], t = st.target, nk = E[q.peek].key, nn = name(q.peek);
+    const q = steps[st.s], t = st.target, nn = name(q.peek);
     let s = `<b>search(${t})</b>   <span class="na">step ${st.s + 1} of ${steps.length}</span>\n` +
       `probe at <b>${name(q.cur)}</b>, lane ${q.l}\n` +
       `next on lane ${q.l}: <span class="c-a">${nn === 'NIL' ? 'NIL (end)' : nn}</span>\n`;
@@ -637,7 +580,7 @@ x = x.next[0]
   function insertWords() {
     if (!Number.isInteger(st.insKey) || st.insKey < 0 || st.insKey > 99) return 'Enter a key between 0 and 99.';
     if (nodes.some(n => n.key === st.insKey)) return `<b>${st.insKey}</b> is already in the list.\nChoose another key.`;
-    if (!ghostValid()) return 'The rack is full. Reset the list.';
+    if (!ghostValid()) return 'The list is full. Reset the list.';
     const flips = (Array(st.insH - 1).fill('H').join(' ') + (st.insH < L ? ' T' : '')).trim();
     let s = `<b>insert(${st.insKey})</b>   coin flips: ${flips}\nheight = ${st.insH}\n`;
     for (let l = st.insH - 1; l >= 0; l--) {
@@ -672,9 +615,7 @@ x = x.next[0]
       $('live').textContent = `${nodes.length} keys`;
       $('bInsert').disabled = !ghostValid();
     }
-    if (reduce || st.mode !== 'search') { render(); }
-    else if (!raf) { last = performance.now(); raf = requestAnimationFrame(tick); }
-    else render();
+    render();
   }
   function stopPlay() { clearInterval(playTimer); playTimer = 0; $('bPlay').textContent = 'Play'; }
 

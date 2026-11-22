@@ -42,8 +42,8 @@ p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4
 .live{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--ink)}
 .stage{padding:0 8px}
 .stage svg{display:block;width:100%;height:auto;max-height:640px}
-#rack [data-k]{cursor:pointer}
-#rack [data-k]:hover polygon{filter:brightness(.97)}
+#rack [data-k],#rack [data-d]{cursor:pointer}
+#rack [data-k]:hover rect,#rack [data-d]:hover rect{filter:brightness(.96)}
 .legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
 .legend span{display:inline-flex;align-items:center;gap:8px}
 .sw{width:14px;height:14px;border-radius:2px;border:1px solid var(--ink);display:inline-block}
@@ -130,29 +130,29 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
 
 <section>
   <h2>Try the machine first</h2>
-  <p>The rack below is a segment tree of sums for <code>a = [2, 5, 1, 4, 9, 3, 7, 6]</code>. The root shelf is on top, the array sits on the bottom shelf. Pick a mode in the panel, then set the inputs and watch the blocks lift.</p>
+  <p>The tree below is a segment tree of sums for <code>a = [2, 5, 1, 4, 9, 3, 7, 6]</code>. The root is on top and the array is on the bottom row. Pick a mode in the panel, then set the inputs and watch the nodes light up.</p>
 
   <div class="howto">
     <h3>How to use this simulator</h3>
     <ol>
       <li>Stay in <b>Query</b> mode. Choose a range: drag <b>L</b> and <b>R</b>, click two numbers in the array strip, or press a preset.</li>
-      <li>Read the <b>Result</b> box. The lifted orange blocks are the few nodes that add up to the answer.</li>
-      <li>Switch to <b>Update</b> mode, choose an index <b>i</b> and a new value <b>v</b>. The lifted path from the leaf to the root is what gets recomputed.</li>
-      <li>You can also click any block on the rack. A leaf picks an index, and a higher block queries its whole segment.</li>
+      <li>Read the <b>Result</b> box. The orange nodes are the few nodes that add up to the answer.</li>
+      <li>Switch to <b>Update</b> mode, choose an index <b>i</b> and a new value <b>v</b>. The highlighted path from the leaf to the root is what gets recomputed.</li>
+      <li>You can also click any node in the tree. A leaf picks an index, and a higher node queries its whole segment.</li>
     </ol>
   </div>
 
   <div class="lab">
     <figure class="card">
-      <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">The segment tree rack</span></div>
+      <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">The segment tree</span></div>
       <div class="stage">
         <svg id="rack" viewBox="0 0 560 560" role="img" aria-labelledby="rack-title rack-desc">
-          <title id="rack-title">Segment tree as a four-shelf rack</title>
-          <desc id="rack-desc">Shelf d holds the nodes at depth d. The root on the top shelf covers the whole array and the bottom shelf holds single elements. A query lifts the nodes whose segments add up to the range, and an update lifts the path from one leaf to the root.</desc>
+          <title id="rack-title">Segment tree with four levels</title>
+          <desc id="rack-desc">Row d holds the nodes at depth d. The root covers the whole array and the bottom row holds single elements. A query highlights the nodes whose segments add up to the range, and an update highlights the path from one leaf to the root.</desc>
           <g id="scene"></g>
         </svg>
       </div>
-      <div class="card-bottom"><span class="hint">Click any block on the rack, or use the panel</span><span class="live" id="live"></span></div>
+      <div class="card-bottom"><span class="hint">Click any node, or use the panel</span><span class="live" id="live"></span></div>
     </figure>
 
     <div>
@@ -195,8 +195,8 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
         <div id="readout" aria-live="polite"></div>
       </div>
       <div class="legend" aria-label="Legend">
-        <span><i class="sw" style="background:#f09a78;border-color:#7a2a10"></i>taken / changed leaf</span>
-        <span><i class="sw" style="background:#8db3ec;border-color:#1f3f7a"></i>split / recomputed</span>
+        <span><i class="sw" style="background:#f4b79d;border-color:#bf4520"></i>taken / changed leaf</span>
+        <span><i class="sw" style="background:#bcd2ef;border-color:#2e5aa8"></i>split / recomputed</span>
       </div>
     </div>
   </div>
@@ -459,56 +459,24 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
   let T = buildTree(A);
   const span = (d, j) => { const len = N >> d, s = j * len; return [s, s + len - 1]; };
 
-  // ---------- world ----------
-  const PHI = 22 * Math.PI / 180, VC = Math.cos(PHI), VS = Math.sin(PHI);
-  const EX = [VC, VS * 0.5], EY = [-VS, VC * 0.5];
-  const P = 44, CW = 40, CH = 12, GAP = 76, ST = 8;
-  const SX0 = -36, SX1 = N * P + 4, SY0 = -8, SY1 = 62;
-  const pj = (x, y, z) => [x * EX[0] + y * EY[0], x * EX[1] + y * EY[1] - z];
-  const f1 = n => n.toFixed(1);
-  const poly = (pts, fill, stroke, sw) =>
-    `<polygon points="${pts.map(p => f1(p[0]) + ',' + f1(p[1])).join(' ')}" fill="${fill}" stroke="${stroke}" stroke-width="${sw || .7}" stroke-linejoin="round"/>`;
-  function box(x, y, z, w, d, h, c, sw) {
-    const top = [pj(x, y, z + h), pj(x + w, y, z + h), pj(x + w, y + d, z + h), pj(x, y + d, z + h)];
-    const right = [pj(x + w, y, z), pj(x + w, y + d, z), pj(x + w, y + d, z + h), pj(x + w, y, z + h)];
-    const left = [pj(x, y + d, z), pj(x + w, y + d, z), pj(x + w, y + d, z + h), pj(x, y + d, z + h)];
-    return poly(left, c.left, c.stroke, sw) + poly(right, c.right, c.stroke, sw) + poly(top, c.top, c.stroke, sw);
-  }
-  function flatText(str, x, y, z, size, fill, anchor, weight, mono) {
-    return `<text transform="matrix(${EX[0].toFixed(4)},${EX[1].toFixed(4)},${EY[0].toFixed(4)},${EY[1].toFixed(4)},0,${f1(-z)})" x="${x}" y="${y}" font-size="${size}" font-weight="${weight || 600}" fill="${fill}" text-anchor="${anchor || 'middle'}" font-family="${mono ? "'Geist Mono',ui-monospace,monospace" : "'Geist',system-ui,sans-serif"}">${str}</text>`;
-  }
-  const dot = (x, y, z, r) => { const p = pj(x, y, z); return `<circle cx="${f1(p[0])}" cy="${f1(p[1])}" r="${r}" fill="#2d3142" opacity=".55"/>`; };
-  const seg = (a, b, w, o) => `<line x1="${f1(a[0])}" y1="${f1(a[1])}" x2="${f1(b[0])}" y2="${f1(b[1])}" stroke="#4f5d75" stroke-width="${w}" opacity="${o}"/>`;
-
-  const SLAB = { top: '#eceef2', right: '#d3d7df', left: '#bdc3cf', stroke: '#4f5d75' };
-  const BASE = { top: '#dfe3ea', right: '#c6cbd6', left: '#b2b9c7', stroke: '#4f5d75' };
-  const POST = { top: '#e4e7ed', right: '#c9ced9', left: '#b4bbc9', stroke: '#4f5d75' };
-  const FOOT = { top: '#9aa3b5', right: '#7d8699', left: '#6b7488', stroke: '#2d3142' };
+  // ---------- flat 2D layout ----------
+  const GX = 92, SLOT = 80, NW = 72, NH = 58, RY = 96, TOP = 16;
+  const W = GX + N * SLOT + 8;
+  const H = TOP + (D - 1) * RY + NH + 62;
+  const cx = (s, e) => GX + SLOT * (s + e + 1) / 2;
+  const rowY = d => TOP + d * RY;
   const PAL = {
-    def: { top: '#ffffff', right: '#e3e6ec', left: '#cdd2dc', stroke: '#4f5d75', text: '#2d3142' },
-    sA: { top: '#dbe8fa', right: '#bcd2ef', left: '#a9c3e8', stroke: '#2e5aa8', text: '#1f3f7a' },
-    A: { top: '#8db3ec', right: '#4f7fc4', left: '#3f6bb0', stroke: '#1f3f7a', text: '#0f2347' },
-    B: { top: '#f09a78', right: '#cf6a45', left: '#b95533', stroke: '#7a2a10', text: '#3d1405' }
+    def: { f: '#ffffff', s: '#4f5d75', t: '#2d3142', w: 1.2 },
+    sA: { f: '#dbe8fa', s: '#2e5aa8', t: '#1f3f7a', w: 1.8 },
+    A: { f: '#bcd2ef', s: '#2e5aa8', t: '#0f2347', w: 2 },
+    B: { f: '#f4b79d', s: '#bf4520', t: '#3d1405', w: 2.2 }
   };
-  const LIFT = { A: 8, B: 8 };
 
   // ---------- state ----------
   const st = { mode: 'query', L: 1, R: 6, i: 2 };
-  const lifts = {};
-  const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
   const $ = id => document.getElementById(id);
-  const scene = $('scene'), rack = $('rack');
-
-  // ---------- fit the viewBox to the scene ----------
-  const topZ = (D - 1) * GAP + ST + 26;
-  let mnX = 1e9, mxX = -1e9, mnY = 1e9, mxY = -1e9;
-  [[-66, -34], [386, -34], [-66, 92], [386, 92]].forEach(([x, y]) => [-18, topZ].forEach(z => {
-    const p = pj(x, y, z);
-    mnX = Math.min(mnX, p[0]); mxX = Math.max(mxX, p[0]); mnY = Math.min(mnY, p[1]); mxY = Math.max(mxY, p[1]);
-  }));
-  const PAD = 16;
-  scene.setAttribute('transform', `translate(${f1(-mnX + PAD)},${f1(-mnY + PAD)})`);
-  rack.setAttribute('viewBox', `0 0 ${Math.ceil(mxX - mnX + 2 * PAD)} ${Math.ceil(mxY - mnY + 2 * PAD)}`);
+  const rack = $('rack'), scene = $('scene');
+  rack.setAttribute('viewBox', `0 0 ${W} ${H}`);
 
   // ---------- roles ----------
   function computeRoles() {
@@ -535,68 +503,46 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
   }
 
   // ---------- drawing ----------
-  function drawLevel(d, info) {
-    const lvl = D - 1 - d, z0 = lvl * GAP, zt = z0 + ST, len = N >> d;
-    let s = box(SX0, SY0, z0, SX1 - SX0, SY1 - SY0, ST, SLAB, .8);
-    [[SX0 + 5, SY0 + 5], [SX1 - 5, SY0 + 5], [SX0 + 5, SY1 - 5], [SX1 - 5, SY1 - 5]].forEach(c => { s += dot(c[0], c[1], zt, 1.3); });
-    s += flatText('d' + d, SX0 + 4, 22, zt, 11, '#2d3142', 'start', 600, true);
-    s += flatText('×' + (1 << d), SX0 + 4, 36, zt, 9, '#5a6580', 'start', 400, true);
-    for (let j = 0; j < (1 << d); j++) {
-      const key = d + ',' + j, role = info.r[key] || 'def', c = PAL[role];
-      const [a, b] = span(d, j), x = a * P + 2, w = len * P - 6;
-      const h = CH + (lifts[key] || 0);
-      const ttl = `node ${(1 << d) + j}: sum of a[${a}..${b}] = ${T[d][j]}`;
-      s += `<g data-d="${d}" data-j="${j}"><title>${ttl}</title>` +
-        box(x, 0, zt, w, CW, h, c, .8) +
-        flatText(T[d][j], x + w / 2, 23, zt + h, 19, c.text, 'middle', 600, false) +
-        flatText(len === 1 ? 'i=' + a : a + '..' + b, x + w / 2, 35, zt + h, 8, c.text, 'middle', 500, true) + '</g>';
-    }
-    return s;
-  }
-
-  function drawBaseDetails() {
-    let s = '';
-    for (let i = 0; i <= N * 4; i++) {
-      const x = i * 11;
-      s += seg(pj(x, 70, 0), pj(x, 70 + (i % 4 === 0 ? 9 : 4), 0), .6, .6);
-    }
-    s += seg(pj(0, 70, 0), pj(N * 44, 70, 0), .6, .6);
-    s += flatText('0', 0, 92, 0, 7, '#5a6580', 'middle', 500, true);
-    s += flatText(String(N), N * 44, 92, 0, 7, '#5a6580', 'middle', 500, true);
-    [[-56, -26], [376, -26], [-56, 86], [376, 86]].forEach(c => { s += dot(c[0], c[1], 0, 1.5); });
-    return s;
-  }
+  const txt = (s, x, y, size, fill, weight, mono, anchor) =>
+    `<text x="${x}" y="${y}" text-anchor="${anchor || 'middle'}" font-size="${size}" font-weight="${weight}" fill="${fill}" font-family="${mono ? "'Geist Mono',ui-monospace,monospace" : "'Geist',system-ui,sans-serif"}">${s}</text>`;
 
   function render() {
     const info = computeRoles();
-    const postH = (D - 1) * GAP + ST + 14;
     let out = '';
-    [[-60, -34], [372, -34], [-60, 82], [372, 82]].forEach(f => { out += box(f[0], f[1], -18, 12, 12, 6, FOOT, .7); });
-    out += box(-66, -34, -12, 452, 126, 12, BASE, .8);
-    out += drawBaseDetails();
-    out += box(-42, SY0, 0, 6, 6, postH, POST, .7) + box(-42, SY1 - 6, 0, 6, 6, postH, POST, .7);
-    for (let d = D - 1; d >= 0; d--) out += drawLevel(d, info);   // bottom shelf first
-    out += box(SX1, SY0, 0, 6, 6, postH, POST, .7) + box(SX1, SY1 - 6, 0, 6, 6, postH, POST, .7);
-    scene.innerHTML = out;
-  }
-
-  // ---------- animation ----------
-  let raf = 0, last = 0, curTg = {};
-  function targets(info) {
-    const tg = {};
-    for (let d = 0; d < D; d++) for (let j = 0; j < (1 << d); j++) tg[d + ',' + j] = LIFT[info.r[d + ',' + j]] || 0;
-    return tg;
-  }
-  function step(t) {
-    const dt = Math.min(.05, (t - last) / 1000 || .016); last = t;
-    const f = 1 - Math.exp(-dt * 12);
-    let moving = false;
-    for (const key in curTg) {
-      const cur = lifts[key] || 0, tg = curTg[key], nv = cur + (tg - cur) * f;
-      if (Math.abs(tg - nv) < .05) lifts[key] = tg; else { lifts[key] = nv; moving = true; }
+    // edges
+    for (let d = 0; d < D - 1; d++) for (let j = 0; j < (1 << d); j++) for (const c of [2 * j, 2 * j + 1]) {
+      const [s, e] = span(d, j), [s2, e2] = span(d + 1, c);
+      const on = info.r[d + ',' + j] && info.r[(d + 1) + ',' + c];
+      const x1 = cx(s, e), y1 = rowY(d) + NH, x2 = cx(s2, e2), y2 = rowY(d + 1), m = (y1 + y2) / 2;
+      out += `<path d="M${x1},${y1} V${m} H${x2} V${y2}" fill="none" stroke="${on ? '#4f5d75' : 'rgba(79,93,117,.25)'}" stroke-width="${on ? 1.8 : 1}"/>`;
     }
-    render();
-    raf = moving ? requestAnimationFrame(step) : 0;
+    // nodes
+    for (let d = 0; d < D; d++) {
+      out += txt('depth ' + d, 8, rowY(d) + 22, 14, '#2d3142', 600, false, 'start') +
+             txt((1 << d) + (d ? ' nodes' : ' node'), 8, rowY(d) + 38, 11.5, '#5a6580', 400, true, 'start');
+      for (let j = 0; j < (1 << d); j++) {
+        const key = d + ',' + j, role = info.r[key], c = PAL[role || 'def'];
+        const [a, b] = span(d, j), x = cx(a, b) - NW / 2, y = rowY(d);
+        const changed = st.mode === 'update' && role && T0[d][j] !== T[d][j];
+        const sub = changed ? `${T0[d][j]} → ${T[d][j]}` : (a === b ? `a[${a}]` : `[${a}..${b}]`);
+        out += `<g data-d="${d}" data-j="${j}" style="cursor:pointer" opacity="${role ? 1 : .55}"><title>node ${(1 << d) + j}: sum of a[${a}..${b}] = ${T[d][j]}</title>` +
+          `<rect x="${x}" y="${y}" width="${NW}" height="${NH}" rx="7" fill="${c.f}" stroke="${c.s}" stroke-width="${c.w}"/>` +
+          txt(T[d][j], cx(a, b), y + 28, 26, c.t, 600, false) +
+          txt(sub, cx(a, b), y + 46, 12.5, c.t, 500, true) + '</g>';
+      }
+    }
+    // leaf indexes + query bracket
+    const ly = rowY(D - 1) + NH;
+    for (let j = 0; j < N; j++) {
+      const hot = st.mode === 'update' && j === st.i;
+      out += txt('i = ' + j, cx(j, j), ly + 20, 13, hot ? '#bf4520' : '#5a6580', hot ? 700 : 400, true);
+    }
+    if (st.mode === 'query') {
+      const x1 = cx(st.L, st.L) - NW / 2, x2 = cx(st.R, st.R) + NW / 2, y = ly + 32;
+      out += `<path d="M${x1},${y - 6} V${y} H${x2} V${y - 6}" fill="none" stroke="#bf4520" stroke-width="2"/>` +
+        txt(`query [${st.L}..${st.R}]`, (x1 + x2) / 2, y + 18, 14, '#bf4520', 600, true);
+    }
+    scene.innerHTML = out;
   }
 
   // ---------- readout + controls ----------
@@ -662,11 +608,7 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
     $('live').textContent = st.mode === 'query'
       ? `sum(a[${st.L}..${st.R}]) = ${info.sum}`
       : `a[${st.i}] = ${A[st.i]} · total = ${T[0][0]}`;
-    curTg = targets(info);
-    if (reduce) {
-      for (const key in curTg) lifts[key] = curTg[key];
-      render();
-    } else if (!raf) { last = performance.now(); raf = requestAnimationFrame(step); }
+    render();
   }
 
   $('modeQ').onclick = () => { st.mode = 'query'; update(); };
@@ -701,7 +643,6 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
 
   update();
 })();
-
 </script>
 </body>
 </html>

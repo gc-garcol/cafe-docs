@@ -42,8 +42,8 @@ p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4
 .live{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--ink)}
 .stage{padding:0 8px}
 .stage svg{display:block;width:100%;height:auto;max-height:640px}
-#rack [data-k]{cursor:pointer}
-#rack [data-k]:hover polygon{filter:brightness(.97)}
+#rack [data-k],#rack [data-d]{cursor:pointer}
+#rack [data-k]:hover rect,#rack [data-d]:hover rect{filter:brightness(.96)}
 .legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
 .legend span{display:inline-flex;align-items:center;gap:8px}
 .sw{width:14px;height:14px;border-radius:2px;border:1px solid var(--ink);display:inline-block}
@@ -130,7 +130,7 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
 
 <section>
   <h2>Try the machine first</h2>
-  <p>The rack below is a real sparse table for <code>a = [5, 2, 4, 7, 1, 3, 6, 8]</code>. Each shelf is one level <code>k</code>. A cell on shelf <code>k</code> holds the minimum of <code>2<sup>k</sup></code> array elements. Pick a mode in the panel, then set the inputs and watch the cells lift.</p>
+  <p>The table below is a real sparse table for <code>a = [5, 2, 4, 7, 1, 3, 6, 8]</code>. Each row is one level <code>k</code>. A cell on row <code>k</code> holds the minimum of <code>2<sup>k</sup></code> array elements. Pick a mode in the panel, then set the inputs and watch the cells light up. The bars under the table show which array elements each cell covers.</p>
 
   <div class="howto">
     <h3>How to use this simulator</h3>
@@ -138,21 +138,21 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
       <li>Stay in <b>Query</b> mode. Choose a range: drag <b>L</b> and <b>R</b>, click two numbers in the array strip, or press a preset.</li>
       <li>Read the <b>Result</b> box. It shows the two table cells that answer the query and the final minimum.</li>
       <li>Switch to <b>Build</b> mode to see how one table cell is made from two cells on the level below.</li>
-      <li>You can also click any block on the rack. Level 0 blocks set the range, higher blocks open Build mode.</li>
+      <li>You can also click any cell in the table. Level 0 cells set the range, higher cells open Build mode.</li>
     </ol>
   </div>
 
   <div class="lab">
     <figure class="card">
-      <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">The sparse table rack</span></div>
+      <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">The sparse table</span></div>
       <div class="stage">
         <svg id="rack" viewBox="0 0 560 560" role="img" aria-labelledby="rack-title rack-desc">
-          <title id="rack-title">Sparse table as a four-shelf rack</title>
-          <desc id="rack-desc">Shelf k holds minimums of blocks of length 2 to the k. A query lifts two cells on one shelf whose blocks cover the range and may overlap.</desc>
+          <title id="rack-title">Sparse table with four levels</title>
+          <desc id="rack-desc">Row k holds minimums of blocks of length 2 to the k. A query highlights two cells on one shelf whose blocks cover the range and may overlap.</desc>
           <g id="scene"></g>
         </svg>
       </div>
-      <div class="card-bottom"><span class="hint">Click any block on the rack, or use the panel</span><span class="live" id="live">min = 1</span></div>
+      <div class="card-bottom"><span class="hint">Click any cell, or use the panel</span><span class="live" id="live">min = 1</span></div>
     </figure>
 
     <div>
@@ -440,64 +440,32 @@ answer = min( <span class="t">t[k][l]</span>, <span class="t">t[k][r - 2<sup>k</
     T.push(row);
   }
 
-  // ---------- world ----------
-  // view rotation: smaller PHI turns the rack to face the viewer more
-  const PHI = 22 * Math.PI / 180, VC = Math.cos(PHI), VS = Math.sin(PHI);
-  const EX = [VC, VS * 0.5], EY = [-VS, VC * 0.5];
-  const P = 44, CW = 40, CH = 12, GAP = 76, ST = 8;
-  const SX0 = -36, SX1 = N * P + 4, SY0 = -8, SY1 = 62;
-  const pj = (x, y, z) => [x * EX[0] + y * EY[0], x * EX[1] + y * EY[1] - z];
-  const f1 = n => n.toFixed(1);
-  const poly = (pts, fill, stroke, sw) =>
-    `<polygon points="${pts.map(p => f1(p[0]) + ',' + f1(p[1])).join(' ')}" fill="${fill}" stroke="${stroke}" stroke-width="${sw || .7}" stroke-linejoin="round"/>`;
-  function box(x, y, z, w, d, h, c, sw) {
-    const top = [pj(x, y, z + h), pj(x + w, y, z + h), pj(x + w, y + d, z + h), pj(x, y + d, z + h)];
-    const right = [pj(x + w, y, z), pj(x + w, y + d, z), pj(x + w, y + d, z + h), pj(x + w, y, z + h)];
-    const left = [pj(x, y + d, z), pj(x + w, y + d, z), pj(x + w, y + d, z + h), pj(x, y + d, z + h)];
-    return poly(left, c.left, c.stroke, sw) + poly(right, c.right, c.stroke, sw) + poly(top, c.top, c.stroke, sw);
-  }
-  function flatText(str, x, y, z, size, fill, anchor, weight, mono) {
-    return `<text transform="matrix(${EX[0].toFixed(4)},${EX[1].toFixed(4)},${EY[0].toFixed(4)},${EY[1].toFixed(4)},0,${f1(-z)})" x="${x}" y="${y}" font-size="${size}" font-weight="${weight || 600}" fill="${fill}" text-anchor="${anchor || 'middle'}" font-family="${mono ? "'Geist Mono',ui-monospace,monospace" : "'Geist',system-ui,sans-serif"}">${str}</text>`;
-  }
-  const dot = (x, y, z, r) => { const p = pj(x, y, z); return `<circle cx="${f1(p[0])}" cy="${f1(p[1])}" r="${r}" fill="#2d3142" opacity=".55"/>`; };
-  const seg = (a, b, w, o) => `<line x1="${f1(a[0])}" y1="${f1(a[1])}" x2="${f1(b[0])}" y2="${f1(b[1])}" stroke="#4f5d75" stroke-width="${w}" opacity="${o}"/>`;
-
-  const SLAB = { top: '#eceef2', right: '#d3d7df', left: '#bdc3cf', stroke: '#4f5d75' };
-  const BASE = { top: '#dfe3ea', right: '#c6cbd6', left: '#b2b9c7', stroke: '#4f5d75' };
-  const POST = { top: '#e4e7ed', right: '#c9ced9', left: '#b4bbc9', stroke: '#4f5d75' };
-  const FOOT = { top: '#9aa3b5', right: '#7d8699', left: '#6b7488', stroke: '#2d3142' };
+  // ---------- flat 2D layout ----------
+  const GX = 100, CWD = 76, CHT = 56, RY = 70, TOP = 16, BH = 22, BG = 26;
+  const W = GX + N * CWD + 16;
+  const rowY = k => TOP + (K - 1 - k) * RY;
+  const IDXY = rowY(0) + CHT + 16;
+  const BAR0 = IDXY + 18;
+  const H = BAR0 + 2 * BG + 6;
+  const cellX = i => GX + i * CWD;
   const PAL = {
-    def: { top: '#ffffff', right: '#e3e6ec', left: '#cdd2dc', stroke: '#4f5d75', text: '#2d3142' },
-    dim: { top: '#f0f1f4', right: '#e6e8ed', left: '#dcdfe6', stroke: '#aab0bd', text: '#8a92a3' },
-    sA: { top: '#dbe8fa', right: '#bcd2ef', left: '#a9c3e8', stroke: '#2e5aa8', text: '#1f3f7a' },
-    sB: { top: '#f8ddd2', right: '#efbfae', left: '#e6a98f', stroke: '#bf4520', text: '#8f2f12' },
-    sAB: { top: '#8e97ad', right: '#737c93', left: '#626a82', stroke: '#2d3142', text: '#ffffff' },
-    A: { top: '#8db3ec', right: '#4f7fc4', left: '#3f6bb0', stroke: '#1f3f7a', text: '#0f2347' },
-    B: { top: '#f09a78', right: '#cf6a45', left: '#b95533', stroke: '#7a2a10', text: '#3d1405' },
-    AB: { top: '#2d3142', right: '#1f2230', left: '#171a26', stroke: '#111111', text: '#f5f5f5' }
+    def: { f: '#ffffff', s: '#4f5d75', t: '#2d3142', w: 1.2 },
+    dim: { f: '#f0f1f4', s: '#c3c8d2', t: '#8a92a3', w: 1 },
+    sA: { f: '#dbe8fa', s: '#2e5aa8', t: '#1f3f7a', w: 1.4 },
+    sB: { f: '#f8ddd2', s: '#bf4520', t: '#8f2f12', w: 1.4 },
+    sAB: { f: '#8e97ad', s: '#2d3142', t: '#ffffff', w: 1.4 },
+    A: { f: '#8db3ec', s: '#1f3f7a', t: '#0f2347', w: 2 },
+    B: { f: '#f09a78', s: '#7a2a10', t: '#3d1405', w: 2 },
+    AB: { f: '#2d3142', s: '#111111', t: '#f5f5f5', w: 2 }
   };
-  const LIFT = { A: 8, B: 8, AB: 8 };
 
   // ---------- state ----------
   const st = { mode: 'query', L: 1, R: 6, sel: { k: 2, i: 1 } };
-  const lifts = {}, app = [];
-  const appT = [];
-  for (let k = 0; k < K; k++) { app[k] = 1; appT[k] = 1; }
+  let shown = K;                       // levels revealed (used by the build replay)
   const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
-
   const $ = id => document.getElementById(id);
   const scene = $('scene'), rack = $('rack');
-
-  // ---------- fit the viewBox to the scene ----------
-  const topZ = (K - 1) * GAP + ST + 26;
-  let mnX = 1e9, mxX = -1e9, mnY = 1e9, mxY = -1e9;
-  [[-66, -34], [386, -34], [-66, 92], [386, 92]].forEach(([x, y]) => [-18, topZ].forEach(z => {
-    const p = pj(x, y, z);
-    mnX = Math.min(mnX, p[0]); mxX = Math.max(mxX, p[0]); mnY = Math.min(mnY, p[1]); mxY = Math.max(mxY, p[1]);
-  }));
-  const PAD = 16;
-  scene.setAttribute('transform', `translate(${f1(-mnX + PAD)},${f1(-mnY + PAD)})`);
-  rack.setAttribute('viewBox', `0 0 ${Math.ceil(mxX - mnX + 2 * PAD)} ${Math.ceil(mxY - mnY + 2 * PAD)}`);
+  rack.setAttribute('viewBox', `0 0 ${W} ${H}`);
 
   // ---------- roles ----------
   function computeRoles() {
@@ -514,104 +482,68 @@ answer = min( <span class="t">t[k][l]</span>, <span class="t">t[k][r - 2<sup>k</
       return { r, k, a, b, len };
     }
     const { k, i } = st.sel;
-    if (k >= 2) for (let j = i; j < i + (1 << k); j++) r['0,' + j] = 'sA';
+    if (k >= 1) for (let j = i; j < i + (1 << k); j++) r['0,' + j] = 'sA';
     if (k >= 1) { const h = 1 << (k - 1); r[(k - 1) + ',' + i] = 'A'; r[(k - 1) + ',' + (i + h)] = 'A'; }
     r[k + ',' + i] = 'B';
     return { r, k, i };
   }
 
   // ---------- drawing ----------
-  function drawLevel(k, info) {
-    const z0 = k * GAP, zt = z0 + ST;
-    let s = box(SX0, SY0, z0, SX1 - SX0, SY1 - SY0, ST, SLAB, .8);
-    [[SX0 + 5, SY0 + 5], [SX1 - 5, SY0 + 5], [SX0 + 5, SY1 - 5], [SX1 - 5, SY1 - 5]].forEach(c => { s += dot(c[0], c[1], zt, 1.3); });
-    s += flatText('k=' + k, SX0 + 4, 22, zt, 10, '#2d3142', 'start', 600, true);
-    s += flatText('len ' + (1 << k), SX0 + 4, 36, zt, 9, '#5a6580', 'start', 400, true);
-    const count = N - (1 << k) + 1;
-    for (let i = 0; i < N; i++) {
-      const x = i * P;
-      if (i >= count) {
-        const t = [pj(x, 0, zt), pj(x + CW, 0, zt), pj(x + CW, CW, zt), pj(x, CW, zt)];
-        s += `<polygon points="${t.map(p => f1(p[0]) + ',' + f1(p[1])).join(' ')}" fill="#e2e5ea" stroke="#9aa3b5" stroke-width=".7" stroke-dasharray="2 2"/>`;
-        continue;
-      }
-      s += flatText(k === 0 ? 'i=' + i : i + '-' + (i + (1 << k) - 1), x + CW / 2, 54, zt, 9, '#5a6580', 'middle', 400, true);
-    }
-    if (k > 0 && app[k] < 0.03) return s;
-    for (let i = 0; i < count; i++) {
-      const x = i * P, key = k + ',' + i;
-      const role = info.r[key] || 'def', c = PAL[role];
-      const h = CH * (k === 0 ? 1 : app[k]) + (lifts[key] || 0);
-      const op = k === 0 ? 1 : Math.min(1, app[k] * 1.5);
-      const ttl = `t[${k}][${i}] = ${T[k][i]}  (min of a[${i}..${i + (1 << k) - 1}])`;
-      s += `<g data-k="${k}" data-i="${i}" opacity="${op.toFixed(2)}"><title>${ttl}</title>` +
-        box(x, 0, zt, CW, CW, h, c, .8) +
-        flatText(T[k][i], x + CW / 2, 27, zt + h, 19, c.text, 'middle', 600, false) + '</g>';
-    }
-    return s;
-  }
+  const txt = (s, x, y, size, fill, weight, mono, anchor) =>
+    `<text x="${x}" y="${y}" text-anchor="${anchor || 'middle'}" font-size="${size}" font-weight="${weight}" fill="${fill}" font-family="${mono ? "'Geist Mono',ui-monospace,monospace" : "'Geist',system-ui,sans-serif"}">${s}</text>`;
 
-  function drawPedestal(info) {
-    const zt = (K - 1) * GAP + ST, x = 2 * P;
-    const val = st.mode === 'query' ? Math.min(T[info.k][info.a], T[info.k][info.b]) : T[st.sel.k][st.sel.i];
-    const c = { top: '#fbe6dd', right: '#e9b7a3', left: '#d99d84', stroke: '#7a2a10' };
-    return box(x, 0, zt, 2 * P - 4, CW, 16, c, .8) +
-      flatText(val, x + P - 2, 29, zt + 16, 24, '#bf4520', 'middle', 600, false) +
-      flatText(st.mode === 'query' ? 'ANSWER' : 'SELECTED', x + P - 2, 54, zt, 9, '#bf4520', 'middle', 600, true);
-  }
-
-  function drawBaseDetails() {
-    let s = '';
-    for (let i = 0; i <= N * 4; i++) {
-      const x = i * 11;
-      s += seg(pj(x, 70, 0), pj(x, 70 + (i % 4 === 0 ? 9 : 4), 0), .6, .6);
+  function bars(info) {
+    if (st.mode === 'query') {
+      const { k, a, b } = info, e = 1 << k, out = [];
+      out.push({ r: 0, from: a, to: a + e - 1, role: a === b ? 'AB' : 'A', label: `${a === b ? 'A = B' : 'A'} · t[${k}][${a}] = ${T[k][a]}` });
+      if (a !== b) out.push({ r: 1, from: b, to: b + e - 1, role: 'B', label: `B · t[${k}][${b}] = ${T[k][b]}` });
+      return out;
     }
-    s += seg(pj(0, 70, 0), pj(N * 44, 70, 0), .6, .6);
-    s += flatText('0', 0, 92, 0, 7, '#5a6580', 'middle', 500, true);
-    s += flatText(String(N), N * 44, 92, 0, 7, '#5a6580', 'middle', 500, true);
-    [[-56, -26], [376, -26], [-56, 86], [376, 86]].forEach(c => { s += dot(c[0], c[1], 0, 1.5); });
-    return s;
+    const { k, i } = st.sel, e = 1 << k, out = [{ r: 0, from: i, to: i + e - 1, role: 'B', label: `t[${k}][${i}] = ${T[k][i]}` }];
+    if (k >= 1) {
+      const h = e >> 1;
+      out.push({ r: 1, from: i, to: i + h - 1, role: 'A', label: `t[${k - 1}][${i}] = ${T[k - 1][i]}` });
+      out.push({ r: 1, from: i + h, to: i + e - 1, role: 'A', label: `t[${k - 1}][${i + h}] = ${T[k - 1][i + h]}` });
+    }
+    return out;
   }
 
   function render() {
     const info = computeRoles();
-    const postH = (K - 1) * GAP + ST + 14;
     let out = '';
-    [[-60, -34], [372, -34], [-60, 82], [372, 82]].forEach(f => { out += box(f[0], f[1], -18, 12, 12, 6, FOOT, .7); });
-    out += box(-66, -34, -12, 452, 126, 12, BASE, .8);
-    out += drawBaseDetails();
-    out += box(-42, SY0, 0, 6, 6, postH, POST, .7) + box(-42, SY1 - 6, 0, 6, 6, postH, POST, .7);
-    for (let k = 0; k < K; k++) {
-      out += drawLevel(k, info);
-      if (k === K - 1) out += drawPedestal(info);
+    // build mode: arrows from the two children up to the parent
+    if (st.mode === 'build' && st.sel.k >= 1 && st.sel.k < shown) {
+      const { k, i } = st.sel, h = 1 << (k - 1), px = cellX(i) + (CWD - 4) / 2;
+      [i, i + h].forEach(c => {
+        out += `<path d="M${cellX(c) + (CWD - 4) / 2},${rowY(k - 1)} L${px},${rowY(k) + CHT}" stroke="#4f5d75" stroke-width="1.6" fill="none"/>`;
+      });
     }
-    out += box(SX1, SY0, 0, 6, 6, postH, POST, .7) + box(SX1, SY1 - 6, 0, 6, 6, postH, POST, .7);
+    for (let k = K - 1; k >= 0; k--) {
+      const y = rowY(k), count = N - (1 << k) + 1;
+      out += txt('k = ' + k, 8, y + 22, 15, '#2d3142', 600, false, 'start') +
+             txt('len ' + (1 << k), 8, y + 39, 11.5, '#5a6580', 400, true, 'start');
+      for (let i = 0; i < N; i++) {
+        const x = cellX(i);
+        if (i >= count || k >= shown) {
+          out += `<rect x="${x}" y="${y}" width="${CWD - 4}" height="${CHT}" rx="7" fill="rgba(45,49,66,.02)" stroke="rgba(45,49,66,.2)" stroke-dasharray="4 3"/>`;
+          continue;
+        }
+        const key = k + ',' + i, role = info.r[key] || 'def', c = PAL[role];
+        const sub = k === 0 ? 'a[' + i + ']' : `a[${i}..${i + (1 << k) - 1}]`;
+        out += `<g data-k="${k}" data-i="${i}" style="cursor:pointer"><title>t[${k}][${i}] = ${T[k][i]}  (min of a[${i}..${i + (1 << k) - 1}])</title>` +
+          `<rect x="${x}" y="${y}" width="${CWD - 4}" height="${CHT}" rx="7" fill="${c.f}" stroke="${c.s}" stroke-width="${c.w}"/>` +
+          txt(T[k][i], x + (CWD - 4) / 2, y + 27, 26, c.t, 600, false) +
+          txt(sub, x + (CWD - 4) / 2, y + 44, 12, c.t, 500, true) + '</g>';
+      }
+    }
+    for (let i = 0; i < N; i++) out += txt('i = ' + i, cellX(i) + (CWD - 4) / 2, IDXY, 13, '#5a6580', 400, true);
+    out += txt('covers', 8, BAR0 + 16, 11.5, '#5a6580', 400, true, 'start');
+    bars(info).forEach(b => {
+      const x = cellX(b.from) + 1, w = (b.to - b.from + 1) * CWD - 6, y = BAR0 + b.r * BG, c = PAL[b.role];
+      out += `<rect x="${x}" y="${y}" width="${w}" height="${BH}" rx="5" fill="${c.f}" stroke="${c.s}" stroke-width="1.4"/>` +
+        txt(b.label, x + w / 2, y + 15, 12, c.t, 600, true);
+    });
     scene.innerHTML = out;
-    return info;
-  }
-
-  // ---------- animation ----------
-  let raf = 0, last = 0;
-  function targets(info) {
-    const tg = {};
-    for (let k = 0; k < K; k++) for (let i = 0; i < N - (1 << k) + 1; i++) tg[k + ',' + i] = LIFT[info.r[k + ',' + i]] || 0;
-    return tg;
-  }
-  let curTg = {};
-  function step(t) {
-    const dt = Math.min(.05, (t - last) / 1000 || .016); last = t;
-    const f = 1 - Math.exp(-dt * 12);
-    let moving = false;
-    for (const key in curTg) {
-      const cur = lifts[key] || 0, tg = curTg[key], nv = cur + (tg - cur) * f;
-      if (Math.abs(tg - nv) < .05) lifts[key] = tg; else { lifts[key] = nv; moving = true; }
-    }
-    for (let k = 0; k < K; k++) {
-      const nv = app[k] + (appT[k] - app[k]) * f;
-      if (Math.abs(appT[k] - nv) < .01) app[k] = appT[k]; else { app[k] = nv; moving = true; }
-    }
-    render();
-    raf = moving ? requestAnimationFrame(step) : 0;
   }
 
   // ---------- readout + controls ----------
@@ -650,7 +582,7 @@ answer = min( <span class="t">t[k][l]</span>, <span class="t">t[k][r - 2<sup>k</
         `<b>You get:</b> the answer from only two table cells, A (blue) and B (orange).` +
         `<span class="rule">Rule: 0 ≤ L ≤ R ≤ ${N - 1}, both ends included. If the ends cross, the other end follows.</span>`
       : `<b>Goal:</b> see how one table cell is built.<br>` +
-        `<b>Do:</b> pick a level k and a start i, or click any block above level 0 on the rack.<br>` +
+        `<b>Do:</b> pick a level k and a start i, or click any cell above level 0 in the table.<br>` +
         `<b>You get:</b> the two cells one level down that are combined with <code>min</code>.` +
         `<span class="rule">Rule: k from 1 to ${K - 1}. For this k, i goes from 0 to ${imax}.</span>`;
 
@@ -676,12 +608,7 @@ answer = min( <span class="t">t[k][l]</span>, <span class="t">t[k][r - 2<sup>k</
     $('live').textContent = st.mode === 'query'
       ? `min(a[${st.L}..${st.R}]) = ${Math.min(T[info.k][info.a], T[info.k][info.b])}`
       : `t[${st.sel.k}][${st.sel.i}] = ${T[st.sel.k][st.sel.i]}`;
-    curTg = targets(info);
-    if (reduce) {
-      for (const key in curTg) lifts[key] = curTg[key];
-      for (let k = 0; k < K; k++) app[k] = appT[k];
-      render();
-    } else if (!raf) { last = performance.now(); raf = requestAnimationFrame(step); }
+    render();
   }
 
   $('modeQ').onclick = () => { st.mode = 'query'; update(); };
@@ -694,9 +621,9 @@ answer = min( <span class="t">t[k][l]</span>, <span class="t">t[k][r - 2<sup>k</
   $('replay').onclick = () => {
     if (reduce) return;
     timers.forEach(clearTimeout); timers = [];
-    for (let k = 1; k < K; k++) { app[k] = 0; appT[k] = 0; }
-    update();
-    for (let k = 1; k < K; k++) timers.push(setTimeout(() => { appT[k] = 1; update(); }, 450 * k));
+    st.mode = 'build';
+    shown = 1; update();
+    for (let k = 1; k < K; k++) timers.push(setTimeout(() => { shown = k + 1; update(); }, 600 * k));
   };
   $('arr').addEventListener('click', e => {
     const b = e.target.closest('button[data-i]'); if (!b) return;
