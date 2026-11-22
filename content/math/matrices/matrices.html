@@ -29,6 +29,7 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);f
 .back:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
 h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+h3{font-family:var(--serif);font-weight:400;font-size:24px;line-height:1.2;margin:32px 0 10px}
 .lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
 section{margin-top:64px}
 section p{max-width:68ch;margin:0 0 14px}
@@ -42,13 +43,11 @@ a{color:var(--link)}
 .card-title{font-family:var(--serif);font-size:20px}
 .hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
 .live{font-family:var(--mono);font-size:12px;font-weight:600}
-.scroll{overflow-x:auto;padding:0 8px;text-align:center}
-.scroll svg{display:inline-block;width:100%;max-width:720px;height:auto}
-.planes{display:grid;grid-template-columns:1fr 1fr}
-.planes svg{display:block;width:100%;height:auto}
-.planes svg+svg{border-left:1px solid var(--rule)}
-.single{max-width:420px;margin:0 auto}
-.single svg{display:block;width:100%;height:auto}
+.planes{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--rule)}
+.planes figure{margin:0}
+.planes figure+figure{border-left:1px solid var(--rule)}
+.planes svg{display:block;width:100%;max-width:420px;margin:0 auto;height:auto}
+.planes figcaption{font-family:var(--mono);font-size:11px;color:var(--soft);text-align:center;padding:4px 0 8px}
 
 .controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;margin-top:16px;align-items:start}
 .panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
@@ -57,18 +56,18 @@ a{color:var(--link)}
 .row output{font-family:var(--mono);font-size:12px;text-align:right}
 input[type=range]{width:100%;accent-color:var(--accent);min-height:28px}
 .group-label{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);margin:16px 0 6px}
+.group-label:first-child{margin-top:0}
 .seg{display:flex;flex-wrap:wrap;border:1px solid var(--rule-solid);border-radius:6px;overflow:hidden}
-.seg button{flex:1;min-height:40px;border:0;background:transparent;font:500 13px var(--sans);color:var(--muted);cursor:pointer;padding:0 10px}
-.seg button+button{border-left:1px solid var(--rule-solid)}
+.seg button{flex:1 1 30%;min-height:40px;border:0;background:transparent;font:500 13px var(--sans);color:var(--muted);cursor:pointer;padding:0 10px;box-shadow:inset 1px 0 0 var(--rule-solid),inset 0 1px 0 var(--rule-solid)}
 .seg button:hover{background:var(--paper-2)}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
 button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
 .btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
 .btn:hover{background:var(--ink);color:var(--paper)}
-.big-answer{font-family:var(--serif);font-size:44px;line-height:1.1;margin:4px 0 8px;color:var(--accent)}
-.readout{margin:0;padding:0;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink);border:0;background:none}
-.calc{overflow-x:auto;margin-top:8px}
+select{min-height:36px;border:1px solid var(--rule-solid);border-radius:6px;background:#fff;font:500 13px var(--sans);color:var(--ink);padding:0 8px}
+.presets{display:grid;grid-template-columns:auto 1fr;gap:8px 10px;align-items:center;font-family:var(--mono);font-size:13px;font-weight:600}
+.readout{margin:0;padding:0;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink);border:0;background:none;overflow-x:auto}
 .legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
 .legend span{display:inline-flex;align-items:center;gap:8px}
 .sw{width:14px;height:14px;border-radius:3px;border:1px solid var(--ink);display:inline-block}
@@ -87,12 +86,13 @@ pre.code{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;pa
 .formula .katex{font-size:1.25em}
 .katex{color:var(--ink)}
 p .katex,td .katex,li .katex{font-size:1.05em}
-
 .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
 .stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
 .stat .big{font-family:var(--serif);font-size:30px;line-height:1.1;margin:6px 0}
 .stat p{font-size:14px;color:var(--muted);margin:0}
 .stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+.steps{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;max-width:760px}
+.steps ol{margin:0;padding-left:20px}.steps li{margin:8px 0}
 table.ops{border-collapse:collapse;width:100%;max-width:760px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
 table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
 table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
@@ -100,11 +100,8 @@ table.ops tr:last-child td{border-bottom:0}
 ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
 
 @media (max-width:860px){.controls{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
-@media (max-width:520px){.planes{grid-template-columns:1fr}.planes svg+svg{border-left:0;border-top:1px solid var(--rule)}}
+@media (max-width:520px){.planes{grid-template-columns:1fr}.planes figure+figure{border-left:0;border-top:1px solid var(--rule)}}
 @media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
-
-
-
 .doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}.doc-tags a{font:500 12px "Geist Mono",ui-monospace,monospace;padding:4px 10px;border:1px solid var(--rule-solid,#bfc0c0);border-radius:4px;background:#fff;color:var(--muted,#4f5d75);text-decoration:none}.doc-tags a:hover{border-color:var(--ink,#2d3142);color:var(--ink,#2d3142)}.doc-tags a:focus-visible{outline:2px solid var(--accent,#bf4520);outline-offset:2px}
 </style>
 </head>
@@ -117,27 +114,34 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
 <header>
   <div class="eyebrow">Mathematics · Linear algebra</div>
   <h1>Matrices</h1>
-  <p class="lede">A rectangular grid of numbers with rules for adding and multiplying it. Matrices store data, solve systems of equations, and describe how space is stretched, turned and flipped.</p>
-  
-  
-  
+  <p class="lede">A rectangular grid of numbers with rules for adding and multiplying it. Matrices store data, solve systems of equations, and describe how space is stretched, turned and flipped. Once you see a matrix as a machine that moves vectors, its strange multiplication rule becomes the obvious one.</p>
   <nav class="doc-tags" aria-label="Main tags"><a href="../../../index.html#tag=matrix">#matrix</a><a href="../../../index.html#tag=matrices">#matrices</a><a href="../../../index.html#tag=linear%20algebra">#linear algebra</a><a href="../../../index.html#tag=matrix%20multiplication">#matrix multiplication</a></nav>
 </header>
 
 <section>
   <h2>Try it first</h2>
-  <p>Edit the entries of $A$ and $B$, pick an operation, and read the result. For products, the readout shows each entry as a row of one matrix times a column of the other. Compare $AB$ with $BA$: they are usually different.</p>
+  <p>Edit $A$ and $B$ or load a preset, then pick an operation. The left plane shows the letter F, the unit square and the basis arrows before anything happens. The right plane shows them after the result matrix acts. For $AB$ the dashed ghost is the halfway point: $B$ acts first, then $A$. Load "Rotate 90°" into $A$ and "Shear" into $B$, then flip between $AB$ and $BA$ to see why order matters.</p>
 
   <figure class="card">
     <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title" id="optitle">A B</span></div>
     <div style="padding:8px 16px 16px">
       <div class="mxrow">
-        <span class="lab">A</span><div class="mx" style="grid-template-columns:repeat(2,64px)"><input type="number" step="any" id="a00" value="1" aria-label="A row 1 column 1"><input type="number" step="any" id="a01" value="2" aria-label="A row 1 column 2"><input type="number" step="any" id="a10" value="3" aria-label="A row 2 column 1"><input type="number" step="any" id="a11" value="4" aria-label="A row 2 column 2"></div>
-        <span class="lab">B</span><div class="mx" style="grid-template-columns:repeat(2,64px)"><input type="number" step="any" id="b00" value="0" aria-label="B row 1 column 1"><input type="number" step="any" id="b01" value="1" aria-label="B row 1 column 2"><input type="number" step="any" id="b10" value="1" aria-label="B row 2 column 1"><input type="number" step="any" id="b11" value="0" aria-label="B row 2 column 2"></div>
-        <span class="lab">=</span><div id="out"></div>
+        <span class="lab">A</span><div class="mx" style="grid-template-columns:repeat(2,64px)"><input type="number" step="any" id="a00" value="0" aria-label="A row 1 column 1"><input type="number" step="any" id="a01" value="-1" aria-label="A row 1 column 2"><input type="number" step="any" id="a10" value="1" aria-label="A row 2 column 1"><input type="number" step="any" id="a11" value="0" aria-label="A row 2 column 2"></div>
+        <span class="lab">B</span><div class="mx" style="grid-template-columns:repeat(2,64px)"><input type="number" step="any" id="b00" value="1" aria-label="B row 1 column 1"><input type="number" step="any" id="b01" value="1" aria-label="B row 1 column 2"><input type="number" step="any" id="b10" value="0" aria-label="B row 2 column 1"><input type="number" step="any" id="b11" value="1" aria-label="B row 2 column 2"></div>
+        <span class="lab" id="eqLab">=</span><div id="out"></div>
       </div>
     </div>
-    <div class="card-bottom"><span class="hint">Entries are editable. Row i of the left matrix meets column j of the right one.</span><span class="live" id="live"></span></div>
+    <div class="planes">
+      <figure>
+        <svg id="pBefore" viewBox="0 0 360 360" role="img" aria-labelledby="pb-t pb-d"><title id="pb-t">Before the transformation</title><desc id="pb-d">The letter F, the unit square and the two basis vectors e1 and e2 in their original position.</desc></svg>
+        <figcaption>before</figcaption>
+      </figure>
+      <figure>
+        <svg id="pAfter" viewBox="0 0 360 360" role="img" aria-labelledby="pa-t pa-d"><title id="pa-t">After the transformation</title><desc id="pa-d">The same shapes after the result matrix acts. The images of e1 and e2 are the two columns of the matrix. For a product, a dashed ghost shows the intermediate step.</desc></svg>
+        <figcaption id="afterCap">after</figcaption>
+      </figure>
+    </div>
+    <div class="card-bottom"><span class="hint">Columns of the result are where e₁ and e₂ land</span><span class="live" id="live"></span></div>
   </figure>
 
   <div class="controls">
@@ -149,89 +153,202 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
         <button type="button" data-op="t" aria-pressed="false">Aᵀ</button>
         <button type="button" data-op="mul" aria-pressed="true">A B</button>
         <button type="button" data-op="rmul" aria-pressed="false">B A</button>
+        <button type="button" data-op="inv" aria-pressed="false">A⁻¹</button>
       </div>
-      <div class="row" style="margin-top:14px"><label for="c">$c$</label><input type="range" id="c" min="-3" max="3" step="0.5" value="2"><output id="o-c" for="c"></output></div>
+      <div class="row" style="margin-top:14px"><label for="c">c</label><input type="range" id="c" min="-3" max="3" step="0.5" value="2"><output id="o-c" for="c"></output></div>
+      <div class="group-label">Presets</div>
+      <div class="presets">
+        <label for="presetA">A</label><select id="presetA"></select>
+        <label for="presetB">B</label><select id="presetB"></select>
+      </div>
       <div class="btns">
         <button type="button" class="btn" id="p-swap">Swap A and B</button>
         <button type="button" class="btn" id="p-id">Set B = I</button>
       </div>
     </div>
     <div class="panel">
-      <div class="eyebrow">Result</div>
+      <div class="group-label">Result</div>
       <pre class="readout" id="readout" aria-live="polite"></pre>
     </div>
+  </div>
+  <div class="legend" aria-label="Legend">
+    <span><i class="sw" style="background:#bf4520;border-color:#bf4520"></i>image of e₁ (column 1)</span>
+    <span><i class="sw" style="background:#2e5aa8;border-color:#2e5aa8"></i>image of e₂ (column 2)</span>
+    <span><i class="sw" style="background:rgba(45,49,66,.18)"></i>letter F</span>
+    <span><i class="sw" style="background:transparent;border-style:dashed"></i>intermediate step</span>
   </div>
 </section>
 
 <section>
   <h2>1. What a matrix is</h2>
-  <p>An $m \times n$ matrix has $m$ rows and $n$ columns. The entry in row $i$ and column $j$ is written $a_{ij}$.</p>
-  <div class="formula">$$A = \begin{bmatrix} a_{11} & a_{12} & \cdots & a_{1n} \\ a_{21} & a_{22} & \cdots & a_{2n} \\ \vdots & \vdots & & \vdots \\ a_{m1} & a_{m2} & \cdots & a_{mn} \end{bmatrix}$$</div>
-  <p>A matrix can be read three ways. As a table of data, as a list of column vectors, or as a machine that takes a vector in and gives a vector out. The third reading is the most useful, and the later guides on <a href="../linear-maps/linear-maps.html">linear maps</a> build on it.</p>
+  <p>An $m \times n$ matrix has $m$ rows and $n$ columns. The entry in row $i$ and column $j$ is written $a_{ij}$: row first, column second.</p>
+  <div class="formula">$$A = \begin{bmatrix} a_{11} & a_{12} & \cdots & a_{1n} \\ a_{21} & a_{22} & \cdots & a_{2n} \\ \vdots & \vdots & \ddots & \vdots \\ a_{m1} & a_{m2} & \cdots & a_{mn} \end{bmatrix}$$</div>
+  <p>A matrix can be read three ways:</p>
+  <ul class="tight">
+    <li><b>A table of data.</b> Rows are samples, columns are features. A spreadsheet is a matrix.</li>
+    <li><b>A list of column vectors.</b> $A = [\,\mathbf{a}_1 \;\; \mathbf{a}_2 \;\; \cdots \;\; \mathbf{a}_n\,]$, side by side.</li>
+    <li><b>A machine.</b> Feed it a vector $\mathbf{x}$ with $n$ entries and it returns $A\mathbf{x}$ with $m$ entries.</li>
+  </ul>
+  <p>The third reading is the one that makes matrix algebra make sense. The guide on <a href="../linear-maps/linear-maps.html">linear maps</a> takes it further.</p>
 </section>
 
 <section>
-  <h2>2. Adding, scaling, transposing</h2>
+  <h2>2. Matrix times vector</h2>
+  <p>There are two ways to compute $A\mathbf{x}$, and both are worth knowing. Take</p>
+  <div class="formula">$$\begin{bmatrix} 2 & 1 \\ 1 & 3 \end{bmatrix}\begin{bmatrix} 1 \\ 2 \end{bmatrix}$$</div>
+  <p><b>By rows.</b> Each output entry is a row of $A$ dotted with $\mathbf{x}$: $2 \cdot 1 + 1 \cdot 2 = 4$ and $1 \cdot 1 + 3 \cdot 2 = 7$.</p>
+  <p><b>By columns.</b> The output is a mix of the columns of $A$, weighted by the entries of $\mathbf{x}$:</p>
+  <div class="formula">$$1\begin{bmatrix} 2 \\ 1 \end{bmatrix} + 2\begin{bmatrix} 1 \\ 3 \end{bmatrix} = \begin{bmatrix} 4 \\ 7 \end{bmatrix}$$</div>
+  <p>The row view is how you compute by hand. The column view is how you think: $A\mathbf{x}$ is always a linear combination of the columns of $A$. Every question about which outputs are reachable is a question about those columns.</p>
+  <div class="callout">$A\mathbf{x}$ is a combination of the columns of $A$, with weights taken from $\mathbf{x}$.</div>
+</section>
+
+<section>
+  <h2>3. Columns are where the axes land</h2>
+  <p>Apply the column view to the basis vectors $\mathbf{e}_1 = (1, 0)$ and $\mathbf{e}_2 = (0, 1)$. $A\mathbf{e}_1$ picks out column 1 and $A\mathbf{e}_2$ picks out column 2. So a $2 \times 2$ matrix is fully described by two arrows: where it sends each axis. Every other vector follows along, because $\mathbf{x} = x_1\mathbf{e}_1 + x_2\mathbf{e}_2$ goes to $x_1 A\mathbf{e}_1 + x_2 A\mathbf{e}_2$.</p>
+  <p>That gives a way to write down a matrix for any picture. To rotate by angle $\theta$, ask where the axes go: $\mathbf{e}_1$ ends at $(\cos\theta, \sin\theta)$ and $\mathbf{e}_2$ at $(-\sin\theta, \cos\theta)$. Those are the columns:</p>
+  <div class="formula">$$R_\theta = \begin{bmatrix} \cos\theta & -\sin\theta \\ \sin\theta & \cos\theta \end{bmatrix}$$</div>
+  <p>In the lab, the orange and blue arrows on the right plane are exactly the two columns of the result. Grid lines stay straight, parallel and evenly spaced, and the origin stays put. That is what "linear" means geometrically.</p>
+</section>
+
+<section>
+  <h2>4. Adding, scaling, transposing</h2>
   <p>These work one entry at a time. Two matrices can be added only if they have the same size.</p>
   <table class="ops">
-    <thead><tr><th>Operation</th><th>Rule</th></tr></thead>
+    <thead><tr><th>Operation</th><th>Rule</th><th>Facts</th></tr></thead>
     <tbody>
-      <tr><td>Sum</td><td>$(A + B)_{ij} = a_{ij} + b_{ij}$</td></tr>
-      <tr><td>Scalar multiple</td><td>$(cA)_{ij} = c\,a_{ij}$</td></tr>
-      <tr><td>Transpose</td><td>$(A^{\mathsf T})_{ij} = a_{ji}$, rows become columns</td></tr>
+      <tr><td>Sum</td><td>$(A + B)_{ij} = a_{ij} + b_{ij}$</td><td>$A + B = B + A$</td></tr>
+      <tr><td>Scalar multiple</td><td>$(cA)_{ij} = c\,a_{ij}$</td><td>$c(A + B) = cA + cB$</td></tr>
+      <tr><td>Transpose</td><td>$(A^{\mathsf T})_{ij} = a_{ji}$, rows become columns</td><td>$(A^{\mathsf T})^{\mathsf T} = A$, $(A + B)^{\mathsf T} = A^{\mathsf T} + B^{\mathsf T}$</td></tr>
+    </tbody>
+  </table>
+  <p>Geometrically, $(A + B)\mathbf{x} = A\mathbf{x} + B\mathbf{x}$: run both machines and add the outputs. The transpose has a less obvious picture. Its key property is that it moves a matrix across a dot product: $(A\mathbf{x}) \cdot \mathbf{y} = \mathbf{x} \cdot (A^{\mathsf T}\mathbf{y})$.</p>
+</section>
+
+<section>
+  <h2>5. Multiplying matrices</h2>
+  <p>The entry in row $i$ and column $j$ of $AB$ is the dot product of row $i$ of $A$ with column $j$ of $B$.</p>
+  <div class="formula">$$(AB)_{ij} = \sum_{k=1}^{n} a_{ik}\,b_{kj}$$</div>
+  <p>For this to work, $A$ must have as many columns as $B$ has rows. An $m \times n$ matrix times an $n \times p$ matrix gives an $m \times p$ matrix: the inner sizes must match and cancel.</p>
+  <div class="formula">$$\underbrace{\begin{bmatrix} 1 & 2 & 0 \\ 0 & 1 & 3 \end{bmatrix}}_{2 \times 3}\underbrace{\begin{bmatrix} 1 & 0 \\ 2 & 1 \\ 0 & 4 \end{bmatrix}}_{3 \times 2} = \underbrace{\begin{bmatrix} 1 + 4 + 0 & 0 + 2 + 0 \\ 0 + 2 + 0 & 0 + 1 + 12 \end{bmatrix}}_{2 \times 2} = \begin{bmatrix} 5 & 2 \\ 2 & 13 \end{bmatrix}$$</div>
+  <h3>Why this rule</h3>
+  <p>The definition is chosen so that multiplying matrices means chaining machines: $(AB)\mathbf{x} = A(B\mathbf{x})$. First $B$ acts, then $A$. Column $j$ of $AB$ is $A$ applied to column $j$ of $B$, which is where $\mathbf{e}_j$ ends after both steps.</p>
+  <div class="callout">$AB$ means "do $B$, then $A$". Read products right to left.</div>
+  <p>That is also why order matters. Rotating by 90° and then shearing is a different motion from shearing and then rotating:</p>
+  <div class="formula">$$R = \begin{bmatrix} 0 & -1 \\ 1 & 0 \end{bmatrix},\; S = \begin{bmatrix} 1 & 1 \\ 0 & 1 \end{bmatrix}: \quad RS = \begin{bmatrix} 0 & -1 \\ 1 & 1 \end{bmatrix} \ne SR = \begin{bmatrix} 1 & -1 \\ 1 & 0 \end{bmatrix}$$</div>
+  <p>Matrix multiplication is still associative, $(AB)C = A(BC)$, and it distributes over addition, $A(B + C) = AB + AC$. With those two rules most algebra goes through as usual, as long as you never swap the order of a product.</p>
+</section>
+
+<section>
+  <h2>6. Four views of the same product</h2>
+  <p>The same numbers can be grouped four ways. Fast libraries and proofs each pick the view that suits them.</p>
+  <table class="ops">
+    <thead><tr><th>View</th><th>Statement</th><th>Good for</th></tr></thead>
+    <tbody>
+      <tr><td>Entry</td><td>$(AB)_{ij} = $ row $i$ of $A$ $\cdot$ column $j$ of $B$</td><td>computing by hand</td></tr>
+      <tr><td>Column</td><td>column $j$ of $AB$ $= A \times$ (column $j$ of $B$)</td><td>geometry, column space</td></tr>
+      <tr><td>Row</td><td>row $i$ of $AB$ $=$ (row $i$ of $A$) $\times B$</td><td>row operations, elimination</td></tr>
+      <tr><td>Outer product</td><td>$AB = \sum_k (\text{column } k \text{ of } A)(\text{row } k \text{ of } B)$</td><td>low-rank approximation, SVD</td></tr>
     </tbody>
   </table>
 </section>
 
 <section>
-  <h2>3. Multiplying matrices</h2>
-  <p>The entry in row $i$ and column $j$ of $AB$ is the dot product of row $i$ of $A$ with column $j$ of $B$.</p>
-  <div class="formula">$$(AB)_{ij} = \sum_{k=1}^{n} a_{ik}\,b_{kj}$$</div>
-  <p>For this to work, $A$ must have as many columns as $B$ has rows. An $m \times n$ matrix times an $n \times p$ matrix gives an $m \times p$ matrix.</p>
-  <div class="callout">Multiplication is not commutative: in general $AB \neq BA$.</div>
-  <p>With the starting values in the lab, $B$ swaps the columns of $A$ when it multiplies on the right, and swaps the rows when it multiplies on the left. Press the buttons to compare. Multiplication is still associative, $(AB)C = A(BC)$, and it distributes over addition. Those rules are enough to do most algebra with matrices.</p>
-</section>
-
-<section>
-  <h2>4. Special matrices</h2>
+  <h2>7. Special matrices</h2>
   <table class="ops">
     <thead><tr><th>Name</th><th>Form</th><th>Why it matters</th></tr></thead>
     <tbody>
       <tr><td>Identity $I$</td><td>1 on the diagonal, 0 elsewhere</td><td>$AI = IA = A$. It does nothing, like the number 1.</td></tr>
-      <tr><td>Diagonal</td><td>Nonzero entries only on the diagonal</td><td>Multiplying is just scaling each coordinate.</td></tr>
-      <tr><td>Symmetric</td><td>$A^{\mathsf T} = A$</td><td>Covariance matrices and many physical systems.</td></tr>
-      <tr><td>Inverse $A^{-1}$</td><td>$AA^{-1} = A^{-1}A = I$</td><td>Undoes $A$. It exists only when $\det A \neq 0$, see <a href="../determinants/determinants.html">Determinants</a>.</td></tr>
+      <tr><td>Diagonal</td><td>nonzero entries only on the diagonal</td><td>Scales each axis separately. Powers and products are entry by entry.</td></tr>
+      <tr><td>Triangular</td><td>zeros below (upper) or above (lower) the diagonal</td><td>$U\mathbf{x} = \mathbf{b}$ is solved by back substitution, one unknown at a time.</td></tr>
+      <tr><td>Symmetric</td><td>$A^{\mathsf T} = A$</td><td>Covariance matrices, Hessians, graphs. Real eigenvalues, perpendicular eigenvectors.</td></tr>
+      <tr><td>Orthogonal</td><td>$Q^{\mathsf T}Q = I$</td><td>Rotations and reflections. Preserves lengths and angles, and $Q^{-1} = Q^{\mathsf T}$.</td></tr>
+      <tr><td>Permutation</td><td>one 1 in each row and column</td><td>Reorders entries. "Swap" in the lab presets is one.</td></tr>
+      <tr><td>Projection</td><td>$P^2 = P$</td><td>Flattens onto a line or plane. Doing it twice changes nothing.</td></tr>
     </tbody>
   </table>
-  <p>For a $2 \times 2$ matrix the inverse has a closed form:</p>
+</section>
+
+<section>
+  <h2>8. The inverse</h2>
+  <p>The inverse $A^{-1}$ undoes $A$: $AA^{-1} = A^{-1}A = I$. It exists only for square matrices that do not crush space flat, which is the same as $\det A \neq 0$ (see <a href="../determinants/determinants.html">Determinants</a>). Select "Project" as a preset for $A$ and ask for $A^{-1}$: the right plane collapses to a line, and no matrix can recover the lost direction.</p>
+  <p>For a $2 \times 2$ matrix the inverse has a closed form: swap the diagonal, negate the off-diagonal, divide by the determinant.</p>
   <div class="formula">$$\begin{bmatrix} a & b \\ c & d \end{bmatrix}^{-1} = \frac{1}{ad - bc}\begin{bmatrix} d & -b \\ -c & a \end{bmatrix}$$</div>
-  <p>Note that $(AB)^{-1} = B^{-1}A^{-1}$ and $(AB)^{\mathsf T} = B^{\mathsf T}A^{\mathsf T}$. The order reverses.</p>
+  <div class="steps"><ol>
+    <li>$A = \begin{bmatrix} 2 & 1 \\ 1 & -1 \end{bmatrix}$ has $\det A = 2 \cdot (-1) - 1 \cdot 1 = -3$.</li>
+    <li>$A^{-1} = -\frac{1}{3}\begin{bmatrix} -1 & -1 \\ -1 & 2 \end{bmatrix} = \begin{bmatrix} 1/3 & 1/3 \\ 1/3 & -2/3 \end{bmatrix}$.</li>
+    <li>Check one entry of $AA^{-1}$: row 1 times column 1 is $2 \cdot \frac{1}{3} + 1 \cdot \frac{1}{3} = 1$.</li>
+  </ol></div>
+  <p>For larger matrices, row-reduce $[\,A \mid I\,]$ until the left half becomes $I$; the right half is then $A^{-1}$. Inverses of products reverse the order, $(AB)^{-1} = B^{-1}A^{-1}$, and so do transposes, $(AB)^{\mathsf T} = B^{\mathsf T}A^{\mathsf T}$. Think of socks and shoes: to undo "socks, then shoes" you remove shoes first.</p>
 </section>
 
 <section>
-  <h2>5. Systems of equations</h2>
-  <p>A system of linear equations collapses into a single matrix equation. For example $2x + y = 5$ and $x - y = 1$ become:</p>
+  <h2>9. Systems of equations</h2>
+  <p>A system of linear equations collapses into a single matrix equation. $2x + y = 5$ and $x - y = 1$ become</p>
   <div class="formula">$$\begin{bmatrix} 2 & 1 \\ 1 & -1 \end{bmatrix}\begin{bmatrix} x \\ y \end{bmatrix} = \begin{bmatrix} 5 \\ 1 \end{bmatrix} \quad\Longleftrightarrow\quad A\mathbf{x} = \mathbf{b}$$</div>
-  <p>When $A$ is invertible, $\mathbf{x} = A^{-1}\mathbf{b}$. Here $\mathbf{x} = (2, 1)$. When it is not, the <a href="../matrix-rank/matrix-rank.html">rank</a> tells you whether there are no solutions or infinitely many.</p>
+  <p>In the column view the question is: which mix of the columns $(2, 1)$ and $(1, -1)$ gives $(5, 1)$? Two ways to answer:</p>
+  <ul class="tight">
+    <li><b>Inverse.</b> $\mathbf{x} = A^{-1}\mathbf{b} = \left(\frac{5}{3} + \frac{1}{3},\; \frac{5}{3} - \frac{2}{3}\right) = (2, 1)$.</li>
+    <li><b>Elimination.</b> Subtract half of row 1 from row 2: $-\frac{3}{2}y = -\frac{3}{2}$, so $y = 1$, then $2x + 1 = 5$ gives $x = 2$.</li>
+  </ul>
+  <p>Elimination is what software actually does. It factors $A = LU$ (lower times upper triangular) and solves two triangular systems. When $A$ is not invertible, the <a href="../matrix-rank/matrix-rank.html">rank</a> tells you whether there are no solutions or infinitely many.</p>
 </section>
 
 <section>
-  <h2>6. The same thing in code</h2>
-  <pre class="code"><span class="k">function</span> multiply(A, B) {
+  <h2>10. What it costs</h2>
+  <table class="ops">
+    <thead><tr><th>Operation on n × n</th><th>Arithmetic steps</th></tr></thead>
+    <tbody>
+      <tr><td>Add, scale, transpose</td><td>$O(n^2)$</td></tr>
+      <tr><td>Matrix times vector</td><td>$O(n^2)$</td></tr>
+      <tr><td>Matrix times matrix (schoolbook)</td><td>$O(n^3)$: $n^2$ entries, each a sum of $n$ products</td></tr>
+      <tr><td>Strassen's algorithm</td><td>$O(n^{\log_2 7}) \approx O(n^{2.81})$</td></tr>
+      <tr><td>Solve $A\mathbf{x} = \mathbf{b}$ by elimination</td><td>about $\frac{2}{3}n^3$</td></tr>
+    </tbody>
+  </table>
+  <p>Order matters for speed too. For an $n \times n$ matrix $A$ and vector $\mathbf{x}$, computing $(AB)\mathbf{x}$ costs $O(n^3)$, while $A(B\mathbf{x})$ costs $O(n^2)$. Same answer, very different bill. And to solve a system, factor rather than invert: computing $A^{-1}$ is slower and less accurate.</p>
+</section>
+
+<section>
+  <h2>11. The same thing in code</h2>
+  <pre class="code"><span class="k">function</span> matVec(A, x) {
+  <span class="k">return</span> A.map(row =&gt; row.reduce((s, a, k) =&gt; s + a * x[k], <span class="t">0</span>));
+}
+
+<span class="k">function</span> multiply(A, B) {
+  <span class="k">if</span> (A[<span class="t">0</span>].length !== B.length) <span class="k">throw new</span> Error(<span class="t">'inner sizes must match'</span>);
   <span class="k">return</span> A.map(row =&gt;
-    B[<span class="t">0</span>].map((_, j) =&gt; row.reduce((sum, a, k) =&gt; sum + a * B[k][j], <span class="t">0</span>))
+    B[<span class="t">0</span>].map((_, j) =&gt; row.reduce((s, a, k) =&gt; s + a * B[k][j], <span class="t">0</span>))
   );
 }
 
-multiply([[<span class="t">1</span>, <span class="t">2</span>], [<span class="t">3</span>, <span class="t">4</span>]], [[<span class="t">0</span>, <span class="t">1</span>], [<span class="t">1</span>, <span class="t">0</span>]]);  <span class="c">// [[2, 1], [4, 3]]</span></pre>
+<span class="k">const</span> R = [[<span class="t">0</span>, -<span class="t">1</span>], [<span class="t">1</span>, <span class="t">0</span>]], S = [[<span class="t">1</span>, <span class="t">1</span>], [<span class="t">0</span>, <span class="t">1</span>]];
+multiply(R, S);                 <span class="c">// [[0, -1], [1, 1]]</span>
+multiply(S, R);                 <span class="c">// [[1, -1], [1, 0]]   order matters</span>
+matVec([[<span class="t">2</span>, <span class="t">1</span>], [<span class="t">1</span>, <span class="t">3</span>]], [<span class="t">1</span>, <span class="t">2</span>]);  <span class="c">// [4, 7]</span></pre>
+  <p>Real code uses NumPy (<code>A @ B</code>), BLAS or a GPU. They compute exactly this sum, but in cache-sized blocks and in parallel, often a hundred times faster than the triple loop.</p>
 </section>
 
 <section>
-  <h2>7. Where it shows up</h2>
+  <h2>12. Common mistakes</h2>
+  <ul class="tight">
+    <li>Assuming $AB = BA$. Even for $2 \times 2$ matrices it usually fails, and $AB$ may exist when $BA$ does not.</li>
+    <li>Cancelling: $AB = AC$ does not imply $B = C$ unless $A$ is invertible.</li>
+    <li>Expecting $AB = 0$ to force $A = 0$ or $B = 0$. Two projections onto perpendicular lines multiply to zero.</li>
+    <li>Forgetting to reverse the order in $(AB)^{-1}$ and $(AB)^{\mathsf T}$.</li>
+    <li>Writing $\frac{B}{A}$. There is no matrix division; you multiply by $A^{-1}$ on a specific side.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>13. Where it shows up</h2>
   <div class="cards">
-    <div class="stat focal"><div class="eyebrow">Graphics</div><div class="big">transforms</div><p>Rotating, scaling and projecting a 3D scene is one matrix product per vertex.</p></div>
-    <div class="stat"><div class="eyebrow">Machine learning</div><div class="big">layers</div><p>A neural network layer is a matrix times the input, plus a bias.</p></div>
-    <div class="stat"><div class="eyebrow">Networks</div><div class="big">graphs</div><p>An adjacency matrix records links. Its powers count walks between nodes.</p></div>
+    <div class="stat focal"><div class="eyebrow">Graphics</div><div class="big">transforms</div><p>Rotating, scaling and projecting a 3D scene is one $4 \times 4$ matrix product per vertex, chained from model to camera to screen.</p></div>
+    <div class="stat"><div class="eyebrow">Machine learning</div><div class="big">layers</div><p>A neural network layer is $W\mathbf{x} + \mathbf{b}$ followed by a nonlinearity. Training is mostly matrix multiplication.</p></div>
+    <div class="stat"><div class="eyebrow">Networks</div><div class="big">graphs</div><p>An adjacency matrix records links. Entry $(i, j)$ of $A^k$ counts walks of length $k$ from $i$ to $j$.</p></div>
+    <div class="stat"><div class="eyebrow">Statistics</div><div class="big">covariance</div><p>$\frac{1}{n}X^{\mathsf T}X$ for centered data $X$ holds every variance and covariance at once.</p></div>
+    <div class="stat"><div class="eyebrow">Markov chains</div><div class="big">transitions</div><p>A row of probabilities times a transition matrix gives tomorrow's distribution.</p></div>
+    <div class="stat"><div class="eyebrow">Finance</div><div class="big">portfolios</div><p>Portfolio variance is $\mathbf{w}^{\mathsf T}\Sigma\mathbf{w}$ for weights $\mathbf{w}$ and covariance $\Sigma$.</p></div>
   </div>
 </section>
 
@@ -248,19 +365,12 @@ document.addEventListener('DOMContentLoaded', function () {
     return e;
   }
   function num(id) { var v = parseFloat($(id).value); return isFinite(v) ? v : 0; }
-  // short number: no trailing zeros, no "-0"
   function f(x, d) {
     d = d === undefined ? 2 : d;
     if (!isFinite(x)) return String(x);
     var s = (Math.abs(x) < 0.5 * Math.pow(10, -d) ? 0 : x).toFixed(d);
     if (s.indexOf('.') >= 0) s = s.replace(/0+$/, '').replace(/\.$/, '');
     return s;
-  }
-  function pad(s, n) { s = String(s); while (s.length < n) s = ' ' + s; return s; }
-  function tex(id, s) {
-    var n = $(id);
-    if (window.katex) window.katex.render(s, n, { throwOnError: false, displayMode: false });
-    else n.textContent = s;
   }
   function mxHtml(M) {
     var r = M.length, c = M[0].length, h = '<div class="mx" style="grid-template-columns:repeat(' + c + ',auto)">';
@@ -274,60 +384,36 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     return el('g', {}, svg);
   }
-  // square plane, viewBox 0 0 360 360, data range [-R, R]
-  function plane(id, R, step) {
+  function plane(id, R) {
     var svg = $(id), S = 360, M = 14, g = reset(svg);
     var X = function (v) { return M + (v + R) / (2 * R) * (S - 2 * M); };
     var Y = function (v) { return S - M - (v + R) / (2 * R) * (S - 2 * M); };
     el('rect', { x: M, y: M, width: S - 2 * M, height: S - 2 * M, fill: '#fff', stroke: 'rgba(45,49,66,.25)' }, g);
-    step = step || 1;
-    for (var t = -R; t <= R + 1e-9; t += step) {
+    for (var t = -R; t <= R + 1e-9; t += 1) {
       if (Math.abs(t) < 1e-9) continue;
       el('line', { x1: X(t), x2: X(t), y1: M, y2: S - M, stroke: 'rgba(45,49,66,.07)' }, g);
       el('line', { x1: M, x2: S - M, y1: Y(t), y2: Y(t), stroke: 'rgba(45,49,66,.07)' }, g);
     }
     el('line', { x1: X(0), x2: X(0), y1: M, y2: S - M, stroke: '#2d3142', 'stroke-width': 0.8 }, g);
     el('line', { x1: M, x2: S - M, y1: Y(0), y2: Y(0), stroke: '#2d3142', 'stroke-width': 0.8 }, g);
-    var cid = id + 'Clip';
-    var cp = el('clipPath', { id: cid }, g);
+    var cid = id + 'Clip', cp = el('clipPath', { id: cid }, g);
     el('rect', { x: M, y: M, width: S - 2 * M, height: S - 2 * M }, cp);
     var c = el('g', { 'clip-path': 'url(#' + cid + ')' }, g);
     return { g: g, c: c, X: X, Y: Y, R: R };
   }
-  function line(P, x1, y1, x2, y2, color, w, dash) {
-    var a = { x1: P.X(x1), y1: P.Y(y1), x2: P.X(x2), y2: P.Y(y2), stroke: color, 'stroke-width': w || 1.5, 'stroke-linecap': 'round' };
-    if (dash) a['stroke-dasharray'] = dash;
-    return el('line', a, P.c);
-  }
-  function arrow(P, x, y, color, w, x0, y0) {
-    x0 = x0 || 0; y0 = y0 || 0;
-    var ax = P.X(x0), ay = P.Y(y0), bx = P.X(x), by = P.Y(y);
+  function arrow(P, x, y, color, w) {
+    var ax = P.X(0), ay = P.Y(0), bx = P.X(x), by = P.Y(y);
     var dx = bx - ax, dy = by - ay, L = Math.hypot(dx, dy);
-    if (L < 1) return;
+    if (L < 1) { el('circle', { cx: ax, cy: ay, r: 4, fill: color }, P.c); return; }
     var ux = dx / L, uy = dy / L, h = 9;
     el('line', { x1: ax, y1: ay, x2: bx - ux * 6, y2: by - uy * 6, stroke: color, 'stroke-width': w || 2.4, 'stroke-linecap': 'round' }, P.c);
     el('polygon', { points: bx + ',' + by + ' ' + (bx - ux * h - uy * 4.5) + ',' + (by - uy * h + ux * 4.5) + ' ' + (bx - ux * h + uy * 4.5) + ',' + (by - uy * h - ux * 4.5), fill: color }, P.c);
   }
-  function dot(P, x, y, r, fill, stroke) {
-    return el('circle', { cx: P.X(x), cy: P.Y(y), r: r, fill: fill, stroke: stroke || '#fff', 'stroke-width': 1.4 }, P.c);
-  }
-  function label(P, x, y, s, color, dx, dy) {
-    var t = el('text', { x: P.X(x) + (dx || 6), y: P.Y(y) + (dy || -6), 'font-size': 12, fill: color || '#2d3142', 'font-family': 'Geist Mono, monospace', 'font-weight': 600 }, P.c);
-    t.textContent = s;
-  }
-  function poly(P, pts, fill, stroke, w) {
+  function poly(P, pts, fill, stroke, w, dash) {
     var s = pts.map(function (p) { return P.X(p[0]).toFixed(1) + ',' + P.Y(p[1]).toFixed(1); }).join(' ');
-    return el('polygon', { points: s, fill: fill, stroke: stroke || 'none', 'stroke-width': w || 1.5, 'stroke-linejoin': 'round' }, P.c);
-  }
-  function path(P, pts, color, w, dash) {
-    var d = '', pen = false;
-    pts.forEach(function (p) {
-      if (!isFinite(p[0]) || !isFinite(p[1])) { pen = false; return; }
-      d += (pen ? ' L' : ' M') + P.X(p[0]).toFixed(1) + ' ' + P.Y(p[1]).toFixed(1); pen = true;
-    });
-    var a = { d: d, fill: 'none', stroke: color, 'stroke-width': w || 1.5, 'stroke-linejoin': 'round' };
+    var a = { points: s, fill: fill, stroke: stroke || 'none', 'stroke-width': w || 1.5, 'stroke-linejoin': 'round' };
     if (dash) a['stroke-dasharray'] = dash;
-    if (d) el('path', a, P.c);
+    return el('polygon', a, P.c);
   }
   function mul2(a, b) {
     return [[a[0][0] * b[0][0] + a[0][1] * b[1][0], a[0][0] * b[0][1] + a[0][1] * b[1][1]],
@@ -335,10 +421,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }
   function app(a, v) { return [a[0][0] * v[0] + a[0][1] * v[1], a[1][0] * v[0] + a[1][1] * v[1]]; }
   function det2(a) { return a[0][0] * a[1][1] - a[0][1] * a[1][0]; }
-  function inv2(a) {
-    var d = det2(a);
-    return [[a[1][1] / d, -a[0][1] / d], [-a[1][0] / d, a[0][0] / d]];
-  }
+  function inv2(a) { var d = det2(a); return [[a[1][1] / d, -a[0][1] / d], [-a[1][0] / d, a[0][0] / d]]; }
   function pick(selector, attr, value) {
     Array.prototype.forEach.call(document.querySelectorAll(selector), function (b) {
       b.setAttribute('aria-pressed', String(b.getAttribute(attr) === String(value)));
@@ -348,33 +431,91 @@ document.addEventListener('DOMContentLoaded', function () {
     Array.prototype.forEach.call(document.querySelectorAll(selector), function (n) { n.addEventListener(ev, fn); });
   }
 
+  var PRESETS = [
+    ['Identity', [[1, 0], [0, 1]]],
+    ['Rotate 90°', [[0, -1], [1, 0]]],
+    ['Rotate 30°', [[0.866, -0.5], [0.5, 0.866]]],
+    ['Shear', [[1, 1], [0, 1]]],
+    ['Scale 2, ½', [[2, 0], [0, 0.5]]],
+    ['Reflect (y-axis)', [[-1, 0], [0, 1]]],
+    ['Swap axes', [[0, 1], [1, 0]]],
+    ['Project onto x', [[1, 0], [0, 0]]],
+    ['Example', [[1, 2], [3, 4]]]
+  ];
+  ['presetA', 'presetB'].forEach(function (id) {
+    var s = $(id);
+    var o0 = document.createElement('option'); o0.value = ''; o0.textContent = 'Choose…'; s.appendChild(o0);
+    PRESETS.forEach(function (p, i) { var o = document.createElement('option'); o.value = i; o.textContent = p[0]; s.appendChild(o); });
+    s.addEventListener('change', function () {
+      if (s.value === '') return;
+      var M = PRESETS[+s.value][1], pre = id === 'presetA' ? 'a' : 'b';
+      for (var i = 0; i < 2; i++) for (var j = 0; j < 2; j++) $(pre + i + j).value = M[i][j];
+      s.value = '';
+      render();
+    });
+  });
+
+  var FSHAPE = [[0.2, 0.2], [0.45, 0.2], [0.45, 0.8], [0.85, 0.8], [0.85, 1.05], [0.45, 1.05], [0.45, 1.45], [1.05, 1.45], [1.05, 1.7], [0.2, 1.7]];
+  var SQUARE = [[0, 0], [1, 0], [1, 1], [0, 1]];
+  function drawScene(P, M, ghost) {
+    // transformed grid lines
+    for (var t = -6; t <= 6; t++) {
+      var p1 = app(M, [t, -6]), p2 = app(M, [t, 6]), q1 = app(M, [-6, t]), q2 = app(M, [6, t]);
+      el('line', { x1: P.X(p1[0]), y1: P.Y(p1[1]), x2: P.X(p2[0]), y2: P.Y(p2[1]), stroke: 'rgba(46,90,168,.16)' }, P.c);
+      el('line', { x1: P.X(q1[0]), y1: P.Y(q1[1]), x2: P.X(q2[0]), y2: P.Y(q2[1]), stroke: 'rgba(46,90,168,.16)' }, P.c);
+    }
+    if (ghost) {
+      poly(P, SQUARE.map(function (p) { return app(ghost, p); }), 'none', '#4f5d75', 1.2, '4 3');
+      poly(P, FSHAPE.map(function (p) { return app(ghost, p); }), 'none', '#4f5d75', 1.2, '4 3');
+    }
+    poly(P, SQUARE.map(function (p) { return app(M, p); }), 'rgba(191,69,32,.07)', 'rgba(191,69,32,.6)', 1.2);
+    poly(P, FSHAPE.map(function (p) { return app(M, p); }), 'rgba(45,49,66,.18)', '#2d3142', 1.4);
+    arrow(P, M[0][0], M[1][0], '#bf4520');
+    arrow(P, M[0][1], M[1][1], '#2e5aa8');
+  }
 
   var op = 'mul';
   function A() { return [[num('a00'), num('a01')], [num('a10'), num('a11')]]; }
   function B() { return [[num('b00'), num('b01')], [num('b10'), num('b11')]]; }
   function same(x, y) { return [0, 1].every(function (i) { return [0, 1].every(function (j) { return Math.abs(x[i][j] - y[i][j]) < 1e-9; }); }); }
-  function entries(L, R, nameL, nameR) {
+  function entries(L, R) {
     var out = [];
     for (var i = 0; i < 2; i++) for (var j = 0; j < 2; j++) {
-      out.push('c' + (i + 1) + (j + 1) + ' = ' + f(L[i][0]) + '·' + f(R[0][j]) + ' + ' + f(L[i][1]) + '·' + f(R[1][j]) +
-        ' = ' + f(L[i][0] * R[0][j] + L[i][1] * R[1][j]));
+      out.push('c' + (i + 1) + (j + 1) + ' = ' + f(L[i][0]) + '·' + f(R[0][j]) + ' + ' + f(L[i][1]) + '·' + f(R[1][j]) + ' = ' + f(L[i][0] * R[0][j] + L[i][1] * R[1][j]));
     }
     return out.join('\n');
   }
+  function mstr(M) { return '[' + M.map(function (r) { return '[' + r.map(function (x) { return f(x); }).join(', ') + ']'; }).join(', ') + ']'; }
+
   function render() {
-    var a = A(), b = B(), c = +$('c').value, R, name, text;
+    var a = A(), b = B(), c = +$('c').value, Rm = null, name, text, ghost = null, cap = 'after';
     $('o-c').textContent = f(c, 1);
-    if (op === 'add') { R = [[a[0][0] + b[0][0], a[0][1] + b[0][1]], [a[1][0] + b[1][0], a[1][1] + b[1][1]]]; name = 'A + B'; text = 'each entry: a_ij + b_ij'; }
-    else if (op === 'scale') { R = [[c * a[0][0], c * a[0][1]], [c * a[1][0], c * a[1][1]]]; name = f(c, 1) + ' A'; text = 'each entry of A times ' + f(c, 1); }
-    else if (op === 't') { R = [[a[0][0], a[1][0]], [a[0][1], a[1][1]]]; name = 'Aᵀ'; text = 'rows of A become columns'; }
-    else if (op === 'mul') { R = mul2(a, b); name = 'A B'; text = entries(a, b); }
-    else { R = mul2(b, a); name = 'B A'; text = entries(b, a); }
+    if (op === 'add') { Rm = [[a[0][0] + b[0][0], a[0][1] + b[0][1]], [a[1][0] + b[1][0], a[1][1] + b[1][1]]]; name = 'A + B'; text = 'each entry: a_ij + b_ij\n(A + B)x = Ax + Bx'; cap = 'after A + B'; }
+    else if (op === 'scale') { Rm = [[c * a[0][0], c * a[0][1]], [c * a[1][0], c * a[1][1]]]; name = f(c, 1) + ' A'; text = 'each entry of A times ' + f(c, 1) + '\nthe picture of A, scaled by ' + f(c, 1); cap = 'after cA'; }
+    else if (op === 't') { Rm = [[a[0][0], a[1][0]], [a[0][1], a[1][1]]]; name = 'Aᵀ'; text = 'rows of A become columns\ndet Aᵀ = det A = ' + f(det2(a)); cap = 'after Aᵀ'; }
+    else if (op === 'mul') { Rm = mul2(a, b); ghost = b; name = 'A B'; text = 'B acts first (dashed), then A\n\n' + entries(a, b); cap = 'after B, then A'; }
+    else if (op === 'rmul') { Rm = mul2(b, a); ghost = a; name = 'B A'; text = 'A acts first (dashed), then B\n\n' + entries(b, a); cap = 'after A, then B'; }
+    else {
+      name = 'A⁻¹'; cap = 'after A⁻¹';
+      if (Math.abs(det2(a)) < 1e-9) { text = 'det A = 0: A squashes the plane onto a line\nor a point. Information is lost, so there\nis no inverse.'; }
+      else { Rm = inv2(a); text = 'A⁻¹ = (1 / det A) · [[d, −b], [−c, a]]\ndet A = ' + f(det2(a)) + '\nA · A⁻¹ = ' + mstr(mul2(a, Rm)) + '  (the identity)'; }
+    }
     $('optitle').textContent = name;
-    $('out').innerHTML = mxHtml(R);
+    $('afterCap').textContent = cap;
+    if (Rm) { $('out').innerHTML = mxHtml(Rm); $('eqLab').textContent = '→ ' + name + ' ='; }
+    else { $('out').innerHTML = '<div class="mx" style="grid-template-columns:auto"><span class="cell">no inverse</span></div>'; $('eqLab').textContent = '→ ' + name; }
+
+    var Pb = plane('pBefore', 3);
+    drawScene(Pb, [[1, 0], [0, 1]], null);
+    var Pa = plane('pAfter', 3);
+    if (Rm) drawScene(Pa, Rm, ghost);
+    else drawScene(Pa, a, null);
+
     var ab = mul2(a, b), ba = mul2(b, a);
-    $('live').textContent = same(ab, ba) ? 'AB = BA here' : 'AB ≠ BA here';
-    $('readout').textContent = text + '\n\nAB = ' + JSON.stringify(ab.map(function (r) { return r.map(function (x) { return +f(x); }); })) +
-      '\nBA = ' + JSON.stringify(ba.map(function (r) { return r.map(function (x) { return +f(x); }); }));
+    var detR = Rm ? det2(Rm) : 0;
+    $('live').textContent = (same(ab, ba) ? 'AB = BA here' : 'AB ≠ BA here') + '   det = ' + f(detR);
+    $('readout').textContent = text + '\n\nAB = ' + mstr(ab) + '\nBA = ' + mstr(ba) +
+      '\n\nresult: area × ' + f(Math.abs(detR)) + (detR < 0 ? ', orientation flipped' : (Math.abs(detR) < 1e-9 ? ', space flattened' : ''));
   }
   listen('[data-op]', 'click', function () { op = this.getAttribute('data-op'); pick('[data-op]', 'data-op', op); render(); });
   listen('.mx input, #c', 'input', render);
@@ -385,7 +526,6 @@ document.addEventListener('DOMContentLoaded', function () {
   });
   $('p-id').addEventListener('click', function () { $('b00').value = 1; $('b01').value = 0; $('b10').value = 0; $('b11').value = 1; render(); });
   render();
-
 
   if (window.renderMathInElement) {
     window.renderMathInElement(document.body, {
