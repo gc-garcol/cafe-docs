@@ -1,6 +1,7 @@
 // Cafe Docs: content registry + search, filter and mindmap.
 // To add a doc: append an entry to DOCS. Categories and topics are derived from it.
 // `order` is the reading order inside a category (lower first, prerequisites before what builds on them).
+// A doc can sit in more categories: `also: [{ category, topic, order }]` adds it there with its own topic and order.
 
 const DOCS = [
   {
@@ -327,7 +328,7 @@ const DOCS = [
     path: 'content/math/fourier-transform/fourier-transform.html',
     category: 'Mathematics',
     topic: 'Signals',
-    order: 18,
+    order: 21,
     level: 'Intermediate',
     tags: ['fourier', 'frequency', 'signal', 'fft', 'dft', 'sine waves', 'spectrum'],
     summary: 'Any signal is a stack of simple waves. Chain turning circles tip to tail, watch them draw a waveform, and read off which frequencies it contains.',
@@ -338,7 +339,7 @@ const DOCS = [
     path: 'content/math/laplace-transform/laplace-transform.html',
     category: 'Mathematics',
     topic: 'Signals',
-    order: 19,
+    order: 22,
     level: 'Intermediate',
     tags: ['laplace', 'transform', 's-domain', 'differential equation', 'transfer function', 'integral'],
     summary: 'Weight a signal by a fading exponential and measure the area. The result turns derivatives into multiplication and differential equations into algebra.',
@@ -349,7 +350,7 @@ const DOCS = [
     path: 'content/math/complex-analysis/complex-analysis.html',
     category: 'Mathematics',
     topic: 'Complex numbers',
-    order: 17,
+    order: 20,
     level: 'Advanced',
     tags: ['complex', 'analytic', 'conformal', 'cauchy-riemann', 'contour integral', 'residue', 'pole'],
     summary: 'Calculus on the complex plane. Watch a grid bend under z², 1/z, eᶻ and sin z while keeping right angles, then count poles to evaluate loop integrals.',
@@ -371,7 +372,7 @@ const DOCS = [
     path: 'content/math/euler-formula/euler-formula.html',
     category: 'Mathematics',
     topic: 'Complex numbers',
-    order: 16,
+    order: 19,
     level: 'Intermediate',
     tags: ['euler', 'complex', 'exponential', 'unit circle', 'sine', 'cosine', 'series', 'identity'],
     summary: 'Raise e to an imaginary power and you walk around a circle. See cosine and sine as shadows of one spinning point, and build it from the exponential series.',
@@ -404,7 +405,7 @@ const DOCS = [
     path: 'content/math/polynomial-interpolation/polynomial-interpolation.html',
     category: 'Mathematics',
     topic: 'Numerical analysis',
-    order: 20,
+    order: 23,
     level: 'Intermediate',
     tags: ['interpolation', 'polynomial', 'lagrange', 'newton', 'runge', 'chebyshev', 'numerical', 'approximation'],
     summary: 'Find the one polynomial that passes through every data point. Add points, compare equal and Chebyshev spacing, and watch Runge\'s phenomenon appear.',
@@ -1153,6 +1154,7 @@ const DOCS = [
     category: 'Quant',
     topic: 'Probability and statistics',
     order: 2,
+    also: [{ category: 'Mathematics', topic: 'Probability', order: 16 }],
     level: 'Beginner',
     tags: ['expectation', 'variance', 'covariance', 'correlation', 'diversification', 'portfolio risk', 'probability', 'statistics'],
     summary: 'The three numbers behind every risk model. Draw returns for two assets, change their correlation, and watch how covariance decides the risk of a mix.',
@@ -1164,6 +1166,7 @@ const DOCS = [
     category: 'Quant',
     topic: 'Probability and statistics',
     order: 3,
+    also: [{ category: 'Mathematics', topic: 'Probability', order: 17 }],
     level: 'Beginner',
     tags: ['law of large numbers', 'central limit theorem', 'sampling', 'standard error', 'probability', 'statistics', 'normal distribution', 'monte carlo'],
     summary: 'Average more and more draws from any distribution. The running mean settles on the true mean, and the spread of many averages turns into a bell curve of width sigma over root n.',
@@ -1175,6 +1178,7 @@ const DOCS = [
     category: 'Quant',
     topic: 'Probability and statistics',
     order: 4,
+    also: [{ category: 'Mathematics', topic: 'Probability', order: 18 }],
     level: 'Intermediate',
     tags: ['maximum likelihood', 'mle', 'estimation', 'log-likelihood', 'statistics', 'fisher information', 'normal distribution', 'model fitting'],
     summary: 'Guess the mean and volatility behind a set of returns and watch the log-likelihood score your guess. The best guess is the peak, and the curvature at the peak says how sure you can be.',
@@ -1190,11 +1194,16 @@ const norm = s => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '
 
 const state = { tagq: '', q: '', cat: 'All', tag: '', level: 'All', sort: 'order' };
 
+// every (category, topic, order) a doc is listed under; the first one is its home category
+const placements = d => [{ category: d.category, topic: d.topic, order: d.order }, ...(d.also || [])];
+const inCat = (d, c) => placements(d).some(p => p.category === c);
+const place = (d, c) => placements(d).find(p => p.category === c) || placements(d)[0];
+const allCats = () => [...new Set(DOCS.flatMap(d => placements(d).map(p => p.category)))];
 function haystack(d) {
-  return norm([d.title, d.summary, d.category, d.topic, d.level, ...d.tags].join(' '));
+  return norm([d.title, d.summary, ...placements(d).flatMap(p => [p.category, p.topic]), d.level, ...d.tags].join(' '));
 }
 function matches(d) {
-  if (state.cat !== 'All' && d.category !== state.cat) return false;
+  if (state.cat !== 'All' && !inCat(d, state.cat)) return false;
   if (state.level !== 'All' && d.level !== state.level) return false;
   if (state.tag && !d.tags.includes(state.tag)) return false;
   const terms = norm(state.q).split(/\s+/).filter(Boolean);
@@ -1202,15 +1211,16 @@ function matches(d) {
   return terms.every(t => h.includes(t));
 }
 // reading order inside a category; docs without `order` go last, then by title
-const ord = d => (typeof d.order === 'number' ? d.order : 1e6);
-const byOrder = (a, b) => ord(a) - ord(b) || a.title.localeCompare(b.title);
+const ord = (d, c) => { const o = place(d, c).order; return typeof o === 'number' ? o : 1e6; };
+const byOrderIn = c => (a, b) => ord(a, c) - ord(b, c) || a.title.localeCompare(b.title);
+const byOrder = byOrderIn(undefined);
 // topics follow the first doc they contain
-const topicRank = (c, t) => Math.min(...DOCS.filter(d => d.category === c && d.topic === t).map(ord));
+const topicRank = (c, t) => Math.min(...DOCS.filter(d => placements(d).some(p => p.category === c && p.topic === t)).map(d => ord(d, c)));
 const byTopic = c => (a, b) => topicRank(c, a) - topicRank(c, b) || a.localeCompare(b);
 function visibleDocs() {
   const list = DOCS.filter(matches);
   const by = {
-    order: (a, b) => a.category.localeCompare(b.category) || byOrder(a, b),
+    order: state.cat !== 'All' ? byOrderIn(state.cat) : (a, b) => a.category.localeCompare(b.category) || byOrder(a, b),
     title: (a, b) => a.title.localeCompare(b.title),
     category: (a, b) => a.category.localeCompare(b.category) || a.title.localeCompare(b.title),
   };
@@ -1255,9 +1265,9 @@ function writeHash() {
 
 // ---------- controls ----------
 function renderControls() {
-  const cats = ['All', ...new Set(DOCS.map(d => d.category))];
+  const cats = ['All', ...allCats()];
   $('#cats').innerHTML = cats.map(c => {
-    const n = c === 'All' ? DOCS.length : DOCS.filter(d => d.category === c).length;
+    const n = c === 'All' ? DOCS.length : DOCS.filter(d => inCat(d, c)).length;
     return `<button type="button" class="chip" data-cat="${esc(c)}" aria-pressed="${state.cat === c}">${esc(c)} <span class="n">${n}</span></button>`;
   }).join('');
 
@@ -1299,10 +1309,12 @@ function renderList() {
   const docs = visibleDocs();
   $('#count').textContent = `${docs.length} of ${DOCS.length} docs`;
   $('#empty').hidden = docs.length > 0;
-  $('#list').innerHTML = docs.map(d => `
+  $('#list').innerHTML = docs.map(d => {
+    const p = place(d, state.cat), others = placements(d).filter(x => x.category !== p.category).map(x => x.category);
+    return `
     <li class="doc">
       <a class="doc-link" href="${esc(d.path)}">
-        <div class="eyebrow">${highlight(d.category)} · ${highlight(d.topic)}</div>
+        <div class="eyebrow">${highlight(p.category)} · ${highlight(p.topic)}${others.length ? ` <span class="also">· also ${others.map(highlight).join(', ')}</span>` : ''}</div>
         <h3>${highlight(d.title)}</h3>
         <p>${highlight(d.summary)}</p>
       </a>
@@ -1314,16 +1326,19 @@ function renderList() {
         const x = DOCS.find(z => z.title === r);
         return x ? `<a href="${esc(x.path)}">${esc(r)}</a>` : esc(r);
       }).join(', ')}</div>` : ''}
-    </li>`).join('');
+    </li>`;
+  }).join('');
 }
 
 // ---------- contents (grouped index) ----------
 function renderToc() {
   const docs = visibleDocs();
   const tree = {};
-  [...docs].sort(byOrder).forEach(d => { ((tree[d.category] ||= {})[d.topic] ||= []).push(d); });
+  docs.forEach(d => placements(d).forEach(p => {
+    if (state.cat === 'All' || p.category === state.cat) ((tree[p.category] ||= {})[p.topic] ||= []).push(d);
+  }));
   $('#toc').innerHTML = Object.keys(tree).sort().map(c =>
-    `<li><b>${esc(c)}</b><ul>${Object.keys(tree[c]).sort(byTopic(c)).map(t =>
+    `<li><b>${esc(c)}</b><ul>${Object.keys(tree[c]).sort(byTopic(c)).map(t => tree[c][t].sort(byOrderIn(c)) &&
       `<li><span class="topic">${esc(t)}</span><ul>${tree[c][t].map(d =>
         `<li><a href="${esc(d.path)}">${esc(d.title)}</a></li>`).join('')}</ul></li>`).join('')}</ul></li>`).join('')
     || '<li class="na">Nothing to list</li>';
@@ -1332,12 +1347,13 @@ function renderToc() {
 // ---------- mindmap ----------
 function buildTree() {
   const root = { label: 'Cafe Docs', kind: 'root', children: [] };
-  const cats = [...new Set(DOCS.map(d => d.category))].sort();
+  const cats = allCats().sort();
   cats.forEach(c => {
     const cn = { label: c, kind: 'cat', cat: c, children: [] };
-    [...new Set(DOCS.filter(d => d.category === c).map(d => d.topic))].sort(byTopic(c)).forEach(t => {
+    const here = DOCS.filter(d => inCat(d, c));
+    [...new Set(here.map(d => place(d, c).topic))].sort(byTopic(c)).forEach(t => {
       const tn = { label: t, kind: 'topic', cat: c, children: [] };
-      DOCS.filter(d => d.category === c && d.topic === t).sort(byOrder)
+      here.filter(d => place(d, c).topic === t).sort(byOrderIn(c))
         .forEach(d => tn.children.push({ label: d.title, kind: 'doc', doc: d, cat: c, children: [] }));
       cn.children.push(tn);
     });

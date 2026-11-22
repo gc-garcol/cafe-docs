@@ -36,6 +36,7 @@ The category, index, and search data live in `index.js`, not in the HTML.
   - The contents list shows each group's docs sorted by `order`, lowest first. Docs of the same topic stay next to each other, and a topic's position is set by its first doc.
   - When you add, move, or remove a doc, renumber the affected group so it stays contiguous and in reading order (prerequisites first).
 - Optional field: `related`, a list of other doc titles.
+- **Several categories:** a doc can belong to more than one category. `category`, `topic` and `order` give its home category, which the page's "Back to <category>" link uses. Add the others with the optional `also` field, one entry per extra category: `also: [{ category: 'Mathematics', topic: 'Probability', order: 16 }]`. Each entry has its own topic and its own `order` in that category, and counts toward that group's contiguous numbering. List a doc in every category it really belongs to, for example a Quant doc that is mainly math also goes under Mathematics.
 - Categories, tags, the mind map, and the contents list are derived from `DOCS`. Do not edit them by hand.
 - Do not list docs in `readme.md`. It has no `## Docs` section, so there is nothing to update there when adding a doc.
 
