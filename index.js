@@ -1333,6 +1333,17 @@ const DOCS = [
     summary: 'Mix three assets and see every possible portfolio as a point of risk and return. Trace the efficient frontier, find the minimum-variance and maximum-Sharpe portfolios, and watch correlation reshape them.',
     related: ['Expectation, Variance and Covariance', 'CAPM and Factor Models', 'Value at Risk and Drawdown', 'Principal Component Analysis'],
   },
+  {
+    title: 'CAPM and Factor Models',
+    path: 'content/quant/capm-factor-models/capm-factor-models.html',
+    category: 'Quant',
+    topic: 'Time series and portfolios',
+    order: 17,
+    level: 'Intermediate',
+    tags: ['capm', 'beta', 'alpha', 'factor model', 'fama-french', 'regression', 'systematic risk', 'security market line'],
+    summary: 'Regress a stock on the market to split its return into beta times the market plus alpha plus noise. See how hard alpha is to detect, then plot assets against the security market line.',
+    related: ['Mean-Variance Portfolios', 'Linear Regression', 'Hypothesis Tests and p-values', 'Principal Component Analysis'],
+  },
 ];
 
 // ---------- helpers ----------
