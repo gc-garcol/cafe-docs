@@ -1400,6 +1400,17 @@ const DOCS = [
     summary: 'Shuffled K-fold finds an edge in pure noise when labels overlap and features drift. Compare shuffled, blocked, walk-forward, purged and combinatorial splits, and watch the fake skill vanish.',
     related: ['Backtesting Without Look-Ahead', 'Feature Engineering and Leakage', 'Gradient Boosting', 'Hypothesis Tests and p-values', 'Overfitting and Regularization'],
   },
+  {
+    title: 'Feature Engineering and Leakage',
+    path: 'content/quant/feature-engineering-leakage/feature-engineering-leakage.html',
+    category: 'Quant',
+    topic: 'Machine learning for markets',
+    order: 23,
+    level: 'Intermediate',
+    tags: ['feature engineering', 'leakage', 'look-ahead bias', 'point-in-time', 'stationarity', 'normalization', 'selection bias', 'backtesting'],
+    summary: 'Five common leaks turn a random walk into a winning strategy: full-sample z-scores, off-by-one alignment, centered smoothing, selection on all data and mis-dated releases. See each one, then the point-in-time fix.',
+    related: ['Walk-Forward and Purged Cross-Validation', 'Backtesting Without Look-Ahead', 'Stationarity and Autocorrelation', 'Gradient Boosting'],
+  },
 ];
 
 // ---------- helpers ----------
