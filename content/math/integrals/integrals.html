@@ -29,12 +29,12 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);f
 .back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
 h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+h3{font-family:var(--serif);font-weight:400;font-size:24px;line-height:1.2;margin:32px 0 10px}
 .lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
 section{margin-top:64px}
 section p{max-width:68ch;margin:0 0 14px}
 code,.mono{font-family:var(--mono);font-size:.88em}
 p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
-.math{font-family:var(--serif);font-size:1.15em;font-style:italic}
 .callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
 .formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;text-align:center;overflow-x:auto}
 .formula .katex{font-size:1.25em}
@@ -43,23 +43,28 @@ p .katex,td .katex,li .katex{font-size:1.05em}
 
 .lab{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:24px;align-items:start;margin-top:24px}
 .card{margin:0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
-.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
 .card-title{font-family:var(--serif);font-size:20px}
 .hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
 .live{font-family:var(--mono);font-size:12px;font-weight:600}
 .stage{padding:0 8px}
 .stage svg{display:block;width:100%;height:auto}
 .panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
-.seg{display:flex;border:1px solid var(--rule-solid);border-radius:6px;overflow:hidden;margin-bottom:16px}
-.seg button{flex:1;min-height:40px;border:0;background:transparent;font:500 13px var(--sans);color:var(--muted);cursor:pointer;padding:0 8px}
-.seg button+button{border-left:1px solid var(--rule-solid)}
+.seg{display:flex;flex-wrap:wrap;border:1px solid var(--rule-solid);border-radius:6px;overflow:hidden;margin-bottom:12px}
+.seg button{flex:1 1 18%;min-height:40px;border:0;background:transparent;font:500 13px var(--sans);color:var(--muted);cursor:pointer;padding:0 6px;box-shadow:inset 1px 0 0 var(--rule-solid),inset 0 1px 0 var(--rule-solid)}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
-button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.row{display:grid;grid-template-columns:36px 1fr 64px;gap:12px;align-items:center;margin:12px 0}
+.seg-label{font-family:var(--mono);font-size:11px;color:var(--soft);margin:0 0 6px;letter-spacing:.08em;text-transform:uppercase}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.row{display:grid;grid-template-columns:50px 1fr 64px;gap:12px;align-items:center;margin:8px 0}
 .row label{font-family:var(--mono);font-size:13px;font-weight:600}
 .row output{font-family:var(--mono);font-size:12px;text-align:right}
 input[type=range]{width:100%;accent-color:var(--accent);min-height:28px}
-#readout{margin:16px 0 0;padding:14px 16px;background:var(--paper);border:1px solid var(--rule);border-radius:6px;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;min-height:120px}
+#readout{margin:12px 0 0;padding:14px 16px;background:var(--paper);border:1px solid var(--rule);border-radius:6px;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;min-height:110px}
+table.vals{border-collapse:collapse;width:100%;margin-top:12px;font-family:var(--mono);font-size:12px}
+table.vals caption{text-align:left;font-size:11px;color:var(--soft);padding-bottom:4px}
+table.vals th,table.vals td{padding:5px 8px;text-align:right;border-bottom:1px solid var(--rule)}
+table.vals th{font-weight:500;color:var(--soft);font-size:11px}
+table.vals tr:last-child td{border-bottom:0}
 .legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
 .legend span{display:inline-flex;align-items:center;gap:8px}
 .sw{width:14px;height:14px;border-radius:2px;border:1px solid var(--ink);display:inline-block}
@@ -73,16 +78,17 @@ input[type=range]{width:100%;accent-color:var(--accent);min-height:28px}
 .stat .big{font-family:var(--serif);font-size:30px;line-height:1.1;margin:6px 0}
 .stat p{font-size:14px;color:var(--muted);margin:0}
 .stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+.steps{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;max-width:760px}
+.steps ol{margin:0;padding-left:20px}.steps li{margin:8px 0}
+pre{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .t{color:var(--link)} .c{color:var(--soft);font-style:italic}
 table.ops{border-collapse:collapse;width:100%;max-width:760px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);border-radius:6px;font-size:14px}
 table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule)}
 table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
 table.ops tr:last-child td{border-bottom:0}
 ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
 @media (max-width:860px){.lab{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
-@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
-
-
-
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
 .doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}.doc-tags a{font:500 12px "Geist Mono",ui-monospace,monospace;padding:4px 10px;border:1px solid var(--rule-solid,#bfc0c0);border-radius:4px;background:#fff;color:var(--muted,#4f5d75);text-decoration:none}.doc-tags a:hover{border-color:var(--ink,#2d3142);color:var(--ink,#2d3142)}.doc-tags a:focus-visible{outline:2px solid var(--accent,#bf4520);outline-offset:2px}
 </style>
 </head>
@@ -95,47 +101,63 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
 <header>
   <div class="eyebrow">Mathematics · Calculus</div>
   <h1>Integrals</h1>
-  <p class="lede">The integral adds up infinitely many tiny pieces. Its most familiar job is the area under a curve, built from thin rectangles.</p>
-  
-  
-  
+  <p class="lede">The integral adds up infinitely many tiny pieces. Its most familiar job is the area under a curve, built from thin rectangles. Its deepest fact is that this adding-up undoes differentiation.</p>
   <nav class="doc-tags" aria-label="Main tags"><a href="../../../index.html#tag=integral">#integral</a><a href="../../../index.html#tag=area">#area</a><a href="../../../index.html#tag=riemann%20sum">#riemann sum</a><a href="../../../index.html#tag=antiderivative">#antiderivative</a></nav>
 </header>
 
 <section>
   <h2>Try it first</h2>
-  <p>The shaded rectangles estimate the area under the curve. Add more of them and the estimate closes in on the exact value. Switch between left, right and midpoint rules to see how each one errs.</p>
+  <p>The shaded shapes estimate the area under the curve between $a$ and $b$. Add more of them and the estimate closes in on the exact value. Compare the five rules: the table shows how fast each error shrinks when $n$ doubles. The lower plot is the running total $A(x) = \int_a^x f(t)\,dt$; its slope at every point equals the height of $f$ there.</p>
 
   <div class="lab">
     <figure class="card">
       <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title" id="fnTitle">Riemann sum</span></div>
       <div class="stage">
-        <svg id="plot" viewBox="0 0 560 400" role="img" aria-labelledby="plot-title plot-desc">
-          <title id="plot-title">Riemann sum rectangles under a curve</title>
-          <desc id="plot-desc">Vertical rectangles of equal width sit under a curve between two bounds. More rectangles fit the curve more closely, and their total area approaches the integral.</desc>
+        <svg id="plot" viewBox="0 0 560 560" role="img" aria-labelledby="plot-title plot-desc">
+          <title id="plot-title">Riemann sum under a curve, with the accumulated area plotted below</title>
+          <desc id="plot-desc">Top: shapes of equal width sit between the curve and the x axis from a to b. Area above the axis is blue, area below is orange. Bottom: the accumulation function, the total signed area from a up to each x, ending at the value of the integral.</desc>
+          <defs>
+            <clipPath id="clipTop"><rect x="36" y="16" width="504" height="320"/></clipPath>
+            <clipPath id="clipBot"><rect x="36" y="376" width="504" height="148"/></clipPath>
+          </defs>
         </svg>
       </div>
-      <div class="card-bottom"><span class="hint">More rectangles, smaller error</span><span class="live" id="live"></span></div>
+      <div class="card-bottom"><span class="hint">More strips, smaller error</span><span class="live" id="live"></span></div>
     </figure>
 
     <div>
       <div class="panel">
+        <p class="seg-label">Function</p>
         <div class="seg" role="group" aria-label="Function">
           <button type="button" data-fn="0" aria-pressed="true">x²</button>
           <button type="button" data-fn="1" aria-pressed="false">1 + sin x</button>
           <button type="button" data-fn="2" aria-pressed="false">√x</button>
+          <button type="button" data-fn="3" aria-pressed="false">sin x</button>
+          <button type="button" data-fn="4" aria-pressed="false">e^(−x²)</button>
         </div>
+        <p class="seg-label">Rule</p>
         <div class="seg" role="group" aria-label="Rule">
           <button type="button" data-m="left" aria-pressed="true">Left</button>
-          <button type="button" data-m="mid" aria-pressed="false">Midpoint</button>
           <button type="button" data-m="right" aria-pressed="false">Right</button>
+          <button type="button" data-m="mid" aria-pressed="false">Mid</button>
+          <button type="button" data-m="trap" aria-pressed="false">Trap</button>
+          <button type="button" data-m="simp" aria-pressed="false">Simpson</button>
         </div>
-        <div class="row"><label for="inN">n</label><input type="range" id="inN" min="1" max="100" value="6"><output id="outN"></output></div>
+        <div class="row"><label for="inN">n</label><input type="range" id="inN" min="1" max="100" value="6"><output id="outN" for="inN"></output></div>
+        <div class="row"><label for="inA">a</label><input type="range" id="inA" min="0" max="100" value="0"><output id="outA" for="inA"></output></div>
+        <div class="row"><label for="inB">b</label><input type="range" id="inB" min="0" max="100" value="100"><output id="outB" for="inB"></output></div>
         <div id="readout" aria-live="polite"></div>
+        <table class="vals">
+          <caption>Error as n doubles (current rule)</caption>
+          <thead><tr><th scope="col">n</th><th scope="col">error</th><th scope="col">ratio</th></tr></thead>
+          <tbody id="convBody"></tbody>
+        </table>
       </div>
       <div class="legend" aria-label="Legend">
-        <span><i class="sw" style="background:rgba(46,90,168,.25);border-color:#2e5aa8"></i>rectangles</span>
-        <span><i class="sw" style="background:#2d3142"></i>curve</span>
+        <span><i class="sw" style="background:rgba(46,90,168,.25);border-color:#2e5aa8"></i>positive area</span>
+        <span><i class="sw" style="background:rgba(191,69,32,.22);border-color:#bf4520"></i>negative area</span>
+        <span><i class="sw" style="background:#2d3142"></i>curve f</span>
+        <span><i class="sw" style="background:#fff;border-style:dashed"></i>A(x)</span>
       </div>
     </div>
   </div>
@@ -143,24 +165,51 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
 
 <section>
   <h2>1. Area by slicing</h2>
-  <p>The area under a rectangle-shaped graph is easy: width times height. For a curve, cut the interval $[a, b]$ into $n$ strips of width $\Delta x = \frac{b-a}{n}$. Pretend the curve is flat across each strip and add up the rectangles.</p>
-  <div class="formula">$$S_n = \sum_{i=1}^{n} f(x_i)\,\Delta x$$</div>
-  <p>The sample point $x_i$ can be the left edge, the right edge or the middle of each strip. For a rising curve the left rule underestimates and the right rule overestimates. The midpoint rule usually does better because the errors partly cancel.</p>
+  <p>The area of a rectangle is width times height. For a curve, cut the interval $[a, b]$ into $n$ strips of width $\Delta x = \frac{b-a}{n}$. Pretend the curve is flat across each strip and add up the rectangles. That total is a Riemann sum.</p>
+  <div class="formula">$$S_n = \sum_{i=1}^{n} f(x_i^*)\,\Delta x$$</div>
+  <p>The sample point $x_i^*$ can be the left edge, the right edge or the middle of each strip. Take $f(x) = x^2$ on $[0, 3]$ with $n = 3$, so $\Delta x = 1$:</p>
+  <ul class="tight">
+    <li>Left: $(0^2 + 1^2 + 2^2) \cdot 1 = 5$. Too low, because the curve rises across each strip.</li>
+    <li>Right: $(1^2 + 2^2 + 3^2) \cdot 1 = 14$. Too high, for the same reason.</li>
+    <li>Midpoint: $(0.5^2 + 1.5^2 + 2.5^2) \cdot 1 = 8.75$. Much closer, because the over- and under-shoot inside each strip partly cancel.</li>
+  </ul>
+  <p>The exact answer is $9$. Set $n = 3$ in the lab to see these three rectangles.</p>
 </section>
 
 <section>
   <h2>2. The definition</h2>
-  <p>Let the strips get thinner without limit. If the sums settle on one number, that number is the definite integral.</p>
-  <div class="formula">$$\int_a^b f(x)\,dx = \lim_{n \to \infty} \sum_{i=1}^{n} f(x_i)\,\Delta x$$</div>
-  <p>The symbol $\int$ is a stretched S for "sum". $dx$ is what $\Delta x$ becomes: a width too small to measure. Where $f$ dips below the axis the area counts as negative, so the integral is a <b>signed</b> area.</p>
+  <p>Let the strips get thinner without limit. If the sums settle on one number, whatever sample points you use, that number is the definite integral.</p>
+  <div class="formula">$$\int_a^b f(x)\,dx = \lim_{n \to \infty} \sum_{i=1}^{n} f(x_i^*)\,\Delta x$$</div>
+  <p>The symbol $\int$ is a stretched S for "sum". $dx$ is what $\Delta x$ becomes: a width too small to measure. $f(x)$ is the integrand, $a$ and $b$ are the limits of integration. Every continuous function on a closed interval is integrable, and so is a function with finitely many jumps.</p>
+  <h3>Doing the limit once by hand</h3>
+  <p>For $x^2$ on $[0, 3]$ with right endpoints, $x_i = \frac{3i}{n}$ and $\Delta x = \frac{3}{n}$. Using $\sum_{i=1}^n i^2 = \frac{n(n+1)(2n+1)}{6}$:</p>
+  <div class="formula">$$S_n = \sum_{i=1}^{n} \frac{9 i^2}{n^2} \cdot \frac{3}{n} = \frac{27}{n^3} \cdot \frac{n(n+1)(2n+1)}{6} = \frac{9}{2}\left(1 + \frac{1}{n}\right)\left(2 + \frac{1}{n}\right) \;\longrightarrow\; 9$$</div>
+  <p>It works, but it needed a special summation formula. Section 4 shows a shortcut that avoids sums entirely.</p>
+  <h3>Signed area</h3>
+  <p>Where $f$ dips below the axis, $f(x_i^*)\,\Delta x$ is negative, so that area counts against the total. Pick "sin x" in the lab: from $0$ to $\pi$ the area is $+2$, from $\pi$ to $2\pi$ it is $-2$. Over a full period the integral is $0$, even though plenty of ink was drawn. For the geometric area, integrate $|f|$ instead.</p>
   <div class="callout">An integral is a limit of sums, the same limit idea from the first guide.</div>
 </section>
 
 <section>
-  <h2>3. The Fundamental Theorem</h2>
-  <p>Computing a limit of sums is slow. The shortcut is to find an <b>antiderivative</b> $F$, a function with $F' = f$. Then the total accumulated change is the difference of $F$ at the ends.</p>
-  <div class="formula">$$\int_a^b f(x)\,dx = F(b) - F(a)$$</div>
-  <p>Example with $f(x) = x^2$ on $[0, 3]$. An antiderivative is $F(x) = \frac{x^3}{3}$, so the area is $\frac{27}{3} - 0 = 9$. Choose $x^2$ in the lab above and watch the sums head toward $9$.</p>
+  <h2>3. The accumulation function</h2>
+  <p>Fix the left end $a$ and let the right end move. The area so far becomes a function of where you stop:</p>
+  <div class="formula">$$A(x) = \int_a^x f(t)\,dt$$</div>
+  <p>The lower plot in Fig 1 draws $A$. How fast does it grow? Push $x$ a little to $x + h$. The extra area is a thin strip of width $h$ and height about $f(x)$, so $A(x + h) - A(x) \approx f(x)\,h$. Divide by $h$ and let $h \to 0$:</p>
+  <div class="formula">$$A'(x) = f(x)$$</div>
+  <p>That is the first part of the Fundamental Theorem of Calculus. The rate at which area accumulates is the height of the curve. In the lab, where $f$ is tall, $A$ climbs steeply. Where $f$ crosses zero, $A$ is flat at a peak or valley. Where $f$ is negative, $A$ goes down.</p>
+</section>
+
+<section>
+  <h2>4. The Fundamental Theorem</h2>
+  <p>An <b>antiderivative</b> of $f$ is any function $F$ with $F' = f$. Section 3 shows $A$ is one of them. Any two antiderivatives differ by a constant (their difference has derivative zero), so $F = A + C$ for some $C$. Since $A(a) = 0$:</p>
+  <div class="formula">$$\int_a^b f(x)\,dx = A(b) = F(b) - F(a)$$</div>
+  <p>That is the second part, and it is the shortcut. No sums, no limits: find any antiderivative and subtract its values at the ends. People write the subtraction as $\big[F(x)\big]_a^b$.</p>
+  <div class="steps"><ol>
+    <li>$\int_0^3 x^2\,dx = \left[\frac{x^3}{3}\right]_0^3 = 9 - 0 = 9$. Same as the limit of sums, in one line.</li>
+    <li>$\int_0^\pi \sin x\,dx = \big[-\cos x\big]_0^\pi = 1 - (-1) = 2$.</li>
+    <li>$\int_1^e \frac{1}{x}\,dx = \big[\ln x\big]_1^e = 1 - 0 = 1$.</li>
+    <li>$\int_0^4 \sqrt{x}\,dx = \left[\frac{2}{3} x^{3/2}\right]_0^4 = \frac{16}{3} \approx 5.333$.</li>
+  </ol></div>
 
   <div class="fig">
     <div class="scroll">
@@ -177,37 +226,145 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
     </div>
     <p class="cap">Fig 2 · Two inverse operations. The constant $C$ disappears in $F(b) - F(a)$.</p>
   </div>
+  <p>The indefinite integral $\int f(x)\,dx = F(x) + C$ names the whole family of antiderivatives. The definite integral $\int_a^b f(x)\,dx$ is a single number.</p>
 </section>
 
 <section>
-  <h2>4. Common antiderivatives</h2>
+  <h2>5. Common antiderivatives</h2>
   <table class="ops">
     <thead><tr><th>$f(x)$</th><th>$\int f(x)\,dx$</th></tr></thead>
     <tbody>
       <tr><td>$x^n$, $n \ne -1$</td><td>$\frac{x^{n+1}}{n+1} + C$</td></tr>
       <tr><td>$\frac{1}{x}$</td><td>$\ln|x| + C$</td></tr>
-      <tr><td>$e^x$</td><td>$e^x + C$</td></tr>
+      <tr><td>$e^x$, $a^x$</td><td>$e^x + C$, $\frac{a^x}{\ln a} + C$</td></tr>
       <tr><td>$\sin x$</td><td>$-\cos x + C$</td></tr>
       <tr><td>$\cos x$</td><td>$\sin x + C$</td></tr>
-      <tr><td>$\sqrt{x}$</td><td>$\frac{2}{3} x^{3/2} + C$</td></tr>
+      <tr><td>$\frac{1}{\cos^2 x}$</td><td>$\tan x + C$</td></tr>
+      <tr><td>$\frac{1}{1 + x^2}$</td><td>$\arctan x + C$</td></tr>
+      <tr><td>$\frac{1}{\sqrt{1 - x^2}}$</td><td>$\arcsin x + C$</td></tr>
     </tbody>
   </table>
   <p>Every row is a derivative rule read backwards. Check any of them by differentiating the right column.</p>
 </section>
 
 <section>
-  <h2>5. Properties</h2>
+  <h2>6. Properties</h2>
   <div class="cards">
     <div class="stat focal"><div class="eyebrow">Linear</div><div class="big">split</div><p>$\int (c f + g) = c \int f + \int g$</p></div>
-    <div class="stat"><div class="eyebrow">Additive</div><div class="big">join</div><p>$\int_a^b + \int_b^c = \int_a^c$</p></div>
-    <div class="stat"><div class="eyebrow">Reversal</div><div class="big">flip</div><p>$\int_b^a f = -\int_a^b f$</p></div>
+    <div class="stat"><div class="eyebrow">Additive</div><div class="big">join</div><p>$\int_a^b f + \int_b^c f = \int_a^c f$</p></div>
+    <div class="stat"><div class="eyebrow">Reversal</div><div class="big">flip</div><p>$\int_b^a f = -\int_a^b f$, and $\int_a^a f = 0$</p></div>
   </div>
-  <p style="margin-top:20px">One technique worth knowing early is substitution, the chain rule in reverse. For $\int 2x \cos(x^2)\,dx$, let $u = x^2$, so $du = 2x\,dx$. The integral becomes $\int \cos u\,du = \sin(x^2) + C$.</p>
+  <ul class="tight" style="margin-top:20px">
+    <li><b>Comparison.</b> If $f \le g$ on $[a, b]$, then $\int_a^b f \le \int_a^b g$.</li>
+    <li><b>Symmetry.</b> If $f$ is odd, $\int_{-c}^{c} f = 0$. If $f$ is even, $\int_{-c}^{c} f = 2\int_0^c f$.</li>
+    <li><b>Average value.</b> The mean height of $f$ on $[a, b]$ is $\bar f = \frac{1}{b - a}\int_a^b f(x)\,dx$. For a continuous $f$, some point $c$ in the interval has $f(c) = \bar f$.</li>
+  </ul>
 </section>
 
 <section>
-  <h2>6. Beyond area</h2>
-  <p>Integrals accumulate any rate. Add up speed over time to get distance. Add up density over a length to get mass. Add up probability density over a range to get a probability. Whenever you see "total from a rate", think integral.</p>
+  <h2>7. Techniques</h2>
+  <p>Differentiation is mechanical: every formula has a derivative you can compute by rules. Integration is not. Each technique below is a derivative rule run in reverse.</p>
+  <h3>Substitution (reverse chain rule)</h3>
+  <p>For $\int 2x \cos(x^2)\,dx$, let $u = x^2$, so $du = 2x\,dx$. The integral becomes $\int \cos u\,du = \sin u + C = \sin(x^2) + C$. With limits, change them along with the variable:</p>
+  <div class="formula">$$\int_0^{\sqrt{\pi}} 2x \cos(x^2)\,dx = \int_0^{\pi} \cos u\,du = \big[\sin u\big]_0^{\pi} = 0$$</div>
+  <h3>Integration by parts (reverse product rule)</h3>
+  <p>From $(uv)' = u'v + uv'$, integrate both sides and rearrange:</p>
+  <div class="formula">$$\int u\,dv = uv - \int v\,du$$</div>
+  <div class="steps"><ol>
+    <li>$\int x e^x\,dx$: take $u = x$, $dv = e^x dx$, so $du = dx$, $v = e^x$. Result: $x e^x - \int e^x dx = (x - 1)e^x + C$.</li>
+    <li>$\int \ln x\,dx$: take $u = \ln x$, $dv = dx$. Result: $x \ln x - \int x \cdot \frac{1}{x} dx = x\ln x - x + C$.</li>
+  </ol></div>
+  <h3>Partial fractions</h3>
+  <p>Split a rational function into simple pieces: $\frac{1}{x^2 - 1} = \frac{1}{2}\left(\frac{1}{x - 1} - \frac{1}{x + 1}\right)$, so $\int \frac{dx}{x^2 - 1} = \frac{1}{2}\ln\left|\frac{x - 1}{x + 1}\right| + C$.</p>
+  <h3>When no formula exists</h3>
+  <p>Some simple integrands have no antiderivative made of elementary functions. $e^{-x^2}$, the bell curve, is the famous one. Its integral is given a name (the error function, $\operatorname{erf}$) and computed numerically. The lab's "e^(−x²)" option uses a high-accuracy numeric value as its exact answer for that reason.</p>
+</section>
+
+<section>
+  <h2>8. Numerical integration</h2>
+  <p>When the antiderivative is unknown or the function is only known from data, approximate. Better rules fit the curve better inside each strip.</p>
+  <table class="ops">
+    <thead><tr><th>Rule</th><th>Fit inside a strip</th><th>Error for smooth f</th><th>Doubling n divides error by</th></tr></thead>
+    <tbody>
+      <tr><td>Left, right</td><td>constant</td><td>$O(1/n)$</td><td>about 2</td></tr>
+      <tr><td>Midpoint</td><td>constant at the middle</td><td>$O(1/n^2)$</td><td>about 4</td></tr>
+      <tr><td>Trapezoid</td><td>straight line</td><td>$O(1/n^2)$</td><td>about 4</td></tr>
+      <tr><td>Simpson</td><td>parabola through 3 points</td><td>$O(1/n^4)$</td><td>about 16</td></tr>
+    </tbody>
+  </table>
+  <p>The convergence table in the lab shows these ratios live. The midpoint error is about half the trapezoid error and has the opposite sign, which is why Simpson's rule, a weighted mix $\frac{2}{3}M + \frac{1}{3}T$, cancels so much of both.</p>
+  <div class="formula">$$\text{Simpson: } \int_a^b f \approx \frac{\Delta x}{3}\Big[f(x_0) + 4f(x_1) + 2f(x_2) + 4f(x_3) + \cdots + 4f(x_{n-1}) + f(x_n)\Big]$$</div>
+  <p>Simpson's rule needs an even $n$, so the lab rounds $n$ up. Try $\sqrt{x}$ starting at $0$: its slope is infinite there, the "smooth $f$" assumption breaks, and every rule converges more slowly than the table promises.</p>
+</section>
+
+<section>
+  <h2>9. Improper integrals</h2>
+  <p>An integral over an infinite range, or of a function that blows up, is defined as a limit of ordinary integrals. It converges if that limit is finite.</p>
+  <table class="ops">
+    <thead><tr><th>Integral</th><th>Computation</th><th>Result</th></tr></thead>
+    <tbody>
+      <tr><td>$\int_1^\infty \frac{dx}{x^2}$</td><td>$\lim_{b \to \infty}\left(1 - \frac{1}{b}\right)$</td><td>$1$</td></tr>
+      <tr><td>$\int_1^\infty \frac{dx}{x}$</td><td>$\lim_{b \to \infty} \ln b$</td><td>diverges</td></tr>
+      <tr><td>$\int_0^1 \frac{dx}{\sqrt{x}}$</td><td>$\lim_{a \to 0^+} (2 - 2\sqrt{a})$</td><td>$2$</td></tr>
+      <tr><td>$\int_{-\infty}^{\infty} e^{-x^2} dx$</td><td>a trick with polar coordinates</td><td>$\sqrt{\pi}$</td></tr>
+    </tbody>
+  </table>
+  <p>The contrast between $\frac{1}{x^2}$ and $\frac{1}{x}$ matters. Both go to zero, but $\frac{1}{x}$ does it too slowly for the total to stay finite. The same line separates convergent from divergent series.</p>
+</section>
+
+<section>
+  <h2>10. Beyond area</h2>
+  <p>Integrals accumulate any rate. Whenever you see "total from a rate" or "sum of many small contributions", think integral.</p>
+  <table class="ops">
+    <thead><tr><th>Quantity</th><th>Integral</th></tr></thead>
+    <tbody>
+      <tr><td>Distance from velocity</td><td>$\int_{t_0}^{t_1} v(t)\,dt$</td></tr>
+      <tr><td>Volume of revolution</td><td>$\int_a^b \pi f(x)^2\,dx$. For $f = \sqrt{r^2 - x^2}$ on $[-r, r]$: $\frac{4}{3}\pi r^3$</td></tr>
+      <tr><td>Probability</td><td>$P(a \le X \le b) = \int_a^b p(x)\,dx$</td></tr>
+      <tr><td>Expected value</td><td>$\mathbb{E}[X] = \int x\,p(x)\,dx$</td></tr>
+      <tr><td>Work by a variable force</td><td>$\int_a^b F(x)\,dx$</td></tr>
+      <tr><td>Arc length</td><td>$\int_a^b \sqrt{1 + f'(x)^2}\,dx$</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>11. The same thing in code</h2>
+  <pre><span class="k">function</span> trapezoid(f, a, b, n) {
+  <span class="k">const</span> h = (b - a) / n;
+  <span class="k">let</span> s = (f(a) + f(b)) / <span class="t">2</span>;
+  <span class="k">for</span> (<span class="k">let</span> i = <span class="t">1</span>; i &lt; n; i++) s += f(a + i * h);
+  <span class="k">return</span> s * h;
+}
+
+<span class="k">function</span> simpson(f, a, b, n) {       <span class="c">// n must be even</span>
+  <span class="k">const</span> h = (b - a) / n;
+  <span class="k">let</span> s = f(a) + f(b);
+  <span class="k">for</span> (<span class="k">let</span> i = <span class="t">1</span>; i &lt; n; i++) s += (i % <span class="t">2</span> ? <span class="t">4</span> : <span class="t">2</span>) * f(a + i * h);
+  <span class="k">return</span> s * h / <span class="t">3</span>;
+}
+
+<span class="c">// exact: integral of sin from 0 to pi = 2</span>
+trapezoid(Math.sin, <span class="t">0</span>, Math.PI, <span class="t">10</span>);  <span class="c">// 1.98352  error -1.6e-2</span>
+simpson(Math.sin, <span class="t">0</span>, Math.PI, <span class="t">10</span>);    <span class="c">// 2.00011  error  1.1e-4</span>
+simpson(x =&gt; Math.exp(-x * x), <span class="t">0</span>, <span class="t">2</span>, <span class="t">4000</span>);  <span class="c">// 0.8820813907624  (no closed form needed)</span></pre>
+  <p>Same number of function calls, a hundred times less error. Production libraries go further with adaptive rules that add strips only where the curve is hard, and Gaussian quadrature, which picks the sample points themselves for maximum accuracy.</p>
+</section>
+
+<section>
+  <h2>12. Common mistakes</h2>
+  <ul class="tight">
+    <li>Dropping $+ C$ on an indefinite integral. It matters when you solve for a function from its rate and an initial value.</li>
+    <li>Using $\frac{x^{n+1}}{n+1}$ for $n = -1$. It divides by zero; the answer is $\ln|x|$.</li>
+    <li>Forgetting to change the limits after a substitution, or to substitute back.</li>
+    <li>Reading a signed integral as an area. $\int_0^{2\pi} \sin x\,dx = 0$, but the shaded area is $4$.</li>
+    <li>Integrating straight across a blow-up. $\int_{-1}^{1} \frac{dx}{x^2}$ is not $-2$: the integrand is infinite at $0$ and the integral diverges.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>13. Next</h2>
+  <p>With limits, derivatives and integrals in hand, the Taylor Series guide shows how derivatives at one point rebuild a whole function, and why integrals of series are often easier than integrals of the function itself.</p>
 </section>
 
 </main>
@@ -215,86 +372,189 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
 <script>
 (function () {
   var NSV = 'http://www.w3.org/2000/svg';
-  var W = 560, H = 400, M = 36;
+  var W = 560, M = 36, TOP = [16, 336], BOT = [376, 524];
   var $ = function (s) { return document.querySelector(s); };
 
+  function simpsonRaw(f, a, b, n) {
+    var h = (b - a) / n, s = f(a) + f(b);
+    for (var i = 1; i < n; i++) s += (i % 2 ? 4 : 2) * f(a + i * h);
+    return s * h / 3;
+  }
+  var gauss = function (x) { return Math.exp(-x * x); };
+  // dom: allowed range for a and b; F: antiderivative (null means use a fine numeric reference)
   var FNS = [
-    { name: '∫₀³ x² dx', f: function (x) { return x * x; }, F: function (x) { return x * x * x / 3; }, a: 0, b: 3, view: [-0.5, 3.5, -1, 10] },
-    { name: '∫₀^π (1 + sin x) dx', f: function (x) { return 1 + Math.sin(x); }, F: function (x) { return x - Math.cos(x); }, a: 0, b: Math.PI, view: [-0.5, 3.8, -0.5, 2.5] },
-    { name: '∫₀⁴ √x dx', f: Math.sqrt, F: function (x) { return 2 / 3 * Math.pow(x, 1.5); }, a: 0, b: 4, view: [-0.5, 4.5, -0.5, 3] }
+    { name: 'f(x) = x²', f: function (x) { return x * x; }, F: function (x) { return x * x * x / 3; }, dom: [-1, 3], a: 0, b: 3, yv: [-1, 10] },
+    { name: 'f(x) = 1 + sin x', f: function (x) { return 1 + Math.sin(x); }, F: function (x) { return x - Math.cos(x); }, dom: [0, 2 * Math.PI], a: 0, b: Math.PI, yv: [-0.5, 2.5] },
+    { name: 'f(x) = √x', f: Math.sqrt, F: function (x) { return 2 / 3 * Math.pow(x, 1.5); }, dom: [0, 4], a: 0, b: 4, yv: [-0.5, 2.5] },
+    { name: 'f(x) = sin x', f: Math.sin, F: function (x) { return -Math.cos(x); }, dom: [0, 2 * Math.PI], a: 0, b: 4.5, yv: [-1.5, 1.5] },
+    { name: 'f(x) = e^(−x²)', f: gauss, F: null, dom: [-2.5, 2.5], a: 0, b: 2, yv: [-0.3, 1.3] }
   ];
   var cur = 0, method = 'left';
 
+  function exactInt(F, a, b) { return F.F ? F.F(b) - F.F(a) : simpsonRaw(F.f, a, b, 4000); }
+  function rule(f, a, b, n, m) {
+    var h = (b - a) / n, s = 0, i;
+    if (m === 'simp') return simpsonRaw(f, a, b, n);
+    if (m === 'trap') { s = (f(a) + f(b)) / 2; for (i = 1; i < n; i++) s += f(a + i * h); return s * h; }
+    for (i = 0; i < n; i++) s += f(a + (i + (m === 'left' ? 0 : m === 'right' ? 1 : 0.5)) * h);
+    return s * h;
+  }
   function el(n, attrs, parent) {
     var e = document.createElementNS(NSV, n);
     for (var k in attrs) e.setAttribute(k, attrs[k]);
     if (parent) parent.appendChild(e);
     return e;
   }
-  function f5(v) { return v.toFixed(5); }
+  function text(g, x, y, s, anchor, extra) {
+    var a = { x: x, y: y, 'text-anchor': anchor || 'middle', 'font-size': 10, fill: '#5a6580', 'font-family': 'Geist Mono, monospace' };
+    for (var k in extra) a[k] = extra[k];
+    var t = el('text', a, g); t.textContent = s; return t;
+  }
+  function f5(v) { return (Math.abs(v) < 5e-11 ? 0 : v).toFixed(5); }
+  function fe(v) { var a = Math.abs(v); return a === 0 ? '0' : (a < 1e-3 ? v.toExponential(2) : v.toFixed(5)); }
+
+  function bounds() {
+    var F = FNS[cur], lo = F.dom[0], hi = F.dom[1];
+    var a = lo + (hi - lo) * +$('#inA').value / 100, b = lo + (hi - lo) * +$('#inB').value / 100;
+    return [a, b];
+  }
+  function setDefaults() {
+    var F = FNS[cur], lo = F.dom[0], hi = F.dom[1];
+    $('#inA').value = Math.round((F.a - lo) / (hi - lo) * 100);
+    $('#inB').value = Math.round((F.b - lo) / (hi - lo) * 100);
+  }
 
   function render() {
-    var F = FNS[cur], v = F.view;
+    var F = FNS[cur];
+    var ab = bounds(), a = Math.min(ab[0], ab[1]), b = Math.max(ab[0], ab[1]);
+    if (b - a < 0.05) { b = Math.min(F.dom[1], a + 0.05); a = b - 0.05; }
     var n = +$('#inN').value;
+    if (method === 'simp' && n % 2) n += 1;
+    var pad = (F.dom[1] - F.dom[0]) * 0.08, v = [F.dom[0] - pad, F.dom[1] + pad, F.yv[0], F.yv[1]];
     var svg = $('#plot');
     Array.prototype.slice.call(svg.querySelectorAll('.dyn')).forEach(function (e) { e.remove(); });
     var g = el('g', { 'class': 'dyn' }, svg);
     var X = function (x) { return M + (x - v[0]) / (v[1] - v[0]) * (W - 2 * M); };
-    var Y = function (y) { return H - M - (y - v[2]) / (v[3] - v[2]) * (H - 2 * M); };
+    var Y = function (y) { return TOP[1] - (y - v[2]) / (v[3] - v[2]) * (TOP[1] - TOP[0]); };
 
-    for (var gx = Math.ceil(v[0]); gx <= v[1]; gx++) {
-      el('line', { x1: X(gx), x2: X(gx), y1: Y(v[2]), y2: Y(v[3]), stroke: gx === 0 ? '#2d3142' : 'rgba(45,49,66,.1)' }, g);
-      var t = el('text', { x: X(gx), y: H - M + 16, 'text-anchor': 'middle', 'font-size': 10, fill: '#5a6580', 'font-family': 'Geist Mono, monospace' }, g); t.textContent = gx;
+    // accumulation range for lower plot
+    var NA = 200, Avals = [], Amin = 0, Amax = 0;
+    for (var k = 0; k <= NA; k++) {
+      var xk = a + (b - a) * k / NA, Ak = exactInt(F, a, xk);
+      Avals.push([xk, Ak]); Amin = Math.min(Amin, Ak); Amax = Math.max(Amax, Ak);
     }
-    for (var gy = Math.ceil(v[2]); gy <= v[3]; gy++) {
-      el('line', { x1: X(v[0]), x2: X(v[1]), y1: Y(gy), y2: Y(gy), stroke: gy === 0 ? '#2d3142' : 'rgba(45,49,66,.1)' }, g);
-      var t2 = el('text', { x: M - 6, y: Y(gy) + 3, 'text-anchor': 'end', 'font-size': 10, fill: '#5a6580', 'font-family': 'Geist Mono, monospace' }, g); t2.textContent = gy;
+    var spanA = Math.max(Amax - Amin, 0.5); Amin -= spanA * 0.12; Amax += spanA * 0.12;
+    var Yd = function (y) { return BOT[1] - (y - Amin) / (Amax - Amin) * (BOT[1] - BOT[0]); };
+
+    // grid
+    var stepX = v[1] - v[0] > 5 ? 1 : 0.5;
+    for (var gx = Math.ceil(v[0] / stepX) * stepX; gx <= v[1]; gx += stepX) {
+      var isZ = Math.abs(gx) < 1e-9;
+      el('line', { x1: X(gx), x2: X(gx), y1: TOP[0], y2: TOP[1], stroke: isZ ? '#2d3142' : 'rgba(45,49,66,.1)' }, g);
+      el('line', { x1: X(gx), x2: X(gx), y1: BOT[0], y2: BOT[1], stroke: isZ ? '#2d3142' : 'rgba(45,49,66,.1)' }, g);
+      if (Math.abs(gx - Math.round(gx)) < 1e-9) text(g, X(gx), BOT[1] + 16, Math.round(gx));
+    }
+    var stepY = v[3] - v[2] > 6 ? 2 : (v[3] - v[2] > 2.5 ? 1 : 0.5);
+    for (var gy = Math.ceil(v[2] / stepY) * stepY; gy <= v[3]; gy += stepY) {
+      el('line', { x1: X(v[0]), x2: X(v[1]), y1: Y(gy), y2: Y(gy), stroke: Math.abs(gy) < 1e-9 ? '#2d3142' : 'rgba(45,49,66,.1)' }, g);
+      text(g, M - 6, Y(gy) + 3, +gy.toFixed(1), 'end');
+    }
+    el('rect', { x: M, y: BOT[0], width: W - 2 * M, height: BOT[1] - BOT[0], fill: 'none', stroke: 'rgba(45,49,66,.15)' }, g);
+    if (Amin < 0 && Amax > 0) el('line', { x1: X(v[0]), x2: X(v[1]), y1: Yd(0), y2: Yd(0), stroke: '#2d3142' }, g);
+    text(g, M + 6, BOT[0] + 14, 'A(x) = ∫ from a to x of f', 'start', { 'font-size': 11, fill: '#2d3142' });
+
+    // shapes
+    var c = el('g', { 'clip-path': 'url(#clipTop)' }, g);
+    var dx = (b - a) / n, f = F.f, thin = n > 40 ? 0.4 : 1;
+    var fillFor = function (h) { return h >= 0 ? 'rgba(46,90,168,.22)' : 'rgba(191,69,32,.22)'; };
+    var strokeFor = function (h) { return h >= 0 ? '#2e5aa8' : '#bf4520'; };
+    var i, x0;
+    if (method === 'trap') {
+      for (i = 0; i < n; i++) {
+        x0 = a + i * dx; var y0 = f(x0), y1 = f(x0 + dx), avg = (y0 + y1) / 2;
+        el('path', { d: 'M' + X(x0) + ' ' + Y(0) + ' L' + X(x0) + ' ' + Y(y0) + ' L' + X(x0 + dx) + ' ' + Y(y1) + ' L' + X(x0 + dx) + ' ' + Y(0) + ' Z', fill: fillFor(avg), stroke: strokeFor(avg), 'stroke-width': thin }, c);
+      }
+    } else if (method === 'simp') {
+      for (i = 0; i < n; i += 2) {
+        x0 = a + i * dx; var xm = x0 + dx, x2 = x0 + 2 * dx, p0 = f(x0), pm = f(xm), p2 = f(x2);
+        var q = function (x) { // parabola through the three nodes
+          return p0 * (x - xm) * (x - x2) / ((x0 - xm) * (x0 - x2)) + pm * (x - x0) * (x - x2) / ((xm - x0) * (xm - x2)) + p2 * (x - x0) * (x - xm) / ((x2 - x0) * (x2 - xm));
+        };
+        var dpath = 'M' + X(x0) + ' ' + Y(0);
+        for (var s = 0; s <= 16; s++) { var xs = x0 + 2 * dx * s / 16; dpath += ' L' + X(xs).toFixed(1) + ' ' + Y(q(xs)).toFixed(1); }
+        dpath += ' L' + X(x2) + ' ' + Y(0) + ' Z';
+        el('path', { d: dpath, fill: fillFor(pm), stroke: strokeFor(pm), 'stroke-width': thin }, c);
+        [x0, xm, x2].forEach(function (xx) { if (n <= 30) el('circle', { cx: X(xx), cy: Y(f(xx)), r: 2.5, fill: '#2e5aa8' }, c); });
+      }
+    } else {
+      for (i = 0; i < n; i++) {
+        x0 = a + i * dx;
+        var xsamp = method === 'left' ? x0 : method === 'right' ? x0 + dx : x0 + dx / 2, hgt = f(xsamp);
+        el('rect', { x: X(x0), y: Y(Math.max(hgt, 0)), width: Math.max(X(x0 + dx) - X(x0), 0.5), height: Math.abs(Y(hgt) - Y(0)), fill: fillFor(hgt), stroke: strokeFor(hgt), 'stroke-width': thin }, c);
+        if (n <= 30) el('circle', { cx: X(xsamp), cy: Y(hgt), r: 2.5, fill: '#2e5aa8' }, c);
+      }
     }
 
-    var dx = (F.b - F.a) / n, sum = 0;
-    for (var i = 0; i < n; i++) {
-      var x0 = F.a + i * dx;
-      var xs = method === 'left' ? x0 : method === 'right' ? x0 + dx : x0 + dx / 2;
-      var h = F.f(xs);
-      sum += h * dx;
-      el('rect', { x: X(x0), y: Y(Math.max(h, 0)), width: Math.max(X(x0 + dx) - X(x0), 0.5), height: Math.abs(Y(h) - Y(0)), fill: 'rgba(46,90,168,.22)', stroke: '#2e5aa8', 'stroke-width': n > 40 ? 0.4 : 1 }, g);
-    }
-
-    var d = '', pts = 300;
+    // curve over the whole domain, bounds markers
+    var d = '', pts = 400;
     for (var j = 0; j <= pts; j++) {
-      var x = F.a + (F.b - F.a) * j / pts;
-      d += (j ? ' L' : 'M') + X(x).toFixed(1) + ' ' + Y(F.f(x)).toFixed(1);
+      var x = F.dom[0] + (F.dom[1] - F.dom[0]) * j / pts;
+      d += (j ? ' L' : 'M') + X(x).toFixed(1) + ' ' + Y(f(x)).toFixed(1);
     }
-    el('path', { d: d, fill: 'none', stroke: '#2d3142', 'stroke-width': 2.4 }, g);
+    el('path', { d: d, fill: 'none', stroke: '#2d3142', 'stroke-width': 2.4 }, c);
+    [[a, 'a'], [b, 'b']].forEach(function (p) {
+      el('line', { x1: X(p[0]), x2: X(p[0]), y1: TOP[0], y2: BOT[1], stroke: '#4f5d75', 'stroke-dasharray': '3 3', opacity: 0.6 }, g);
+      text(g, X(p[0]) + 4, TOP[1] - 6, p[1], 'start', { 'font-size': 11, fill: '#2d3142' });
+    });
 
-    var exact = F.F(F.b) - F.F(F.a), err = sum - exact;
+    // accumulation curve, its end value and tangent slope = f(b)
+    var cb = el('g', { 'clip-path': 'url(#clipBot)' }, g), dA = '';
+    Avals.forEach(function (p, idx) { dA += (idx ? ' L' : 'M') + X(p[0]).toFixed(1) + ' ' + Yd(p[1]).toFixed(1); });
+    el('path', { d: dA, fill: 'none', stroke: '#2d3142', 'stroke-width': 1.8, 'stroke-dasharray': '5 4' }, cb);
+    var exact = Avals[NA][1], fb = f(b), span = (v[1] - v[0]) * 0.12;
+    el('line', { x1: X(b - span), y1: Yd(exact - fb * span), x2: X(b + span), y2: Yd(exact + fb * span), stroke: '#bf4520', 'stroke-width': 2 }, cb);
+    el('circle', { cx: X(b), cy: Yd(exact), r: 5, fill: '#bf4520' }, cb);
+
+    var sum = rule(f, a, b, n, method), err = sum - exact;
+    var names = { left: 'left endpoints', right: 'right endpoints', mid: 'midpoints', trap: 'trapezoids', simp: 'Simpson parabolas' };
     $('#outN').textContent = n;
+    $('#outA').textContent = a.toFixed(2);
+    $('#outB').textContent = b.toFixed(2);
     $('#fnTitle').textContent = F.name;
-    $('#live').textContent = 'sum = ' + sum.toFixed(4);
+    $('#live').textContent = 'estimate = ' + f5(sum);
     $('#readout').textContent =
-      'rule   = ' + method + '\n' +
-      'n      = ' + n + '\n' +
-      'Δx     = ' + f5(dx) + '\n' +
-      'sum    = ' + f5(sum) + '\n' +
-      'exact  = ' + f5(exact) + '\n' +
-      'error  = ' + (err >= 0 ? '+' : '') + f5(err);
+      'rule      = ' + names[method] + '\n' +
+      'n         = ' + n + (method === 'simp' && +$('#inN').value % 2 ? '  (rounded up to even)' : '') + '   Δx = ' + f5(dx) + '\n' +
+      'estimate  = ' + f5(sum) + '\n' +
+      'exact     = ' + f5(exact) + (F.F ? '   F(b) − F(a)' : '   numeric, no elementary F') + '\n' +
+      'error     = ' + (err >= 0 ? '+' : '') + fe(err) + '\n' +
+      'slope of A at b = f(b) = ' + f5(fb);
+
+    var rows = '', prev = null;
+    [4, 8, 16, 32, 64].forEach(function (nn) {
+      var e = Math.abs(rule(f, a, b, nn, method) - exact);
+      rows += '<tr><td>' + nn + '</td><td>' + (e < 1e-13 ? '≈ 0' : e.toExponential(2)) + '</td><td>' + (prev !== null && e > 1e-13 ? (prev / e).toFixed(1) + '×' : '—') + '</td></tr>';
+      prev = e;
+    });
+    $('#convBody').innerHTML = rows;
   }
 
-  Array.prototype.forEach.call(document.querySelectorAll('[data-fn]'), function (b) {
-    b.addEventListener('click', function () {
-      cur = +b.dataset.fn;
-      Array.prototype.forEach.call(document.querySelectorAll('[data-fn]'), function (o) { o.setAttribute('aria-pressed', o === b); });
-      render();
+  function wireSeg(attr, set) {
+    var btns = document.querySelectorAll('[' + attr + ']');
+    Array.prototype.forEach.call(btns, function (bt) {
+      bt.addEventListener('click', function () {
+        set(bt.getAttribute(attr));
+        Array.prototype.forEach.call(btns, function (o) { o.setAttribute('aria-pressed', o === bt ? 'true' : 'false'); });
+        render();
+      });
     });
-  });
-  Array.prototype.forEach.call(document.querySelectorAll('[data-m]'), function (b) {
-    b.addEventListener('click', function () {
-      method = b.dataset.m;
-      Array.prototype.forEach.call(document.querySelectorAll('[data-m]'), function (o) { o.setAttribute('aria-pressed', o === b); });
-      render();
-    });
-  });
-  $('#inN').addEventListener('input', render);
+  }
+  wireSeg('data-fn', function (v) { cur = +v; setDefaults(); });
+  wireSeg('data-m', function (v) { method = v; });
+  ['#inN', '#inA', '#inB'].forEach(function (id) { $(id).addEventListener('input', render); });
+  $('#inA').addEventListener('change', function () { if (+$('#inA').value > +$('#inB').value) { var t = $('#inA').value; $('#inA').value = $('#inB').value; $('#inB').value = t; render(); } });
+  $('#inB').addEventListener('change', function () { if (+$('#inA').value > +$('#inB').value) { var t = $('#inA').value; $('#inA').value = $('#inB').value; $('#inB').value = t; render(); } });
+  setDefaults();
   render();
 })();
 </script>
