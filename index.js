@@ -1196,6 +1196,17 @@ const DOCS = [
     summary: 'Test whether a strategy\'s mean return is really above zero with a t-test, then run hundreds of strategies with no edge at all and watch five percent of them pass by luck.',
     related: ['Law of Large Numbers and the CLT', 'Maximum Likelihood Estimation', 'Backtesting Without Look-Ahead', 'Walk-Forward and Purged Cross-Validation'],
   },
+  {
+    title: 'Returns, Compounding and Time Value',
+    path: 'content/quant/returns-compounding/returns-compounding.html',
+    category: 'Quant',
+    topic: 'Markets and derivatives',
+    order: 6,
+    level: 'Beginner',
+    tags: ['returns', 'compounding', 'log returns', 'time value of money', 'discounting', 'present value', 'volatility drag', 'finance'],
+    summary: 'Grow one dollar with yearly, monthly and continuous compounding, discount future cash back to today, and see why +50% then -50% leaves you down 25%: the volatility drag on compounded returns.',
+    related: ['Expectation, Variance and Covariance', 'No-Arbitrage and Put-Call Parity', 'Random Walks and Brownian Motion', 'Itô\'s Lemma'],
+  },
 ];
 
 // ---------- helpers ----------
