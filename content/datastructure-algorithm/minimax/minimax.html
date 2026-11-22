@@ -7,6 +7,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
 <style>
 :root{
   --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
@@ -80,6 +83,27 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
 
 
 .doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}.doc-tags a{font:500 12px "Geist Mono",ui-monospace,monospace;padding:4px 10px;border:1px solid var(--rule-solid,#bfc0c0);border-radius:4px;background:#fff;color:var(--muted,#4f5d75);text-decoration:none}.doc-tags a:hover{border-color:var(--ink,#2d3142);color:var(--ink,#2d3142)}.doc-tags a:focus-visible{outline:2px solid var(--accent,#bf4520);outline-offset:2px}
+.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;text-align:center;overflow-x:auto}
+.formula .katex{font-size:1.25em}
+.katex{color:var(--ink)}
+p .katex,td .katex,li .katex{font-size:1.05em}
+.stat .big .katex{font-size:.8em}
+.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--ink);border-radius:6px;overflow:hidden}
+.seg button{min-height:36px;padding:0 12px;border:0;border-right:1px solid var(--rule-solid);background:transparent;color:var(--ink);font:500 13px var(--sans);cursor:pointer}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.seg button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.lab-label{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);min-width:84px}
+.lab-out{margin:0;padding:0;border:0;background:none;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+.two pre{margin:0}
+.two h3,.panel h3{font-family:var(--serif);font-weight:400;font-size:22px;margin:0 0 8px}
+.after{margin-top:16px}
+@media (max-width:860px){.two{grid-template-columns:1fr}}
+h3.sub{font-family:var(--serif);font-weight:400;font-size:24px;margin:28px 0 8px}
+.size input[type=range]{width:180px;accent-color:var(--accent)}
+.size output{font-family:var(--mono);font-size:12px;font-weight:600;min-width:3ch}
+label.lab-label{font-weight:500;font-size:11px}
 </style>
 </head>
 <body>
@@ -140,8 +164,10 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
 <section>
   <h2>1. The idea</h2>
   <p>In a turn-based game with perfect information, such as tic-tac-toe or chess, you can draw every future as a tree. Each node is a position. Each edge is a move. The leaves are finished games, or positions you score with a heuristic when you stop looking ahead.</p>
-  <p>Minimax assumes both players play perfectly. You pick the child with the highest score. The opponent picks the child with the lowest score. Scores are from your point of view, so a big number is good for you and bad for them.</p>
+  <p>Minimax assumes both players play perfectly. You pick the child with the highest score. The opponent picks the child with the lowest score. Scores are from your point of view, so a big number is good for you and bad for them. The value of a position $s$ is defined by a recursion:</p>
+  <div class="formula">$$V(s) = \begin{cases} \text{score}(s) & s \text{ is a leaf} \\ \max_{c \,\in\, \text{children}(s)} V(c) & \text{MAX to move} \\ \min_{c \,\in\, \text{children}(s)} V(c) & \text{MIN to move} \end{cases}$$</div>
   <p class="callout">Pick the move that leaves you best off after the opponent has done their worst.</p>
+  <p>The value is a guarantee in both directions. If MAX plays the minimax move, it gets at least $V(\text{root})$ whatever MIN does. If MIN plays its minimax moves, MAX gets at most $V(\text{root})$. For two-player zero-sum games this is von Neumann's minimax theorem, and for finite games of perfect information Zermelo showed it already in 1913: every such game has a well-defined value under perfect play.</p>
 </section>
 
 <section>
@@ -149,7 +175,6 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
   <p>It is a depth-first recursion. A leaf returns its score. A MAX node returns the largest child value. A MIN node returns the smallest. The root's best child is your move.</p>
   <pre><span class="k">function</span> minimax(node, depth, isMax) {
   <span class="k">if</span> (depth === 0 || isTerminal(node)) <span class="k">return</span> score(node);
-
   <span class="k">if</span> (isMax) {
     <span class="k">let</span> best = -Infinity;
     <span class="k">for</span> (<span class="k">const</span> child <span class="k">of</span> moves(node))
@@ -162,20 +187,34 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
     <span class="k">return</span> best;
   }
 }</pre>
-  <p>In Fig 1 with its starting scores, the left MIN node sees <code>5</code> and <code>9</code> and takes <code>5</code>. The right MIN node sees <code>2</code> and <code>0</code> and takes <code>0</code>. The root takes the larger, so it plays left and is guaranteed at least <code>5</code>.</p>
+  <p>In Fig 1 with its starting scores, the left MIN node sees $5$ and $9$ and takes $5$. The right MIN node sees $2$ and $0$ and takes $0$. The root takes the larger, so it plays left and is guaranteed at least $5$.</p>
 </section>
 
 <section>
-  <h2>3. Alpha-beta pruning</h2>
+  <h2>3. Negamax: one branch instead of two</h2>
+  <p>The MAX and MIN branches mirror each other. In a zero-sum game, a position worth $v$ to one player is worth $-v$ to the other, and</p>
+  <div class="formula">$$\min(a, b) = -\max(-a, -b)$$</div>
+  <p>So score every position from the point of view of the player to move, and always maximize the negated child values:</p>
+  <pre><span class="k">function</span> negamax(node, depth) {
+  <span class="k">if</span> (depth === 0 || isTerminal(node)) <span class="k">return</span> scoreForSideToMove(node);
+  <span class="k">let</span> best = -Infinity;
+  <span class="k">for</span> (<span class="k">const</span> child <span class="k">of</span> moves(node))
+    best = Math.max(best, -negamax(child, depth - 1));
+  <span class="k">return</span> best;
+}</pre>
+  <p>It is the same algorithm with half the code, and almost every real engine is written this way. The one trap is the leaf score: it must be from the side to move, not from a fixed player.</p>
+</section>
+
+<section>
+  <h2>4. Alpha-beta pruning</h2>
   <p>Minimax looks at every leaf, and the tree grows fast. Alpha-beta keeps the same answer but skips branches that cannot change it. It carries two numbers down the recursion:</p>
   <ul class="tight">
-    <li><b>alpha</b>: the best score MAX is already sure to get on the path so far.</li>
-    <li><b>beta</b>: the best score MIN is already sure to get on the path so far.</li>
+    <li>$\alpha$: the best score MAX is already sure to get on the path so far.</li>
+    <li>$\beta$: the best score MIN is already sure to get on the path so far.</li>
   </ul>
-  <p>When <code>beta &lt;= alpha</code>, the two sides disagree about how good this branch is. The player above would never allow it, so the remaining siblings are cut off. In Fig 1 the left side already guarantees MAX a <code>5</code>. The right MIN node finds a <code>2</code> in its first branch, so it can only end up at <code>2</code> or less. MAX will not choose it, and the second branch is never looked at.</p>
+  <p>Only values strictly inside the window $(\alpha, \beta)$ can still change the decision at the root. When $\beta \le \alpha$, the window is empty. The player above would never allow this branch, so the remaining siblings are cut off. In Fig 1 the left side already guarantees MAX a $5$. The right MIN node finds a $2$ in its first branch, so it can only end up at $2$ or less. MAX will not choose it, and the second branch is never looked at.</p>
   <pre><span class="k">function</span> alphaBeta(node, depth, alpha, beta, isMax) {
   <span class="k">if</span> (depth === 0 || isTerminal(node)) <span class="k">return</span> score(node);
-
   <span class="k">if</span> (isMax) {
     <span class="k">let</span> best = -Infinity;
     <span class="k">for</span> (<span class="k">const</span> child <span class="k">of</span> moves(node)) {
@@ -194,40 +233,121 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
     <span class="k">return</span> best;
   }
 }
-
 alphaBeta(root, depth, -Infinity, Infinity, <span class="k">true</span>);</pre>
-  <p>Move order matters. If the best moves are tried first, pruning cuts the most. Try captures or the previous best move before the rest.</p>
+  <p>What a call returns depends on where the true value $v$ lies. This is why alpha-beta gives the exact answer at the root, where the window starts as $(-\infty, \infty)$:</p>
+  <div class="formula">$$\text{returned} \begin{cases} = v & \text{if } \alpha < v < \beta \\ \le \alpha & \text{if } v \le \alpha \quad (\text{fail low}) \\ \ge \beta & \text{if } v \ge \beta \quad (\text{fail high}) \end{cases}$$</div>
 </section>
 
 <section>
-  <h2>4. Cost</h2>
-  <p>With branching factor <code>b</code> and search depth <code>d</code>, plain minimax visits about <code>b<sup>d</sup></code> leaves. Alpha-beta with ideal move order visits about <code>b<sup>d/2</sup></code>, so it can search twice as deep in the same time. With random order it lands in between.</p>
+  <h2>5. How much does pruning save?</h2>
+  <p>With branching factor $b$ and depth $d$, plain minimax scores all $b^d$ leaves. Alpha-beta's savings depend entirely on move order. Knuth and Moore showed in 1975 that with perfect ordering, best move first everywhere, it scores exactly</p>
+  <div class="formula">$$b^{\lceil d/2 \rceil} + b^{\lfloor d/2 \rfloor} - 1 \;\approx\; 2\,b^{d/2} \text{ leaves}$$</div>
+  <p>and no algorithm that is guaranteed to find the minimax value can score fewer. The reason: to prove a value, MAX must show one good move and that every reply to it is answered, while MIN must refute every MAX move with one reply. "One" and "every" alternate, so only every other level branches fully.</p>
+  <table class="ops">
+    <thead><tr><th>Move order</th><th>Leaves scored</th><th>Effective branching</th></tr></thead>
+    <tbody>
+      <tr><td>Worst first</td><td>close to $b^d$, almost no pruning</td><td>close to $b$</td></tr>
+      <tr><td>Random</td><td>about $b^{3d/4}$ for moderate $b$</td><td>about $b^{3/4}$</td></tr>
+      <tr><td>Best first</td><td>$b^{\lceil d/2 \rceil} + b^{\lfloor d/2 \rfloor} - 1$</td><td>$\sqrt b$</td></tr>
+    </tbody>
+  </table>
+  <p>An effective branching factor of $\sqrt b$ means that in the same time you can search twice as deep. For chess, $\sqrt{35} \approx 6$, which is roughly what strong engines achieve.</p>
+
+  <h3 class="sub">Ordering lab</h3>
+  <p>A random game tree with $b$ moves per node and $d$ plies. Each cell below is one leaf. Blue leaves were scored, gray leaves were pruned without ever being looked at. Change the order in which children are tried.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 2</span><span class="card-title" id="ord-title">Leaves scored by alpha-beta</span></div>
+    <div class="scroll">
+      <svg id="ord" width="880" height="300" viewBox="0 0 880 300" style="min-width:880px" role="img" aria-labelledby="ord-title-s ord-desc">
+        <title id="ord-title-s">Which leaves alpha-beta scored</title>
+        <desc id="ord-desc">Every leaf of a uniform game tree, in left-to-right order, drawn as a grid of small cells. Scored leaves are blue and pruned leaves are gray. Bars below compare the count with plain minimax and the Knuth and Moore minimum.</desc>
+        <g id="ord-g"></g>
+      </svg>
+    </div>
+    <div class="card-bottom"><span class="hint">blue = scored · gray = pruned · leaves in left-to-right order</span><span class="live" id="ord-live"></span></div>
+  </figure>
+
+  <div class="controls">
+    <div class="panel">
+      <div class="row"><span class="lab-label">Order</span>
+        <div class="seg" role="group" aria-label="Move order" data-key="order">
+          <button type="button" data-v="worst" aria-pressed="false">Worst first</button><button type="button" data-v="random" aria-pressed="true">Random</button><button type="button" data-v="best" aria-pressed="false">Best first</button>
+        </div>
+      </div>
+      <div class="row size"><label for="ob" class="lab-label">Branching b</label><input type="range" id="ob" min="2" max="6" value="4"><output id="ob-out" for="ob">4</output></div>
+      <div class="row size"><label for="od" class="lab-label">Depth d</label><input type="range" id="od" min="2" max="7" value="5"><output id="od-out" for="od">5</output></div>
+      <div class="row"><button type="button" class="btn" id="oreroll">New random tree</button></div>
+    </div>
+    <div class="panel"><pre class="lab-out" id="ord-out" aria-live="polite"></pre></div>
+  </div>
+  <p class="after">Things to try. <b>Best first</b> hits the Knuth and Moore minimum exactly. <b>Worst first</b> scores almost every leaf. Raise $d$ and watch the share of scored leaves fall with good ordering: the savings grow exponentially with depth, which is why engines invest so much in guessing the best move first.</p>
+</section>
+
+<section>
+  <h2>6. Cost</h2>
   <div class="cards">
-    <div class="stat focal"><div class="eyebrow">Minimax</div><div class="big">O(b<sup>d</sup>)</div><p>Every leaf is scored.</p></div>
-    <div class="stat"><div class="eyebrow">Alpha-beta, best case</div><div class="big">O(b<sup>d/2</sup>)</div><p>Same answer, with perfect ordering.</p></div>
-    <div class="stat"><div class="eyebrow">Space</div><div class="big">O(d)</div><p>Depth-first, one path at a time.</p></div>
+    <div class="stat focal"><div class="eyebrow">Minimax</div><div class="big">$O(b^d)$</div><p>Every leaf is scored.</p></div>
+    <div class="stat"><div class="eyebrow">Alpha-beta, best case</div><div class="big">$O(b^{d/2})$</div><p>Same answer, with perfect ordering.</p></div>
+    <div class="stat"><div class="eyebrow">Space</div><div class="big">$O(bd)$</div><p>Depth-first, one path and its siblings at a time.</p></div>
   </div>
   <table class="ops">
-    <thead><tr><th>Game</th><th>Rough branching b</th><th>Notes</th></tr></thead>
+    <thead><tr><th>Game</th><th>Rough branching $b$</th><th>Notes</th></tr></thead>
     <tbody>
-      <tr><td>Tic-tac-toe</td><td><code>~4</code></td><td>Small enough to search to the end</td></tr>
-      <tr><td>Checkers</td><td><code>~10</code></td><td>Needs pruning and a good evaluation</td></tr>
-      <tr><td>Chess</td><td><code>~35</code></td><td>Depth limit plus a heuristic score</td></tr>
-      <tr><td>Go</td><td><code>~250</code></td><td>Too wide for plain minimax</td></tr>
+      <tr><td>Tic-tac-toe</td><td>$\approx 4$</td><td>255,168 possible games. Search to the end: perfect play is a draw</td></tr>
+      <tr><td>Connect Four</td><td>$\approx 7$</td><td>Solved in 1988: the first player wins</td></tr>
+      <tr><td>Checkers</td><td>$\approx 10$</td><td>Solved in 2007 by Chinook: a draw</td></tr>
+      <tr><td>Chess</td><td>$\approx 35$</td><td>Depth limit, pruning and an evaluation function</td></tr>
+      <tr><td>Go</td><td>$\approx 250$</td><td>Too wide for plain minimax. Won by tree search guided by neural networks</td></tr>
     </tbody>
   </table>
 </section>
 
 <section>
-  <h2>5. Making it practical</h2>
+  <h2>7. Making it practical</h2>
   <ul class="tight">
-    <li><b>Depth limit and evaluation function</b>: stop at depth <code>d</code> and score the position with a heuristic, such as material count in chess.</li>
-    <li><b>Move ordering</b>: search likely-best moves first so alpha-beta prunes more.</li>
-    <li><b>Iterative deepening</b>: search depth 1, then 2, then 3, until time runs out, and reuse the best move to order the next pass.</li>
-    <li><b>Transposition table</b>: cache positions reached by different move orders.</li>
-    <li><b>Negamax</b>: the same algorithm written once, using <code>score = -negamax(child)</code>, which removes the MAX and MIN branches.</li>
+    <li><b>Depth limit and evaluation function</b>: stop at depth $d$ and score the position with a heuristic, such as material count in chess.</li>
+    <li><b>Quiescence search</b>: at the depth limit, keep searching captures and checks until the position is quiet. Otherwise the search stops in the middle of an exchange and misjudges it. This is called the horizon effect.</li>
+    <li><b>Move ordering</b>: try the best move from a previous search first, then captures, then "killer" moves that caused cutoffs at the same depth elsewhere, then moves ranked by a history table.</li>
+    <li><b>Iterative deepening</b>: search depth 1, then 2, then 3, until time runs out. Earlier passes are cheap compared with the last one, and they provide the move order for it.</li>
+    <li><b>Transposition table</b>: the same position is reached by different move orders. Cache its value and best move under a Zobrist hash, a XOR of random 64-bit keys for each piece on each square.</li>
+    <li><b>Null-window search</b>: principal variation search checks "is this move better than the best so far?" with an empty window $(\alpha, \alpha + 1)$, which prunes hard, and only re-searches with a full window when the answer is yes.</li>
   </ul>
-  <p>Minimax is for zero-sum games with two players and full information. For games with chance or hidden information, look at expectimax or Monte Carlo tree search.</p>
+</section>
+
+<section>
+  <h2>8. Chance, hidden information and huge trees</h2>
+  <p>Minimax is for two players, zero-sum and full information. Other games need other backups.</p>
+  <ul class="tight">
+    <li><b>Expectimax</b> adds chance nodes, for dice or card draws, that average their children by probability: $V(s) = \sum_{c} P(c)\,V(c)$. Backgammon programs use it.</li>
+    <li><b>Monte Carlo tree search</b> builds the tree selectively. It picks children with an upper confidence bound, plays random or learned games to the end, and backs up the results. The UCT rule tries the child $j$ that maximizes</li>
+  </ul>
+  <div class="formula">$$\bar{X}_j + c\,\sqrt{\frac{\ln N}{n_j}}$$</div>
+  <p>where $\bar X_j$ is the average result through child $j$, $n_j$ its visit count and $N$ the parent's. The first term exploits, the second explores. AlphaGo and AlphaZero replaced random playouts with a value network and guided selection with a policy network.</p>
+  <ul class="tight">
+    <li><b>Hidden information</b>, as in poker, breaks the tree view: you do not know which node you are in. Counterfactual regret minimization and its descendants solve those games instead.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>9. Common mistakes</h2>
+  <ul class="tight">
+    <li><b>Scoring from the wrong side.</b> In negamax the leaf score must be from the player to move. A sign error makes the engine play for the opponent.</li>
+    <li><b>Not preferring faster wins.</b> A win in 1 and a win in 5 both score "win", so the program may dawdle forever. Score wins as $\text{WIN} - \text{ply}$ and losses as $-\text{WIN} + \text{ply}$.</li>
+    <li><b>Caching bounds as exact values.</b> After a cutoff, alpha-beta only knows a bound. A transposition table must store whether an entry is exact, a lower bound or an upper bound.</li>
+    <li><b>Expecting the opponent to be perfect.</b> Minimax plays safe, not to exploit mistakes. Against weak opponents, a riskier line may score better in practice.</li>
+    <li><b>Treating pruning as approximate.</b> Alpha-beta returns exactly the minimax value. Only depth limits and the evaluation function approximate.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>10. Where it shows up</h2>
+  <ul class="tight">
+    <li><b>Board games:</b> chess engines such as Stockfish run alpha-beta with all the tricks above and a neural evaluation function.</li>
+    <li><b>Solved games:</b> tic-tac-toe, Connect Four and checkers were solved by exhaustive minimax-style search with huge tables.</li>
+    <li><b>Robust decisions:</b> "minimize the maximum loss" appears in control, robust optimization and adversarial training of neural networks.</li>
+    <li><b>Related search:</b> <a href="../a-star/a-star.html">A*</a> finds a cheapest path when there is no opponent. Minimax finds the best guarantee when there is one.</li>
+  </ul>
 </section>
 
 </main>
@@ -379,6 +499,123 @@ alphaBeta(root, depth, -Infinity, Infinity, <span class="k">true</span>);</pre>
 
   rebuild(false); render();
 })();
+</script>
+<script>
+(function () {
+  var NS = 'http://www.w3.org/2000/svg', MAXL = 8192;
+  var state = { order: 'random' }, b = 4, d = 5, seed = 5;
+
+  function el(name, attrs, text) {
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (text != null) e.textContent = text;
+    return e;
+  }
+  function rng(s) { return function () { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
+
+  // Uniform tree: node i on level l has children i*b .. i*b+b-1 on level l+1. Level 0 is MAX.
+  function simulate() {
+    var rand = rng(seed * 31 + b * 7 + d), L = Math.pow(b, d), val = [], l, i, k;
+    val[d] = [];
+    for (i = 0; i < L; i++) val[d].push(rand()); // distinct leaf scores
+    for (l = d - 1; l >= 0; l--) {
+      val[l] = [];
+      var n = Math.pow(b, l), isMax = l % 2 === 0;
+      for (i = 0; i < n; i++) {
+        var best = isMax ? -Infinity : Infinity;
+        for (k = 0; k < b; k++) { var v = val[l + 1][i * b + k]; best = isMax ? Math.max(best, v) : Math.min(best, v); }
+        val[l].push(best);
+      }
+    }
+    var scored = new Uint8Array(L), count = 0;
+    function order(l, i) {
+      var kids = [];
+      for (k = 0; k < b; k++) kids.push(i * b + k);
+      if (state.order === 'random') return kids;
+      var isMax = l % 2 === 0, good = state.order === 'best';
+      kids.sort(function (x, y) {
+        var dv = val[l + 1][x] - val[l + 1][y];
+        return (isMax === good) ? -dv : dv; // best first: MAX wants high first, MIN wants low first
+      });
+      return kids;
+    }
+    function ab(l, i, alpha, beta) {
+      if (l === d) { scored[i] = 1; count++; return val[d][i]; }
+      var isMax = l % 2 === 0, best = isMax ? -Infinity : Infinity, kids = order(l, i);
+      for (var q = 0; q < kids.length; q++) {
+        var v = ab(l + 1, kids[q], alpha, beta);
+        if (isMax) { best = Math.max(best, v); alpha = Math.max(alpha, best); }
+        else { best = Math.min(best, v); beta = Math.min(beta, best); }
+        if (beta <= alpha) break;
+      }
+      return best;
+    }
+    var root = ab(0, 0, -Infinity, Infinity);
+    return { L: L, scored: scored, count: count, ok: root === val[0][0], knuth: Math.pow(b, Math.ceil(d / 2)) + Math.pow(b, Math.floor(d / 2)) - 1 };
+  }
+
+  function render() {
+    var r = simulate(), g = document.getElementById('ord-g');
+    g.textContent = '';
+    var W = 840, H = 190, s = Math.max(2, Math.floor(Math.sqrt(W * H / r.L)));
+    var cols = Math.floor(W / s); while (Math.ceil(r.L / cols) * s > H && s > 2) { s--; cols = Math.floor(W / s); }
+    var rows = Math.ceil(r.L / cols), x0 = (880 - cols * s) / 2, y0 = 12 + (H - rows * s) / 2, gap = s > 6 ? 1 : 0;
+    for (var i = 0; i < r.L; i++) {
+      g.appendChild(el('rect', { x: x0 + (i % cols) * s, y: y0 + Math.floor(i / cols) * s, width: s - gap, height: s - gap, fill: r.scored[i] ? '#2e5aa8' : '#dcdfe5' }));
+    }
+    var bars = [['minimax', r.L, '#9aa6bf'], ['alpha-beta', r.count, '#bf4520'], ['minimum', r.knuth, '#1f7a4d']];
+    bars.forEach(function (bar, q) {
+      var y = 222 + q * 24, w = Math.max(2, 640 * bar[1] / r.L);
+      g.appendChild(el('text', { x: 20, y: y + 12, 'font-family': "'Geist Mono',monospace", 'font-size': 11, fill: '#5a6580' }, bar[0]));
+      g.appendChild(el('rect', { x: 110, y: y, width: w, height: 16, rx: 3, fill: bar[2] }));
+      g.appendChild(el('text', { x: 116 + w, y: y + 12, 'font-family': "'Geist Mono',monospace", 'font-size': 11, 'font-weight': 600, fill: '#2d3142' }, bar[1]));
+    });
+    var eff = Math.pow(r.count, 1 / d);
+    document.getElementById('ord-out').textContent =
+      'leaves b^d        ' + r.L + '\n' +
+      'scored            ' + r.count + '  (' + (100 * r.count / r.L).toFixed(1) + '%)\n' +
+      'Knuth-Moore min   ' + r.knuth + '\n' +
+      'sqrt(b)^d         ' + Math.round(Math.pow(b, d / 2)) + '\n\n' +
+      'effective b       ' + eff.toFixed(2) + '  (b = ' + b + ', sqrt b = ' + Math.sqrt(b).toFixed(2) + ')\n' +
+      'root value        ' + (r.ok ? 'same as plain minimax' : 'MISMATCH');
+    document.getElementById('ord-live').textContent = r.count + ' of ' + r.L + ' leaves scored';
+  }
+
+  function clamp() {
+    // Keep the drawing readable: at most MAXL leaves.
+    var od = document.getElementById('od');
+    while (Math.pow(b, d) > MAXL) d--;
+    od.value = d;
+    document.getElementById('ob-out').textContent = b;
+    document.getElementById('od-out').textContent = d;
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll('.seg'), function (seg) {
+    seg.addEventListener('click', function (e) {
+      var btn = e.target.closest('button'); if (!btn) return;
+      Array.prototype.forEach.call(seg.querySelectorAll('button'), function (x) { x.setAttribute('aria-pressed', x === btn ? 'true' : 'false'); });
+      state[seg.getAttribute('data-key')] = btn.getAttribute('data-v');
+      render();
+    });
+  });
+  document.getElementById('ob').addEventListener('input', function () { b = +this.value; clamp(); render(); });
+  document.getElementById('od').addEventListener('input', function () { d = +this.value; clamp(); render(); });
+  document.getElementById('oreroll').addEventListener('click', function () { seed = 1 + Math.floor(Math.random() * 1e6); render(); });
+  clamp();
+  render();
+})();
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  renderMathInElement(document.body, {
+    delimiters: [
+      { left: '$$', right: '$$', display: true },
+      { left: '$', right: '$', display: false }
+    ],
+    ignoredTags: ['script', 'style', 'textarea', 'pre', 'code'],
+    throwOnError: false
+  });
+});
 </script>
 </body>
 </html>
