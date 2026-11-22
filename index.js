@@ -1158,6 +1158,17 @@ const DOCS = [
     summary: 'The three numbers behind every risk model. Draw returns for two assets, change their correlation, and watch how covariance decides the risk of a mix.',
     related: ['Gaussian Distribution', 'Law of Large Numbers and the CLT', 'Mean-Variance Portfolios'],
   },
+  {
+    title: 'Law of Large Numbers and the CLT',
+    path: 'content/quant/law-of-large-numbers-clt/law-of-large-numbers-clt.html',
+    category: 'Quant',
+    topic: 'Probability and statistics',
+    order: 3,
+    level: 'Beginner',
+    tags: ['law of large numbers', 'central limit theorem', 'sampling', 'standard error', 'probability', 'statistics', 'normal distribution', 'monte carlo'],
+    summary: 'Average more and more draws from any distribution. The running mean settles on the true mean, and the spread of many averages turns into a bell curve of width sigma over root n.',
+    related: ['Expectation, Variance and Covariance', 'Gaussian Distribution', 'Hypothesis Tests and p-values', 'Monte Carlo Pricing'],
+  },
 ];
 
 // ---------- helpers ----------
