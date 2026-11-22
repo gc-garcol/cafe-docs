@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stationarity and Autocorrelation: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8; --green:#3d7a4f;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1080px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+a{color:var(--link)}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+h3{font-family:var(--serif);font-weight:400;font-size:22px;line-height:1.2;margin:0 0 6px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:70ch;margin:0 0 14px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+ul.tight{padding-left:20px;max-width:70ch}ul.tight li{margin:6px 0}
+.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;text-align:center;overflow-x:auto;max-width:820px}
+.formula .katex{font-size:1.2em}
+.katex{color:var(--ink)}
+p .katex,li .katex,td .katex{font-size:1.05em}
+
+.howto{margin:16px 0 0;padding:16px 20px;background:#fff;border:1px solid var(--rule-solid);border-left:3px solid var(--accent);border-radius:8px;max-width:780px}
+.howto h3{font:600 11px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--soft);margin:0 0 8px}
+.howto ol{margin:0;padding-left:20px}.howto li{margin:4px 0}
+
+.lab{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:20px;align-items:start;margin-top:24px}
+.card{margin:0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--ink);text-align:right}
+.stage{padding:0 10px}
+.stage svg{display:block;width:100%;height:auto;max-height:calc(100vh - 150px)}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px}
+.seg{display:flex;border:1px solid var(--rule-solid);border-radius:6px;overflow:hidden;margin-bottom:14px}
+.seg button{flex:1;min-height:38px;border:0;background:transparent;font:500 13.5px var(--sans);color:var(--muted);cursor:pointer;padding:0 8px}
+.seg button+button{border-left:1px solid var(--rule-solid)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.row{display:grid;grid-template-columns:110px 1fr 64px;gap:10px;align-items:center;margin:8px 0}
+.row label{font-family:var(--mono);font-size:12px;font-weight:600}
+.row output{font-family:var(--mono);font-size:12.5px;text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);min-height:28px}
+select{min-height:36px;border:1px solid var(--rule-solid);border-radius:6px;background:#fff;font:500 13px var(--sans);color:var(--ink);padding:0 8px;width:100%}
+input[type=number]{width:100%;min-height:36px;padding:0 10px;border:1px solid var(--rule-solid);border-radius:6px;font:500 13px var(--mono);background:#fff;color:var(--ink)}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.btn{min-height:38px;padding:0 14px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 13.5px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.btn[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.btn:disabled{opacity:.4;cursor:default}.btn:disabled:hover{background:transparent;color:var(--ink)}
+.chk{display:flex;gap:8px;align-items:center;font-size:13.5px;margin:8px 0;cursor:pointer}
+.chk input{accent-color:var(--accent);width:16px;height:16px}
+.res-label{font:500 11px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--soft);margin:14px 0 6px}
+.readout{margin:0;padding:12px 14px;background:var(--paper);border:1px solid var(--rule);border-radius:6px;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink)}
+.na{color:var(--soft)}
+.c-a{color:var(--link);font-weight:600}.c-b{color:var(--accent);font-weight:600}.c-g{color:var(--green);font-weight:600}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:10px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:12px;border-radius:2px;display:inline-block;border:1px solid rgba(45,49,66,.4)}
+.sw.line{height:3px;border:0}
+
+.fig{margin:20px 0 8px}
+.scroll{overflow-x:auto;border:1px solid var(--rule);border-radius:8px;background:#fff;padding:8px}
+.scroll svg{display:block;height:auto}
+.cap{font-family:var(--mono);font-size:11px;color:var(--soft);margin:8px 0 0}
+pre{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0;max-width:860px}
+.k{color:var(--accent)} .t{color:var(--link)} .c{color:var(--soft);font-style:italic}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:30px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+table.ops{border-collapse:collapse;width:100%;max-width:820px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+.ok{color:#1d6b3a;font-weight:600}.no{color:var(--accent);font-weight:600}
+.doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}.doc-tags a{font:500 12px var(--mono);padding:4px 10px;border:1px solid var(--rule-solid);border-radius:4px;background:#fff;color:var(--muted);text-decoration:none}.doc-tags a:hover{border-color:var(--ink);color:var(--ink)}
+@media (max-width:900px){.lab{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" style="margin-right:8px" href="../../../index.html">&larr; Back to home</a>
+<a class="back back-cat" href="../../../index.html#cat=Quant">&larr; Back to Quant</a>
+
+<header>
+  <div class="eyebrow">Quant · Time series and portfolios</div>
+  <h1>Stationarity and Autocorrelation</h1>
+  <p class="lede">Most statistics assume the thing you measure keeps the same behaviour over time. A series with that property is stationary. Returns are close to it, prices are not, and the autocorrelation function is the first tool to tell them apart.</p>
+  <nav class="doc-tags" aria-label="Main tags"><a href="../../../index.html#tag=stationarity">#stationarity</a><a href="../../../index.html#tag=autocorrelation">#autocorrelation</a><a href="../../../index.html#tag=acf">#acf</a><a href="../../../index.html#tag=ar%281%29">#ar(1)</a></nav>
+</header>
+<section>
+  <h2>One dial from noise to random walk</h2>
+  <p>The series follows $x_t = \phi\,x_{t-1} + \varepsilon_t$ with standard normal shocks. The bottom chart is its sample autocorrelation: how much $x_t$ resembles $x_{t-k}$ for each lag $k$.</p>
+  <div class="howto">
+    <h3>How to use this simulator</h3>
+    <ol>
+      <li>Set $\phi = 0$. The series is white noise and every bar stays inside the grey band, which is what chance alone produces.</li>
+      <li>Set $\phi = 0.8$. The series wanders but keeps coming back to 0. The bars decay like $0.8^k$, and the readout gives the half-life of a shock.</li>
+      <li>Set $\phi = 1$. Now it is a random walk: no pull back, the two halves of the sample have different means, and the bars barely decay.</li>
+      <li>Turn on <b>Difference</b>. The random walk becomes white noise again. That is why models use returns rather than prices.</li>
+    </ol>
+  </div>
+  <div class="lab">
+    <figure class="card">
+      <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">Series and autocorrelation</span></div>
+      <div class="stage"><svg id="fig" viewBox="0 0 640 450" role="img" aria-labelledby="f-t f-d"><title id="f-t">AR(1) series and its autocorrelation function</title><desc id="f-d">Top: a simulated AR(1) series with the means of its first and second half marked. Bottom: sample autocorrelation bars for lags 1 to 20, the theoretical decay curve, and the 95 percent band for white noise.</desc><g id="scene"></g></svg></div>
+      <div class="card-bottom"><span class="hint">Gaussian shocks, x₀ = 0</span><span class="live" id="live"></span></div>
+    </figure>
+    <div>
+      <div class="panel">
+        <div class="row"><label for="phi">φ</label><input type="range" id="phi" min="-0.9" max="1" step="0.05" value="0.8"><output id="oPhi"></output></div>
+        <div class="row"><label for="n">length</label><input type="range" id="n" min="100" max="2000" step="50" value="500"><output id="oN"></output></div>
+        <label class="chk"><input type="checkbox" id="diff"> Difference: show Δx_t = x_t − x_(t−1)</label>
+        <div class="btns"><button type="button" class="btn" data-p="0">White noise</button><button type="button" class="btn" data-p="0.8">AR(1) 0.8</button><button type="button" class="btn" data-p="1">Random walk</button><button type="button" class="btn" id="bNew">New shocks</button></div>
+        <div class="res-label">Diagnostics</div>
+        <div class="readout" id="out" aria-live="polite"></div>
+      </div>
+      <div class="legend"><span><i class="sw" style="background:#8db3ec"></i>sample ACF</span><span><i class="sw line" style="background:#bf4520"></i>theory φᵏ</span><span><i class="sw" style="background:rgba(45,49,66,.12)"></i>±1.96/√n</span></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>1. Stationarity</h2>
+  <p>A series is <b>weakly stationary</b> if its mean and variance do not depend on time, and the covariance between $x_t$ and $x_{t-k}$ depends only on the lag $k$:</p>
+  <div class="formula">$$\mathbb E[x_t] = \mu, \qquad \operatorname{Var}(x_t) = \sigma^2, \qquad \operatorname{Cov}(x_t, x_{t-k}) = \gamma_k \quad \text{for all } t$$</div>
+  <p>Only then does "the average of the sample" estimate one fixed number. For a non-stationary series, a longer sample does not give a better estimate, it gives a different one.</p>
+</section>
+
+<section>
+  <h2>2. Autocorrelation</h2>
+  <p>The autocorrelation at lag $k$ is $\rho_k = \gamma_k / \gamma_0$, estimated by</p>
+  <div class="formula">$$\hat\rho_k = \frac{\sum_{t=k+1}^{n}(x_t-\bar x)(x_{t-k}-\bar x)}{\sum_{t=1}^{n}(x_t-\bar x)^2}$$</div>
+  <p>For white noise every $\hat\rho_k$ is roughly $\mathcal N(0, 1/n)$, so bars outside $\pm 1.96/\sqrt n$ are evidence of dependence. With 20 lags, about one will cross by chance. The Ljung-Box test checks many lags at once.</p>
+</section>
+
+<section>
+  <h2>3. AR(1), mean reversion and unit roots</h2>
+  <p>For $|\phi| &lt; 1$ the AR(1) process is stationary with $\rho_k = \phi^k$ and variance $1/(1-\phi^2)$. A shock fades by half after</p>
+  <div class="formula">$$h = \frac{\ln 0.5}{\ln \phi}$$</div>
+  <p>steps. That half-life is the number pairs traders look at when they model a spread as mean-reverting. At $\phi = 1$ the process has a <b>unit root</b>: shocks never fade, the variance grows like $t$, and the series is a random walk. The augmented Dickey-Fuller test asks whether $\phi = 1$ can be rejected.</p>
+  <pre><span class="k">from</span> statsmodels.tsa.stattools <span class="k">import</span> acf, adfuller
+r = np.log(prices).diff().dropna()          <span class="c"># returns: close to stationary</span>
+print(acf(r, nlags=20))
+stat, pvalue, *_ = adfuller(np.log(prices))  <span class="c"># unit root test on log prices</span>
+<span class="c"># a large p-value means a unit root cannot be rejected: difference before modelling</span></pre>
+</section>
+
+<section>
+  <h2>Pitfalls</h2>
+  <ul class="tight">
+    <li>Regressing one random walk on another gives high $R^2$ and big t-statistics with no real relation: a <b>spurious regression</b>. Difference first, or test for cointegration.</li>
+    <li>With $\phi$ near 1, a sample of a few hundred points looks almost the same as a random walk. Unit-root tests have low power there.</li>
+    <li>Returns have little autocorrelation, but squared returns have a lot. No autocorrelation does not mean independence, see GARCH.</li>
+    <li>Structural breaks such as a regime change look like non-stationarity. Check sub-periods before trusting a full-sample estimate.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>Where this fits</h2>
+  <p>This doc is part of phase 3 of the <a href="../quant-roadmap/quant-roadmap.html">Quant Roadmap</a>.</p>
+</section>
+
+</main>
+<script>
+(() => {
+// ---------- shared helpers ----------
+const $ = id => document.getElementById(id);
+const REDUCE = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+function rng(seed) { let a = seed >>> 0; return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+function gauss(r) { let u = 0, v = 0; while (u === 0) u = r(); while (v === 0) v = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+const mean = a => a.reduce((s, x) => s + x, 0) / a.length;
+const variance = (a, m = mean(a)) => a.reduce((s, x) => s + (x - m) * (x - m), 0) / Math.max(1, a.length - 1);
+const sd = a => Math.sqrt(variance(a));
+const fmt = (x, d = 2) => (Number.isFinite(x) ? x.toFixed(d) : '—').replace(/^-(0\.0*)$/, '$1');
+const pct = (x, d = 1) => fmt(100 * x, d) + '%';
+const erf = x => { const t = 1 / (1 + 0.3275911 * Math.abs(x)); const y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-x * x); return x >= 0 ? y : -y; };
+const ncdf = x => 0.5 * (1 + erf(x / Math.SQRT2));
+const npdf = x => Math.exp(-x * x / 2) / Math.sqrt(2 * Math.PI);
+const esc = s => String(s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+// plot frame: maps data to an SVG box and draws axes
+function frame(o) {
+  const f = Object.assign({ x: 56, y: 16, w: 520, h: 260, x0: 0, x1: 1, y0: 0, y1: 1 }, o);
+  f.X = v => f.x + (v - f.x0) / (f.x1 - f.x0) * f.w;
+  f.Y = v => f.y + f.h - (v - f.y0) / (f.y1 - f.y0) * f.h;
+  f.path = (xs, ys) => xs.map((x, i) => (i ? 'L' : 'M') + f.X(x).toFixed(1) + ',' + f.Y(ys[i]).toFixed(1)).join('');
+  f.axes = (opt = {}) => {
+    const nx = opt.nx ?? 5, ny = opt.ny || 4, fx = opt.fx || (v => fmt(v, 1)), fy = opt.fy || (v => fmt(v, 1));
+    let s = `<rect x="${f.x}" y="${f.y}" width="${f.w}" height="${f.h}" fill="#fff" stroke="rgba(45,49,66,.25)"/>`;
+    for (let i = 0; i <= ny; i++) { const v = f.y0 + (f.y1 - f.y0) * i / ny, y = f.Y(v).toFixed(1); s += `<line x1="${f.x}" x2="${f.x + f.w}" y1="${y}" y2="${y}" stroke="rgba(45,49,66,.08)"/><text x="${f.x - 6}" y="${+y + 4}" text-anchor="end" font-family="'Geist Mono',monospace" font-size="11" fill="#5a6580">${fy(v)}</text>`; }
+    for (let i = 0; nx > 0 && i <= nx; i++) { const v = f.x0 + (f.x1 - f.x0) * i / nx, x = f.X(v).toFixed(1); s += `<line y1="${f.y}" y2="${f.y + f.h}" x1="${x}" x2="${x}" stroke="rgba(45,49,66,.06)"/><text x="${x}" y="${f.y + f.h + 14}" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="11" fill="#5a6580">${fx(v)}</text>`; }
+    if (opt.xl) s += `<text x="${f.x + f.w}" y="${f.y + f.h + 28}" text-anchor="end" font-family="'Geist Mono',monospace" font-size="11.5" fill="#4f5d75">${opt.xl}</text>`;
+    if (opt.yl) s += `<text x="${f.x}" y="${f.y - 5}" font-family="'Geist Mono',monospace" font-size="11.5" fill="#4f5d75">${opt.yl}</text>`;
+    if (f.y0 < 0 && f.y1 > 0 && opt.zero !== false) s += `<line x1="${f.x}" x2="${f.x + f.w}" y1="${f.Y(0).toFixed(1)}" y2="${f.Y(0).toFixed(1)}" stroke="rgba(45,49,66,.45)"/>`;
+    return s;
+  };
+  return f;
+}
+const T = (s, x, y, o = {}) => `<text x="${(+x).toFixed(1)}" y="${(+y).toFixed(1)}" text-anchor="${o.a || 'start'}" font-size="${o.s || 11}" font-weight="${o.w || 500}" fill="${o.c || '#2d3142'}" font-family="${o.serif ? "'Instrument Serif',serif" : o.sans ? "'Geist',sans-serif" : "'Geist Mono',monospace"}"${o.i ? ' font-style="italic"' : ''}>${s}</text>`;
+const niceMax = v => { const p = Math.pow(10, Math.floor(Math.log10(v || 1))); const m = v / p; return (m <= 1 ? 1 : m <= 2 ? 2 : m <= 2.5 ? 2.5 : m <= 5 ? 5 : 10) * p; };
+
+const st = { phi: 0.8, n: 500, diff: false, seed: 3 };
+const LAGS = 20;
+let E = [];
+function sim() { const r = rng(st.seed); E = []; for (let i = 0; i < 2001; i++) E.push(gauss(r)); }
+function series() {
+  const x = [0]; for (let t = 1; t <= st.n; t++) x.push(st.phi * x[t - 1] + E[t]);
+  return st.diff ? x.slice(1).map((v, i) => v - x[i]) : x.slice(1);
+}
+function acf(x) { const m = mean(x), d = x.map(v => v - m), g0 = d.reduce((t, v) => t + v * v, 0); const out = []; for (let k = 1; k <= LAGS; k++) { let s = 0; for (let t = k; t < x.length; t++) s += d[t] * d[t - k]; out.push(s / g0); } return out; }
+function render() {
+  const x = series(), n = x.length, a = acf(x);
+  const lim = Math.max(3, Math.ceil(Math.max(...x.map(Math.abs)) * 1.1));
+  const A = frame({ x: 56, y: 20, w: 560, h: 190, x0: 0, x1: n, y0: -lim, y1: lim });
+  let g = A.axes({ nx: 5, ny: 4, fx: v => fmt(v, 0), fy: v => fmt(v, lim > 20 ? 0 : 1), xl: 't', yl: st.diff ? 'Δx_t' : 'x_t' });
+  g += `<path d="${A.path(x.map((_, i) => i), x)}" stroke="#2e5aa8" stroke-width="1.2" fill="none"/>`;
+  const h = Math.floor(n / 2), m1 = mean(x.slice(0, h)), m2 = mean(x.slice(h));
+  g += `<line x1="${A.X(0)}" x2="${A.X(h)}" y1="${A.Y(m1)}" y2="${A.Y(m1)}" stroke="#bf4520" stroke-width="2.4"/><line x1="${A.X(h)}" x2="${A.X(n)}" y1="${A.Y(m2)}" y2="${A.Y(m2)}" stroke="#bf4520" stroke-width="2.4"/>`;
+  g += `<line x1="${A.X(h)}" x2="${A.X(h)}" y1="${A.y}" y2="${A.y + A.h}" stroke="#4f5d75" stroke-dasharray="2 3"/>` + T('half means', A.X(h) + 6, A.y + 14, { s: 11, c: '#bf4520', w: 600 });
+  const B = frame({ x: 56, y: 260, w: 560, h: 150, x0: 0.5, x1: LAGS + 0.5, y0: -1, y1: 1 });
+  g += B.axes({ nx: 0, ny: 4, fy: v => fmt(v, 1), xl: 'lag k', yl: 'autocorrelation ρ̂_k' });
+  const band = 1.96 / Math.sqrt(n);
+  g += `<rect x="${B.x}" y="${B.Y(band)}" width="${B.w}" height="${B.Y(-band) - B.Y(band)}" fill="rgba(45,49,66,.1)"/>`;
+  const bw = B.w / LAGS * 0.6;
+  a.forEach((v, k) => { const x0 = B.X(k + 1) - bw / 2, y0 = B.Y(Math.max(0, v)), y1 = B.Y(Math.min(0, v)); const out = Math.abs(v) > band; g += `<rect x="${x0.toFixed(1)}" y="${y0.toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(0.5, y1 - y0).toFixed(1)}" fill="${out ? '#8db3ec' : '#dbe8fa'}" stroke="#2e5aa8" stroke-width=".6"/>`; if (k % 2 === 1 || k === 0) g += T(k + 1, B.X(k + 1), B.y + B.h + 14, { a: 'middle', s: 11, c: '#5a6580' }); });
+  if (!st.diff && Math.abs(st.phi) < 1) { const xs = [], ys = []; for (let i = 0; i <= 100; i++) { const k = 1 + (LAGS - 1) * i / 100; xs.push(k); ys.push(Math.sign(st.phi) ** Math.round(k) * Math.pow(Math.abs(st.phi), k)); } if (st.phi >= 0) g += `<path d="${B.path(xs, ys)}" stroke="#bf4520" stroke-width="2" fill="none"/>`; else a.forEach((_, k) => { g += `<circle cx="${B.X(k + 1)}" cy="${B.Y(Math.pow(st.phi, k + 1))}" r="3" fill="#bf4520"/>`; }); }
+  if (st.diff && st.phi < 1) { g += `<circle cx="${B.X(1)}" cy="${B.Y(-(1 - st.phi) / 2)}" r="3.5" fill="#bf4520"/>`; }
+  $('scene').innerHTML = g;
+  const out = a.filter(v => Math.abs(v) > band).length, hl = st.phi > 0 && st.phi < 1 ? Math.log(0.5) / Math.log(st.phi) : NaN;
+  const kind = st.diff ? (st.phi === 1 ? 'differenced random walk = white noise' : 'differenced AR(1)') : st.phi === 1 ? 'random walk, unit root' : st.phi === 0 ? 'white noise' : Math.abs(st.phi) < 1 ? 'stationary AR(1)' : '';
+  $('out').innerHTML = `<b>${kind}</b>\n` +
+    `ρ̂₁ = ${fmt(a[0], 3)}   <span class="na">${st.diff ? (st.phi === 1 ? 'theory 0' : 'theory −(1−φ)/2 = ' + fmt(-(1 - st.phi) / 2, 3)) : st.phi < 1 ? 'theory φ = ' + fmt(st.phi) : 'theory → 1'}</span>\n` +
+    `bars outside ±${fmt(band, 3)}: ${out} of ${LAGS}  <span class="na">(noise: ~1)</span>\n` +
+    `mean first half  ${fmt(m1)}\nmean second half ${fmt(m2)}\n` +
+    `sample variance  ${fmt(variance(x))}   <span class="na">${!st.diff && Math.abs(st.phi) < 1 ? 'theory 1/(1−φ²) = ' + fmt(1 / (1 - st.phi * st.phi)) : !st.diff ? 'grows with n' : ''}</span>\n` +
+    (Number.isFinite(hl) && !st.diff ? `half-life of a shock = ln 0.5 / ln φ = <b>${fmt(hl, 1)} steps</b>` : !st.diff && st.phi === 1 ? '<span class="c-b">shocks never fade</span>' : '');
+  $('live').textContent = `φ = ${fmt(st.phi)} · ρ̂₁ = ${fmt(a[0], 2)}`;
+  $('oPhi').textContent = fmt(st.phi); $('oN').textContent = st.n;
+}
+$('phi').oninput = e => { st.phi = +e.target.value; render(); };
+$('n').oninput = e => { st.n = +e.target.value; render(); };
+$('diff').onchange = e => { st.diff = e.target.checked; render(); };
+document.querySelectorAll('[data-p]').forEach(b => b.onclick = () => { st.phi = +b.dataset.p; $('phi').value = st.phi; render(); });
+$('bNew').onclick = () => { st.seed++; sim(); render(); };
+sim(); render();
+
+})();
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  renderMathInElement(document.body, {
+    delimiters: [
+      { left: '$$', right: '$$', display: true },
+      { left: '$', right: '$', display: false }
+    ],
+    ignoredTags: ['script', 'style', 'textarea', 'pre', 'code', 'svg'],
+    ignoredClasses: ['readout', 'live', 'nomath'],
+    throwOnError: false
+  });
+});
+</script>
+</body>
+</html>
