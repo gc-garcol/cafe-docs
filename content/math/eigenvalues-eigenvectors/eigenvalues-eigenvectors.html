@@ -29,6 +29,7 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);f
 .back:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
 h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+h3{font-family:var(--serif);font-weight:400;font-size:24px;line-height:1.2;margin:32px 0 10px}
 .lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
 section{margin-top:64px}
 section p{max-width:68ch;margin:0 0 14px}
@@ -42,13 +43,12 @@ a{color:var(--link)}
 .card-title{font-family:var(--serif);font-size:20px}
 .hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
 .live{font-family:var(--mono);font-size:12px;font-weight:600}
-.scroll{overflow-x:auto;padding:0 8px;text-align:center}
-.scroll svg{display:inline-block;width:100%;max-width:720px;height:auto}
-.planes{display:grid;grid-template-columns:1fr 1fr}
-.planes svg{display:block;width:100%;height:auto}
-.planes svg+svg{border-left:1px solid var(--rule)}
-.single{max-width:420px;margin:0 auto}
-.single svg{display:block;width:100%;height:auto}
+.duo{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);border-top:1px solid var(--rule)}
+.duo>div+div{border-left:1px solid var(--rule)}
+.duo svg{display:block;width:100%;height:auto}
+#pl{max-width:440px;margin:0 auto;touch-action:none}
+.handle{cursor:grab}
+.fig-pad{padding:12px 16px}
 
 .controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;margin-top:16px;align-items:start}
 .panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
@@ -57,54 +57,40 @@ a{color:var(--link)}
 .row output{font-family:var(--mono);font-size:12px;text-align:right}
 input[type=range]{width:100%;accent-color:var(--accent);min-height:28px}
 .group-label{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);margin:16px 0 6px}
+.group-label:first-child{margin-top:0}
 .seg{display:flex;flex-wrap:wrap;border:1px solid var(--rule-solid);border-radius:6px;overflow:hidden}
-.seg button{flex:1;min-height:40px;border:0;background:transparent;font:500 13px var(--sans);color:var(--muted);cursor:pointer;padding:0 10px}
-.seg button+button{border-left:1px solid var(--rule-solid)}
+.seg button{flex:1 1 30%;min-height:40px;border:0;background:transparent;font:500 13px var(--sans);color:var(--muted);cursor:pointer;padding:0 10px;box-shadow:inset 1px 0 0 var(--rule-solid),inset 0 1px 0 var(--rule-solid)}
 .seg button:hover{background:var(--paper-2)}
-.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
 button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
 .btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
-.btn:hover{background:var(--ink);color:var(--paper)}
-.big-answer{font-family:var(--serif);font-size:44px;line-height:1.1;margin:4px 0 8px;color:var(--accent)}
-.readout{margin:0;padding:0;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink);border:0;background:none}
-.calc{overflow-x:auto;margin-top:8px}
+.btn:hover,.btn[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.big-answer{font-family:var(--serif);font-size:40px;line-height:1.1;margin:4px 0 8px;color:var(--accent)}
+.readout{margin:0;padding:0;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink);border:0;background:none;overflow-x:auto}
 .legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
 .legend span{display:inline-flex;align-items:center;gap:8px}
 .sw{width:14px;height:14px;border-radius:3px;border:1px solid var(--ink);display:inline-block}
 
-.mx{display:inline-grid;gap:6px;padding:6px 14px;border-left:2px solid var(--ink);border-right:2px solid var(--ink);border-radius:8px;vertical-align:middle;margin:4px 6px}
-.mx input{width:64px;min-height:36px;padding:0 6px;border:1px solid var(--rule-solid);border-radius:6px;font:500 14px var(--mono);color:var(--ink);background:#fff;text-align:center}
-.mx .cell{min-width:48px;min-height:36px;display:flex;align-items:center;justify-content:center;font:500 14px var(--mono);padding:0 4px}
-.mxrow{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px}
-.mxrow .lab{font-family:var(--serif);font-size:24px}
-input[type=number]{-moz-appearance:textfield}
-
 pre.code{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
 .k{color:var(--accent)} .t{color:var(--link)} .c{color:var(--soft);font-style:italic}
-
 .formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;text-align:center;overflow-x:auto}
 .formula .katex{font-size:1.25em}
 .katex{color:var(--ink)}
 p .katex,td .katex,li .katex{font-size:1.05em}
-
 .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
 .stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
 .stat .big{font-family:var(--serif);font-size:30px;line-height:1.1;margin:6px 0}
 .stat p{font-size:14px;color:var(--muted);margin:0}
 .stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+.steps{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;max-width:760px}
+.steps ol{margin:0;padding-left:20px}.steps li{margin:8px 0}
 table.ops{border-collapse:collapse;width:100%;max-width:760px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
 table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
 table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
 table.ops tr:last-child td{border-bottom:0}
 ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
-
-@media (max-width:860px){.controls{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
-@media (max-width:520px){.planes{grid-template-columns:1fr}.planes svg+svg{border-left:0;border-top:1px solid var(--rule)}}
+@media (max-width:860px){.controls,.duo{grid-template-columns:1fr}.duo>div+div{border-left:0;border-top:1px solid var(--rule)}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
 @media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
-
-
-
 .doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}.doc-tags a{font:500 12px "Geist Mono",ui-monospace,monospace;padding:4px 10px;border:1px solid var(--rule-solid,#bfc0c0);border-radius:4px;background:#fff;color:var(--muted,#4f5d75);text-decoration:none}.doc-tags a:hover{border-color:var(--ink,#2d3142);color:var(--ink,#2d3142)}.doc-tags a:focus-visible{outline:2px solid var(--accent,#bf4520);outline-offset:2px}
 </style>
 </head>
@@ -117,49 +103,69 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
 <header>
   <div class="eyebrow">Mathematics · Linear algebra</div>
   <h1>Eigenvalues and Eigenvectors</h1>
-  <p class="lede">Most vectors get turned by a matrix. A few special ones only get stretched or flipped. Those directions, and the stretch factors along them, reveal what the matrix really does.</p>
-  
-  
-  
+  <p class="lede">Most vectors get turned by a matrix. A few special ones only get stretched or flipped. Those directions, and the stretch factors along them, reveal what the matrix really does, and they decide what happens when you apply it over and over.</p>
   <nav class="doc-tags" aria-label="Main tags"><a href="../../../index.html#tag=eigenvalue">#eigenvalue</a><a href="../../../index.html#tag=eigenvector">#eigenvector</a><a href="../../../index.html#tag=characteristic%20polynomial">#characteristic polynomial</a><a href="../../../index.html#tag=trace">#trace</a></nav>
 </header>
 
 <section>
   <h2>Try it first</h2>
-  <p>Turn the blue vector $\mathbf{v}$ around the unit circle. The orange arrow is $A\mathbf{v}$, and the ellipse is the image of the whole circle. Most of the time the orange arrow points elsewhere. When it lines up with the blue one, you have found an <b>eigenvector</b>, and the ratio of lengths, with sign, is its <b>eigenvalue</b> $\lambda$. The dashed lines mark the eigen directions the matrix has.</p>
+  <p>Drag the blue vector $\mathbf{v}$ around the unit circle, or press "Sweep". The orange arrow is $A\mathbf{v}$ and the ellipse is the image of the whole circle. The strip plot underneath tracks how far $A\mathbf{v}$ turns away from $\mathbf{v}$. Wherever it crosses zero, $A\mathbf{v}$ lines up with $\mathbf{v}$: that is an <b>eigenvector</b>, and the signed stretch is its <b>eigenvalue</b> $\lambda$. Then press "Power step" a few times: applying $A$ repeatedly pulls any starting vector toward the dominant eigenvector.</p>
 
   <figure class="card">
     <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">v and A v</span></div>
-    <div class="single">
-      <svg id="pl" viewBox="0 0 360 360" role="img" aria-labelledby="pl-title pl-desc">
-        <title id="pl-title">A vector, its image, and the eigen directions</title>
-        <desc id="pl-desc">A plane with the unit circle and its image under the matrix, which is an ellipse. A blue arrow v on the circle and an orange arrow A v. Dashed lines through the origin mark the real eigen directions when they exist. When the orange arrow lies along the blue one, the vector is an eigenvector. The eigenvalues are given in the readout beside the figure.</desc>
-      </svg>
+    <div class="duo">
+      <div class="fig-pad">
+        <svg id="pl" viewBox="0 0 360 360" role="img" aria-labelledby="pl-title pl-desc">
+          <title id="pl-title">A vector, its image, and the eigen directions</title>
+          <desc id="pl-desc">A plane with the unit circle and its image under the matrix, which is an ellipse. A draggable blue arrow v on the circle and an orange arrow A v. Dashed lines through the origin mark the real eigen directions when they exist. Small numbered dots on the circle show power iteration steps converging to the dominant eigen direction.</desc>
+        </svg>
+        <svg id="turn" viewBox="0 0 360 120" role="img" aria-labelledby="tu-title tu-desc" style="max-width:440px;margin:0 auto">
+          <title id="tu-title">How much A v turns away from v, around the circle</title>
+          <desc id="tu-desc">A curve of the sine of the angle from v to A v, for v at every angle from 0 to 360 degrees. Zero crossings mark eigen directions. A marker shows the current angle.</desc>
+        </svg>
+      </div>
+      <div class="fig-pad">
+        <div class="group-label">Eigenvalues</div>
+        <div class="big-answer" id="answer"></div>
+        <pre class="readout" id="readout" aria-live="polite"></pre>
+      </div>
     </div>
-    <div class="card-bottom"><span class="hint">Eigenvector: A v points along v</span><span class="live" id="live"></span></div>
+    <div class="card-bottom"><span class="hint">Eigenvector: A v points along v (or exactly opposite)</span><span class="live" id="live"></span></div>
   </figure>
 
   <div class="controls">
     <div class="panel">
-      <div class="row"><label for="a">$a$</label><input type="range" id="a" min="-3" max="3" step="0.1" value="2"><output id="o-a" for="a"></output></div><div class="row"><label for="b">$b$</label><input type="range" id="b" min="-3" max="3" step="0.1" value="1"><output id="o-b" for="b"></output></div><div class="row"><label for="c">$c$</label><input type="range" id="c" min="-3" max="3" step="0.1" value="1"><output id="o-c" for="c"></output></div><div class="row"><label for="d">$d$</label><input type="range" id="d" min="-3" max="3" step="0.1" value="2"><output id="o-d" for="d"></output></div><div class="row"><label for="th">$\theta$</label><input type="range" id="th" min="0" max="360" step="1" value="20"><output id="o-th" for="th"></output></div>
+      <div class="row"><label for="a">a</label><input type="range" id="a" min="-5" max="5" step="0.1" value="2"><output id="o-a" for="a"></output></div>
+      <div class="row"><label for="b">b</label><input type="range" id="b" min="-5" max="5" step="0.1" value="1"><output id="o-b" for="b"></output></div>
+      <div class="row"><label for="c">c</label><input type="range" id="c" min="-5" max="5" step="0.1" value="1"><output id="o-c" for="c"></output></div>
+      <div class="row"><label for="d">d</label><input type="range" id="d" min="-5" max="5" step="0.1" value="2"><output id="o-d" for="d"></output></div>
+      <div class="row"><label for="th">θ</label><input type="range" id="th" min="0" max="359" step="1" value="20"><output id="o-th" for="th"></output></div>
+      <div class="btns">
+        <button type="button" class="btn" id="sweep" aria-pressed="false">Sweep</button>
+        <button type="button" class="btn" id="pstep">Power step</button>
+        <button type="button" class="btn" id="preset-reset">Clear steps</button>
+      </div>
+    </div>
+    <div class="panel">
       <div class="group-label" id="pre-label">Presets</div>
       <div class="seg" role="group" aria-labelledby="pre-label">
         <button type="button" data-p="2,1,1,2">Symmetric</button>
+        <button type="button" data-p="4,1,2,3">Non-symmetric</button>
         <button type="button" data-p="2,0,0,0.5">Stretch</button>
         <button type="button" data-p="1,1,0,1">Shear</button>
         <button type="button" data-p="0,-1,1,0">Rotation</button>
+        <button type="button" data-p="1,0,0,-1">Reflection</button>
+        <button type="button" data-p="1,2,0.5,1">Singular</button>
+        <button type="button" data-p="1,1,1,0">Fibonacci</button>
+        <button type="button" data-p="1.5,0,0,1.5">Scalar</button>
       </div>
       <div class="legend" aria-label="Legend">
         <span><i class="sw" style="background:#2e5aa8"></i>v</span>
         <span><i class="sw" style="background:#bf4520"></i>A v</span>
         <span><i class="sw" style="background:rgba(191,69,32,.15);border-color:#bf4520"></i>image of the circle</span>
+        <span><i class="sw" style="background:transparent;border-style:dashed"></i>eigen direction</span>
+        <span><i class="sw" style="background:#2d3142;border-radius:50%"></i>power iterates</span>
       </div>
-    </div>
-    <div class="panel">
-      <div class="eyebrow">Eigenvalues</div>
-      <div class="big-answer" id="answer"></div>
-      <pre class="readout" id="readout" aria-live="polite"></pre>
-      <div class="calc" id="calc"></div>
     </div>
   </div>
 </section>
@@ -167,51 +173,153 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
 <section>
   <h2>1. The definition</h2>
   <p>A nonzero vector $\mathbf{v}$ is an <b>eigenvector</b> of the square matrix $A$ if multiplying by $A$ only scales it:</p>
-  <div class="formula">$$A\mathbf{v} = \lambda\mathbf{v}$$</div>
+  <div class="formula">$$A\mathbf{v} = \lambda\mathbf{v}, \qquad \mathbf{v} \neq \mathbf{0}$$</div>
   <p>The number $\lambda$ is the matching <b>eigenvalue</b>. If $\lambda = 2$ the vector is doubled. If $\lambda = -1$ it is flipped. If $\lambda = 0$ it is crushed to zero. Any nonzero multiple of an eigenvector is an eigenvector for the same $\lambda$, so what matters is the direction, a line through the origin. The set of all eigenvectors for one $\lambda$, plus $\mathbf{0}$, is a subspace called the <b>eigenspace</b>.</p>
   <div class="callout">An eigenvector is a direction the matrix does not turn.</div>
+  <p>"Eigen" is German for "own" or "characteristic": these are the matrix's own directions. They do not depend on any coordinate system you choose, which is why they describe the transformation itself rather than its numbers.</p>
 </section>
 
 <section>
   <h2>2. Finding them</h2>
-  <p>Rewrite $A\mathbf{v} = \lambda\mathbf{v}$ as $(A - \lambda I)\mathbf{v} = \mathbf{0}$. A nonzero solution exists only when $A - \lambda I$ is not invertible, which means its <a href="../determinants/determinants.html">determinant</a> is zero:</p>
+  <p>Rewrite $A\mathbf{v} = \lambda\mathbf{v}$ as $(A - \lambda I)\mathbf{v} = \mathbf{0}$. A nonzero solution exists only when $A - \lambda I$ squashes some direction to zero, that is, when it is not invertible. By the <a href="../determinants/determinants.html">determinant</a> test:</p>
   <div class="formula">$$\det(A - \lambda I) = 0$$</div>
-  <p>This is the <b>characteristic equation</b>. For a $2 \times 2$ matrix it is a quadratic with a simple form:</p>
+  <p>This is the <b>characteristic equation</b>. Its left side is a polynomial of degree $n$ in $\lambda$, so an $n \times n$ matrix has exactly $n$ eigenvalues counted with multiplicity, some possibly complex. For a $2 \times 2$ matrix it has a simple form:</p>
   <div class="formula">$$\lambda^2 - (a + d)\,\lambda + (ad - bc) = 0 \qquad\Longleftrightarrow\qquad \lambda^2 - \operatorname{tr}(A)\,\lambda + \det A = 0$$</div>
-  <p><b>Worked example.</b> For $A = \begin{bmatrix}2&1\\1&2\end{bmatrix}$ the trace is $4$ and the determinant is $3$, so $\lambda^2 - 4\lambda + 3 = 0$ and $\lambda = 3$ or $\lambda = 1$. For $\lambda = 3$, solve $(A - 3I)\mathbf{v} = \mathbf{0}$, which says $-v_1 + v_2 = 0$, so $\mathbf{v} = (1, 1)$. For $\lambda = 1$ you get $\mathbf{v} = (1, -1)$. Check in the lab with the Symmetric preset: the dashed lines sit along those two directions.</p>
+  <p>Once you have a $\lambda$, the eigenvectors are the null space of $A - \lambda I$, found by elimination.</p>
+
+  <h3>Worked example: symmetric</h3>
+  <p>For $A = \begin{bmatrix}2&1\\1&2\end{bmatrix}$ the trace is $4$ and the determinant is $3$, so $\lambda^2 - 4\lambda + 3 = (\lambda - 3)(\lambda - 1) = 0$. For $\lambda = 3$, $(A - 3I)\mathbf{v} = \mathbf{0}$ reads $-v_1 + v_2 = 0$, so $\mathbf{v} = (1, 1)$. For $\lambda = 1$ you get $\mathbf{v} = (1, -1)$. The two directions are perpendicular, which is typical for symmetric matrices.</p>
+
+  <h3>Worked example: not symmetric</h3>
+  <div class="steps"><ol>
+    <li>$A = \begin{bmatrix}4&1\\2&3\end{bmatrix}$: $\operatorname{tr} = 7$, $\det = 10$, so $\lambda^2 - 7\lambda + 10 = (\lambda - 5)(\lambda - 2) = 0$.</li>
+    <li>$\lambda = 5$: $A - 5I = \begin{bmatrix}-1&1\\2&-2\end{bmatrix}$, so $v_1 = v_2$ and $\mathbf{v} = (1, 1)$.</li>
+    <li>$\lambda = 2$: $A - 2I = \begin{bmatrix}2&1\\2&1\end{bmatrix}$, so $2v_1 + v_2 = 0$ and $\mathbf{v} = (1, -2)$.</li>
+    <li>Check: $A(1, -2) = (4 - 2,\ 2 - 6) = (2, -4) = 2(1, -2)$. The eigenvectors are not perpendicular this time.</li>
+  </ol></div>
+  <p>Load "Non-symmetric" in the lab and drag $\mathbf{v}$ onto each dashed line to confirm.</p>
+
+  <h3>Larger matrices</h3>
+  <p>For a triangular matrix the determinant of $A - \lambda I$ is the product of its diagonal, so the eigenvalues can be read off directly: $\begin{bmatrix}2&1&0\\0&3&1\\0&0&5\end{bmatrix}$ has eigenvalues $2, 3, 5$. In general, the characteristic polynomial of a $5 \times 5$ or larger matrix has no formula for its roots, so software never solves it. It uses iterative methods like the QR algorithm instead.</p>
 </section>
 
 <section>
   <h2>3. Three things that can happen</h2>
+  <p>For $2 \times 2$ matrices the quadratic formula gives $\lambda = \frac{\operatorname{tr} \pm \sqrt{\operatorname{tr}^2 - 4\det}}{2}$, and the sign under the square root decides the picture.</p>
   <table class="ops">
-    <thead><tr><th>Discriminant $\operatorname{tr}^2 - 4\det$</th><th>Eigenvalues</th><th>Picture</th></tr></thead>
+    <thead><tr><th>$\operatorname{tr}^2 - 4\det$</th><th>Eigenvalues</th><th>Picture</th><th>Lab preset</th></tr></thead>
     <tbody>
-      <tr><td>Positive</td><td>Two different real numbers</td><td>Two invariant lines. The circle becomes an ellipse stretched along them.</td></tr>
-      <tr><td>Zero</td><td>One repeated real number</td><td>Often just one invariant line, as in the shear.</td></tr>
-      <tr><td>Negative</td><td>A complex pair $\alpha \pm i\beta$</td><td>No real invariant line. The matrix rotates, as in the rotation preset.</td></tr>
+      <tr><td>positive</td><td>two different real numbers</td><td>Two invariant lines. The circle becomes an ellipse stretched along them.</td><td>Symmetric, Stretch</td></tr>
+      <tr><td>zero</td><td>one repeated real number</td><td>Either every direction is invariant, or just one line.</td><td>Scalar, Shear</td></tr>
+      <tr><td>negative</td><td>a complex pair $\alpha \pm i\beta$</td><td>No real invariant line. The matrix rotates as it scales.</td><td>Rotation</td></tr>
     </tbody>
   </table>
-  <p>Complex eigenvalues are not a failure. They signal rotation, and their argument is the angle. See <a href="../euler-formula/euler-formula.html">Euler's Formula</a> for why $e^{i\theta}$ is a spin.</p>
+  <p>Complex eigenvalues are not a failure. The rotation by angle $\theta$ has characteristic equation $\lambda^2 - 2\cos\theta\,\lambda + 1 = 0$, with roots $\cos\theta \pm i\sin\theta = e^{\pm i\theta}$. The modulus $|\lambda|$ is the scaling and the argument is the rotation angle. See <a href="../euler-formula/euler-formula.html">Euler's Formula</a> for why $e^{i\theta}$ is a spin. In the lab, the turn plot for the rotation never crosses zero.</p>
 </section>
 
 <section>
-  <h2>4. Facts worth remembering</h2>
+  <h2>4. Repeated eigenvalues</h2>
+  <p>A repeated root can hide two very different matrices. Both have $\lambda = 1$ twice:</p>
+  <div class="formula">$$I = \begin{bmatrix}1&0\\0&1\end{bmatrix} \qquad S = \begin{bmatrix}1&1\\0&1\end{bmatrix}$$</div>
+  <p>For $I$, every vector is an eigenvector: the eigenspace is the whole plane. For the shear $S$, $(S - I)\mathbf{v} = (v_2, 0) = \mathbf{0}$ forces $v_2 = 0$, so only the horizontal line survives. The number of times $\lambda$ is a root is its <b>algebraic multiplicity</b>; the dimension of its eigenspace is its <b>geometric multiplicity</b>. The geometric one is never larger. When it is strictly smaller, as for the shear, the matrix is called <b>defective</b> and cannot be <a href="../matrix-diagonalization/matrix-diagonalization.html">diagonalized</a>.</p>
+</section>
+
+<section>
+  <h2>5. Facts worth remembering</h2>
+  <table class="ops">
+    <thead><tr><th>Fact</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td>$\lambda_1 + \cdots + \lambda_n = \operatorname{tr} A$</td><td>compare the $\lambda^{n-1}$ coefficients of $\det(A - \lambda I)$ and $\prod(\lambda_i - \lambda)$</td></tr>
+      <tr><td>$\lambda_1 \cdots \lambda_n = \det A$</td><td>put $\lambda = 0$ in the same identity</td></tr>
+      <tr><td>$A$ invertible $\iff$ $0$ is not an eigenvalue</td><td>$A\mathbf{v} = 0\mathbf{v}$ is a nonzero null vector</td></tr>
+      <tr><td>Triangular: eigenvalues are the diagonal</td><td>$\det$ of a triangular matrix is the diagonal product</td></tr>
+      <tr><td>$A^k$ has eigenvalues $\lambda^k$, $A^{-1}$ has $\frac{1}{\lambda}$</td><td>apply $A$ again to $A\mathbf{v} = \lambda\mathbf{v}$</td></tr>
+      <tr><td>$A + cI$ has eigenvalues $\lambda + c$</td><td>same eigenvectors, shifted</td></tr>
+      <tr><td>Eigenvectors for distinct eigenvalues are independent</td><td>a dependence would force two eigenvalues to agree</td></tr>
+      <tr><td>Real symmetric: real eigenvalues, perpendicular eigenvectors</td><td>the spectral theorem</td></tr>
+      <tr><td>$A$ and $A^{\mathsf T}$ have the same eigenvalues</td><td>$\det(A - \lambda I) = \det(A^{\mathsf T} - \lambda I)$</td></tr>
+    </tbody>
+  </table>
+  <p>Check the first two in the lab readout for any matrix: the sum and product of the eigenvalues always match the trace and determinant, even when the eigenvalues are complex.</p>
+</section>
+
+<section>
+  <h2>6. Power iteration</h2>
+  <p>Write a starting vector in terms of eigenvectors, $\mathbf{x}_0 = c_1\mathbf{v}_1 + c_2\mathbf{v}_2$, with $|\lambda_1| \gt |\lambda_2|$. Applying $A$ $k$ times multiplies each piece by its eigenvalue:</p>
+  <div class="formula">$$A^k\mathbf{x}_0 = c_1\lambda_1^k\mathbf{v}_1 + c_2\lambda_2^k\mathbf{v}_2 = \lambda_1^k\left(c_1\mathbf{v}_1 + c_2\left(\tfrac{\lambda_2}{\lambda_1}\right)^k\mathbf{v}_2\right)$$</div>
+  <p>The second term shrinks like $\left|\frac{\lambda_2}{\lambda_1}\right|^k$, so the direction locks onto $\mathbf{v}_1$. Normalizing each step keeps the numbers from blowing up. For the symmetric example the ratio is $\frac{1}{3}$: each step cuts the error by three. For the "Stretch" preset it is $\frac{1}{4}$; try a matrix with nearly equal eigenvalues and watch it crawl. With a complex pair there is no dominant real direction, and the iterates keep circling.</p>
+  <p>The estimate of $\lambda_1$ is the Rayleigh quotient $\frac{\mathbf{x}^{\mathsf T}A\mathbf{x}}{\mathbf{x}^{\mathsf T}\mathbf{x}}$, shown in the readout.</p>
+</section>
+
+<section>
+  <h2>7. Eigenvalues decide the long run</h2>
+  <p>Many systems step forward by a fixed matrix, $\mathbf{x}_{k+1} = A\mathbf{x}_k$. Then $\mathbf{x}_k = A^k\mathbf{x}_0$, and the eigenvalues say everything about the future:</p>
   <ul class="tight">
-    <li>The sum of the eigenvalues is the trace. Their product is the determinant.</li>
-    <li>A matrix is invertible exactly when $0$ is not an eigenvalue.</li>
-    <li>For a triangular matrix, the eigenvalues are the diagonal entries.</li>
-    <li>Eigenvectors for different eigenvalues are linearly independent.</li>
-    <li>A symmetric real matrix has real eigenvalues and perpendicular eigenvectors.</li>
-    <li>$A^n$ has eigenvalues $\lambda^n$ with the same eigenvectors. That makes <a href="../matrix-diagonalization/matrix-diagonalization.html">diagonalization</a> so useful.</li>
+    <li>All $|\lambda| \lt 1$: everything decays to zero. The system is stable.</li>
+    <li>Some $|\lambda| \gt 1$: growth along that eigenvector dominates.</li>
+    <li>$\lambda = 1$: a steady state. Markov chains always have one.</li>
+    <li>Complex $\lambda$: spiralling, with $|\lambda|$ deciding in or out.</li>
+  </ul>
+  <h3>Fibonacci</h3>
+  <p>The step $(F_{k+1}, F_k) \to (F_{k+1} + F_k,\ F_{k+1})$ is the matrix $\begin{bmatrix}1&1\\1&0\end{bmatrix}$. Its characteristic equation is $\lambda^2 - \lambda - 1 = 0$, with roots $\varphi = \frac{1 + \sqrt{5}}{2} \approx 1.618$ and $\psi = \frac{1 - \sqrt{5}}{2} \approx -0.618$. Since $|\psi| \lt 1$, its part fades and</p>
+  <div class="formula">$$F_k = \frac{\varphi^k - \psi^k}{\sqrt{5}} \approx \frac{\varphi^k}{\sqrt{5}}, \qquad \text{e.g. } \frac{\varphi^{20}}{\sqrt{5}} \approx 6765.00003 \text{ and } F_{20} = 6765$$</div>
+  <p>Load the "Fibonacci" preset: power iteration lines up with the golden-ratio direction $(\varphi, 1)$.</p>
+  <h3>Differential equations</h3>
+  <p>For continuous time, $\mathbf{x}'(t) = A\mathbf{x}(t)$ has solutions $e^{\lambda t}\mathbf{v}$ along each eigenvector. Now the real part of $\lambda$ decides: negative real parts mean decay, positive mean growth, and imaginary parts mean oscillation. Engineers check stability of a control system by checking where its eigenvalues lie.</p>
+</section>
+
+<section>
+  <h2>8. Symmetric matrices and ellipses</h2>
+  <p>When $A$ is symmetric, the ellipse in the lab has its axes exactly along the eigenvectors, and the half-axis lengths are $|\lambda_1|$ and $|\lambda_2|$. That is the spectral theorem in a picture: a symmetric matrix is a pure stretch along perpendicular axes, $A = Q\Lambda Q^{\mathsf T}$ with $Q$ orthogonal. For a non-symmetric matrix the ellipse axes and the eigenvectors no longer agree; the ellipse axes then come from the singular value decomposition.</p>
+  <p>The same fact explains principal component analysis. The covariance matrix of a data cloud is symmetric. Its eigenvectors are the directions of greatest and least spread, and its eigenvalues are the variances along them.</p>
+</section>
+
+<section>
+  <h2>9. The same thing in code</h2>
+  <pre class="code"><span class="c">// Closed form for 2x2: roots of λ² − tr·λ + det</span>
+<span class="k">function</span> eig2([[a, b], [c, d]]) {
+  <span class="k">const</span> tr = a + d, det = a * d - b * c, disc = tr * tr - <span class="t">4</span> * det;
+  <span class="k">if</span> (disc &lt; <span class="t">0</span>) <span class="k">return</span> { re: tr / <span class="t">2</span>, im: Math.sqrt(-disc) / <span class="t">2</span> };   <span class="c">// complex pair</span>
+  <span class="k">return</span> [(tr + Math.sqrt(disc)) / <span class="t">2</span>, (tr - Math.sqrt(disc)) / <span class="t">2</span>];
+}
+
+<span class="c">// Power iteration: dominant eigenvalue and eigenvector of any size</span>
+<span class="k">function</span> power(A, steps = <span class="t">50</span>) {
+  <span class="k">let</span> x = A.map(() =&gt; <span class="t">1</span>), lambda = <span class="t">0</span>;
+  <span class="k">for</span> (<span class="k">let</span> k = <span class="t">0</span>; k &lt; steps; k++) {
+    <span class="k">const</span> y = A.map(row =&gt; row.reduce((s, a, j) =&gt; s + a * x[j], <span class="t">0</span>));
+    <span class="k">const</span> n = Math.hypot(...y);
+    lambda = y.reduce((s, yi, i) =&gt; s + yi * x[i], <span class="t">0</span>);   <span class="c">// Rayleigh quotient (x has length 1)</span>
+    x = y.map(v =&gt; v / n);
+  }
+  <span class="k">return</span> { lambda, x };
+}
+
+eig2([[<span class="t">4</span>, <span class="t">1</span>], [<span class="t">2</span>, <span class="t">3</span>]]);   <span class="c">// [5, 2]</span>
+power([[<span class="t">2</span>, <span class="t">1</span>], [<span class="t">1</span>, <span class="t">2</span>]]);  <span class="c">// lambda ≈ 3, x ≈ [0.7071, 0.7071]</span></pre>
+  <p>Starting from $(1, 0)$ instead, the Rayleigh estimates for the symmetric example run $2.8,\ 2.976,\ 2.9973,\ 2.99970, \ldots$: one more correct digit per step, matching the ratio $\frac{1}{3}$. For real work use a library routine (<code>numpy.linalg.eig</code>, LAPACK), which runs the QR algorithm and handles complex and repeated cases.</p>
+</section>
+
+<section>
+  <h2>10. Common mistakes</h2>
+  <ul class="tight">
+    <li>Counting $\mathbf{0}$ as an eigenvector. It satisfies $A\mathbf{0} = \lambda\mathbf{0}$ for every $\lambda$, which is why it is excluded.</li>
+    <li>Row-reducing $A$ first. Row operations change the eigenvalues; only $A - \lambda I$ may be reduced, and only to find eigenvectors.</li>
+    <li>Adding eigenvalues of $A$ and $B$ to get those of $A + B$. That only works when they share eigenvectors.</li>
+    <li>Assuming real matrices have real eigenvalues. A rotation shows otherwise.</li>
+    <li>Expecting $n$ independent eigenvectors. The shear has only one.</li>
   </ul>
 </section>
 
 <section>
-  <h2>5. Where it shows up</h2>
+  <h2>11. Where it shows up</h2>
   <div class="cards">
-    <div class="stat focal"><div class="eyebrow">Search</div><div class="big">PageRank</div><p>The ranking vector is the eigenvector with eigenvalue 1 of the web's link matrix.</p></div>
+    <div class="stat focal"><div class="eyebrow">Search</div><div class="big">PageRank</div><p>The ranking vector is the eigenvector with eigenvalue 1 of the web's link matrix, found by power iteration.</p></div>
     <div class="stat"><div class="eyebrow">Data</div><div class="big">PCA</div><p>The principal axes of a data cloud are eigenvectors of its covariance matrix.</p></div>
-    <div class="stat"><div class="eyebrow">Physics</div><div class="big">vibration</div><p>Natural frequencies and modes of a structure are eigenvalues and eigenvectors.</p></div>
+    <div class="stat"><div class="eyebrow">Physics</div><div class="big">vibration</div><p>Natural frequencies and mode shapes of a bridge or a molecule are eigenvalues and eigenvectors.</p></div>
+    <div class="stat"><div class="eyebrow">Quantum mechanics</div><div class="big">observables</div><p>Measurable values are eigenvalues of an operator; the energy levels of an atom are eigenvalues of its Hamiltonian.</p></div>
+    <div class="stat"><div class="eyebrow">Graphs</div><div class="big">spectral clustering</div><p>Eigenvectors of the graph Laplacian split a network into communities.</p></div>
+    <div class="stat"><div class="eyebrow">Finance</div><div class="big">risk factors</div><p>The top eigenvectors of a return covariance matrix are market-wide factors; the top one is usually "the market".</p></div>
   </div>
 </section>
 
@@ -221,31 +329,19 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
 document.addEventListener('DOMContentLoaded', function () {
   var NS = 'http://www.w3.org/2000/svg';
   var $ = function (id) { return document.getElementById(id); };
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   function el(name, attrs, parent) {
     var e = document.createElementNS(NS, name);
     for (var k in attrs) e.setAttribute(k, attrs[k]);
     if (parent) parent.appendChild(e);
     return e;
   }
-  function num(id) { var v = parseFloat($(id).value); return isFinite(v) ? v : 0; }
-  // short number: no trailing zeros, no "-0"
   function f(x, d) {
     d = d === undefined ? 2 : d;
     if (!isFinite(x)) return String(x);
     var s = (Math.abs(x) < 0.5 * Math.pow(10, -d) ? 0 : x).toFixed(d);
     if (s.indexOf('.') >= 0) s = s.replace(/0+$/, '').replace(/\.$/, '');
     return s;
-  }
-  function pad(s, n) { s = String(s); while (s.length < n) s = ' ' + s; return s; }
-  function tex(id, s) {
-    var n = $(id);
-    if (window.katex) window.katex.render(s, n, { throwOnError: false, displayMode: false });
-    else n.textContent = s;
-  }
-  function mxHtml(M) {
-    var r = M.length, c = M[0].length, h = '<div class="mx" style="grid-template-columns:repeat(' + c + ',auto)">';
-    for (var i = 0; i < r; i++) for (var j = 0; j < c; j++) h += '<span class="cell">' + f(M[i][j]) + '</span>';
-    return h + '</div>';
   }
   function reset(svg) {
     Array.prototype.slice.call(svg.childNodes).forEach(function (n) {
@@ -254,146 +350,169 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     return el('g', {}, svg);
   }
-  // square plane, viewBox 0 0 360 360, data range [-R, R]
-  function plane(id, R, step) {
-    var svg = $(id), S = 360, M = 14, g = reset(svg);
-    var X = function (v) { return M + (v + R) / (2 * R) * (S - 2 * M); };
-    var Y = function (v) { return S - M - (v + R) / (2 * R) * (S - 2 * M); };
-    el('rect', { x: M, y: M, width: S - 2 * M, height: S - 2 * M, fill: '#fff', stroke: 'rgba(45,49,66,.25)' }, g);
-    step = step || 1;
-    for (var t = -R; t <= R + 1e-9; t += step) {
-      if (Math.abs(t) < 1e-9) continue;
-      el('line', { x1: X(t), x2: X(t), y1: M, y2: S - M, stroke: 'rgba(45,49,66,.07)' }, g);
-      el('line', { x1: M, x2: S - M, y1: Y(t), y2: Y(t), stroke: 'rgba(45,49,66,.07)' }, g);
+  var S = 360, MG = 14, R = 4;
+  var X = function (v) { return MG + (v + R) / (2 * R) * (S - 2 * MG); };
+  var Y = function (v) { return S - MG - (v + R) / (2 * R) * (S - 2 * MG); };
+  function plane(id) {
+    var svg = $(id), g = reset(svg);
+    el('rect', { x: MG, y: MG, width: S - 2 * MG, height: S - 2 * MG, fill: '#fff', stroke: 'rgba(45,49,66,.25)' }, g);
+    for (var t = -R; t <= R; t++) {
+      if (t === 0) continue;
+      el('line', { x1: X(t), x2: X(t), y1: MG, y2: S - MG, stroke: 'rgba(45,49,66,.07)' }, g);
+      el('line', { x1: MG, x2: S - MG, y1: Y(t), y2: Y(t), stroke: 'rgba(45,49,66,.07)' }, g);
     }
-    el('line', { x1: X(0), x2: X(0), y1: M, y2: S - M, stroke: '#2d3142', 'stroke-width': 0.8 }, g);
-    el('line', { x1: M, x2: S - M, y1: Y(0), y2: Y(0), stroke: '#2d3142', 'stroke-width': 0.8 }, g);
-    var cid = id + 'Clip';
-    var cp = el('clipPath', { id: cid }, g);
-    el('rect', { x: M, y: M, width: S - 2 * M, height: S - 2 * M }, cp);
-    var c = el('g', { 'clip-path': 'url(#' + cid + ')' }, g);
-    return { g: g, c: c, X: X, Y: Y, R: R };
+    el('line', { x1: X(0), x2: X(0), y1: MG, y2: S - MG, stroke: '#2d3142', 'stroke-width': 0.8 }, g);
+    el('line', { x1: MG, x2: S - MG, y1: Y(0), y2: Y(0), stroke: '#2d3142', 'stroke-width': 0.8 }, g);
+    var cp = el('clipPath', { id: id + 'Clip' }, g);
+    el('rect', { x: MG, y: MG, width: S - 2 * MG, height: S - 2 * MG }, cp);
+    return { g: g, c: el('g', { 'clip-path': 'url(#' + id + 'Clip)' }, g) };
   }
-  function line(P, x1, y1, x2, y2, color, w, dash) {
-    var a = { x1: P.X(x1), y1: P.Y(y1), x2: P.X(x2), y2: P.Y(y2), stroke: color, 'stroke-width': w || 1.5, 'stroke-linecap': 'round' };
-    if (dash) a['stroke-dasharray'] = dash;
-    return el('line', a, P.c);
-  }
-  function arrow(P, x, y, color, w, x0, y0) {
-    x0 = x0 || 0; y0 = y0 || 0;
-    var ax = P.X(x0), ay = P.Y(y0), bx = P.X(x), by = P.Y(y);
-    var dx = bx - ax, dy = by - ay, L = Math.hypot(dx, dy);
-    if (L < 1) return;
+  function arrow(P, x, y, color, w) {
+    var ax = X(0), ay = Y(0), bx = X(x), by = Y(y), dx = bx - ax, dy = by - ay, L = Math.hypot(dx, dy);
+    if (L < 1) { el('circle', { cx: ax, cy: ay, r: 4, fill: color }, P.c); return; }
     var ux = dx / L, uy = dy / L, h = 9;
     el('line', { x1: ax, y1: ay, x2: bx - ux * 6, y2: by - uy * 6, stroke: color, 'stroke-width': w || 2.4, 'stroke-linecap': 'round' }, P.c);
     el('polygon', { points: bx + ',' + by + ' ' + (bx - ux * h - uy * 4.5) + ',' + (by - uy * h + ux * 4.5) + ' ' + (bx - ux * h + uy * 4.5) + ',' + (by - uy * h - ux * 4.5), fill: color }, P.c);
   }
-  function dot(P, x, y, r, fill, stroke) {
-    return el('circle', { cx: P.X(x), cy: P.Y(y), r: r, fill: fill, stroke: stroke || '#fff', 'stroke-width': 1.4 }, P.c);
-  }
-  function label(P, x, y, s, color, dx, dy) {
-    var t = el('text', { x: P.X(x) + (dx || 6), y: P.Y(y) + (dy || -6), 'font-size': 12, fill: color || '#2d3142', 'font-family': 'Geist Mono, monospace', 'font-weight': 600 }, P.c);
-    t.textContent = s;
-  }
-  function poly(P, pts, fill, stroke, w) {
-    var s = pts.map(function (p) { return P.X(p[0]).toFixed(1) + ',' + P.Y(p[1]).toFixed(1); }).join(' ');
-    return el('polygon', { points: s, fill: fill, stroke: stroke || 'none', 'stroke-width': w || 1.5, 'stroke-linejoin': 'round' }, P.c);
-  }
-  function path(P, pts, color, w, dash) {
-    var d = '', pen = false;
-    pts.forEach(function (p) {
-      if (!isFinite(p[0]) || !isFinite(p[1])) { pen = false; return; }
-      d += (pen ? ' L' : ' M') + P.X(p[0]).toFixed(1) + ' ' + P.Y(p[1]).toFixed(1); pen = true;
-    });
-    var a = { d: d, fill: 'none', stroke: color, 'stroke-width': w || 1.5, 'stroke-linejoin': 'round' };
-    if (dash) a['stroke-dasharray'] = dash;
-    if (d) el('path', a, P.c);
-  }
-  function mul2(a, b) {
-    return [[a[0][0] * b[0][0] + a[0][1] * b[1][0], a[0][0] * b[0][1] + a[0][1] * b[1][1]],
-            [a[1][0] * b[0][0] + a[1][1] * b[1][0], a[1][0] * b[0][1] + a[1][1] * b[1][1]]];
-  }
   function app(a, v) { return [a[0][0] * v[0] + a[0][1] * v[1], a[1][0] * v[0] + a[1][1] * v[1]]; }
-  function det2(a) { return a[0][0] * a[1][1] - a[0][1] * a[1][0]; }
-  function inv2(a) {
-    var d = det2(a);
-    return [[a[1][1] / d, -a[0][1] / d], [-a[1][0] / d, a[0][0] / d]];
-  }
-  function pick(selector, attr, value) {
-    Array.prototype.forEach.call(document.querySelectorAll(selector), function (b) {
-      b.setAttribute('aria-pressed', String(b.getAttribute(attr) === String(value)));
-    });
-  }
   function listen(selector, ev, fn) {
     Array.prototype.forEach.call(document.querySelectorAll(selector), function (n) { n.addEventListener(ev, fn); });
   }
+  function A() { return [[+$('a').value, +$('b').value], [+$('c').value, +$('d').value]]; }
 
-
-  function eig(a, b, c, d) {
-    var tr = a + d, dt = a * d - b * c, disc = tr * tr - 4 * dt, res = { tr: tr, dt: dt, disc: disc, vals: [], vecs: [] };
-    function vecFor(l) {
-      var v;
-      if (Math.abs(b) > 1e-9) v = [b, l - a];
-      else if (Math.abs(c) > 1e-9) v = [l - d, c];
-      else v = Math.abs(l - a) < 1e-9 ? [1, 0] : [0, 1];
-      var n = Math.hypot(v[0], v[1]); return [v[0] / n, v[1] / n];
-    }
-    if (disc > 1e-9) {
-      var s = Math.sqrt(disc), l1 = (tr + s) / 2, l2 = (tr - s) / 2;
-      res.vals = [l1, l2]; res.vecs = [vecFor(l1), vecFor(l2)]; res.kind = 'real';
-    } else if (disc >= -1e-9) {
-      var l = tr / 2; res.vals = [l];
-      var scalar = Math.abs(b) < 1e-9 && Math.abs(c) < 1e-9 && Math.abs(a - d) < 1e-9;
-      res.vecs = scalar ? [[1, 0], [0, 1]] : [vecFor(l)]; res.kind = scalar ? 'scalar' : 'repeated';
-    } else {
-      res.kind = 'complex'; res.re = tr / 2; res.im = Math.sqrt(-disc) / 2;
-    }
-    return res;
+  // eigen decomposition of a real 2x2 matrix
+  function eig(a) {
+    var tr = a[0][0] + a[1][1], det = a[0][0] * a[1][1] - a[0][1] * a[1][0], disc = tr * tr - 4 * det;
+    if (disc < -1e-9) return { complex: true, re: tr / 2, im: Math.sqrt(-disc) / 2, tr: tr, det: det, disc: disc };
+    var sq = Math.sqrt(Math.max(0, disc)), l1 = (tr + sq) / 2, l2 = (tr - sq) / 2, vecs = [];
+    [l1, l2].forEach(function (l, idx) {
+      if (idx === 1 && Math.abs(l1 - l2) < 1e-9) return;
+      var m = [[a[0][0] - l, a[0][1]], [a[1][0], a[1][1] - l]], v;
+      if (Math.abs(m[0][0]) < 1e-9 && Math.abs(m[0][1]) < 1e-9 && Math.abs(m[1][0]) < 1e-9 && Math.abs(m[1][1]) < 1e-9) { vecs.push({ l: l, all: true }); return; }
+      if (Math.abs(m[0][1]) > 1e-9 || Math.abs(m[0][0]) > 1e-9) v = [-m[0][1], m[0][0]];
+      else v = [-m[1][1], m[1][0]];
+      var n = Math.hypot(v[0], v[1]); vecs.push({ l: l, v: [v[0] / n, v[1] / n] });
+    });
+    return { complex: false, l1: l1, l2: l2, vecs: vecs, tr: tr, det: det, disc: disc };
   }
-  function render() {
-    ['a', 'b', 'c', 'd', 'th'].forEach(function (k) { $('o-' + k).textContent = f(+$(k).value, k === 'th' ? 0 : 1); });
-    var a = +$('a').value, b = +$('b').value, c = +$('c').value, d = +$('d').value, th = +$('th').value * Math.PI / 180;
-    var A = [[a, b], [c, d]], E = eig(a, b, c, d), P = plane('pl', 4, 1);
-    var ell = [], circ = [];
-    for (var i = 0; i <= 120; i++) {
-      var t = 2 * Math.PI * i / 120; circ.push([Math.cos(t), Math.sin(t)]); ell.push(app(A, [Math.cos(t), Math.sin(t)]));
-    }
-    poly(P, ell, 'rgba(191,69,32,.10)', 'rgba(191,69,32,.5)', 1.4);
-    path(P, circ, 'rgba(45,49,66,.4)', 1.2);
-    E.vecs.forEach(function (v) { line(P, -6 * v[0], -6 * v[1], 6 * v[0], 6 * v[1], 'rgba(45,49,66,.55)', 1.3, '6 4'); });
-    var v = [Math.cos(th), Math.sin(th)], Av = app(A, v);
-    var cr = v[0] * Av[1] - v[1] * Av[0], dp = v[0] * Av[0] + v[1] * Av[1];
-    arrow(P, Av[0], Av[1], '#bf4520', 2.6); arrow(P, v[0], v[1], '#2e5aa8', 2.8);
-    dot(P, v[0], v[1], 4, '#2e5aa8');
-    var isEig = Math.abs(cr) < 0.03;
-    var ang = Math.atan2(cr, dp) * 180 / Math.PI;
 
-    var ans, txt = 'trace = ' + f(E.tr, 2) + ', det = ' + f(E.dt, 2) + '\ndiscriminant = ' + f(E.disc, 2) + '\n';
-    if (E.kind === 'real') {
-      ans = f(E.vals[0], 2) + ', ' + f(E.vals[1], 2);
-      txt += 'λ₁ = ' + f(E.vals[0], 3) + ' with v = (' + f(E.vecs[0][0], 3) + ', ' + f(E.vecs[0][1], 3) + ')\n' +
-             'λ₂ = ' + f(E.vals[1], 3) + ' with v = (' + f(E.vecs[1][0], 3) + ', ' + f(E.vecs[1][1], 3) + ')\n';
-    } else if (E.kind === 'repeated' || E.kind === 'scalar') {
-      ans = f(E.vals[0], 2) + ' (twice)';
-      txt += 'λ = ' + f(E.vals[0], 3) + ' repeated\n' + (E.kind === 'scalar' ? 'every vector is an eigenvector' : 'only one eigen direction: (' + f(E.vecs[0][0], 3) + ', ' + f(E.vecs[0][1], 3) + ')') + '\n';
-    } else {
-      ans = f(E.re, 2) + ' ± ' + f(E.im, 2) + 'i';
-      txt += 'λ = ' + f(E.re, 3) + ' ± ' + f(E.im, 3) + 'i\nno real eigenvectors: the matrix rotates\n';
+  var iters = [];
+  function render() {
+    var a = A(), th = +$('th').value * Math.PI / 180;
+    ['a', 'b', 'c', 'd'].forEach(function (k) { $('o-' + k).textContent = f(+$(k).value, 1); });
+    $('o-th').textContent = $('th').value + '°';
+    var P = plane('pl'), E = eig(a);
+    var circ = [], img = [];
+    for (var k = 0; k <= 96; k++) {
+      var t = 2 * Math.PI * k / 96, p = [Math.cos(t), Math.sin(t)];
+      circ.push(X(p[0]).toFixed(1) + ',' + Y(p[1]).toFixed(1));
+      var q = app(a, p); img.push(X(q[0]).toFixed(1) + ',' + Y(q[1]).toFixed(1));
     }
-    txt += '\nangle from v to A v = ' + f(ang, 1) + '°\n' + (isEig ? 'v is (nearly) an eigenvector, ratio = ' + f(dp, 2) : 'v is turned by A');
+    el('polygon', { points: img.join(' '), fill: 'rgba(191,69,32,.08)', stroke: 'rgba(191,69,32,.55)', 'stroke-width': 1.2 }, P.c);
+    el('polygon', { points: circ.join(' '), fill: 'none', stroke: '#9aa0ae', 'stroke-width': 1.2 }, P.c);
+    if (!E.complex) E.vecs.forEach(function (ev) {
+      if (ev.all) return;
+      el('line', { x1: X(-6 * ev.v[0]), y1: Y(-6 * ev.v[1]), x2: X(6 * ev.v[0]), y2: Y(6 * ev.v[1]), stroke: '#2d3142', 'stroke-dasharray': '5 4', 'stroke-width': 1.2 }, P.c);
+      var lp = [ev.v[0] * 3.3, ev.v[1] * 3.3], tx = el('text', { x: X(lp[0]) + 4, y: Y(lp[1]) - 4, 'font-size': 11, fill: '#2d3142', 'font-family': 'Geist Mono, monospace', 'font-weight': 600 }, P.c);
+      tx.textContent = 'λ = ' + f(ev.l, 2);
+    });
+    // power iterates
+    iters.forEach(function (p, i) {
+      el('circle', { cx: X(p[0]), cy: Y(p[1]), r: 3.5, fill: '#2d3142', opacity: 0.35 + 0.65 * (i + 1) / iters.length }, P.c);
+      if (i < 6) { var tt = el('text', { x: X(p[0] * 1.18), y: Y(p[1] * 1.18) + 4, 'font-size': 9, fill: '#5a6580', 'text-anchor': 'middle', 'font-family': 'Geist Mono, monospace' }, P.c); tt.textContent = i + 1; }
+    });
+    var v = [Math.cos(th), Math.sin(th)], Av = app(a, v);
+    arrow(P, Av[0], Av[1], '#bf4520', 2.6);
+    arrow(P, v[0], v[1], '#2e5aa8', 2.6);
+    el('circle', { cx: X(v[0]), cy: Y(v[1]), r: 11, fill: 'rgba(255,255,255,.01)', stroke: '#2e5aa8', 'stroke-width': 1.2, 'stroke-dasharray': '3 2', 'class': 'handle', 'data-h': 'v' }, P.g);
+
+    var nAv = Math.hypot(Av[0], Av[1]), cross = v[0] * Av[1] - v[1] * Av[0], dot = v[0] * Av[0] + v[1] * Av[1];
+    var turn = nAv < 1e-9 ? 0 : Math.atan2(cross, dot) * 180 / Math.PI;
+    var aligned = nAv < 1e-9 || Math.abs(cross) / nAv < 0.02;
+
+    // turn plot
+    var T = $('turn'), g = reset(T), TX = function (deg) { return 36 + deg / 360 * 310; }, TY = function (s) { return 60 - s * 44; };
+    el('rect', { x: 36, y: 12, width: 310, height: 96, fill: '#fff', stroke: 'rgba(45,49,66,.2)' }, g);
+    el('line', { x1: 36, x2: 346, y1: TY(0), y2: TY(0), stroke: '#2d3142' }, g);
+    var dpath = '', prev = null;
+    for (var deg = 0; deg <= 360; deg += 2) {
+      var r = deg * Math.PI / 180, w = [Math.cos(r), Math.sin(r)], Aw = app(a, w), nw = Math.hypot(Aw[0], Aw[1]);
+      var sv = nw < 1e-9 ? 0 : (w[0] * Aw[1] - w[1] * Aw[0]) / nw;
+      dpath += (deg ? ' L' : 'M') + TX(deg).toFixed(1) + ' ' + TY(sv).toFixed(1);
+      if (prev !== null && prev * sv < 0) el('circle', { cx: TX(deg - 1), cy: TY(0), r: 3.5, fill: '#fff', stroke: '#2d3142', 'stroke-width': 1.4 }, g);
+      prev = sv;
+    }
+    el('path', { d: dpath, fill: 'none', stroke: '#bf4520', 'stroke-width': 1.8 }, g);
+    var sCur = nAv < 1e-9 ? 0 : cross / nAv;
+    el('line', { x1: TX(+$('th').value), x2: TX(+$('th').value), y1: 12, y2: 108, stroke: '#2e5aa8', 'stroke-dasharray': '2 3' }, g);
+    el('circle', { cx: TX(+$('th').value), cy: TY(sCur), r: 4.5, fill: '#2e5aa8' }, g);
+    [[0, '0°'], [90, '90°'], [180, '180°'], [270, '270°'], [360, '360°']].forEach(function (p) {
+      var tx = el('text', { x: TX(p[0]), y: 119, 'font-size': 9, fill: '#5a6580', 'text-anchor': 'middle', 'font-family': 'Geist Mono, monospace' }, g); tx.textContent = p[1];
+    });
+    var lab = el('text', { x: 40, y: 24, 'font-size': 10, fill: '#2d3142', 'font-family': 'Geist Mono, monospace' }, g); lab.textContent = 'sin(turn from v to Av)';
+
+    // readouts
+    var ans, txt = 'tr A = ' + f(E.tr) + '   det A = ' + f(E.det) + '\n' + 'λ² − ' + f(E.tr) + 'λ + ' + f(E.det) + ' = 0\n' + 'discriminant = ' + f(E.disc) + '\n\n';
+    if (E.complex) {
+      ans = 'λ = ' + f(E.re) + ' ± ' + f(E.im) + 'i';
+      txt += 'complex pair: no real eigenvector\n|λ| = ' + f(Math.hypot(E.re, E.im), 3) + ' (scaling)\narg λ = ' + f(Math.atan2(E.im, E.re) * 180 / Math.PI, 1) + '° (rotation)\nsum = ' + f(2 * E.re) + ' = tr, product = ' + f(E.re * E.re + E.im * E.im) + ' = det';
+    } else {
+      ans = Math.abs(E.l1 - E.l2) < 1e-9 ? 'λ = ' + f(E.l1) + ' (twice)' : 'λ = ' + f(E.l1) + ', ' + f(E.l2);
+      E.vecs.forEach(function (ev) {
+        txt += ev.all ? 'λ = ' + f(ev.l) + ': every vector is an eigenvector\n' : 'λ = ' + f(ev.l) + ':  v = (' + f(ev.v[0], 3) + ', ' + f(ev.v[1], 3) + ')\n';
+      });
+      if (Math.abs(E.l1 - E.l2) < 1e-9 && E.vecs.length === 1 && !E.vecs[0].all) txt += 'repeated λ with one eigenvector: defective\n';
+      txt += 'sum = ' + f(E.l1 + E.l2) + ' = tr, product = ' + f(E.l1 * E.l2) + ' = det';
+    }
+    txt += '\n\nv at θ = ' + $('th').value + '°:  Av turns ' + f(turn, 1) + '°' + (aligned ? '\n→ eigenvector! |Av| / |v| = ' + f(dot >= 0 ? nAv : -nAv, 3) : '');
+    if (iters.length) {
+      var x = iters[iters.length - 1], Ax = app(a, x);
+      txt += '\n\npower step ' + iters.length + ': x = (' + f(x[0], 4) + ', ' + f(x[1], 4) + ')\nRayleigh xᵀAx = ' + f(x[0] * Ax[0] + x[1] * Ax[1], 5);
+    }
     $('answer').textContent = ans;
     $('readout').textContent = txt;
-    $('live').textContent = isEig ? 'A v ∥ v: eigen direction' : 'A v turns v by ' + f(ang, 0) + '°';
-    tex('calc', '\\lambda^2' + (E.tr >= 0 ? '-' : '+') + f(Math.abs(E.tr), 2) + '\\lambda' + (E.dt >= 0 ? '+' : '-') + f(Math.abs(E.dt), 2) + '=0');
+    $('live').textContent = aligned ? 'aligned: v is an eigenvector' : 'Av turns ' + f(turn, 0) + '° away from v';
   }
-  listen('input', 'input', render);
+
+  // drag v around the circle
+  var dragging = false, svgPl = $('pl');
+  svgPl.addEventListener('pointerdown', function (e) {
+    if (!(e.target.getAttribute && e.target.getAttribute('data-h'))) return;
+    dragging = true; svgPl.setPointerCapture(e.pointerId); e.preventDefault();
+  });
+  svgPl.addEventListener('pointermove', function (e) {
+    if (!dragging) return;
+    var r = svgPl.getBoundingClientRect(), sx = (e.clientX - r.left) / r.width * S, sy = (e.clientY - r.top) / r.height * S;
+    var deg = Math.round(Math.atan2(Y(0) - sy, sx - X(0)) * 180 / Math.PI);
+    $('th').value = (deg + 360) % 360; render();
+  });
+  ['pointerup', 'pointercancel'].forEach(function (ev) { svgPl.addEventListener(ev, function () { dragging = false; }); });
+
+  var timer = null;
+  function stopSweep() { if (timer) clearInterval(timer); timer = null; $('sweep').textContent = 'Sweep'; $('sweep').setAttribute('aria-pressed', 'false'); }
+  $('sweep').addEventListener('click', function () {
+    if (reduce) { $('th').value = (+$('th').value + 15) % 360; render(); return; }
+    if (timer) { stopSweep(); return; }
+    $('sweep').textContent = 'Pause'; $('sweep').setAttribute('aria-pressed', 'true');
+    timer = setInterval(function () { $('th').value = (+$('th').value + 1) % 360; render(); }, 40);
+  });
+  $('pstep').addEventListener('click', function () {
+    var a = A(), x = iters.length ? iters[iters.length - 1] : [Math.cos(+$('th').value * Math.PI / 180), Math.sin(+$('th').value * Math.PI / 180)];
+    var y = app(a, x), n = Math.hypot(y[0], y[1]);
+    if (n < 1e-12) return;
+    iters.push([y[0] / n, y[1] / n]);
+    if (iters.length > 30) iters.shift();
+    render();
+  });
+  $('preset-reset').addEventListener('click', function () { iters = []; render(); });
+  listen('#a, #b, #c, #d', 'input', function () { iters = []; render(); });
+  $('th').addEventListener('input', render);
   listen('[data-p]', 'click', function () {
     var v = this.getAttribute('data-p').split(',');
     ['a', 'b', 'c', 'd'].forEach(function (k, i) { $(k).value = v[i]; });
-    render();
+    iters = []; render();
   });
   render();
-
 
   if (window.renderMathInElement) {
     window.renderMathInElement(document.body, {
