@@ -29,6 +29,7 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);f
 .back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
 h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+h3{font-family:var(--serif);font-weight:400;font-size:24px;line-height:1.2;margin:32px 0 10px}
 .lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
 section{margin-top:64px}
 section p{max-width:68ch;margin:0 0 14px}
@@ -42,42 +43,47 @@ p .katex,td .katex,li .katex{font-size:1.05em}
 
 .lab{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:24px;align-items:start;margin-top:24px}
 .card{margin:0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
-.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
 .card-title{font-family:var(--serif);font-size:20px}
 .hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
 .live{font-family:var(--mono);font-size:12px;font-weight:600}
 .stage{padding:0 8px}
 .stage svg{display:block;width:100%;height:auto}
 .panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
-.seg{display:flex;border:1px solid var(--rule-solid);border-radius:6px;overflow:hidden;margin-bottom:16px}
-.seg button{flex:1;min-height:40px;border:0;background:transparent;font:500 13px var(--sans);color:var(--muted);cursor:pointer;padding:0 8px}
-.seg button+button{border-left:1px solid var(--rule-solid)}
+.seg{display:flex;flex-wrap:wrap;border:1px solid var(--rule-solid);border-radius:6px;overflow:hidden;margin-bottom:12px}
+.seg button{flex:1 1 30%;min-height:40px;border:0;background:transparent;font:500 13px var(--sans);color:var(--muted);cursor:pointer;padding:0 6px;box-shadow:inset 1px 0 0 var(--rule-solid),inset 0 1px 0 var(--rule-solid)}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
-button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.row{display:grid;grid-template-columns:56px 1fr 48px;gap:12px;align-items:center;margin:12px 0}
+.seg-label{font-family:var(--mono);font-size:11px;color:var(--soft);margin:0 0 6px;letter-spacing:.08em;text-transform:uppercase}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.row{display:grid;grid-template-columns:50px 1fr 64px;gap:12px;align-items:center;margin:8px 0}
 .row label{font-family:var(--mono);font-size:13px;font-weight:600}
 .row output{font-family:var(--mono);font-size:12px;text-align:right}
 input[type=range]{width:100%;accent-color:var(--accent);min-height:28px}
-#readout{margin:16px 0 0;padding:14px 16px;background:var(--paper);border:1px solid var(--rule);border-radius:6px;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;min-height:140px}
+#readout{margin:12px 0 0;padding:14px 16px;background:var(--paper);border:1px solid var(--rule);border-radius:6px;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;min-height:150px;overflow-x:auto}
 .legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
 .legend span{display:inline-flex;align-items:center;gap:8px}
 .sw{width:14px;height:14px;border-radius:2px;border:1px solid var(--ink);display:inline-block}
 
+.fig{margin:20px 0 8px}
+.scroll{overflow-x:auto;border:1px solid var(--rule);border-radius:8px;background:#fff;padding:8px}
+.scroll svg{display:block;height:auto}
+.cap{font-family:var(--mono);font-size:11px;color:var(--soft);margin:8px 0 0}
 .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
 .stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
 .stat .big{font-family:var(--serif);font-size:30px;line-height:1.1;margin:6px 0}
 .stat p{font-size:14px;color:var(--muted);margin:0}
 .stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+.steps{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;max-width:760px}
+.steps ol{margin:0;padding-left:20px}.steps li{margin:8px 0}
+pre{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .t{color:var(--link)} .c{color:var(--soft);font-style:italic}
 table.ops{border-collapse:collapse;width:100%;max-width:760px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);border-radius:6px;font-size:14px}
 table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule)}
 table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
 table.ops tr:last-child td{border-bottom:0}
 ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
 @media (max-width:860px){.lab{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
-@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
-
-
-
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
 .doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}.doc-tags a{font:500 12px "Geist Mono",ui-monospace,monospace;padding:4px 10px;border:1px solid var(--rule-solid,#bfc0c0);border-radius:4px;background:#fff;color:var(--muted,#4f5d75);text-decoration:none}.doc-tags a:hover{border-color:var(--ink,#2d3142);color:var(--ink,#2d3142)}.doc-tags a:focus-visible{outline:2px solid var(--accent,#bf4520);outline-offset:2px}
 </style>
 </head>
@@ -90,45 +96,51 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
 <header>
   <div class="eyebrow">Mathematics · Calculus</div>
   <h1>Taylor Series</h1>
-  <p class="lede">Near one point, almost any smooth function looks like a polynomial. A Taylor series builds that polynomial from the function's derivatives, one term at a time.</p>
-  
-  
-  
+  <p class="lede">Near one point, a smooth function looks like a polynomial. Match the value, the slope, the bend and every derivative after that, and the polynomial can stand in for the function. This is how calculators compute $\sin$, how physicists simplify equations, and how optimizers decide where to step.</p>
   <nav class="doc-tags" aria-label="Main tags"><a href="../../../index.html#tag=taylor">#taylor</a><a href="../../../index.html#tag=maclaurin">#maclaurin</a><a href="../../../index.html#tag=series">#series</a><a href="../../../index.html#tag=polynomial">#polynomial</a></nav>
 </header>
 
 <section>
   <h2>Try it first</h2>
-  <p>The dark curve is the real function. The orange curve is its Taylor polynomial of degree $n$ around the center $a$. Raise $n$ and watch the orange curve hug the real one over a wider range. Try $\frac{1}{1-x}$ and move the center: the fit stops at a hard wall.</p>
+  <p>The dark curve is the real function. The orange curve is its Taylor polynomial of degree $n$ around the center $a$. The lower plot shows the error on a log scale: each grid line down is ten times more accurate. Raise $n$ and the accurate zone widens. For functions with a finite radius of convergence the blue band marks it, and outside that band no degree helps. Try $\frac{1}{1+x^2}$: it is smooth on the whole real line, yet its series stops working at $|x| = 1$.</p>
 
   <div class="lab">
     <figure class="card">
       <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title" id="fnTitle">sin x</span></div>
       <div class="stage">
-        <svg id="plot" viewBox="0 0 560 400" role="img" aria-labelledby="plot-title plot-desc">
-          <title id="plot-title">A function and its Taylor polynomial</title>
-          <desc id="plot-desc">A dark curve shows the chosen function. An orange curve shows its Taylor polynomial of the chosen degree around the chosen center. Near the center the two curves coincide. Farther away the polynomial drifts off. For one over one minus x, a dashed vertical line marks the point where the function blows up.</desc>
+        <svg id="plot" viewBox="0 0 560 560" role="img" aria-labelledby="plot-title plot-desc">
+          <title id="plot-title">A function, its Taylor polynomial, and the approximation error</title>
+          <desc id="plot-desc">Top: a dark curve shows the chosen function and an orange curve shows its Taylor polynomial of the chosen degree around the center a. A shaded band marks the interval of convergence when it is finite. Bottom: the base ten logarithm of the absolute error between the two curves, lowest at the center and rising with distance.</desc>
+          <defs>
+            <clipPath id="clipTop"><rect x="36" y="16" width="504" height="320"/></clipPath>
+            <clipPath id="clipBot"><rect x="36" y="376" width="504" height="148"/></clipPath>
+          </defs>
         </svg>
       </div>
-      <div class="card-bottom"><span class="hint">Raise n, move the center a</span><span class="live" id="live"></span></div>
+      <div class="card-bottom"><span class="hint">Raise n, move the center a and the test point x</span><span class="live" id="live"></span></div>
     </figure>
 
     <div>
       <div class="panel">
+        <p class="seg-label">Function</p>
         <div class="seg" role="group" aria-label="Function">
           <button type="button" data-fn="0" aria-pressed="true">sin x</button>
           <button type="button" data-fn="1" aria-pressed="false">cos x</button>
           <button type="button" data-fn="2" aria-pressed="false">eˣ</button>
           <button type="button" data-fn="3" aria-pressed="false">1/(1−x)</button>
+          <button type="button" data-fn="4" aria-pressed="false">ln(1+x)</button>
+          <button type="button" data-fn="5" aria-pressed="false">1/(1+x²)</button>
         </div>
-        <div class="row"><label for="inN">n</label><input type="range" id="inN" min="0" max="15" value="3"><output id="outN"></output></div>
-        <div class="row"><label for="inA">a</label><input type="range" id="inA" min="-20" max="20" value="0"><output id="outA"></output></div>
+        <div class="row"><label for="inN">n</label><input type="range" id="inN" min="0" max="20" value="3"><output id="outN" for="inN"></output></div>
+        <div class="row"><label for="inA">a</label><input type="range" id="inA" min="-20" max="20" value="0"><output id="outA" for="inA"></output></div>
+        <div class="row"><label for="inX">x</label><input type="range" id="inX" min="-70" max="70" value="10"><output id="outX" for="inX"></output></div>
         <div id="readout" aria-live="polite"></div>
       </div>
       <div class="legend" aria-label="Legend">
         <span><i class="sw" style="background:#2d3142"></i>function</span>
         <span><i class="sw" style="background:#bf4520;border-color:#bf4520"></i>Taylor polynomial</span>
-        <span><i class="sw" style="background:#2e5aa8;border-color:#2e5aa8"></i>center a</span>
+        <span><i class="sw" style="background:rgba(46,90,168,.12);border-color:#2e5aa8"></i>convergence zone</span>
+        <span><i class="sw" style="background:#2e5aa8;border-color:#2e5aa8;border-radius:50%"></i>center, test point</span>
       </div>
     </div>
   </div>
@@ -136,24 +148,42 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
 
 <section>
   <h2>1. The idea</h2>
-  <p>Polynomials are easy: you can add, multiply, and differentiate them by hand. Most functions are not. A Taylor polynomial swaps a hard function for a polynomial that agrees with it at one point, and agrees in the best possible way.</p>
-  <p>Start with a flat guess: $f(x) \approx f(a)$. Add the slope to tilt it into the tangent line. Add the curvature to bend it. Each new term matches one more derivative.</p>
+  <p>Polynomials are easy: you can add, multiply, differentiate and evaluate them with nothing but arithmetic. Most functions are not. A Taylor polynomial swaps a hard function for a polynomial that agrees with it at one point, in the strongest way possible.</p>
+  <p>Build it in layers around $a = 0$ for $\cos x$:</p>
+  <ul class="tight">
+    <li>Match the value: $\cos 0 = 1$, so start with $T_0(x) = 1$. A flat line.</li>
+    <li>Match the slope: $\cos'(0) = -\sin 0 = 0$. Nothing to add, $T_1 = 1$.</li>
+    <li>Match the bend: $\cos''(0) = -1$. A term $c\,x^2$ has second derivative $2c$, so $c = -\frac{1}{2}$ and $T_2(x) = 1 - \frac{x^2}{2}$.</li>
+  </ul>
+  <p>Already $T_2(0.1) = 0.995$, while $\cos 0.1 = 0.995004\ldots$. Two terms, five correct digits.</p>
   <div class="callout">Match the value, then the slope, then the bend, then every derivative after that.</div>
 </section>
 
 <section>
   <h2>2. The formula</h2>
-  <p>The polynomial of degree $n$ around $a$ uses the first $n$ derivatives at that point. Dividing by $k!$ cancels the factor that appears when you differentiate $(x-a)^k$ repeatedly.</p>
-  <div class="formula">$$T_n(x) = \sum_{k=0}^{n} \frac{f^{(k)}(a)}{k!}\,(x-a)^k = f(a) + f'(a)(x-a) + \frac{f''(a)}{2!}(x-a)^2 + \cdots$$</div>
-  <p>Let $n \to \infty$ and you get the Taylor series. When $a = 0$ it is called the Maclaurin series.</p>
-  <div class="formula">$$f(x) = \sum_{k=0}^{\infty} \frac{f^{(k)}(a)}{k!}\,(x-a)^k$$</div>
-  <p>Worked example with $f(x) = e^x$ and $a = 0$. Every derivative of $e^x$ is $e^x$, and $e^0 = 1$, so each coefficient is $\frac{1}{k!}$.</p>
-  <div class="formula">$$e^x = 1 + x + \frac{x^2}{2!} + \frac{x^3}{3!} + \frac{x^4}{4!} + \cdots$$</div>
-  <p>Pick $e^x$ in the lab, set $a = 0$, and step $n$ from 0 to 5. The coefficients in the readout are $1, 1, 0.5, 0.167, \dots$</p>
+  <p>Differentiate $(x-a)^k$ $k$ times and you get $k!$; differentiate fewer times and it is still zero at $x = a$; more times and it is zero everywhere. So the term $\frac{f^{(k)}(a)}{k!}(x - a)^k$ controls the $k$-th derivative at $a$ and nothing else. Stack them up:</p>
+  <div class="formula">$$T_n(x) = \sum_{k=0}^{n} \frac{f^{(k)}(a)}{k!}\,(x-a)^k = f(a) + f'(a)(x-a) + \frac{f''(a)}{2!}(x-a)^2 + \cdots + \frac{f^{(n)}(a)}{n!}(x-a)^n$$</div>
+  <p>$T_n$ is the only polynomial of degree at most $n$ whose first $n$ derivatives at $a$ match those of $f$. $T_1$ is the tangent line from the Derivatives guide; $T_2$ is the best-fitting parabola. Let $n \to \infty$ and you get the Taylor series. With $a = 0$ it is called the Maclaurin series.</p>
+  <div class="formula">$$f(x) = \sum_{k=0}^{\infty} \frac{f^{(k)}(a)}{k!}\,(x-a)^k \quad \text{(when the series converges to } f\text{)}$$</div>
 </section>
 
 <section>
-  <h2>3. Series worth knowing</h2>
+  <h2>3. Worked examples</h2>
+  <h3>$e^x$ around 0</h3>
+  <p>Every derivative of $e^x$ is $e^x$, and $e^0 = 1$, so each coefficient is $\frac{1}{k!}$.</p>
+  <div class="formula">$$e^x = 1 + x + \frac{x^2}{2!} + \frac{x^3}{3!} + \frac{x^4}{4!} + \cdots$$</div>
+  <p>Put $x = 1$: ten terms give $2.7182815$, short of $e = 2.7182818\ldots$ by $3 \times 10^{-7}$. The factorials in the denominators grow so fast that the series converges for every $x$.</p>
+  <h3>$\sin x$ around 0</h3>
+  <p>The derivatives cycle through $\sin, \cos, -\sin, -\cos$. At $0$ that is $0, 1, 0, -1, 0, 1, \dots$, so only odd powers survive, with alternating signs:</p>
+  <div class="formula">$$\sin x = x - \frac{x^3}{3!} + \frac{x^5}{5!} - \frac{x^7}{7!} + \cdots$$</div>
+  <h3>$\sqrt{x}$ around 4</h3>
+  <p>Centers other than $0$ are useful when you know the function well somewhere else. $f(4) = 2$, $f'(x) = \frac{1}{2}x^{-1/2}$ gives $\frac{1}{4}$, $f''(x) = -\frac{1}{4}x^{-3/2}$ gives $-\frac{1}{32}$:</p>
+  <div class="formula">$$\sqrt{x} \approx 2 + \frac{x - 4}{4} - \frac{(x - 4)^2}{64}$$</div>
+  <p>At $x = 4.4$ this gives $2.0975$; the true value is $2.09762\ldots$.</p>
+</section>
+
+<section>
+  <h2>4. Series worth knowing</h2>
   <table class="ops">
     <thead><tr><th>Function</th><th>Series around 0</th><th>Valid for</th></tr></thead>
     <tbody>
@@ -162,33 +192,115 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
       <tr><td>$\cos x$</td><td>$\displaystyle 1 - \frac{x^2}{2!} + \frac{x^4}{4!} - \cdots$</td><td>all $x$</td></tr>
       <tr><td>$\dfrac{1}{1-x}$</td><td>$\displaystyle 1 + x + x^2 + x^3 + \cdots$</td><td>$|x| \lt 1$</td></tr>
       <tr><td>$\ln(1+x)$</td><td>$\displaystyle x - \frac{x^2}{2} + \frac{x^3}{3} - \cdots$</td><td>$-1 \lt x \le 1$</td></tr>
+      <tr><td>$\arctan x$</td><td>$\displaystyle x - \frac{x^3}{3} + \frac{x^5}{5} - \cdots$</td><td>$|x| \le 1$</td></tr>
+      <tr><td>$(1+x)^\alpha$</td><td>$\displaystyle 1 + \alpha x + \frac{\alpha(\alpha-1)}{2!}x^2 + \cdots$</td><td>$|x| \lt 1$</td></tr>
     </tbody>
   </table>
-  <p>Sine has only odd powers because it is an odd function. Cosine has only even powers because it is even. Read the pattern off the derivatives: $\sin, \cos, -\sin, -\cos$ repeats every four steps.</p>
+  <p>Sine has only odd powers because it is an odd function; cosine has only even powers because it is even. The last row is the binomial series. When $\alpha$ is a whole number it stops after finitely many terms and becomes the binomial theorem.</p>
 </section>
 
 <section>
-  <h2>4. How wrong is the polynomial?</h2>
-  <p>Stopping at degree $n$ leaves a remainder $R_n(x) = f(x) - T_n(x)$. Lagrange's form bounds it with the next derivative, taken at some unknown point $c$ between $a$ and $x$.</p>
+  <h2>5. Building new series from old</h2>
+  <p>Computing dozens of derivatives is rarely necessary. Inside the radius of convergence, a power series can be substituted into, differentiated and integrated term by term.</p>
+  <table class="ops">
+    <thead><tr><th>Move</th><th>Start</th><th>Result</th></tr></thead>
+    <tbody>
+      <tr><td>Substitute</td><td>$e^u$ with $u = -x^2$</td><td>$e^{-x^2} = 1 - x^2 + \frac{x^4}{2!} - \frac{x^6}{3!} + \cdots$</td></tr>
+      <tr><td>Substitute</td><td>$\frac{1}{1-u}$ with $u = -x^2$</td><td>$\frac{1}{1+x^2} = 1 - x^2 + x^4 - x^6 + \cdots$</td></tr>
+      <tr><td>Integrate</td><td>the line above</td><td>$\arctan x = x - \frac{x^3}{3} + \frac{x^5}{5} - \cdots$</td></tr>
+      <tr><td>Differentiate</td><td>$\frac{1}{1-x} = \sum x^k$</td><td>$\frac{1}{(1-x)^2} = 1 + 2x + 3x^2 + \cdots$</td></tr>
+    </tbody>
+  </table>
+  <p>Integration by series solves problems that have no closed form. The bell-curve integral from the Integrals guide becomes a sum of simple numbers:</p>
+  <div class="formula">$$\int_0^1 e^{-x^2}\,dx = \sum_{k=0}^{\infty} \frac{(-1)^k}{(2k+1)\,k!} = 1 - \frac{1}{3} + \frac{1}{10} - \frac{1}{42} + \frac{1}{216} - \cdots$$</div>
+  <p>Six terms give $0.74673$; the true value is $0.74682\ldots$. Putting $x = 1$ into the arctan series gives Leibniz's formula $\frac{\pi}{4} = 1 - \frac{1}{3} + \frac{1}{5} - \cdots$, which is correct but converges painfully slowly.</p>
+</section>
+
+<section>
+  <h2>6. How wrong is the polynomial?</h2>
+  <p>Stopping at degree $n$ leaves a remainder $R_n(x) = f(x) - T_n(x)$. Lagrange's form writes it with the next derivative, taken at some unknown point $c$ between $a$ and $x$:</p>
   <div class="formula">$$R_n(x) = \frac{f^{(n+1)}(c)}{(n+1)!}\,(x-a)^{n+1}$$</div>
-  <p>Two things shrink the error: a higher $n$ and a smaller distance $|x-a|$. That is why every curve in Fig 1 is exact at the center and drifts away from it.</p>
-  <p>Some series do not converge everywhere. For $\frac{1}{1-x}$ the function blows up at $x = 1$, and the series only works within the distance from the center to that point. This distance is the radius of convergence.</p>
-  <div class="formula">$$R = |1 - a| \quad \text{for } \frac{1}{1-x}$$</div>
-  <p>Slide $a$ toward 1 with this function selected. The safe zone shrinks, and the orange curve flies off the plot outside it, even at high degree.</p>
+  <p>You rarely know $c$, but you often know a bound $M$ on $|f^{(n+1)}|$, which gives $|R_n(x)| \le \frac{M}{(n+1)!}|x - a|^{n+1}$. Two things shrink the error: a higher $n$ and a smaller distance $|x - a|$. That is the V shape in the lower plot of Fig 1.</p>
+  <div class="steps"><ol>
+    <li>Estimate $\sin 0.5$ with $T_3(x) = x - \frac{x^3}{6}$: $0.5 - \frac{0.125}{6} = 0.479167$.</li>
+    <li>Every derivative of $\sin$ is bounded by $M = 1$. Since $T_3 = T_4$ for sine, use $n = 4$: $|R_4| \le \frac{0.5^5}{5!} = 0.00026$.</li>
+    <li>The true value is $0.479426$, off by $0.000259$. The bound holds, and is nearly tight.</li>
+  </ol></div>
+  <p>The lab reports the same kind of bound for $\sin$, $\cos$ and $e^x$ at the test point $x$.</p>
 </section>
 
 <section>
-  <h2>5. Why it matters</h2>
+  <h2>7. Radius of convergence</h2>
+  <p>Some series converge for every $x$; others only on an interval $|x - a| \lt R$. Outside it the terms grow, and adding more of them makes things worse. You can see this in the lab: outside the blue band, raising $n$ lifts the error curve instead of lowering it.</p>
+  <p>The ratio test gives $R$ from the coefficients $c_k$: if $\left|\frac{c_{k+1}}{c_k}\right| \to L$, then $R = \frac{1}{L}$. For $\frac{1}{1-x}$ all $c_k = 1$, so $R = 1$. For $e^x$, $\frac{c_{k+1}}{c_k} = \frac{1}{k+1} \to 0$, so $R = \infty$.</p>
+  <p>There is a more visual rule: $R$ is the distance from $a$ to the nearest point where $f$ breaks down, <b>in the complex plane</b>.</p>
+  <table class="ops">
+    <thead><tr><th>Function</th><th>Breaks at</th><th>Radius around a</th></tr></thead>
+    <tbody>
+      <tr><td>$\frac{1}{1-x}$</td><td>$x = 1$ (pole)</td><td>$|1 - a|$</td></tr>
+      <tr><td>$\ln(1+x)$</td><td>$x = -1$ (log singularity)</td><td>$|1 + a|$</td></tr>
+      <tr><td>$\frac{1}{1+x^2}$</td><td>$x = \pm i$ (complex poles)</td><td>$\sqrt{1 + a^2}$</td></tr>
+      <tr><td>$e^x$, $\sin x$, $\cos x$</td><td>nowhere</td><td>$\infty$</td></tr>
+    </tbody>
+  </table>
+  <p>That third row solves the puzzle from the lab. $\frac{1}{1+x^2}$ has no trouble anywhere on the real line, but it blows up at $\pm i$, at distance $1$ from the origin. The series around $0$ cannot see past that circle, even along the real axis. Move $a$ in the lab and the band grows to $\sqrt{1+a^2}$. The Complex Analysis guide explains why.</p>
+</section>
+
+<section>
+  <h2>8. When the series lies</h2>
+  <p>A convergent Taylor series usually equals its function, but not always. The classic counterexample is</p>
+  <div class="formula">$$f(x) = \begin{cases} e^{-1/x^2} & x \ne 0 \\ 0 & x = 0 \end{cases}$$</div>
+  <p>It is infinitely differentiable, and every derivative at $0$ is exactly $0$. Its Maclaurin series is $0 + 0x + 0x^2 + \cdots$, which converges everywhere, to the wrong function. Functions that do equal their Taylor series near every point are called <b>analytic</b>. Polynomials, $e^x$, $\sin$, $\cos$, $\ln$ and their combinations all are.</p>
+</section>
+
+<section>
+  <h2>9. Why it matters</h2>
   <div class="cards">
-    <div class="stat focal"><div class="eyebrow">Approximate</div><div class="big">small angles</div><p>$\sin x \approx x$ and $e^x \approx 1 + x$ for small $x$. Physics uses these everywhere.</p></div>
-    <div class="stat"><div class="eyebrow">Compute</div><div class="big">calculators</div><p>A chip cannot evaluate $\sin$ directly, but it can add and multiply a few terms.</p></div>
-    <div class="stat"><div class="eyebrow">Solve</div><div class="big">limits</div><p>$\frac{\sin x}{x} = 1 - \frac{x^2}{6} + \cdots \to 1$ as $x \to 0$, with no tricks.</p></div>
+    <div class="stat focal"><div class="eyebrow">Approximate</div><div class="big">small x</div><p>$\sin x \approx x$, $\cos x \approx 1 - \frac{x^2}{2}$, $(1+x)^\alpha \approx 1 + \alpha x$. The pendulum equation and much of physics rest on these.</p></div>
+    <div class="stat"><div class="eyebrow">Compute</div><div class="big">math libraries</div><p>$\sin$, $\exp$ and $\log$ are evaluated by shifting the input into a small range, then running a short polynomial.</p></div>
+    <div class="stat"><div class="eyebrow">Limits</div><div class="big">no tricks</div><p>$\frac{1 - \cos x}{x^2} = \frac{1}{2} - \frac{x^2}{24} + \cdots \to \frac{1}{2}$. Leading terms decide every $\frac{0}{0}$.</p></div>
+    <div class="stat"><div class="eyebrow">Complex numbers</div><div class="big">Euler</div><p>Put $i\theta$ into the series for $e^x$ and sort real and imaginary terms: $e^{i\theta} = \cos\theta + i\sin\theta$.</p></div>
+    <div class="stat"><div class="eyebrow">Optimization</div><div class="big">second order</div><p>Newton's method minimizes $f$ by minimizing $T_2$, the local parabola, at each step.</p></div>
+    <div class="stat"><div class="eyebrow">Finance</div><div class="big">duration, convexity</div><p>A bond price change is approximated by the first two Taylor terms in the yield. Option Greeks are Taylor coefficients too.</p></div>
   </div>
 </section>
 
 <section>
-  <h2>6. Next</h2>
-  <p>A Taylor series needs derivatives, so start with the Derivatives guide. The idea of a function as a sum of simpler pieces comes back in the Fourier Transform, which uses sines instead of powers.</p>
+  <h2>10. The same thing in code</h2>
+  <p>Each term of a Taylor series is usually a cheap update of the previous one, so you never compute a factorial or a power from scratch.</p>
+  <pre><span class="k">function</span> sinSeries(x, terms) {
+  <span class="k">let</span> sum = <span class="t">0</span>, term = x;                       <span class="c">// first term: x</span>
+  <span class="k">for</span> (<span class="k">let</span> k = <span class="t">0</span>; k &lt; terms; k++) {
+    sum += term;
+    term *= -x * x / ((<span class="t">2</span> * k + <span class="t">2</span>) * (<span class="t">2</span> * k + <span class="t">3</span>)); <span class="c">// next odd term</span>
+  }
+  <span class="k">return</span> sum;
+}
+
+sinSeries(<span class="t">10</span>, <span class="t">10</span>);   <span class="c">// -16.81  (far from the center: terms still huge)</span>
+sinSeries(<span class="t">10</span>, <span class="t">20</span>);   <span class="c">// -0.5440211137  (error 2.8e-9)</span>
+
+<span class="c">// Range reduction: sin has period 2π, so move x close to 0 first</span>
+<span class="k">const</span> r = <span class="t">10</span> - <span class="t">2</span> * Math.PI * Math.round(<span class="t">10</span> / (<span class="t">2</span> * Math.PI));  <span class="c">// -2.566</span>
+sinSeries(r, <span class="t">10</span>);    <span class="c">// -0.54402111088175  (error 7.6e-12)</span>
+Math.sin(<span class="t">10</span>);        <span class="c">// -0.54402111088937</span></pre>
+  <p>The series for $\sin$ converges everywhere, but "converges" says nothing about speed. Shrinking $|x - a|$ before summing is worth more than doubling the terms. Real libraries reduce to $|x| \le \frac{\pi}{4}$ and use a fixed polynomial tuned for that interval.</p>
+</section>
+
+<section>
+  <h2>11. Common mistakes</h2>
+  <ul class="tight">
+    <li>Forgetting the $k!$. Without it, the $k$-th derivative of the polynomial is off by a factor of $k!$.</li>
+    <li>Expanding around $a$ but writing powers of $x$ instead of $(x - a)$.</li>
+    <li>Using a series outside its radius. $\ln(1 + x)$ for $x = 3$ via the series diverges, even though $\ln 4$ is perfectly fine.</li>
+    <li>Equating "infinitely differentiable" with "equals its Taylor series". See section 8.</li>
+    <li>Judging accuracy by the number of terms alone. Distance from the center matters as much.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>12. Next</h2>
+  <p>A Taylor series needs derivatives, so start with the Derivatives guide if any step above felt fast. The idea of a function as a sum of simpler pieces comes back in the Fourier Transform, which uses sines and cosines instead of powers and works over a whole interval instead of near one point.</p>
 </section>
 
 </main>
@@ -196,17 +308,27 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
 <script>
 (function () {
   var NSV = 'http://www.w3.org/2000/svg';
-  var W = 560, H = 400, M = 36;
+  var W = 560, M = 36, TOP = [16, 336], BOT = [376, 524];
   var $ = function (s) { return document.querySelector(s); };
   var FACT = [1];
-  for (var q = 1; q <= 20; q++) FACT[q] = FACT[q - 1] * q;
+  for (var q = 1; q <= 25; q++) FACT[q] = FACT[q - 1] * q;
 
   // c(k, a) is the k-th Taylor coefficient f^(k)(a) / k!
+  // bound(n, a, x): Lagrange bound on |R_n(x)| when a simple one exists
   var FNS = [
-    { name: 'f(x) = sin x', f: Math.sin, c: function (k, a) { return Math.sin(a + k * Math.PI / 2) / FACT[k]; }, view: [-7, 7, -3, 3], amax: 20 },
-    { name: 'f(x) = cos x', f: Math.cos, c: function (k, a) { return Math.cos(a + k * Math.PI / 2) / FACT[k]; }, view: [-7, 7, -3, 3], amax: 20 },
-    { name: 'f(x) = eˣ', f: Math.exp, c: function (k, a) { return Math.exp(a) / FACT[k]; }, view: [-4, 4, -2, 10], amax: 20 },
-    { name: 'f(x) = 1 / (1 − x)', f: function (x) { return 1 / (1 - x); }, c: function (k, a) { return 1 / Math.pow(1 - a, k + 1); }, view: [-4, 4, -5, 5], amax: 9, radius: function (a) { return Math.abs(1 - a); } }
+    { name: 'f(x) = sin x', f: Math.sin, c: function (k, a) { return Math.sin(a + k * Math.PI / 2) / FACT[k]; }, view: [-7, 7, -3, 3], amin: -20, amax: 20,
+      bound: function (n, a, x) { return Math.pow(Math.abs(x - a), n + 1) / FACT[n + 1]; } },
+    { name: 'f(x) = cos x', f: Math.cos, c: function (k, a) { return Math.cos(a + k * Math.PI / 2) / FACT[k]; }, view: [-7, 7, -3, 3], amin: -20, amax: 20,
+      bound: function (n, a, x) { return Math.pow(Math.abs(x - a), n + 1) / FACT[n + 1]; } },
+    { name: 'f(x) = eˣ', f: Math.exp, c: function (k, a) { return Math.exp(a) / FACT[k]; }, view: [-4, 4, -2, 10], amin: -20, amax: 20,
+      bound: function (n, a, x) { return Math.exp(Math.max(a, x)) * Math.pow(Math.abs(x - a), n + 1) / FACT[n + 1]; } },
+    { name: 'f(x) = 1 / (1 − x)', f: function (x) { return 1 / (1 - x); }, c: function (k, a) { return 1 / Math.pow(1 - a, k + 1); }, view: [-4, 4, -5, 5], amin: -20, amax: 7,
+      radius: function (a) { return Math.abs(1 - a); }, pole: 1 },
+    { name: 'f(x) = ln(1 + x)', f: function (x) { return x > -1 ? Math.log(1 + x) : NaN; }, c: function (k, a) { return k === 0 ? Math.log(1 + a) : Math.pow(-1, k + 1) / (k * Math.pow(1 + a, k)); }, view: [-1.5, 4, -4, 2.5], amin: -7, amax: 20,
+      radius: function (a) { return Math.abs(1 + a); }, pole: -1 },
+    { name: 'f(x) = 1 / (1 + x²)', f: function (x) { return 1 / (1 + x * x); }, view: [-4, 4, -1.5, 2.5], amin: -20, amax: 20,
+      c: function (k, a) { var r = Math.sqrt(1 + a * a), th = Math.atan2(1, a); return Math.pow(-1, k) * Math.sin((k + 1) * th) / Math.pow(r, k + 1); },
+      radius: function (a) { return Math.sqrt(1 + a * a); } }
   ];
   var cur = 0;
 
@@ -216,86 +338,130 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
     if (parent) parent.appendChild(e);
     return e;
   }
+  function text(g, x, y, s, anchor, extra) {
+    var a = { x: x, y: y, 'text-anchor': anchor || 'middle', 'font-size': 10, fill: '#5a6580', 'font-family': 'Geist Mono, monospace' };
+    for (var k in extra) a[k] = extra[k];
+    var t = el('text', a, g); t.textContent = s; return t;
+  }
   function poly(F, n, a, x) {
     var s = 0, d = x - a;
     for (var k = n; k >= 0; k--) s = s * d + F.c(k, a);
     return s;
   }
-  function f4(v) { return Math.abs(v) < 5e-7 ? '0.0000' : (Math.abs(v) >= 1e5 ? v.toExponential(2) : v.toFixed(4)); }
+  function f4(v) { return !isFinite(v) ? 'undefined' : (Math.abs(v) < 5e-7 ? '0' : (Math.abs(v) >= 1e5 ? v.toExponential(2) : v.toFixed(4))); }
+  function fe(v) { return !isFinite(v) ? '—' : (v === 0 ? '0' : (v < 1e-3 || v >= 1e5 ? v.toExponential(1) : v.toFixed(4))); }
+  function sup(k) { var m = '⁰¹²³⁴⁵⁶⁷⁸⁹'; return String(k).split('').map(function (d) { return m[+d]; }).join(''); }
+  function polyString(F, n, a) {
+    var parts = [], shown = 0, base = Math.abs(a) < 1e-9 ? 'x' : '(x' + (a > 0 ? '−' : '+') + Math.abs(a).toFixed(1) + ')';
+    for (var k = 0; k <= n && shown < 6; k++) {
+      var c = F.c(k, a);
+      if (Math.abs(c) < 1e-12) continue;
+      var mag = Math.abs(c), cs = mag >= 1e-3 ? +mag.toPrecision(3) + '' : mag.toExponential(1);
+      var term = k === 0 ? cs : ((Math.abs(mag - 1) < 1e-12 ? '' : cs) + base + (k > 1 ? sup(k) : ''));
+      parts.push((parts.length ? (c < 0 ? ' − ' : ' + ') : (c < 0 ? '−' : '')) + term);
+      shown++;
+    }
+    var rest = 0;
+    for (var j = 0; j <= n; j++) if (Math.abs(F.c(j, a)) >= 1e-12) rest++;
+    return (parts.join('') || '0') + (rest > shown ? ' + …' : '');
+  }
 
   function render() {
     var F = FNS[cur], v = F.view;
-    $('#inA').max = F.amax;
-    var n = +$('#inN').value;
-    var a = Math.min(+$('#inA').value, F.amax) / 10;
+    var inA = $('#inA');
+    inA.min = F.amin; inA.max = F.amax;
+    if (+inA.value < F.amin) inA.value = F.amin;
+    if (+inA.value > F.amax) inA.value = F.amax;
+    var n = +$('#inN').value, a = +inA.value / 10, xt = Math.max(v[0], Math.min(v[1], +$('#inX').value / 10));
+    var R = F.radius ? F.radius(a) : Infinity;
     var svg = $('#plot');
-    Array.prototype.slice.call(svg.querySelectorAll('.dyn,defs')).forEach(function (x) { x.remove(); });
-    var defs = el('defs', {}, svg);
-    var cp = el('clipPath', { id: 'clip' }, defs);
-    el('rect', { x: M, y: M, width: W - 2 * M, height: H - 2 * M }, cp);
+    Array.prototype.slice.call(svg.querySelectorAll('.dyn')).forEach(function (x) { x.remove(); });
     var g = el('g', { 'class': 'dyn' }, svg);
     var X = function (x) { return M + (x - v[0]) / (v[1] - v[0]) * (W - 2 * M); };
-    var Y = function (y) { return H - M - (y - v[2]) / (v[3] - v[2]) * (H - 2 * M); };
-    var lab = function (x, y, anchor, txt) {
-      var t = el('text', { x: x, y: y, 'text-anchor': anchor, 'font-size': 10, fill: '#5a6580', 'font-family': 'Geist Mono, monospace' }, g);
-      t.textContent = txt;
-    };
+    var Y = function (y) { return TOP[1] - (y - v[2]) / (v[3] - v[2]) * (TOP[1] - TOP[0]); };
+    var EMIN = -12, EMAX = 2;
+    var Ye = function (le) { return BOT[1] - (Math.max(EMIN, Math.min(EMAX, le)) - EMIN) / (EMAX - EMIN) * (BOT[1] - BOT[0]); };
 
+    // convergence band
+    if (isFinite(R)) {
+      var lo = Math.max(v[0], a - R), hi = Math.min(v[1], a + R);
+      if (hi > lo) {
+        el('rect', { x: X(lo), y: TOP[0], width: X(hi) - X(lo), height: TOP[1] - TOP[0], fill: 'rgba(46,90,168,.08)' }, g);
+        el('rect', { x: X(lo), y: BOT[0], width: X(hi) - X(lo), height: BOT[1] - BOT[0], fill: 'rgba(46,90,168,.08)' }, g);
+      }
+    }
+    // grids
     for (var gx = Math.ceil(v[0]); gx <= v[1]; gx++) {
-      el('line', { x1: X(gx), x2: X(gx), y1: Y(v[2]), y2: Y(v[3]), stroke: gx === 0 ? '#2d3142' : 'rgba(45,49,66,.1)' }, g);
-      lab(X(gx), H - M + 16, 'middle', gx);
+      el('line', { x1: X(gx), x2: X(gx), y1: TOP[0], y2: TOP[1], stroke: gx === 0 ? '#2d3142' : 'rgba(45,49,66,.1)' }, g);
+      el('line', { x1: X(gx), x2: X(gx), y1: BOT[0], y2: BOT[1], stroke: 'rgba(45,49,66,.1)' }, g);
+      text(g, X(gx), BOT[1] + 16, gx);
     }
-    for (var gy = Math.ceil(v[2]); gy <= v[3]; gy++) {
+    var stepY = v[3] - v[2] > 8 ? 2 : 1;
+    for (var gy = Math.ceil(v[2]); gy <= v[3]; gy += stepY) {
       el('line', { x1: X(v[0]), x2: X(v[1]), y1: Y(gy), y2: Y(gy), stroke: gy === 0 ? '#2d3142' : 'rgba(45,49,66,.1)' }, g);
-      lab(M - 6, Y(gy) + 3, 'end', gy);
+      text(g, M - 6, Y(gy) + 3, gy, 'end');
     }
+    for (var le = EMIN; le <= EMAX; le += 2) {
+      el('line', { x1: X(v[0]), x2: X(v[1]), y1: Ye(le), y2: Ye(le), stroke: 'rgba(45,49,66,.1)' }, g);
+      text(g, M - 6, Ye(le) + 3, le === 0 ? '1' : '1e' + le, 'end', { 'font-size': 9 });
+    }
+    el('rect', { x: M, y: BOT[0], width: W - 2 * M, height: BOT[1] - BOT[0], fill: 'none', stroke: 'rgba(45,49,66,.15)' }, g);
+    text(g, M + 6, BOT[0] + 14, '|f(x) − Tₙ(x)|, log scale', 'start', { 'font-size': 11, fill: '#2d3142' });
 
-    var c = el('g', { 'clip-path': 'url(#clip)' }, g);
-    if (cur === 3) el('line', { x1: X(1), x2: X(1), y1: Y(v[2]), y2: Y(v[3]), stroke: '#4f5d75', 'stroke-dasharray': '4 4' }, c);
-    el('line', { x1: X(a), x2: X(a), y1: Y(v[2]), y2: Y(v[3]), stroke: '#2e5aa8', 'stroke-dasharray': '2 4' }, c);
+    var c = el('g', { 'clip-path': 'url(#clipTop)' }, g);
+    var cb = el('g', { 'clip-path': 'url(#clipBot)' }, g);
+    if (F.pole !== undefined) el('line', { x1: X(F.pole), x2: X(F.pole), y1: TOP[0], y2: TOP[1], stroke: '#4f5d75', 'stroke-dasharray': '4 4' }, c);
+    el('line', { x1: X(a), x2: X(a), y1: TOP[0], y2: BOT[1], stroke: '#2e5aa8', 'stroke-dasharray': '2 4' }, g);
 
-    var trace = function (fn, color, w) {
-      var d = '', pen = false, N = 480, prev = null;
+    var trace = function (fn, color, w, Yf, parent, isErr) {
+      var d = '', pen = false, N = 600, prevY = null;
       for (var i = 0; i <= N; i++) {
         var x = v[0] + (v[1] - v[0]) * i / N, y = fn(x);
-        if (!isFinite(y) || Math.abs(y) > 1e3 || (cur === 3 && prev !== null && x > 1 && prev <= 1)) { pen = false; prev = x; continue; }
-        d += (pen ? ' L' : ' M') + X(x).toFixed(1) + ' ' + Y(y).toFixed(1);
-        pen = true; prev = x;
+        var bad = !isFinite(y) || (!isErr && Math.abs(y) > 1e3);
+        if (!bad && F.pole !== undefined && i > 0) { var xp = v[0] + (v[1] - v[0]) * (i - 1) / N; if ((xp - F.pole) * (x - F.pole) <= 0) pen = false; }
+        if (bad) { pen = false; continue; }
+        d += (pen ? ' L' : ' M') + X(x).toFixed(1) + ' ' + Yf(y).toFixed(1);
+        pen = true; prevY = y;
       }
-      el('path', { d: d, fill: 'none', stroke: color, 'stroke-width': w, 'stroke-linejoin': 'round' }, c);
+      el('path', { d: d.trim(), fill: 'none', stroke: color, 'stroke-width': w, 'stroke-linejoin': 'round' }, parent);
     };
-    trace(function (x) { return poly(F, n, a, x); }, '#bf4520', 2.4);
-    trace(F.f, '#2d3142', 2.4);
+    trace(function (x) { return poly(F, n, a, x); }, '#bf4520', 2.4, Y, c);
+    trace(F.f, '#2d3142', 2.4, Y, c);
+    trace(function (x) { var fx = F.f(x); if (!isFinite(fx)) return NaN; return Math.log10(Math.abs(fx - poly(F, n, a, x)) + 1e-16); }, '#bf4520', 1.8, Ye, cb, true);
     el('circle', { cx: X(a), cy: Y(F.f(a)), r: 5, fill: '#2e5aa8' }, c);
 
-    // test point shows how the error grows with distance
-    var xt = a + 0.8, ft = F.f(xt), pt = poly(F, n, a, xt), err = Math.abs(ft - pt);
-    var coefs = [];
-    for (var k = 0; k <= Math.min(n, 5); k++) coefs.push(f4(F.c(k, a)));
+    // test point
+    var ft = F.f(xt), pt = poly(F, n, a, xt), err = Math.abs(ft - pt);
+    el('line', { x1: X(xt), x2: X(xt), y1: TOP[0], y2: BOT[1], stroke: '#2d3142', 'stroke-dasharray': '1 3', opacity: 0.6 }, g);
+    if (isFinite(ft)) el('circle', { cx: X(xt), cy: Y(ft), r: 4, fill: '#2d3142' }, c);
+    if (isFinite(pt) && Math.abs(pt) < 1e3) el('circle', { cx: X(xt), cy: Y(pt), r: 4, fill: '#bf4520' }, c);
+    if (isFinite(err)) el('circle', { cx: X(xt), cy: Ye(Math.log10(err + 1e-16)), r: 4, fill: '#bf4520' }, cb);
+
+    var inside = !isFinite(R) || Math.abs(xt - a) < R;
     $('#outN').textContent = n;
     $('#outA').textContent = a.toFixed(1);
+    $('#outX').textContent = xt.toFixed(1);
     $('#fnTitle').textContent = F.name;
-    $('#live').textContent = 'error at a+0.8 = ' + (err < 1e-4 && err > 0 ? err.toExponential(1) : f4(err));
+    $('#live').textContent = 'error at x = ' + fe(err);
     $('#readout').textContent =
-      'degree n      = ' + n + '\n' +
-      'center a      = ' + a.toFixed(1) + '\n' +
-      'c0..c' + Math.min(n, 5) + '        = ' + coefs.join(', ') + (n > 5 ? ', …' : '') + '\n' +
-      'x = a + 0.8   = ' + xt.toFixed(1) + '\n' +
-      'f(x)          = ' + f4(ft) + '\n' +
-      'T_n(x)        = ' + f4(pt) + '\n' +
-      'radius R      = ' + (F.radius ? F.radius(a).toFixed(2) : '∞');
+      'T' + (n > 9 ? '_' + n : '₀₁₂₃₄₅₆₇₈₉'[n]) + '(x) = ' + polyString(F, n, a) + '\n\n' +
+      'f(x)     = ' + f4(ft) + '\n' +
+      'Tₙ(x)    = ' + f4(pt) + '\n' +
+      'error    = ' + fe(err) + '\n' +
+      (F.bound ? 'Lagrange bound ≤ ' + fe(F.bound(n, a, xt)) + '\n' : '') +
+      'radius R = ' + (isFinite(R) ? R.toFixed(3) : '∞') + '\n' +
+      (isFinite(R) && Math.abs(Math.abs(xt - a) - R) < 1e-9 ? 'x is on the boundary: convergence, if any, is slow.' :
+        (inside ? 'x is inside the radius: more terms help.' : 'x is outside the radius: more terms make it worse.'));
   }
 
   Array.prototype.forEach.call(document.querySelectorAll('[data-fn]'), function (b) {
     b.addEventListener('click', function () {
       cur = +b.dataset.fn;
-      Array.prototype.forEach.call(document.querySelectorAll('[data-fn]'), function (o) { o.setAttribute('aria-pressed', o === b); });
-      if (+$('#inA').value > FNS[cur].amax) $('#inA').value = FNS[cur].amax;
+      Array.prototype.forEach.call(document.querySelectorAll('[data-fn]'), function (o) { o.setAttribute('aria-pressed', o === b ? 'true' : 'false'); });
       render();
     });
   });
-  $('#inN').addEventListener('input', render);
-  $('#inA').addEventListener('input', render);
+  ['#inN', '#inA', '#inX'].forEach(function (id) { $(id).addEventListener('input', render); });
   render();
 })();
 </script>
