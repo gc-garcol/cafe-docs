@@ -1366,6 +1366,17 @@ const DOCS = [
     summary: 'Backtest a moving-average strategy on prices with no edge at all. Use today\'s close to trade today\'s return and it looks brilliant. Tune the window on the whole sample and it still looks good, until you check the data you did not tune on.',
     related: ['Hypothesis Tests and p-values', 'Transaction Costs and Slippage', 'Walk-Forward and Purged Cross-Validation', 'Feature Engineering and Leakage'],
   },
+  {
+    title: 'Transaction Costs and Slippage',
+    path: 'content/quant/transaction-costs/transaction-costs.html',
+    category: 'Quant',
+    topic: 'Time series and portfolios',
+    order: 20,
+    level: 'Intermediate',
+    tags: ['transaction costs', 'slippage', 'market impact', 'turnover', 'bid-ask spread', 'execution', 'backtesting', 'capacity'],
+    summary: 'Give a strategy a small real edge, then pay the spread and the market impact on every trade. See how trading frequency and size eat the profit, and find the break-even cost where the edge disappears.',
+    related: ['Backtesting Without Look-Ahead', 'Value at Risk and Drawdown', 'Futures, Forwards and Option Payoffs'],
+  },
 ];
 
 // ---------- helpers ----------
