@@ -121,7 +121,18 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
 .bar output{text-align:right}
 .lab{grid-template-columns:1fr}
 .stage svg{max-height:none}
-.lab>div{max-width:720px}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:0 16px 12px;border-bottom:1px solid var(--rule)}
+.toolbar .seg{margin:0;flex:1 1 280px}
+.toolbar .btn{margin-top:0}
+.stage{padding:8px}
+.stage svg{margin:0 auto}
+.stage svg{max-height:calc(100vh - 250px);min-height:300px}
+.corebtns{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:0 16px 4px}
+.corebtns div{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.corebtns .btn{margin-top:0}
+.panel{display:grid;grid-template-columns:1fr 1fr;gap:0 24px}
+.panel .task{grid-column:1/-1}
+@media (max-width:760px){.panel{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -147,13 +158,22 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
       <li>Keep fences <b>Off</b> and press <b>Show the reordering</b>. Both stores wait in the buffers while both loads read the old 0 from memory.</li>
       <li>Drive it by hand: <b>Next</b> runs a core's next instruction, <b>Drain</b> moves its oldest buffered store to memory. Try to find other outcomes.</li>
       <li>Turn fences <b>On</b>. The fence stalls until its own store buffer is empty, so the store is visible before the load runs.</li>
-      <li>Press <b>Run 1000 random schedules</b> in both settings and compare the outcome counts.</li>
+      <li>Press <b>Run 1000 random</b> in both settings and compare the outcome counts.</li>
     </ol>
   </div>
 
   <div class="lab">
     <figure class="card">
       <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">Two cores with store buffers</span></div>
+      <div class="toolbar">
+        <div class="seg" role="group" aria-label="Fences">
+          <button type="button" id="fOff" aria-pressed="true">Fences off</button>
+          <button type="button" id="fOn" aria-pressed="false">Fences on</button>
+        </div>
+        <button type="button" class="btn" id="bDemo">Show the reordering</button>
+        <button type="button" class="btn" id="bRand">Run 1000 random</button>
+        <button type="button" class="btn" id="bReset">Reset</button>
+      </div>
       <div class="stage">
         <svg id="stage" viewBox="0 0 640 470" role="img" aria-labelledby="mf-title mf-desc">
           <title id="mf-title">Store buffering litmus test</title>
@@ -161,31 +181,20 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
           <g id="scene"></g>
         </svg>
       </div>
+      <div class="corebtns" role="group" aria-label="Step a core">
+        <div><button type="button" class="btn" id="n0">Core 0 · Next</button><button type="button" class="btn" id="d0">Core 0 · Drain</button></div>
+        <div><button type="button" class="btn" id="n1">Core 1 · Next</button><button type="button" class="btn" id="d1">Core 1 · Drain</button></div>
+      </div>
       <div class="card-bottom"><span class="hint">Model: x86-style TSO, stores buffered in order</span><span class="live" id="live"></span></div>
     </figure>
 
     <div>
       <div class="panel">
-        <div class="seg" role="group" aria-label="Fences">
-          <button type="button" id="fOff" aria-pressed="true">Fences off</button>
-          <button type="button" id="fOn" aria-pressed="false">Fences on</button>
-        </div>
         <div class="task" id="task"></div>
-        <div class="btns">
-          <button type="button" class="btn" id="n0">Core 0 · Next</button>
-          <button type="button" class="btn" id="n1">Core 1 · Next</button>
-          <button type="button" class="btn" id="d0">Core 0 · Drain</button>
-          <button type="button" class="btn" id="d1">Core 1 · Drain</button>
-        </div>
-        <div class="btns wide">
-          <button type="button" class="btn" id="bDemo">Show the reordering</button>
-          <button type="button" class="btn" id="bRand">Run 1000 random schedules</button>
-          <button type="button" class="btn" id="bReset">Reset</button>
-        </div>
-        <div class="res-label">What happened</div>
-        <div id="readout" aria-live="polite"></div>
-        <div class="res-label" id="tallyLabel">Outcomes of random schedules</div>
-        <div class="tally" id="tally"></div>
+        <div><div class="res-label">What happened</div>
+        <div id="readout" aria-live="polite"></div></div>
+        <div><div class="res-label" id="tallyLabel">Outcomes of random schedules</div>
+        <div class="tally" id="tally"></div></div>
       </div>
       <div class="legend" aria-label="Legend">
         <span><i class="sw" style="background:#f4b79d;border-color:#bf4520"></i>store / drain</span>
@@ -490,7 +499,7 @@ std::atomic&lt;<span class="k">int</span>&gt; x{0}, y{0};
       : `<b>Fences off:</b> each core runs store, then load.<br><b>Expect:</b> if both loads run before either buffer drains, both read 0.`;
     for (let c = 0; c < 2; c++) { $('n' + c).disabled = !canNext(S, c); $('d' + c).disabled = !canDrain(S, c); }
     $('readout').innerHTML = words();
-    $('tallyLabel').textContent = `Outcomes of 1000 random schedules · fences ${st.fence ? 'on' : 'off'}`;
+    $('tallyLabel').textContent = `1000 random schedules · fences ${st.fence ? 'on' : 'off'}`;
     $('tally').innerHTML = tallyHTML();
     $('live').textContent = done(S) ? `r0 = ${S.r[0]}, r1 = ${S.r[1]}` : `x = ${S.mem.x}, y = ${S.mem.y} in memory`;
     render();

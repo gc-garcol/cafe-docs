@@ -120,7 +120,16 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
 #stage [data-slot]{cursor:pointer}
 .lab{grid-template-columns:1fr}
 .stage svg{max-height:none}
-.lab>div{max-width:720px}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:0 16px 12px;border-bottom:1px solid var(--rule)}
+.toolbar .seg{margin:0;flex:1 1 280px}
+.toolbar .btn{margin-top:0}
+.stage{padding:8px}
+.stage svg{margin:0 auto}
+.stage svg{max-height:calc(100vh - 230px);min-height:300px}
+.panel{display:grid;grid-template-columns:1fr 1fr;gap:0 24px}
+.panel .task{grid-column:1/-1}
+.panel .res-label:first-of-type{margin-top:0}
+@media (max-width:760px){.panel{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -153,6 +162,16 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
   <div class="lab">
     <figure class="card">
       <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">Two cores, one cache line</span></div>
+      <div class="toolbar">
+          <div class="seg" role="group" aria-label="Memory layout">
+            <button type="button" id="layP" aria-pressed="true">Packed · same line</button>
+            <button type="button" id="layD" aria-pressed="false">Padded · own lines</button>
+          </div>
+          <button type="button" class="btn" id="bStep">Step</button>
+          <button type="button" class="btn" id="bPlay">Play</button>
+          <button type="button" class="btn" id="bRun">+100 writes</button>
+          <button type="button" class="btn" id="bReset">Reset</button>
+      </div>
       <div class="stage">
         <svg id="stage" viewBox="0 0 640 420" role="img" aria-labelledby="fs-title fs-desc">
           <title id="fs-title">Two cores writing to variables in shared or separate cache lines</title>
@@ -165,21 +184,11 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
 
     <div>
       <div class="panel">
-        <div class="seg" role="group" aria-label="Memory layout">
-          <button type="button" id="layP" aria-pressed="true">Packed · same line</button>
-          <button type="button" id="layD" aria-pressed="false">Padded · own lines</button>
-        </div>
         <div class="task" id="task"></div>
-        <div class="btns">
-          <button type="button" class="btn" id="bStep">Step</button>
-          <button type="button" class="btn" id="bPlay">Play</button>
-          <button type="button" class="btn" id="bRun">+100 writes</button>
-          <button type="button" class="btn" id="bReset">Reset</button>
-        </div>
-        <div class="res-label">Last write</div>
-        <div id="readout" aria-live="polite"></div>
-        <div class="res-label">Same writes, both layouts</div>
-        <div class="bars" id="bars"></div>
+        <div><div class="res-label">Last write</div>
+        <div id="readout" aria-live="polite"></div></div>
+        <div><div class="res-label">Same writes, both layouts</div>
+        <div class="bars" id="bars"></div></div>
       </div>
       <div class="legend" aria-label="Legend">
         <span><i class="sw" style="background:#f4b79d;border-color:#bf4520"></i>M · modified, owned</span>
