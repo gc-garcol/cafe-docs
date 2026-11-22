@@ -98,6 +98,10 @@ table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px so
 table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
 table.ops tr:last-child td{border-bottom:0}
 ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
+.steps{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;max-width:760px}
+.steps ol{margin:0;padding-left:20px}.steps li{margin:8px 0}
+.panel.wide{margin-top:16px}
+.panel.wide .row{max-width:420px}
 
 @media (max-width:860px){.controls{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
 @media (max-width:520px){.planes{grid-template-columns:1fr}.planes svg+svg{border-left:0;border-top:1px solid var(--rule)}}
@@ -168,34 +172,105 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
   <p>A square matrix $A$ is <b>diagonalizable</b> if it is similar to a diagonal matrix. That means there is an invertible $P$ and a diagonal $D$ with:</p>
   <div class="formula">$$A = P D P^{-1} \qquad\Longleftrightarrow\qquad D = P^{-1} A P$$</div>
   <p>This is the <a href="../matrix-of-linear-map/matrix-of-linear-map.html">change of basis</a> formula with a good choice of basis. The columns of $P$ are <a href="../eigenvalues-eigenvectors/eigenvalues-eigenvectors.html">eigenvectors</a> of $A$, and the diagonal of $D$ holds the matching eigenvalues, in the same order. In the eigenvector basis the map is just "scale each coordinate".</p>
+  <p>Why the columns must be eigenvectors: multiply $A = PDP^{-1}$ on the right by $P$ to get $AP = PD$. Column $i$ of $AP$ is $A\mathbf{v}_i$, and column $i$ of $PD$ is $\lambda_i \mathbf{v}_i$. So $AP = PD$ is just the $n$ equations $A\mathbf{v}_i = \lambda_i \mathbf{v}_i$ written side by side, and $P$ is invertible exactly when those $\mathbf{v}_i$ are independent.</p>
   <div class="callout">$A$ is diagonalizable exactly when it has $n$ independent eigenvectors.</div>
 </section>
 
 <section>
-  <h2>2. How to do it</h2>
-  <ul class="tight">
+  <h2>2. Read it right to left: three moves</h2>
+  <p>Apply $A = PDP^{-1}$ to a vector $\mathbf{x}$ and read the product from right to left:</p>
+  <div class="steps"><ol>
+    <li>$P^{-1}\mathbf{x}$ rewrites $\mathbf{x}$ in eigen coordinates: the numbers $c_1, c_2$ with $\mathbf{x} = c_1\mathbf{v}_1 + c_2\mathbf{v}_2$.</li>
+    <li>$D$ scales each coordinate on its own: $c_1 \to \lambda_1 c_1$, $c_2 \to \lambda_2 c_2$. Nothing mixes.</li>
+    <li>$P$ turns the scaled coordinates back into an ordinary vector: $\lambda_1 c_1 \mathbf{v}_1 + \lambda_2 c_2 \mathbf{v}_2 = A\mathbf{x}$.</li>
+  </ol></div>
+  <p>Fig 2 uses the matrix from the lab above. On the left, $\mathbf{x}$ is split along the two eigen directions, and each piece is stretched by its own eigenvalue. On the right is the same thing in eigen coordinates. There the slanted parallelogram becomes a plain rectangle, and $A$ is nothing but the diagonal matrix $D$.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 2</span><span class="card-title">One map, two coordinate systems</span></div>
+    <div class="planes">
+      <svg id="pl2a" viewBox="0 0 360 360" role="img" aria-labelledby="pl2a-title pl2a-desc">
+        <title id="pl2a-title">A vector and its image in ordinary coordinates</title>
+        <desc id="pl2a-desc">Standard axes. Dashed lines are the eigen directions. A grey parallelogram splits the vector x into its parts along the two eigenvectors. An orange parallelogram shows each part stretched by its eigenvalue, and its far corner is A times x.</desc>
+      </svg>
+      <svg id="pl2b" viewBox="0 0 360 360" role="img" aria-labelledby="pl2b-title pl2b-desc">
+        <title id="pl2b-title">The same vector and image in eigen coordinates</title>
+        <desc id="pl2b-desc">Axes along the two eigenvectors. The eigen coordinates of x form a grey rectangle. Multiplying by the diagonal matrix D stretches it into an orange rectangle along the axes, with no rotation or shear.</desc>
+      </svg>
+    </div>
+    <div class="card-bottom"><span class="hint">Left: standard axes · Right: eigen axes, where A acts as D</span><span class="live" id="live2"></span></div>
+  </figure>
+  <div class="panel wide">
+    <div class="row"><label for="th">$\theta$</label><input type="range" id="th" min="0" max="360" step="5" value="35"><output id="o-th" for="th"></output></div>
+    <pre class="readout" id="readout2" aria-live="polite"></pre>
+  </div>
+</section>
+
+<section>
+  <h2>3. How to do it</h2>
+  <div class="steps"><ol>
     <li>Solve $\det(A - \lambda I) = 0$ to get the eigenvalues.</li>
     <li>For each eigenvalue, solve $(A - \lambda I)\mathbf{v} = \mathbf{0}$ to get its eigenvectors.</li>
-    <li>If you have $n$ independent eigenvectors in total, put them in the columns of $P$ and the eigenvalues, in the same order, on the diagonal of $D$.</li>
-  </ul>
+    <li>Count them. If you have $n$ independent eigenvectors in total, put them in the columns of $P$ and the eigenvalues, in the same order, on the diagonal of $D$. If you have fewer, stop: $A$ is not diagonalizable.</li>
+  </ol></div>
   <p><b>Worked example.</b> Take the matrix from the first preset.</p>
-  <div class="formula">$$A = \begin{bmatrix}4 & 1\\ 2 & 3\end{bmatrix}: \quad \lambda^2 - 7\lambda + 10 = 0 \;\Rightarrow\; \lambda = 5,\; 2$$</div>
-  <p>For $\lambda = 5$: $(A - 5I)\mathbf{v} = \mathbf{0}$ gives $\mathbf{v} = (1, 1)$. For $\lambda = 2$: $\mathbf{v} = (1, -2)$. So:</p>
-  <div class="formula">$$P = \begin{bmatrix}1 & 1\\ 1 & -2\end{bmatrix},\quad D = \begin{bmatrix}5 & 0\\ 0 & 2\end{bmatrix},\quad A = P D P^{-1}$$</div>
-  <p>If two eigenvalues are different, their eigenvectors are automatically independent. So $n$ distinct eigenvalues always give a diagonalizable matrix. Repeated eigenvalues need a check.</p>
+  <div class="formula">$$A = \begin{bmatrix}4 & 1\\ 2 & 3\end{bmatrix}: \quad \det(A - \lambda I) = (4-\lambda)(3-\lambda) - 2 = \lambda^2 - 7\lambda + 10 = 0 \;\Rightarrow\; \lambda = 5,\; 2$$</div>
+  <p>For $\lambda = 5$: $A - 5I = \begin{bmatrix}-1 & 1\\ 2 & -2\end{bmatrix}$, so $-v_1 + v_2 = 0$ and $\mathbf{v} = (1, 1)$. For $\lambda = 2$: $A - 2I = \begin{bmatrix}2 & 1\\ 2 & 1\end{bmatrix}$, so $2v_1 + v_2 = 0$ and $\mathbf{v} = (1, -2)$. So:</p>
+  <div class="formula">$$P = \begin{bmatrix}1 & 1\\ 1 & -2\end{bmatrix},\quad D = \begin{bmatrix}5 & 0\\ 0 & 2\end{bmatrix},\quad P^{-1} = \frac{1}{3}\begin{bmatrix}2 & 1\\ 1 & -1\end{bmatrix}$$</div>
+  <p>Check: $PD = \begin{bmatrix}5 & 2\\ 5 & -4\end{bmatrix}$, and $PD \cdot P^{-1} = \frac{1}{3}\begin{bmatrix}12 & 3\\ 6 & 9\end{bmatrix} = \begin{bmatrix}4 & 1\\ 2 & 3\end{bmatrix} = A$. Always do this check; a sign slip in one eigenvector shows up at once.</p>
+  <p>If two eigenvalues are different, their eigenvectors are automatically independent. So $n$ distinct eigenvalues always give a diagonalizable matrix. Repeated eigenvalues need the check in the next section.</p>
 </section>
 
 <section>
-  <h2>3. Why it pays off: powers</h2>
+  <h2>4. Repeated eigenvalues: count the eigenvectors</h2>
+  <p>Each eigenvalue has two counts:</p>
+  <ul class="tight">
+    <li><b>Algebraic multiplicity</b>: how many times $\lambda$ is a root of $\det(A - \lambda I)$.</li>
+    <li><b>Geometric multiplicity</b>: how many independent eigenvectors it has, which is $\dim \ker(A - \lambda I) = n - \operatorname{rank}(A - \lambda I)$.</li>
+  </ul>
+  <p>The geometric count is always at least 1 and at most the algebraic count. $A$ is diagonalizable exactly when the two counts are equal for every eigenvalue (and all eigenvalues are real, if you want a real $P$).</p>
+  <table class="ops">
+    <thead><tr><th>Matrix</th><th>Eigenvalue</th><th>Algebraic</th><th>Geometric</th><th>Diagonalizable?</th></tr></thead>
+    <tbody>
+      <tr><td>$\begin{bmatrix}2&0\\0&2\end{bmatrix}$</td><td>$2$</td><td>2</td><td>2</td><td>yes, it already is diagonal</td></tr>
+      <tr><td>$\begin{bmatrix}2&1\\0&2\end{bmatrix}$</td><td>$2$</td><td>2</td><td>1</td><td>no</td></tr>
+      <tr><td>$\begin{bmatrix}4&1\\2&3\end{bmatrix}$</td><td>$5,\ 2$</td><td>1 each</td><td>1 each</td><td>yes</td></tr>
+    </tbody>
+  </table>
+  <p>For $2 \times 2$ matrices there is a shortcut: a repeated eigenvalue $\lambda$ gives a diagonalizable matrix only if $A = \lambda I$. Anything else with a repeated eigenvalue is defective.</p>
+</section>
+
+<section>
+  <h2>5. Why it pays off: powers</h2>
   <p>The middle factors cancel when you multiply $A$ by itself:</p>
   <div class="formula">$$A^n = (PDP^{-1})(PDP^{-1})\cdots(PDP^{-1}) = P D^n P^{-1}, \qquad D^n = \begin{bmatrix}\lambda_1^n & 0\\ 0 & \lambda_2^n\end{bmatrix}$$</div>
-  <p>For the example, $A^n = P\,\operatorname{diag}(5^n, 2^n)\,P^{-1}$, with no need to multiply $n$ times. The same trick works for any function that has a power series, for instance the matrix exponential $e^{A} = P e^{D} P^{-1}$, where $e^D$ just exponentiates the diagonal. That is how linear differential equations $\mathbf{x}' = A\mathbf{x}$ are solved.</p>
-  <p>It also explains the long run behavior in the lab. Write a starting vector in the eigenbasis and apply $A^n$: each part gets multiplied by $\lambda_i^n$. The one with the largest $|\lambda|$ eventually dominates, so every direction bends toward its eigenvector.</p>
-  <p>A classic use is the Fibonacci numbers. Since $\begin{bmatrix}F_{n+1}\\ F_n\end{bmatrix} = \begin{bmatrix}1&1\\1&0\end{bmatrix}^n\begin{bmatrix}1\\0\end{bmatrix}$, diagonalizing gives Binet's formula with the eigenvalues $\varphi = \frac{1+\sqrt5}{2}$ and $\frac{1-\sqrt5}{2}$.</p>
+  <p>For the example, multiplying out $P\,\operatorname{diag}(5^n, 2^n)\,P^{-1}$ gives a closed formula for every power at once:</p>
+  <div class="formula">$$A^n = \frac{1}{3}\begin{bmatrix}2\cdot 5^n + 2^n & 5^n - 2^n\\ 2\cdot 5^n - 2\cdot 2^n & 5^n + 2\cdot 2^n\end{bmatrix}$$</div>
+  <p>Put in $n = 1$ and you get $A$ back. Put in $n = 3$ and you get $\begin{bmatrix}86 & 39\\ 78 & 47\end{bmatrix}$ without a single matrix product. Computing $A^n$ this way costs one diagonalization plus $n$-th powers of numbers, instead of $n - 1$ matrix multiplications.</p>
+  <p>It also explains the long run behavior in the lab. Write a starting vector in the eigenbasis and apply $A^n$: each part gets multiplied by $\lambda_i^n$. The one with the largest $|\lambda|$ eventually dominates, so every direction bends toward its eigenvector. Here $2^n$ is tiny next to $5^n$, so</p>
+  <div class="formula">$$A^n \approx 5^n \cdot \frac{1}{3}\begin{bmatrix}2 & 1\\ 2 & 1\end{bmatrix} \quad\text{for large } n,$$</div>
+  <p>and both columns point along $(1, 1)$, the eigenvector for $\lambda = 5$. The ratio $|\lambda_2 / \lambda_1| = 0.4$ tells you how fast the other direction fades. This is the idea behind the power method, which finds the largest eigenvalue by applying $A$ over and over.</p>
 </section>
 
 <section>
-  <h2>4. When it fails</h2>
+  <h2>6. Three classic uses</h2>
+  <p><b>Fibonacci numbers.</b> One step of $F_{n+1} = F_n + F_{n-1}$ is a matrix:</p>
+  <div class="formula">$$\begin{bmatrix}F_{n+1}\\ F_n\end{bmatrix} = \begin{bmatrix}1&1\\1&0\end{bmatrix}^n\begin{bmatrix}1\\0\end{bmatrix}, \qquad \lambda^2 - \lambda - 1 = 0 \;\Rightarrow\; \varphi = \tfrac{1+\sqrt5}{2},\; \psi = \tfrac{1-\sqrt5}{2}$$</div>
+  <p>The eigenvectors are $(\varphi, 1)$ and $(\psi, 1)$. Writing $(1, 0)$ in that basis and applying $D^n$ gives Binet's formula:</p>
+  <div class="formula">$$F_n = \frac{\varphi^n - \psi^n}{\sqrt5}$$</div>
+  <p>Since $|\psi| &lt; 1$, the second term vanishes and $F_n$ is the nearest whole number to $\varphi^n / \sqrt5$. The ratio $F_{n+1} / F_n$ tends to the golden ratio $\varphi$ for the same reason the lab's ellipse leans toward one eigenvector.</p>
+
+  <p><b>Markov chains.</b> A column-stochastic matrix moves probability between states. Take</p>
+  <div class="formula">$$M = \begin{bmatrix}0.9 & 0.5\\ 0.1 & 0.5\end{bmatrix}, \qquad \lambda = 1,\; 0.4, \qquad \mathbf{v}_1 = \left(\tfrac{5}{6}, \tfrac{1}{6}\right)$$</div>
+  <p>The eigenvalue 1 never changes its part, and the $0.4^n$ part dies out. So from any start, $M^n \mathbf{x}$ settles at the steady state $(5/6, 1/6)$, and the distance to it shrinks by a factor of $0.4$ each step.</p>
+
+  <p><b>Differential equations.</b> The same trick works for any function given by a power series. For the matrix exponential, $e^{At} = P e^{Dt} P^{-1}$, where $e^{Dt}$ just exponentiates each diagonal entry. So $\mathbf{x}' = A\mathbf{x}$ has the solution</p>
+  <div class="formula">$$\mathbf{x}(t) = c_1 e^{\lambda_1 t}\mathbf{v}_1 + c_2 e^{\lambda_2 t}\mathbf{v}_2,$$</div>
+  <p>with $c_1, c_2$ the eigen coordinates of $\mathbf{x}(0)$. Each eigen direction grows or decays on its own clock. The system settles to zero exactly when every eigenvalue has a negative real part.</p>
+</section>
+
+<section>
+  <h2>7. When it fails</h2>
   <table class="ops">
     <thead><tr><th>Case</th><th>Example</th><th>What goes wrong</th></tr></thead>
     <tbody>
@@ -203,22 +278,84 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
       <tr><td>Complex eigenvalues</td><td>$\begin{bmatrix}0&-1\\1&0\end{bmatrix}$</td><td>No real eigenvectors. Over the complex numbers it does diagonalize, with $\pm i$.</td></tr>
     </tbody>
   </table>
-  <p>A defective matrix can still be simplified to a Jordan form, which has some 1s above the diagonal. The shear preset shows that: the ellipse stays tilted and never picks a second axis.</p>
+  <p>A defective matrix can still be brought to a <b>Jordan form</b> $A = PJP^{-1}$, which is as close to diagonal as possible: the eigenvalues on the diagonal and some 1s just above it. For a $2 \times 2$ block,</p>
+  <div class="formula">$$J = \begin{bmatrix}\lambda & 1\\ 0 & \lambda\end{bmatrix}, \qquad J^n = \begin{bmatrix}\lambda^n & n\lambda^{n-1}\\ 0 & \lambda^n\end{bmatrix}$$</div>
+  <p>The extra $n\lambda^{n-1}$ term is the fingerprint of a missing eigenvector. For the shear, $\lambda = 1$, so $J^n = \begin{bmatrix}1 & n\\ 0 & 1\end{bmatrix}$ grows linearly instead of staying put. The shear preset shows it: the ellipse stays tilted and keeps sliding, without settling on a second axis.</p>
 </section>
 
 <section>
-  <h2>5. The best case: symmetric matrices</h2>
+  <h2>8. The best case: symmetric matrices</h2>
   <p>The <b>spectral theorem</b> says that a real symmetric matrix always has real eigenvalues and perpendicular eigenvectors. Normalize those to length 1 and $P$ becomes orthogonal, so $P^{-1} = P^{\mathsf T}$:</p>
   <div class="formula">$$A = Q \Lambda Q^{\mathsf T}, \qquad Q^{\mathsf T} Q = I$$</div>
-  <p>No inversion is needed, and the numbers stay stable. Principal component analysis is this theorem applied to a covariance matrix. Try the Symmetric preset: the two dashed lines cross at a right angle.</p>
+  <p>No inversion is needed, and the numbers stay stable. Expanding the product gives a second way to read it, as a sum of projections onto the eigen directions:</p>
+  <div class="formula">$$A = \lambda_1 \mathbf{q}_1\mathbf{q}_1^{\mathsf T} + \lambda_2 \mathbf{q}_2\mathbf{q}_2^{\mathsf T} + \cdots + \lambda_n \mathbf{q}_n\mathbf{q}_n^{\mathsf T}$$</div>
+  <p>Keep only the terms with the largest $|\lambda_i|$ and you get the best low-rank approximation of $A$. <a href="../../AI/machine-learning/principal-component-analysis/principal-component-analysis.html">Principal component analysis</a> is this theorem applied to a covariance matrix. Try the Symmetric preset: the two dashed lines cross at a right angle.</p>
 </section>
 
 <section>
-  <h2>6. Where it shows up</h2>
+  <h2>9. Facts you get for free</h2>
+  <p>Similar matrices share everything that does not depend on the basis. Once $A = PDP^{-1}$, read these straight off $D$:</p>
+  <table class="ops">
+    <thead><tr><th>Quantity</th><th>From the eigenvalues</th><th>Example ($\lambda = 5, 2$)</th></tr></thead>
+    <tbody>
+      <tr><td><a href="../determinants/determinants.html">Determinant</a></td><td>$\det A = \lambda_1 \lambda_2 \cdots \lambda_n$</td><td>$10 = 4\cdot 3 - 1\cdot 2$</td></tr>
+      <tr><td>Trace</td><td>$\operatorname{tr} A = \lambda_1 + \cdots + \lambda_n$</td><td>$7 = 4 + 3$</td></tr>
+      <tr><td>Inverse</td><td>$A^{-1} = P D^{-1} P^{-1}$, which exists only if no $\lambda_i = 0$</td><td>$D^{-1} = \operatorname{diag}(\tfrac15, \tfrac12)$</td></tr>
+      <tr><td>Rank</td><td>number of nonzero $\lambda_i$</td><td>$2$</td></tr>
+      <tr><td>Square root</td><td>$P\,\operatorname{diag}(\sqrt{\lambda_i})\,P^{-1}$, when all $\lambda_i \ge 0$</td><td>$\operatorname{diag}(\sqrt5, \sqrt2)$</td></tr>
+    </tbody>
+  </table>
+  <p>$P$ is not unique. You can scale any column by a nonzero number, or reorder the columns as long as you reorder the diagonal of $D$ the same way. $D$ is unique up to that ordering.</p>
+</section>
+
+<section>
+  <h2>10. The same thing in code</h2>
+  <pre class="code"><span class="k">function</span> diagonalize2([[a, b], [c, d]]) {
+  <span class="k">if</span> (b === <span class="t">0</span> &amp;&amp; c === <span class="t">0</span>) <span class="k">return</span> { P: [[<span class="t">1</span>, <span class="t">0</span>], [<span class="t">0</span>, <span class="t">1</span>]], D: [a, d] };   <span class="c">// already diagonal</span>
+  <span class="k">const</span> tr = a + d, disc = (a - d) ** <span class="t">2</span> + <span class="t">4</span> * b * c;            <span class="c">// tr² − 4·det</span>
+  <span class="k">if</span> (disc &lt; <span class="t">0</span>) <span class="k">throw new</span> Error(<span class="t">'complex eigenvalues: no real P'</span>);
+  <span class="k">if</span> (disc === <span class="t">0</span>) <span class="k">throw new</span> Error(<span class="t">'repeated eigenvalue, one eigenvector: defective'</span>);
+  <span class="k">const</span> s = Math.sqrt(disc), l1 = (tr + s) / <span class="t">2</span>, l2 = (tr - s) / <span class="t">2</span>;
+  <span class="k">const</span> vec = l =&gt; (b !== <span class="t">0</span> ? [b, l - a] : [l - d, c]);         <span class="c">// solves (A − λI)v = 0</span>
+  <span class="k">const</span> p = vec(l1), q = vec(l2);
+  <span class="k">return</span> { P: [[p[<span class="t">0</span>], q[<span class="t">0</span>]], [p[<span class="t">1</span>], q[<span class="t">1</span>]]], D: [l1, l2] };      <span class="c">// eigenvectors are columns</span>
+}
+
+<span class="k">function</span> power2(A, n) {
+  <span class="k">const</span> { P, D } = diagonalize2(A);
+  <span class="k">const</span> det = P[<span class="t">0</span>][<span class="t">0</span>] * P[<span class="t">1</span>][<span class="t">1</span>] - P[<span class="t">0</span>][<span class="t">1</span>] * P[<span class="t">1</span>][<span class="t">0</span>];
+  <span class="k">const</span> Pi = [[P[<span class="t">1</span>][<span class="t">1</span>] / det, -P[<span class="t">0</span>][<span class="t">1</span>] / det], [-P[<span class="t">1</span>][<span class="t">0</span>] / det, P[<span class="t">0</span>][<span class="t">0</span>] / det]];
+  <span class="k">const</span> Dn = D.map(l =&gt; l ** n);                                  <span class="c">// the only "power" we take</span>
+  <span class="k">return</span> [<span class="t">0</span>, <span class="t">1</span>].map(i =&gt; [<span class="t">0</span>, <span class="t">1</span>].map(j =&gt;
+    P[i][<span class="t">0</span>] * Dn[<span class="t">0</span>] * Pi[<span class="t">0</span>][j] + P[i][<span class="t">1</span>] * Dn[<span class="t">1</span>] * Pi[<span class="t">1</span>][j]));         <span class="c">// P · Dⁿ · P⁻¹</span>
+}
+
+diagonalize2([[<span class="t">4</span>, <span class="t">1</span>], [<span class="t">2</span>, <span class="t">3</span>]]);   <span class="c">// P = [[1, 1], [1, -2]], D = [5, 2]</span>
+power2([[<span class="t">4</span>, <span class="t">1</span>], [<span class="t">2</span>, <span class="t">3</span>]], <span class="t">3</span>);    <span class="c">// [[86, 39], [78, 47]], up to rounding</span></pre>
+  <p>In practice you call a library. NumPy's <code>np.linalg.eig(A)</code> returns the eigenvalues and a matrix whose columns are unit eigenvectors. For symmetric matrices use <code>np.linalg.eigh</code>, which is faster, always returns real eigenvalues and gives an orthonormal $Q$. On a nearly defective matrix the columns of $P$ become nearly parallel, $P^{-1}$ blows up, and $PD^nP^{-1}$ loses accuracy. Check the condition number of $P$ before you trust the result.</p>
+</section>
+
+<section>
+  <h2>11. Common mistakes</h2>
+  <ul class="tight">
+    <li>Putting the eigenvectors in the <b>rows</b> of $P$. They go in the columns.</li>
+    <li>Listing the eigenvalues in $D$ in a different order from the eigenvectors in $P$. Column $i$ of $P$ must match entry $i$ of $D$.</li>
+    <li>Swapping the sides: with eigenvectors in $P$, it is $A = PDP^{-1}$ and $D = P^{-1}AP$, not $A = P^{-1}DP$.</li>
+    <li>Thinking a repeated eigenvalue rules diagonalization out. The identity has one eigenvalue repeated $n$ times and is diagonal already. Count eigenvectors, not eigenvalues.</li>
+    <li>Mixing up diagonalizable and invertible. $\begin{bmatrix}1&0\\0&0\end{bmatrix}$ is diagonal but not invertible. The shear is invertible but not diagonalizable.</li>
+    <li>Expecting perpendicular eigenvectors for every matrix. Only symmetric matrices (and, over $\mathbb{C}$, normal ones) are guaranteed an orthonormal eigenbasis.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>12. Where it shows up</h2>
   <div class="cards">
     <div class="stat focal"><div class="eyebrow">Dynamics</div><div class="big">$A^n$</div><p>Repeated application of a rule, like population models and Markov chains, reduces to $\lambda^n$.</p></div>
-    <div class="stat"><div class="eyebrow">Differential equations</div><div class="big">$e^{At}$</div><p>Linear systems have solutions built from eigenvalues and eigenvectors.</p></div>
+    <div class="stat"><div class="eyebrow">Differential equations</div><div class="big">$e^{At}$</div><p>Linear systems split into independent modes, one per eigenvalue.</p></div>
     <div class="stat"><div class="eyebrow">Data</div><div class="big">PCA</div><p>Diagonalizing a covariance matrix finds the axes of greatest variance.</p></div>
+    <div class="stat"><div class="eyebrow">Graphs</div><div class="big">PageRank</div><p>The ranking is the eigenvector for eigenvalue 1 of the link matrix, found by the power method.</p></div>
+    <div class="stat"><div class="eyebrow">Vibrations</div><div class="big">modes</div><p>A bridge or a molecule vibrates as a mix of normal modes: eigenvectors, with eigenvalues setting the frequencies.</p></div>
+    <div class="stat"><div class="eyebrow">Recurrences</div><div class="big">$F_n$</div><p>Any linear recurrence gets a closed formula, as with Fibonacci and the golden ratio.</p></div>
   </div>
 </section>
 
@@ -396,13 +533,71 @@ document.addEventListener('DOMContentLoaded', function () {
       'largest difference = ' + (err < 1e-6 ? '0' : err.toExponential(1)) + '\n' +
       'D^' + n + ' = diag(' + f(Dn[0][0], 3) + ', ' + f(Dn[1][1], 3) + ')';
   }
-  listen('input', 'input', render);
+  // Fig 2: x and Ax in standard coordinates (left) and in eigen coordinates (right)
+  function render2() {
+    var a = +$('a').value, b = +$('b').value, c = +$('c').value, d = +$('d').value, deg = +$('th').value;
+    $('o-th').textContent = deg + '°';
+    var th = deg * Math.PI / 180, x = [1.5 * Math.cos(th), 1.5 * Math.sin(th)];
+    var tr = a + d, disc = tr * tr - 4 * (a * d - b * c);
+    var scalar = Math.abs(b) < 1e-9 && Math.abs(c) < 1e-9 && Math.abs(a - d) < 1e-9;
+    if (disc < -1e-9 || (Math.abs(disc) <= 1e-9 && !scalar)) {
+      ['pl2a', 'pl2b'].forEach(function (id) {
+        var P = plane(id, 3, 1);
+        var t = el('text', { x: 180, y: 34, 'text-anchor': 'middle', 'font-size': 12, fill: '#5a6580', 'font-family': 'Geist Mono, monospace' }, P.g);
+        t.textContent = 'no real eigenbasis for this A';
+      });
+      $('live2').textContent = disc < -1e-9 ? 'complex eigenvalues' : 'defective';
+      $('readout2').textContent = 'This A has no two independent real eigenvectors, so there are no eigen coordinates to switch to.\nPick a diagonalizable preset in the lab above, such as Worked example or Symmetric.';
+      return;
+    }
+    var l1, l2, v1, v2;
+    if (scalar) { l1 = l2 = a; v1 = [1, 0]; v2 = [0, 1]; }
+    else { var s = Math.sqrt(Math.max(disc, 0)); l1 = (tr + s) / 2; l2 = (tr - s) / 2; v1 = vecFor(a, b, c, d, l1); v2 = vecFor(a, b, c, d, l2); }
+    var n1 = Math.hypot(v1[0], v1[1]), n2 = Math.hypot(v2[0], v2[1]);
+    v1 = [v1[0] / n1, v1[1] / n1]; v2 = [v2[0] / n2, v2[1] / n2];   // unit eigenvectors as the columns of P
+    var Pm = [[v1[0], v2[0]], [v1[1], v2[1]]], Pi = inv2(Pm);
+    var cc = app(Pi, x), Dc = [l1 * cc[0], l2 * cc[1]], Ax = app([[a, b], [c, d]], x);
+    var back = [Dc[0] * v1[0] + Dc[1] * v2[0], Dc[0] * v1[1] + Dc[1] * v2[1]];
+    var m = Math.max(1.5, Math.abs(Ax[0]), Math.abs(Ax[1]), Math.abs(cc[0]), Math.abs(cc[1]), Math.abs(Dc[0]), Math.abs(Dc[1]),
+      Math.abs(Dc[0] * v1[0]), Math.abs(Dc[0] * v1[1]), Math.abs(Dc[1] * v2[0]), Math.abs(Dc[1] * v2[1]));
+    var R = Math.min(40, Math.max(3, Math.ceil(m * 1.15))), step = R > 16 ? 5 : R > 8 ? 2 : 1;
+    var ink = '#2d3142', acc = '#bf4520', blue = '#2e5aa8';
+
+    var L = plane('pl2a', R, step);
+    [v1, v2].forEach(function (v) { line(L, -2 * R * v[0], -2 * R * v[1], 2 * R * v[0], 2 * R * v[1], 'rgba(45,49,66,.45)', 1.2, '6 4'); });
+    var p1 = [cc[0] * v1[0], cc[0] * v1[1]], p2 = [cc[1] * v2[0], cc[1] * v2[1]];
+    var q1 = [Dc[0] * v1[0], Dc[0] * v1[1]], q2 = [Dc[1] * v2[0], Dc[1] * v2[1]];
+    poly(L, [[0, 0], q1, Ax, q2], 'rgba(191,69,32,.10)', 'rgba(191,69,32,.45)', 1.2);
+    poly(L, [[0, 0], p1, x, p2], 'rgba(45,49,66,.08)', 'rgba(45,49,66,.35)', 1.2);
+    arrow(L, q1[0], q1[1], 'rgba(191,69,32,.6)', 1.8); arrow(L, q2[0], q2[1], 'rgba(191,69,32,.6)', 1.8);
+    arrow(L, p1[0], p1[1], blue, 1.8); arrow(L, p2[0], p2[1], blue, 1.8);
+    arrow(L, Ax[0], Ax[1], acc, 2.6); arrow(L, x[0], x[1], ink, 2.6);
+    label(L, x[0], x[1], 'x', ink); label(L, Ax[0], Ax[1], 'Ax', acc);
+
+    var E = plane('pl2b', R, step);
+    poly(E, [[0, 0], [Dc[0], 0], Dc, [0, Dc[1]]], 'rgba(191,69,32,.10)', 'rgba(191,69,32,.45)', 1.2);
+    poly(E, [[0, 0], [cc[0], 0], cc, [0, cc[1]]], 'rgba(45,49,66,.08)', 'rgba(45,49,66,.35)', 1.2);
+    arrow(E, Dc[0], Dc[1], acc, 2.6); arrow(E, cc[0], cc[1], ink, 2.6);
+    label(E, cc[0], cc[1], 'c = P⁻¹x', ink); label(E, Dc[0], Dc[1], 'Dc', acc);
+    label(E, R * 0.82, 0, 'v₁', '#5a6580', 0, 16); label(E, 0, R * 0.86, 'v₂', '#5a6580', 8, 4);
+
+    function v(p) { return '(' + f(p[0], 2) + ', ' + f(p[1], 2) + ')'; }
+    $('live2').textContent = 'λ₁ = ' + f(l1, 2) + ', λ₂ = ' + f(l2, 2);
+    $('readout2').textContent =
+      'x                   = ' + v(x) + '\n' +
+      'c = P⁻¹x            = ' + v(cc) + '   coordinates along v₁, v₂\n' +
+      'Dc = (λ₁c₁, λ₂c₂)   = ' + v(Dc) + '   each coordinate scaled on its own\n' +
+      'P Dc                = ' + v(back) + '\n' +
+      'A x directly        = ' + v(Ax) + '   same vector';
+  }
+  function update() { render(); render2(); }
+  listen('input', 'input', update);
   listen('[data-p]', 'click', function () {
     var v = this.getAttribute('data-p').split(',');
     ['a', 'b', 'c', 'd'].forEach(function (k, i) { $(k).value = v[i]; });
-    render();
+    update();
   });
-  render();
+  update();
 
 
   if (window.renderMathInElement) {
