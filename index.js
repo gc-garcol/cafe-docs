@@ -1435,6 +1435,18 @@ const DOCS = [
     summary: 'Run one order stream through four order book designs and count the work each does. Then the streaming statistics, hash maps, ring buffers and interview patterns that trading code is built on.',
     related: ['Heap', 'Skip List', 'Red-Black Tree', 'Timer Wheel', 'Probability Puzzles'],
   },
+  {
+    title: 'Probability Puzzles',
+    path: 'content/quant/probability-puzzles/probability-puzzles.html',
+    category: 'Quant',
+    topic: 'Engineering and interviews',
+    order: 26,
+    also: [{ category: 'Mathematics', topic: 'Probability', order: 31 }],
+    level: 'Intermediate',
+    tags: ['probability', 'puzzles', 'interview', 'expectation', 'markov chain', 'monte carlo', 'optimal stopping', 'kelly criterion'],
+    summary: 'Ten classic interview puzzles, from HH versus HT to the broken stick and the hat check, each solved with one of five tools and checked by a live Monte Carlo run. Plus Kelly betting and the numbers to know by heart.',
+    related: ['Expectation, Variance and Covariance', 'Law of Large Numbers and the CLT', "Bayes' Theorem", 'Monte Carlo Pricing', 'Data Structures and Algorithms for Quants'],
+  },
 ];
 
 // ---------- helpers ----------

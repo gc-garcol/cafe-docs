@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Probability Puzzles: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8; --green:#1f7a4d;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+h3{font-family:var(--serif);font-weight:400;font-size:24px;line-height:1.2;margin:28px 0 8px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+a{color:var(--link)}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+.card{margin:24px 0 0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.scroll{overflow-x:auto;padding:0 8px}
+.scroll svg{display:block;height:auto}
+.controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;margin-top:16px;align-items:start}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:0 0 12px}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.btn:disabled{opacity:.4;cursor:not-allowed;background:transparent;color:var(--ink)}
+.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--ink);border-radius:6px;overflow:hidden}
+.seg button{min-height:36px;padding:0 12px;border:0;border-right:1px solid var(--rule-solid);background:transparent;color:var(--ink);font:500 13px var(--sans);cursor:pointer}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.seg button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.lab-label{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);min-width:96px}
+.size input[type=range]{width:180px;accent-color:var(--accent)}
+.size output{font-family:var(--mono);font-size:12px;font-weight:600;min-width:5ch}
+select{min-height:38px;padding:0 10px;border:1px solid var(--rule-solid);border-radius:6px;font:500 13px var(--sans);color:var(--ink);background:#fff}
+.lab-out{margin:0;padding:0;border:0;background:none;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink)}
+.after{margin-top:16px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:3px;border:1px solid var(--ink);display:inline-block}
+pre{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .t{color:var(--link)} .c{color:var(--soft);font-style:italic}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat h3{margin:4px 0 6px;font-size:22px}
+.stat .big{font-family:var(--serif);font-size:32px;line-height:1.1;margin:6px 0}
+.stat .big .katex{font-size:.8em}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+table.ops{border-collapse:collapse;width:100%;max-width:760px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+ul.tight,ol.tight{padding-left:20px;max-width:68ch}ul.tight li,ol.tight li{margin:6px 0}
+.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;text-align:center;overflow-x:auto}
+.formula .katex{font-size:1.2em}
+.katex{color:var(--ink)}
+p .katex,td .katex,li .katex{font-size:1.05em}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+.two pre{margin:0}
+.two h3{margin-top:0}
+.doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}.doc-tags a{font:500 12px var(--mono);padding:4px 10px;border:1px solid var(--rule-solid);border-radius:4px;background:#fff;color:var(--muted);text-decoration:none}.doc-tags a:hover{border-color:var(--ink);color:var(--ink)}.doc-tags a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (max-width:860px){.controls,.two{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+.lab-label i{text-transform:none;font-style:italic;font-family:var(--serif);font-size:15px;letter-spacing:0}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" style="margin-right:8px" href="../../../index.html">&larr; Back to home</a>
+<a class="back back-cat" href="../../../index.html#cat=Quant">&larr; Back to Quant</a>
+
+<header>
+  <div class="eyebrow">Quant · Engineering and interviews</div>
+  <h1>Probability puzzles</h1>
+  <p class="lede">Quant interviews test whether you can turn a short story about dice, coins or sticks into an equation, fast and without fooling yourself. A handful of tools solve most of them: linearity of expectation, first-step analysis, symmetry and the complement. Then simulate to check.</p>
+  <nav class="doc-tags" aria-label="Main tags"><a href="../../../index.html#tag=probability">#probability</a><a href="../../../index.html#tag=puzzles">#puzzles</a><a href="../../../index.html#tag=interview">#interview</a><a href="../../../index.html#tag=expectation">#expectation</a></nav>
+</header>
+
+<section>
+  <h2>Try the machine first</h2>
+  <p>Pick a puzzle, guess the answer, then let the simulator play it thousands of times. The orange line is the running average of the simulated results. The green line is the exact answer derived below, and the shaded band is two standard errors around it. The average wanders into the band and stays there, at a speed of $1/\sqrt{n}$.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title" id="mc-title">Monte Carlo check</span></div>
+    <div class="scroll">
+      <svg id="mc" width="880" height="300" viewBox="0 0 880 300" style="min-width:880px" role="img" aria-labelledby="mc-t mc-d">
+        <title id="mc-t">Running average of simulated trials against the exact answer</title>
+        <desc id="mc-d">The horizontal axis is the number of simulated trials on a log scale. The orange line is the running average. The green horizontal line is the exact value, surrounded by a shaded band of two standard errors that narrows as trials increase.</desc>
+        <g id="mc-g"></g>
+      </svg>
+    </div>
+    <div class="card-bottom"><span class="hint">orange = simulation · green = exact · band = ±2 standard errors · log scale</span><span class="live" id="mc-live"></span></div>
+  </figure>
+
+  <div class="controls">
+    <div class="panel">
+      <div class="row"><span class="lab-label">Puzzle</span>
+        <select id="puzzle" aria-label="Puzzle">
+          <option value="six">1. Rolls until the first six</option>
+          <option value="sixsix">2. Rolls until two sixes in a row</option>
+          <option value="hh">3. Flips until HH</option>
+          <option value="ht">3. Flips until HT</option>
+          <option value="coupon">4. Rolls to see every face</option>
+          <option value="reroll">5. Roll, with one optional reroll</option>
+          <option value="ruin">6. Gambler's ruin from 3 to 10</option>
+          <option value="birthday">7. Shared birthday among 23</option>
+          <option value="stick">8. Broken stick makes a triangle</option>
+          <option value="usum">9. Uniforms until the sum passes 1</option>
+          <option value="derange">10. Nobody gets their own hat (n = 10)</option>
+        </select>
+      </div>
+      <div class="row size"><label for="trials" class="lab-label">Trials</label><input type="range" id="trials" min="2" max="5" step="0.25" value="4"><output id="trials-out" for="trials">10,000</output></div>
+      <div class="row"><button type="button" class="btn" id="again">Run again</button></div>
+      <p id="pz-q" style="font-size:14px;color:var(--muted);margin:4px 0 0"></p>
+    </div>
+    <div class="panel"><pre class="lab-out" id="mc-out" aria-live="polite"></pre></div>
+  </div>
+</section>
+
+<section>
+  <h2>1. The toolkit</h2>
+  <p>Almost every interview puzzle falls to one of five moves. Name the move before you start computing.</p>
+  <table class="ops">
+    <thead><tr><th>Tool</th><th>Statement</th><th>Use it when</th></tr></thead>
+    <tbody>
+      <tr><td>Linearity of expectation</td><td>$\mathbb{E}\bigl[\sum_i X_i\bigr] = \sum_i \mathbb{E}[X_i]$, even for dependent $X_i$</td><td>"Expected number of..." Write the count as a sum of indicators</td></tr>
+      <tr><td>First-step analysis</td><td>$\mathbb{E}[T] = \sum_s P(\text{first step} = s)\,\mathbb{E}[T \mid s]$</td><td>"Expected time until..." Set up one equation per state</td></tr>
+      <tr><td>Symmetry</td><td>Equivalent outcomes have equal probability</td><td>Random orderings, fair games, "which comes first"</td></tr>
+      <tr><td>Complement</td><td>$P(\text{at least one}) = 1 - P(\text{none})$</td><td>"At least one match", "some collision"</td></tr>
+      <tr><td>Geometric waiting</td><td>Success with chance $p$ each try: $\mathbb{E}[\text{tries}] = 1/p$</td><td>Any "keep trying until" step</td></tr>
+    </tbody>
+  </table>
+  <p>Indicators are the most underused. For any event $A$, the indicator $\mathbf{1}_A$ is 1 when $A$ happens and 0 otherwise, so $\mathbb{E}[\mathbf{1}_A] = P(A)$. Counting things then becomes adding probabilities, with no need to know how the events depend on each other.</p>
+  <p class="callout">If the question says "expected number", look for indicators. If it says "expected time", look for states.</p>
+</section>
+
+<section>
+  <h2>2. Waiting times</h2>
+  <h3>1. Rolls until the first six</h3>
+  <p>Condition on the first roll. With probability $\tfrac16$ you are done in one roll. Otherwise one roll is spent and you are back where you started:</p>
+  <div class="formula">$$E = 1 + \tfrac56 E \quad\Rightarrow\quad E = 6$$</div>
+  <p>The same argument gives $1/p$ for any success probability $p$.</p>
+
+  <h3>2. Rolls until two sixes in a row</h3>
+  <p>Let $E$ be the expected remaining rolls from scratch, and $E_1$ just after a six. From scratch, a six moves you to state 1, anything else resets. From state 1, a six ends the game:</p>
+  <div class="formula">$$E = 1 + \tfrac16 E_1 + \tfrac56 E, \qquad E_1 = 1 + \tfrac56 E \quad\Rightarrow\quad E = 42$$</div>
+  <p>In general, $k$ successes in a row at chance $p$ take $\frac{1}{p} + \frac{1}{p^2} + \dots + \frac{1}{p^k}$ tries. For two sixes that is $6 + 36$.</p>
+
+  <h3>3. HH versus HT</h3>
+  <p>Flip a fair coin. Which takes longer on average to appear, HH or HT? They look symmetric, but they are not. For HT, once you see an H you only wait for a T, and extra H's keep you in place. For HH, a T after the first H sends you all the way back:</p>
+  <div class="formula">$$\mathbb{E}[\text{HT}] = 2 + 2 = 4, \qquad \mathbb{E}[\text{HH}] = 2 + 4 = 6$$</div>
+  <p>The difference is self-overlap. HH can overlap with itself shifted by one, HT cannot. A pattern that overlaps itself tends to arrive in clusters, so the waits between clusters are longer. The same logic, written as a Markov chain, handles any pattern.</p>
+
+  <h3>4. Rolls to see every face</h3>
+  <p>This is the coupon collector problem. Once you have seen $i$ faces, a new face appears with chance $\frac{6-i}{6}$, so that stage takes $\frac{6}{6-i}$ rolls on average. Add the stages:</p>
+  <div class="formula">$$\mathbb{E}[T] = \sum_{i=0}^{5} \frac{6}{6-i} = 6\left(1 + \tfrac12 + \tfrac13 + \tfrac14 + \tfrac15 + \tfrac16\right) = 14.7$$</div>
+  <p>For $n$ coupons it is $n H_n \approx n \ln n + 0.577n$. The last few coupons dominate: the final face alone takes 6 rolls on average.</p>
+</section>
+
+<section>
+  <h2>3. Decisions</h2>
+  <h3>5. Roll, with one optional reroll</h3>
+  <p>You roll a die and are paid the face value in dollars. You may reroll once, but then you must take the second roll. When should you reroll, and what is the game worth? A second roll is worth $3.5$ on average, so keep any first roll above $3.5$:</p>
+  <div class="formula">$$V = \underbrace{\tfrac16(4 + 5 + 6)}_{\text{keep 4, 5, 6}} + \underbrace{\tfrac36 \cdot 3.5}_{\text{reroll 1, 2, 3}} = 2.5 + 1.75 = 4.25$$</div>
+  <p>This is backward induction, the core of optimal stopping and of pricing American options on a <a href="../binomial-tree/binomial-tree.html">binomial tree</a>: compare the value of stopping now with the expected value of continuing, and take the larger. With two rerolls, keep a first roll of 5 or 6 only, and the value rises to $4.67$.</p>
+
+  <h3>How much to bet: the Kelly criterion</h3>
+  <p>A coin lands heads with chance $p = 0.6$ and pays even money. Betting everything every time almost surely goes broke eventually. The fraction $f$ of wealth that maximizes long-run growth maximizes the expected log return:</p>
+  <div class="formula">$$g(f) = p \ln(1 + f) + q \ln(1 - f), \qquad g'(f) = 0 \;\Rightarrow\; f^* = p - q = 0.2$$</div>
+  <p>For odds of $b$ to 1, $f^* = p - q/b$. Betting more than about $2f^*$ gives negative growth even though every bet has positive expected value. Many traders bet half-Kelly, giving up a quarter of the growth rate for half the volatility.</p>
+</section>
+
+<section>
+  <h2>4. Random walks and coincidences</h2>
+  <h3>6. Gambler's ruin</h3>
+  <p>You have \$3 and bet \$1 at a time on a fair coin, stopping at \$0 or \$10. Let $P_k$ be the chance of reaching 10 from $k$. First-step analysis gives $P_k = \tfrac12 P_{k+1} + \tfrac12 P_{k-1}$, so $P_k$ is a straight line from $P_0 = 0$ to $P_{10} = 1$:</p>
+  <div class="formula">$$P_k = \frac{k}{N} = 0.3, \qquad \text{and with win chance } p \ne \tfrac12: \quad P_k = \frac{1 - (q/p)^k}{1 - (q/p)^N}$$</div>
+  <p>A shortcut: a fair game is a martingale, so your expected final wealth equals your starting wealth, $10 \cdot P + 0 \cdot (1-P) = 3$. The expected game length is $k(N - k) = 21$ bets. A slightly unfair game is brutal: at $p = 0.49$ the chance of reaching \$10 from \$3 drops to about 0.26, and from \$30 to \$100 it falls from 0.3 to about 0.04. See also <a href="../brownian-motion/brownian-motion.html">random walks and Brownian motion</a>.</p>
+
+  <h3>7. Shared birthdays</h3>
+  <p>How many people until the chance that two share a birthday passes one half? Use the complement: everyone different.</p>
+  <div class="formula">$$P(\text{match}) = 1 - \prod_{i=0}^{n-1}\left(1 - \frac{i}{365}\right) \;\approx\; 1 - e^{-n(n-1)/730}, \qquad n = 23 \Rightarrow 0.507$$</div>
+  <p>The intuition is pairs: 23 people form $\binom{23}{2} = 253$ pairs, each matching with chance $\tfrac{1}{365}$. Collisions appear around $\sqrt{N}$ items for $N$ possible values, which is why hash collisions and ID clashes come sooner than expected.</p>
+
+  <h3>8. A broken stick</h3>
+  <p>Break a stick at two uniform random points. What is the chance the three pieces form a triangle? They do exactly when no piece is longer than half the stick. Each piece is longer than half with probability $\tfrac14$, and at most one piece can be, so by the complement:</p>
+  <div class="formula">$$P(\text{triangle}) = 1 - 3 \cdot \tfrac14 = \tfrac14$$</div>
+</section>
+
+<section>
+  <h2>5. Where e shows up</h2>
+  <h3>9. Uniforms until the sum passes 1</h3>
+  <p>Draw uniform numbers on $[0,1]$ until their sum exceeds 1. The chance that the first $n$ draws still sum to at most 1 is the volume of a simplex, $\tfrac{1}{n!}$. Since $\mathbb{E}[N] = \sum_{n \ge 0} P(N > n)$:</p>
+  <div class="formula">$$\mathbb{E}[N] = \sum_{n=0}^{\infty} \frac{1}{n!} = e \approx 2.718$$</div>
+
+  <h3>10. Hats and fixed points</h3>
+  <p>$n$ people throw their hats in a pile and each takes one at random. The expected number who get their own hat is exactly 1, for any $n$: person $i$ gets theirs with chance $\tfrac1n$, and linearity adds $n$ of those. The chance that <b>nobody</b> does needs inclusion-exclusion:</p>
+  <div class="formula">$$P(\text{no fixed point}) = \sum_{k=0}^{n} \frac{(-1)^k}{k!} \;\longrightarrow\; \frac{1}{e} \approx 0.368$$</div>
+  <p>The limit is reached fast. By $n = 10$ it agrees with $1/e$ to seven digits.</p>
+</section>
+
+<section>
+  <h2>6. Numbers to know by heart</h2>
+  <table class="ops">
+    <thead><tr><th>Quantity</th><th>Value</th><th>Use</th></tr></thead>
+    <tbody>
+      <tr><td>$\ln 2$</td><td>$0.693$</td><td>Doubling time: rule of 70 or 72</td></tr>
+      <tr><td>$1/e$, $(1 - 1/n)^n$</td><td>$0.368$</td><td>Chance a given item is never picked in $n$ draws</td></tr>
+      <tr><td>$\sqrt{2\pi}$</td><td>$2.507$</td><td>Normal density peak $1/\sqrt{2\pi} \approx 0.4$</td></tr>
+      <tr><td>$\Phi(1), \Phi(2), \Phi(3)$</td><td>$0.841,\ 0.977,\ 0.9987$</td><td>The 68-95-99.7 rule</td></tr>
+      <tr><td>$\sqrt{252}$</td><td>$15.9$</td><td>Daily to annual volatility</td></tr>
+      <tr><td>$H_n$</td><td>$\ln n + 0.577$</td><td>Coupon collector, quicksort comparisons</td></tr>
+      <tr><td>$\binom{n}{k}$ for small cases</td><td>$\binom{52}{5} = 2{,}598{,}960$</td><td>Card problems</td></tr>
+    </tbody>
+  </table>
+  <p>For sums of many independent pieces, reach for the normal approximation from the <a href="../law-of-large-numbers-clt/law-of-large-numbers-clt.html">central limit theorem</a>: 100 fair coin flips give $50 \pm 5$ heads, so 60 or more is a two-sigma event, roughly 2 to 3%.</p>
+</section>
+
+<section>
+  <h2>7. How to answer in an interview</h2>
+  <ol class="tight">
+    <li><b>Restate and pin down assumptions.</b> Fair coin? With replacement? Is a tie a win?</li>
+    <li><b>Guess first.</b> Say an order of magnitude out loud. It gives you a sanity check later.</li>
+    <li><b>Try tiny cases.</b> $n = 1, 2, 3$ often reveal the pattern, or a recursion.</li>
+    <li><b>Name the tool</b>, then set up the equation. Interviewers grade the setup as much as the number.</li>
+    <li><b>Check with bounds and limits.</b> Probabilities lie in $[0,1]$. Expected waits exceed the deterministic minimum. Does the answer behave when $p \to 0$ or $n \to \infty$?</li>
+    <li><b>Offer a simulation.</b> "I would verify this with ten lines of code" is a strong answer when you get stuck, and it is what Fig 1 does.</li>
+  </ol>
+</section>
+
+<section>
+  <h2>8. Common mistakes</h2>
+  <ul class="tight">
+    <li><b>Assuming symmetry that is not there</b>, as with HH and HT.</li>
+    <li><b>Confusing $\mathbb{E}[1/X]$ with $1/\mathbb{E}[X]$.</b> By Jensen's inequality they differ whenever $X$ varies. The same trap sinks naive averages of Sharpe ratios and of prices versus returns.</li>
+    <li><b>The gambler's fallacy.</b> Independent flips have no memory. Waiting times do have structure, but it comes from the stopping rule, not the coin.</li>
+    <li><b>Conditioning on the wrong event.</b> "At least one child is a boy" and "the older child is a boy" give different answers, $\tfrac13$ and $\tfrac12$ for two boys. See <a href="../../math/bayes-theorem/bayes-theorem.html">Bayes' theorem</a> for Monty Hall and its cousins.</li>
+    <li><b>Maximizing expected value when the game repeats.</b> Wealth compounds, so growth comes from the expected log, which is why Kelly bets a fraction.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>9. Where it shows up</h2>
+  <ul class="tight">
+    <li><b>Interviews:</b> trading firms ask these to test speed and clarity, often followed by "now make me a market on it": quote a bid and ask around your expected value.</li>
+    <li><b>Pricing:</b> expectations under a model are prices. <a href="../monte-carlo-pricing/monte-carlo-pricing.html">Monte Carlo pricing</a> is Fig 1 with an option payoff in place of a die.</li>
+    <li><b>Risk:</b> ruin probabilities, drawdown odds and bet sizing all come from the same random-walk arguments.</li>
+    <li><b>Engineering:</b> birthday bounds size hash tables and ID spaces, and coupon collector bounds how long until every shard has been touched.</li>
+    <li><b>Foundations:</b> <a href="../expectation-variance/expectation-variance.html">expectation and variance</a> and the <a href="../../math/binomial-theorem/binomial-theorem.html">binomial theorem</a> are the background for everything above.</li>
+  </ul>
+</section>
+
+</main>
+
+<script>
+(function () {
+  var NS = 'http://www.w3.org/2000/svg', seed = 2024;
+  function el(name, attrs, text) {
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (text != null) e.textContent = text;
+    return e;
+  }
+  function rng(s) { return function () { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
+  function $(id) { return document.getElementById(id); }
+
+  var derange10 = 0, f = 1;
+  for (var k = 0; k <= 10; k++) { if (k) f *= k; derange10 += (k % 2 ? -1 : 1) / f; }
+  var bday = 1; for (var i = 0; i < 23; i++) bday *= (1 - i / 365); bday = 1 - bday;
+
+  // Each puzzle: one trial returns a number; exact is the derived answer.
+  var P = {
+    six:      { q: 'Roll a fair die until a six appears. How many rolls on average?', exact: 6, fmt: 3,
+                run: function (r) { var n = 1; while (Math.floor(r() * 6) !== 5) n++; return n; } },
+    sixsix:   { q: 'Roll until two sixes appear in a row. How many rolls on average?', exact: 42, fmt: 2,
+                run: function (r) { var n = 0, run = 0; while (run < 2) { n++; run = Math.floor(r() * 6) === 5 ? run + 1 : 0; } return n; } },
+    hh:       { q: 'Flip a fair coin until you see heads twice in a row. How many flips on average?', exact: 6, fmt: 3,
+                run: function (r) { var n = 0, prev = 0, c; for (;;) { n++; c = r() < 0.5 ? 1 : 0; if (c && prev) return n; prev = c; } } },
+    ht:       { q: 'Flip a fair coin until heads is followed by tails. How many flips on average?', exact: 4, fmt: 3,
+                run: function (r) { var n = 0, prev = 0, c; for (;;) { n++; c = r() < 0.5 ? 1 : 0; if (!c && prev) return n; prev = c; } } },
+    coupon:   { q: 'Roll a die until every face has appeared at least once. How many rolls on average?', exact: 14.7, fmt: 3,
+                run: function (r) { var seen = 0, cnt = 0, n = 0; while (cnt < 6) { n++; var b = 1 << Math.floor(r() * 6); if (!(seen & b)) { seen |= b; cnt++; } } return n; } },
+    reroll:   { q: 'You are paid the face of one die roll, with one optional reroll. Play optimally (reroll 1, 2 or 3). What is the game worth?', exact: 4.25, fmt: 3,
+                run: function (r) { var a = 1 + Math.floor(r() * 6); return a <= 3 ? 1 + Math.floor(r() * 6) : a; } },
+    ruin:     { q: 'Start with $3, bet $1 on fair flips, stop at $0 or $10. What is the chance of reaching $10?', exact: 0.3, fmt: 4, prob: true,
+                run: function (r) { var w = 3; while (w > 0 && w < 10) w += r() < 0.5 ? 1 : -1; return w === 10 ? 1 : 0; } },
+    birthday: { q: 'Among 23 people with uniform random birthdays, what is the chance two share one?', exact: bday, fmt: 4, prob: true,
+                run: function (r) { var s = {}; for (var j = 0; j < 23; j++) { var d = Math.floor(r() * 365); if (s[d]) return 1; s[d] = 1; } return 0; } },
+    stick:    { q: 'Break a stick at two uniform random points. What is the chance the pieces form a triangle?', exact: 0.25, fmt: 4, prob: true,
+                run: function (r) { var a = r(), b = r(), x = Math.min(a, b), y = Math.max(a, b); return (x < 0.5 && y - x < 0.5 && 1 - y < 0.5) ? 1 : 0; } },
+    usum:     { q: 'Add uniform [0, 1] numbers until the sum passes 1. How many numbers on average?', exact: Math.E, fmt: 4,
+                run: function (r) { var s = 0, n = 0; while (s <= 1) { s += r(); n++; } return n; } },
+    derange:  { q: 'Ten people take hats at random. What is the chance nobody gets their own?', exact: derange10, fmt: 4, prob: true,
+                run: function (r) { var a = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], j; for (j = 9; j > 0; j--) { var q = Math.floor(r() * (j + 1)), t = a[j]; a[j] = a[q]; a[q] = t; } for (j = 0; j < 10; j++) if (a[j] === j) return 0; return 1; } }
+  };
+
+  function render() {
+    var key = $('puzzle').value, pz = P[key], N = Math.round(Math.pow(10, +$('trials').value)), r = rng(seed);
+    $('trials-out').textContent = N.toLocaleString('en-US');
+    $('pz-q').textContent = pz.q;
+    var sum = 0, sq = 0, pts = [], next = 1;
+    for (var n = 1; n <= N; n++) {
+      var v = pz.run(r); sum += v; sq += v * v;
+      if (n >= next || n === N) { pts.push([n, sum / n]); next = Math.ceil(n * 1.04); }
+    }
+    var mean = sum / N, sd = Math.sqrt(Math.max(0, sq / N - mean * mean)), se = sd / Math.sqrt(N);
+    var g = $('mc-g'); g.textContent = '';
+    var x0 = 70, x1 = 860, y0 = 16, y1 = 250, ex = pz.exact;
+    var span = Math.max(Math.abs(ex) * 0.6, 3 * sd, 1e-6);
+    var vals = pts.slice(Math.floor(pts.length * 0.1)).map(function (p) { return p[1]; });
+    var lo = Math.min(ex - span * 0.25, Math.min.apply(null, vals)), hi = Math.max(ex + span * 0.25, Math.max.apply(null, vals));
+    if (pz.prob) { lo = Math.max(0, lo); hi = Math.min(1, hi); }
+    var pad = (hi - lo) * 0.06; lo -= pad; hi += pad;
+    function X(n) { return x0 + Math.log10(n) / Math.log10(N) * (x1 - x0); }
+    function Y(v) { return y1 - (Math.max(lo, Math.min(hi, v)) - lo) / (hi - lo) * (y1 - y0); }
+    // band of +-2 standard errors around the exact value
+    var band = '', m;
+    for (m = 0; m < pts.length; m++) band += (m ? 'L' : 'M') + X(pts[m][0]).toFixed(1) + ' ' + Y(ex + 2 * sd / Math.sqrt(pts[m][0])).toFixed(1);
+    for (m = pts.length - 1; m >= 0; m--) band += 'L' + X(pts[m][0]).toFixed(1) + ' ' + Y(ex - 2 * sd / Math.sqrt(pts[m][0])).toFixed(1);
+    g.appendChild(el('path', { d: band + 'Z', fill: 'rgba(31,122,77,.12)' }));
+    var stepY = Math.pow(10, Math.floor(Math.log10((hi - lo) / 3))), t;
+    if ((hi - lo) / stepY > 7) stepY *= 2;
+    for (t = Math.ceil(lo / stepY) * stepY; t <= hi; t += stepY) {
+      g.appendChild(el('line', { x1: x0, x2: x1, y1: Y(t), y2: Y(t), stroke: 'rgba(45,49,66,.10)' }));
+      g.appendChild(el('text', { x: x0 - 8, y: Y(t) + 4, 'text-anchor': 'end', 'font-family': "'Geist Mono',monospace", 'font-size': 10, fill: '#5a6580' }, +t.toFixed(4)));
+    }
+    for (var e = 0; e <= Math.log10(N) + 1e-9; e++) {
+      g.appendChild(el('text', { x: X(Math.pow(10, e)), y: y1 + 18, 'text-anchor': 'middle', 'font-family': "'Geist Mono',monospace", 'font-size': 10, fill: '#5a6580' }, Math.pow(10, e).toLocaleString('en-US')));
+    }
+    g.appendChild(el('text', { x: x1, y: y1 + 36, 'text-anchor': 'end', 'font-family': "'Geist Mono',monospace", 'font-size': 10, fill: '#5a6580' }, 'trials'));
+    g.appendChild(el('line', { x1: x0, x2: x1, y1: Y(ex), y2: Y(ex), stroke: '#1f7a4d', 'stroke-width': 2 }));
+    g.appendChild(el('path', { d: pts.map(function (p, j) { return (j ? 'L' : 'M') + X(p[0]).toFixed(1) + ' ' + Y(p[1]).toFixed(1); }).join(''), fill: 'none', stroke: '#bf4520', 'stroke-width': 2 }));
+    var z = se ? (mean - ex) / se : 0;
+    $('mc-out').textContent =
+      'trials          ' + N.toLocaleString('en-US') + '\n' +
+      'simulated       ' + mean.toFixed(pz.fmt) + '\n' +
+      'exact           ' + ex.toFixed(pz.fmt) + '\n' +
+      'standard error  ' + se.toFixed(pz.fmt) + '\n' +
+      'off by          ' + (z >= 0 ? '+' : '') + z.toFixed(2) + ' standard errors\n\n' +
+      (Math.abs(z) < 2 ? 'Within two standard errors: consistent.' : 'Outside two standard errors: rare by chance, about 1 run in 20.');
+    $('mc-title').textContent = 'Monte Carlo check: exact ' + ex.toFixed(pz.fmt);
+    $('mc-live').textContent = 'simulated ' + mean.toFixed(pz.fmt) + ' ± ' + (2 * se).toFixed(pz.fmt);
+  }
+  $('puzzle').addEventListener('input', render);
+  $('trials').addEventListener('input', render);
+  $('again').addEventListener('click', function () { seed = 1 + Math.floor(Math.random() * 1e6); render(); });
+  render();
+})();
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  renderMathInElement(document.body, {
+    delimiters: [
+      { left: '$$', right: '$$', display: true },
+      { left: '$', right: '$', display: false }
+    ],
+    ignoredTags: ['script', 'style', 'textarea', 'pre', 'code'],
+    throwOnError: false
+  });
+});
+</script>
+</body>
+</html>
