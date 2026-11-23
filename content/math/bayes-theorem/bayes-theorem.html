@@ -145,9 +145,9 @@ p .katex,td .katex,li .katex{font-size:1.05em}
 
   <div class="controls">
     <div class="panel">
-      <div class="row"><label class="wide" for="prior">Base rate <span class="q-pH">P(H)</span></label><input type="range" id="prior" min="1" max="999" value="10" style="accent-color:#bf4520"><span class="val q-pH" id="v-prior"></span></div>
-      <div class="row"><label class="wide" for="sens">Hit rate <span class="q-lH">P(E | H)</span></label><input type="range" id="sens" min="1" max="999" value="900" style="accent-color:#9a6200"><span class="val q-lH" id="v-sens"></span></div>
-      <div class="row"><label class="wide" for="fpr">False alarm <span class="q-lN">P(E | ¬H)</span></label><input type="range" id="fpr" min="1" max="999" value="90" style="accent-color:#7b52ab"><span class="val q-lN" id="v-fpr"></span></div>
+      <div class="row"><label class="wide" for="prior">Base rate <span class="q-pH">P(H)</span></label><input type="range" id="prior" min="1" max="999" value="350" style="accent-color:#bf4520"><span class="val q-pH" id="v-prior"></span></div>
+      <div class="row"><label class="wide" for="sens">Hit rate <span class="q-lH">P(E | H)</span></label><input type="range" id="sens" min="1" max="999" value="800" style="accent-color:#9a6200"><span class="val q-lH" id="v-sens"></span></div>
+      <div class="row"><label class="wide" for="fpr">False alarm <span class="q-lN">P(E | ¬H)</span></label><input type="range" id="fpr" min="1" max="999" value="170" style="accent-color:#7b52ab"><span class="val q-lN" id="v-fpr"></span></div>
       <div class="group-label" id="res-label">Test result</div>
       <div class="seg" role="group" aria-labelledby="res-label">
         <button type="button" data-res="pos" aria-pressed="true">Positive</button>
@@ -285,7 +285,7 @@ p .katex,td .katex,li .katex{font-size:1.05em}
 
 <section>
   <h2>4. Count people instead</h2>
-  <p>The formula is easier to trust when you count. Take the default sliders: 1% of people have the condition, the test catches 90% of them, and it falsely flags 9% of the rest. Out of 1000 people:</p>
+  <p>The formula is easier to trust when you count. Take the "Rare disease" preset: 1% of people have the condition, the test catches 90% of them, and it falsely flags 9% of the rest. Out of 1000 people:</p>
   <ul class="tight">
     <li>10 have it, and 9 of them test positive.</li>
     <li>990 do not, and about 89 of them test positive anyway.</li>
@@ -305,7 +305,7 @@ p .katex,td .katex,li .katex{font-size:1.05em}
     </tbody>
   </table>
   <table class="ops">
-    <thead><tr><th>Name</th><th>Formula</th><th>As a probability</th><th>Default value</th></tr></thead>
+    <thead><tr><th>Name</th><th>Formula</th><th>As a probability</th><th>"Rare disease" value</th></tr></thead>
     <tbody>
       <tr><td>Prevalence</td><td>$\frac{TP + FN}{\text{all}}$</td><td>$P(H)$</td><td>1%</td></tr>
       <tr><td>Sensitivity, recall</td><td>$\frac{TP}{TP + FN}$</td><td>$P(E \mid H)$</td><td>90%</td></tr>
@@ -315,7 +315,7 @@ p .katex,td .katex,li .katex{font-size:1.05em}
     </tbody>
   </table>
   <p>Sensitivity and specificity describe the test and stay fixed. Predictive values describe what a result means for a person, and they change with prevalence. That is why a test approved with excellent sensitivity and specificity can still produce mostly false positives in a low-risk population.</p>
-  <p>Switch the lab to "Negative". With the default numbers a negative result drops the probability from 1% to about 0.11%. Negative results of a sensitive test are very reassuring; positive results of a rare condition rarely are.</p>
+  <p>Switch the lab to "Negative". With the "Rare disease" numbers a negative result drops the probability from 1% to about 0.11%. Negative results of a sensitive test are very reassuring; positive results of a rare condition rarely are.</p>
 </section>
 
 <section>
@@ -329,7 +329,7 @@ p .katex,td .katex,li .katex{font-size:1.05em}
   <h2>7. Updating again and again</h2>
   <p>Today's posterior is tomorrow's prior. In odds form, each piece of evidence just multiplies the odds by a fixed number, the <b>likelihood ratio</b>:</p>
   <div class="formula">$$\underbrace{\frac{P(H \mid E)}{P(\neg H \mid E)}}_{\text{posterior odds}} = \underbrace{\frac{P(H)}{P(\neg H)}}_{\text{prior odds}} \times \underbrace{\frac{P(E \mid H)}{P(E \mid \neg H)}}_{\text{likelihood ratio}}$$</div>
-  <p>With the defaults the ratio is $0.90 / 0.09 = 10$. Prior odds of about $1 : 99$ become about $10 : 99$ after one positive test, which is roughly 9%. A second independent positive test multiplies by 10 again, giving about $100 : 99$, or roughly 50%. Use the buttons under the right plot of Fig 2 to run this yourself.</p>
+  <p>With the "Rare disease" numbers the ratio is $0.90 / 0.09 = 10$. Prior odds of about $1 : 99$ become about $10 : 99$ after one positive test, which is roughly 9%. A second independent positive test multiplies by 10 again, giving about $100 : 99$, or roughly 50%. Use the buttons under the right plot of Fig 2 to run this yourself.</p>
 
   <h3>How the new prior is set</h3>
   <p>After each piece of evidence, the new prior is simply the posterior you just computed. Nothing else is added or adjusted:</p>
