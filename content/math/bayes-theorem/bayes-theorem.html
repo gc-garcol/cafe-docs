@@ -72,6 +72,18 @@ button:focus-visible,input:focus-visible,svg:focus-visible{outline:2px solid var
 .sw{width:14px;height:14px;border-radius:3px;border:1px solid var(--ink);display:inline-block}
 .big-answer{font-family:var(--serif);font-size:44px;line-height:1.1;margin:4px 0 8px;color:var(--accent)}
 #calc{overflow-x:auto;margin-top:8px}
+#calc>div{padding:4px 0;white-space:nowrap}
+.big-answer{color:#c2185b}
+.q-pH{color:#bf4520}.q-lH{color:#9a6200}.q-lN{color:#7b52ab}
+.qbar{display:flex;flex-wrap:wrap;gap:6px;padding:0 16px 12px;align-items:center}
+.qbar .hint{flex:1 0 100%;margin-bottom:2px}
+.qchip{--c:#2d3142;display:inline-flex;align-items:center;gap:8px;min-height:34px;padding:0 10px;border:1px solid var(--c);border-radius:6px;background:#fff;color:var(--muted);font:500 12px var(--mono);cursor:pointer}
+.qchip .qsw{width:10px;height:10px;border-radius:2px;background:var(--c);flex:none}
+.qchip b{font-weight:600;color:var(--c)}
+.qchip:hover{background:var(--paper-2)}
+.qchip[aria-pressed="true"]{background:var(--c);color:#fff}
+.qchip[aria-pressed="true"] b{color:#fff}
+.qchip[aria-pressed="true"] .qsw{background:#fff}
 
 pre{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
 pre.readout{background:none;border:0;padding:0;margin:0}
@@ -120,6 +132,7 @@ p .katex,td .katex,li .katex{font-size:1.05em}
 
   <figure class="card">
     <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title" id="figTitle">1000 people, one positive test</span></div>
+    <div class="qbar" id="qbar" role="group" aria-label="Show a quantity in the figure"><span class="hint">Click a quantity to see it in the figure. Click again to hide it.</span></div>
     <div class="scroll">
       <svg id="viz" width="480" height="300" viewBox="0 0 480 300" role="img" aria-labelledby="viz-title viz-desc">
         <title id="viz-title">The population split by condition and test result</title>
@@ -131,9 +144,9 @@ p .katex,td .katex,li .katex{font-size:1.05em}
 
   <div class="controls">
     <div class="panel">
-      <div class="row"><label class="wide" for="prior">Base rate P(H)</label><input type="range" id="prior" min="1" max="999" value="10"><span class="val" id="v-prior"></span></div>
-      <div class="row"><label class="wide" for="sens">Hit rate P(E | H)</label><input type="range" id="sens" min="1" max="999" value="900"><span class="val" id="v-sens"></span></div>
-      <div class="row"><label class="wide" for="fpr">False alarm P(E | ¬H)</label><input type="range" id="fpr" min="1" max="999" value="90"><span class="val" id="v-fpr"></span></div>
+      <div class="row"><label class="wide" for="prior">Base rate <span class="q-pH">P(H)</span></label><input type="range" id="prior" min="1" max="999" value="10" style="accent-color:#bf4520"><span class="val q-pH" id="v-prior"></span></div>
+      <div class="row"><label class="wide" for="sens">Hit rate <span class="q-lH">P(E | H)</span></label><input type="range" id="sens" min="1" max="999" value="900" style="accent-color:#9a6200"><span class="val q-lH" id="v-sens"></span></div>
+      <div class="row"><label class="wide" for="fpr">False alarm <span class="q-lN">P(E | ¬H)</span></label><input type="range" id="fpr" min="1" max="999" value="90" style="accent-color:#7b52ab"><span class="val q-lN" id="v-fpr"></span></div>
       <div class="group-label" id="res-label">Test result</div>
       <div class="seg" role="group" aria-labelledby="res-label">
         <button type="button" data-res="pos" aria-pressed="true">Positive</button>
@@ -165,7 +178,7 @@ p .katex,td .katex,li .katex{font-size:1.05em}
       <div class="group-label" id="ansLabel">P(has it | positive)</div>
       <div class="big-answer" id="answer"></div>
       <pre class="readout" id="readout" aria-live="polite"></pre>
-      <div id="calc"></div>
+      <div id="calc"><div id="calc1"></div><div id="calc2"></div></div>
     </div>
   </div>
 
@@ -467,74 +480,176 @@ document.addEventListener('DOMContentLoaded', function () {
   }
   function post(p, lh, ln) { var pe = lh * p + ln * (1 - p); return pe > 0 ? lh * p / pe : 0; }
 
-  var result = 'pos', view = 'dots', seqResults = [];
+  var result = 'pos', view = 'dots', seqResults = [], focus = null;
   function values() { return { p: +$('prior').value / 1000, h: +$('sens').value / 1000, f: +$('fpr').value / 1000 }; }
 
+  // Named quantities. Groups: a = has it & this result, b = has it & other result,
+  // c = does not & this result, d = does not & other result.
+  // num = the part being counted, den = what it is counted out of, edges = tree branches it uses.
+  var QC = { pH: ORANGE, pN: BLUE, lH: '#9a6200', lN: '#7b52ab', joint: '#8a4b2a', pE: '#23774a', post: '#c2185b' };
+  var QORDER = ['pH', 'pN', 'lH', 'lN', 'joint', 'pE', 'post'];
+  var QDEF = {
+    pH:    { num: 'ab', den: 'abcd', edges: ['rH'],       name: 'prior' },
+    pN:    { num: 'cd', den: 'abcd', edges: ['rN'],       name: 'complement of the prior' },
+    lH:    { num: 'a',  den: 'ab',   edges: ['hT'],       name: 'likelihood, hit rate' },
+    lN:    { num: 'c',  den: 'cd',   edges: ['nT'],       name: 'false alarm rate' },
+    joint: { num: 'a',  den: 'abcd', edges: ['rH', 'hT'], name: 'joint: has it and this result' },
+    pE:    { num: 'ac', den: 'abcd', edges: ['hT', 'nT'], name: 'evidence: chance of this result' },
+    post:  { num: 'a',  den: 'ac',   edges: [],           name: 'posterior' }
+  };
+  var DIM = [0.1, 0.4, 1];
+  function qLabel(k) {
+    var E = result === 'pos' ? 'E' : '¬E';
+    return { pH: 'P(H)', pN: 'P(¬H)', lH: 'P(' + E + ' | H)', lN: 'P(' + E + ' | ¬H)', joint: 'P(H ∩ ' + E + ')', pE: 'P(' + E + ')', post: 'P(H | ' + E + ')' }[k];
+  }
+  function qValues(v, lh, ln) {
+    var pe = lh * v.p + ln * (1 - v.p);
+    return { pH: v.p, pN: 1 - v.p, lH: lh, lN: ln, joint: lh * v.p, pE: pe, post: pe > 0 ? lh * v.p / pe : 0 };
+  }
+  // 2 = counted (numerator), 1 = rest of the reference group (denominator), 0 = outside
+  function tier(grp) {
+    if (!focus) return 2;
+    var d = QDEF[focus];
+    return d.num.indexOf(grp) >= 0 ? 2 : (d.den.indexOf(grp) >= 0 ? 1 : 0);
+  }
+  function rich(parent, x, y, parts, extra) {
+    var t = txt(parent, x, y, '', extra);
+    parts.forEach(function (p) {
+      var s = el('tspan', p[1] ? { fill: p[1], 'font-weight': 600 } : {}, t);
+      s.textContent = p[0];
+    });
+    return t;
+  }
+
   function drawDots(g, n) {
-    var COLS = 40, ROWS = 25, C = 11, X0 = 20, Y0 = 12, i = 0;
+    var ROWS = 25, C = 11, X0 = 20, Y0 = 12, i = 0;
     [[n.a, 'a'], [n.b, 'b'], [n.c, 'c'], [n.d, 'd']].forEach(function (k) {
+      var t = tier(k[1]);
       for (var m = 0; m < k[0]; m++, i++) {
-        var col = Math.floor(i / ROWS), row = i % ROWS, at = { cx: X0 + col * C + C / 2, cy: Y0 + row * C + C / 2, r: 3.6 };
+        var col = Math.floor(i / ROWS), row = i % ROWS, cx = X0 + col * C + C / 2, cy = Y0 + row * C + C / 2;
+        var at = { cx: cx, cy: cy, r: 3.6 };
         if (k[1] === 'a') { at.fill = ORANGE; at.stroke = ORANGE; }
         else if (k[1] === 'b') { at.fill = '#fff'; at.stroke = ORANGE; at['stroke-width'] = 1.4; }
         else if (k[1] === 'c') { at.fill = BLUE; at.stroke = BLUE; }
         else { at.fill = GREY; at.stroke = GREY; }
+        if (focus && t < 2) at.opacity = DIM[t];
         el('circle', at, g);
+        if (focus && t === 2) el('circle', { cx: cx, cy: cy, r: 4.9, fill: 'none', stroke: QC[focus], 'stroke-width': 1.2 }, g);
       }
     });
   }
 
   function drawArea(g, v, lh, ln) {
-    var S = 260, X0 = 24, Y0 = 20, minW = 6;
+    var S = 260, X0 = 24, Y0 = 20, minW = 6, pos = result === 'pos';
     var wH = Math.max(minW, v.p * S), wN = S - wH, widened = v.p * S < minW;
-    // result rows: shaded part is "this result"; positive shades from the bottom, negative from the top
-    function strip(x, w, rate, col) {
-      el('rect', { x: x, y: Y0, width: w, height: S, fill: '#fff', stroke: col, 'stroke-width': 1 }, g);
-      var hgt = rate * S, y = result === 'pos' ? Y0 + S - hgt : Y0;
-      el('rect', { x: x, y: y, width: w, height: hgt, fill: col, opacity: 0.75 }, g);
+    var hL = lh * S, hR = ln * S;
+    // shaded part is "this result"; positive shades from the bottom, negative from the top
+    var R = {
+      a: [X0, pos ? Y0 + S - hL : Y0, wH, hL],
+      b: [X0, pos ? Y0 : Y0 + hL, wH, S - hL],
+      c: [X0 + wH, pos ? Y0 + S - hR : Y0, wN, hR],
+      d: [X0 + wH, pos ? Y0 : Y0 + hR, wN, S - hR]
+    };
+    function rect(r, attrs) { var a = { x: r[0], y: r[1], width: r[2], height: r[3] }; for (var k in attrs) a[k] = attrs[k]; return el('rect', a, g); }
+    rect([X0, Y0, wH, S], { fill: '#fff', stroke: ORANGE });
+    rect([X0 + wH, Y0, wN, S], { fill: '#fff', stroke: BLUE });
+    rect(R.a, { fill: ORANGE, opacity: 0.75 });
+    rect(R.c, { fill: BLUE, opacity: 0.75 });
+    if (focus) {
+      'abcd'.split('').forEach(function (k) { var t = tier(k); if (t < 2) rect(R[k], { fill: '#fff', opacity: t === 0 ? 0.85 : 0.5 }); });
+      'abcd'.split('').forEach(function (k) {
+        var t = tier(k);
+        if (t === 1) rect(R[k], { fill: 'none', stroke: QC[focus], 'stroke-width': 1.5, 'stroke-dasharray': '4 3' });
+        if (t === 2) rect(R[k], { fill: 'none', stroke: QC[focus], 'stroke-width': 2.5 });
+      });
     }
-    strip(X0, wH, lh, ORANGE);
-    strip(X0 + wH, wN, ln, BLUE);
-    txt(g, X0, Y0 + S + 16, 'P(H) = ' + pct(v.p) + (widened ? ' (widened to be visible)' : ''), { 'font-size': 10, fill: SOFT });
-    txt(g, X0 + S, Y0 + S + 16, 'P(¬H)', { 'font-size': 10, fill: SOFT, 'text-anchor': 'end' });
-    var rx = X0 + S + 22, word = result === 'pos' ? 'positive' : 'negative';
+    rich(g, X0, Y0 + S + 16, [['P(H)', QC.pH], [' = ' + pct(v.p) + (widened ? ' (widened to be visible)' : '')]], { 'font-size': 10, fill: SOFT });
+    txt(g, X0 + S, Y0 + S + 16, 'P(¬H)', { 'font-size': 10, fill: QC.pN, 'text-anchor': 'end', 'font-weight': 600 });
+    var rx = X0 + S + 22, word = pos ? 'positive' : 'negative', pe = lh * v.p + ln * (1 - v.p);
     txt(g, rx, Y0 + 14, 'shaded = tested ' + word, { 'font-size': 11, 'font-weight': 600 });
-    txt(g, rx, Y0 + 44, 'orange area', { fill: ORANGE, 'font-weight': 600 });
-    txt(g, rx, Y0 + 60, '= ' + lh.toFixed(3) + ' × ' + v.p.toFixed(3));
-    txt(g, rx, Y0 + 76, '= ' + (lh * v.p).toFixed(4));
+    rich(g, rx, Y0 + 44, [['orange area', ORANGE], [' = '], [qLabel('joint'), QC.joint]]);
+    rich(g, rx, Y0 + 60, [['= '], [lh.toFixed(3), QC.lH], [' × '], [v.p.toFixed(3), QC.pH]]);
+    rich(g, rx, Y0 + 76, [['= '], [(lh * v.p).toFixed(4), QC.joint]]);
     txt(g, rx, Y0 + 106, 'blue area', { fill: BLUE, 'font-weight': 600 });
-    txt(g, rx, Y0 + 122, '= ' + ln.toFixed(3) + ' × ' + (1 - v.p).toFixed(3));
+    rich(g, rx, Y0 + 122, [['= '], [ln.toFixed(3), QC.lN], [' × '], [(1 - v.p).toFixed(3), QC.pN]]);
     txt(g, rx, Y0 + 138, '= ' + (ln * (1 - v.p)).toFixed(4));
-    txt(g, rx, Y0 + 172, 'posterior =', { 'font-weight': 600 });
-    txt(g, rx, Y0 + 188, 'orange / (orange + blue)');
-    txt(g, rx, Y0 + 210, '= ' + pct(post(v.p, lh, ln)), { 'font-size': 16, fill: ORANGE, 'font-weight': 600 });
+    rich(g, rx, Y0 + 160, [['sum = '], [qLabel('pE'), QC.pE], [' = '], [pe.toFixed(4), QC.pE]]);
+    rich(g, rx, Y0 + 188, [[qLabel('post'), QC.post], [' =']]);
+    txt(g, rx, Y0 + 204, 'orange / (orange + blue)');
+    txt(g, rx, Y0 + 226, '= ' + pct(post(v.p, lh, ln)), { 'font-size': 16, fill: QC.post, 'font-weight': 600 });
   }
 
   function drawTree(g, v, lh, ln) {
-    var root = [30, 150], nH = [175, 75], nN = [175, 225];
-    var leaves = [[330, 40, 'H, +', v.p * v.h, ORANGE, result === 'pos'], [330, 110, 'H, −', v.p * (1 - v.h), ORANGE, result === 'neg'],
-                  [330, 190, '¬H, +', (1 - v.p) * v.f, BLUE, result === 'pos'], [330, 260, '¬H, −', (1 - v.p) * (1 - v.f), BLUE, result === 'neg']];
-    function edge(a, b, label, col) {
-      el('line', { x1: a[0], y1: a[1], x2: b[0] - 8, y2: b[1], stroke: col, 'stroke-width': 1.6 }, g);
-      var up = b[1] < a[1], mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2;
-      txt(g, mx + (up ? -6 : 10), my - 8, label, { 'font-size': 10, fill: SOFT, 'text-anchor': up ? 'end' : 'start' });
+    var pos = result === 'pos', root = [30, 150], nH = [175, 75], nN = [175, 225];
+    var grp = pos ? ['a', 'b', 'c', 'd'] : ['b', 'a', 'd', 'c'];
+    var leaves = [[330, 40, 'H, +', v.p * v.h, ORANGE, pos], [330, 110, 'H, −', v.p * (1 - v.h), ORANGE, !pos],
+                  [330, 190, '¬H, +', (1 - v.p) * v.f, BLUE, pos], [330, 260, '¬H, −', (1 - v.p) * (1 - v.f), BLUE, !pos]];
+    var hT = pos ? 'e0' : 'e1', nT = pos ? 'e2' : 'e3';
+    var keyName = { rH: 'rH', rN: 'rN' }; keyName[hT] = 'hT'; keyName[nT] = 'nT';
+    var labelCol = { rH: QC.pH, rN: QC.pN, hT: QC.lH, nT: QC.lN };
+    var lit = focus ? QDEF[focus].edges : [];
+    function edge(key, a, b, label, col) {
+      var name = keyName[key], on = focus && lit.indexOf(name) >= 0;
+      var o = focus && !on ? 0.35 : 1;
+      el('line', { x1: a[0], y1: a[1], x2: b[0] - 8, y2: b[1], stroke: on ? QC[focus] : col, 'stroke-width': on ? 3.4 : 1.6, opacity: o }, g);
+      var up = b[1] < a[1], mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2, lc = labelCol[name];
+      txt(g, mx + (up ? -6 : 10), my - 8, label, { 'font-size': 10, fill: lc || SOFT, 'font-weight': lc ? 600 : 400, 'text-anchor': up ? 'end' : 'start', opacity: o });
     }
-    edge(root, nH, 'P(H)=' + v.p.toFixed(3), ORANGE);
-    edge(root, nN, 'P(¬H)=' + (1 - v.p).toFixed(3), BLUE);
-    edge(nH, [leaves[0][0], leaves[0][1]], '+ ' + v.h.toFixed(3), ORANGE);
-    edge(nH, [leaves[1][0], leaves[1][1]], '− ' + (1 - v.h).toFixed(3), ORANGE);
-    edge(nN, [leaves[2][0], leaves[2][1]], '+ ' + v.f.toFixed(3), BLUE);
-    edge(nN, [leaves[3][0], leaves[3][1]], '− ' + (1 - v.f).toFixed(3), BLUE);
+    edge('rH', root, nH, 'P(H)=' + v.p.toFixed(3), ORANGE);
+    edge('rN', root, nN, 'P(¬H)=' + (1 - v.p).toFixed(3), BLUE);
+    edge('e0', nH, [leaves[0][0], leaves[0][1]], '+ ' + v.h.toFixed(3), ORANGE);
+    edge('e1', nH, [leaves[1][0], leaves[1][1]], '− ' + (1 - v.h).toFixed(3), ORANGE);
+    edge('e2', nN, [leaves[2][0], leaves[2][1]], '+ ' + v.f.toFixed(3), BLUE);
+    edge('e3', nN, [leaves[3][0], leaves[3][1]], '− ' + (1 - v.f).toFixed(3), BLUE);
     el('circle', { cx: root[0], cy: root[1], r: 6, fill: INK }, g);
     [[nH, 'has it', ORANGE], [nN, 'does not', BLUE]].forEach(function (n) {
       el('circle', { cx: n[0][0], cy: n[0][1], r: 6, fill: n[2] }, g);
       txt(g, n[0][0] - 10, n[0][1] + 20, n[1], { 'font-size': 10, fill: n[2] });
     });
-    leaves.forEach(function (L) {
-      el('rect', { x: L[0] - 6, y: L[1] - 14, width: 140, height: 26, rx: 4, fill: L[5] ? L[4] : '#fff', 'fill-opacity': L[5] ? 0.15 : 1, stroke: L[5] ? L[4] : GREY, 'stroke-width': L[5] ? 1.6 : 1 }, g);
-      txt(g, L[0], L[1] + 4, L[2] + '  ' + L[3].toFixed(4) + '  (' + (L[3] * TOTAL).toFixed(1) + ')', { 'font-size': 10.5, fill: L[5] ? INK : SOFT, 'font-weight': L[5] ? 600 : 400 });
+    leaves.forEach(function (L, i) {
+      var t = tier(grp[i]), o = focus && t === 0 ? 0.35 : 1;
+      var stroke = L[5] ? L[4] : GREY, sw = L[5] ? 1.6 : 1, dash = null;
+      if (focus && t === 2) { stroke = QC[focus]; sw = 2.6; }
+      else if (focus && t === 1) { stroke = QC[focus]; sw = 1.6; dash = '4 3'; }
+      var at = { x: L[0] - 6, y: L[1] - 14, width: 140, height: 26, rx: 4, fill: L[5] ? L[4] : '#fff', 'fill-opacity': L[5] ? 0.15 : 1, stroke: stroke, 'stroke-width': sw, opacity: o };
+      if (dash) at['stroke-dasharray'] = dash;
+      el('rect', at, g);
+      txt(g, L[0], L[1] + 4, L[2] + '  ' + L[3].toFixed(4) + '  (' + (L[3] * TOTAL).toFixed(1) + ')', { 'font-size': 10.5, fill: grp[i] === 'a' ? QC.joint : (L[5] ? INK : SOFT), 'font-weight': L[5] ? 600 : 400, opacity: o });
     });
     txt(g, 470, 292, 'joint probability (count per 1000)', { 'font-size': 9.5, fill: SOFT, 'text-anchor': 'end' });
+  }
+
+  function focusNote(k, c, f, qv, word) {
+    var s = {
+      pH: f(c.a + c.b) + ' of 1000 have it',
+      pN: f(c.c + c.d) + ' of 1000 do not have it',
+      lH: 'of ' + f(c.a + c.b) + ' who have it, ' + f(c.a) + ' test ' + word,
+      lN: 'of ' + f(c.c + c.d) + ' who do not, ' + f(c.c) + ' test ' + word + ' anyway',
+      joint: f(c.a) + ' of 1000 have it and test ' + word,
+      pE: f(c.a + c.c) + ' of 1000 test ' + word,
+      post: 'of ' + f(c.a + c.c) + ' who test ' + word + ', ' + f(c.a) + ' have it'
+    }[k];
+    return qLabel(k) + ': ' + s + ' → ' + pct(qv[k]);
+  }
+
+  // quantity chips: built once, labels and values refreshed in render()
+  var chips = {};
+  QORDER.forEach(function (k) {
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'qchip';
+    b.style.setProperty('--c', QC[k]);
+    b.setAttribute('aria-pressed', 'false');
+    b.title = QDEF[k].name;
+    b.innerHTML = '<i class="qsw" aria-hidden="true"></i><b></b><span class="qv"></span>';
+    b.addEventListener('click', function () { focus = focus === k ? null : k; render(); });
+    $('qbar').appendChild(b);
+    chips[k] = b;
+  });
+  function sp(k, s) { return '<span style="color:' + QC[k] + ';font-weight:600">' + s + '</span>'; }
+  function tc(k, s) { return '\\textcolor{' + QC[k] + '}{' + s + '}'; }
+  function tex(target, s) {
+    if (window.katex) window.katex.render(s, target, { throwOnError: false, displayMode: false });
+    else target.textContent = s;
   }
 
   function drawCurve(v) {
@@ -607,24 +722,44 @@ document.addEventListener('DOMContentLoaded', function () {
     else if (view === 'area') drawArea(g, v, lh, ln);
     else drawTree(g, v, lh, ln);
     $('figTitle').textContent = view === 'dots' ? '1000 people, one ' + word + ' test' : (view === 'area' ? 'Everyone as a unit square' : 'Probability tree');
-    $('vizHint').textContent = view === 'dots' ? 'Groups run top to bottom, left to right' : (view === 'area' ? 'Width = P(H), shaded height = chance of this result' : 'Multiply along a path, then compare the highlighted leaves');
 
-    $('ansLabel').textContent = 'P(has it | ' + word + ')';
+    var qv = qValues(v, lh, ln);
+    QORDER.forEach(function (k) {
+      chips[k].querySelector('b').textContent = qLabel(k);
+      chips[k].querySelector('.qv').textContent = pct(qv[k]);
+      chips[k].setAttribute('aria-pressed', focus === k ? 'true' : 'false');
+    });
+    var hint = $('vizHint');
+    if (focus) {
+      var cnt = view === 'dots' ? n : { a: TOTAL * v.p * lh, b: TOTAL * v.p * (1 - lh), c: TOTAL * (1 - v.p) * ln, d: TOTAL * (1 - v.p) * (1 - ln) };
+      var fmt = view === 'dots' ? function (x) { return String(Math.round(x)); } : function (x) { return x.toFixed(1); };
+      hint.textContent = focusNote(focus, cnt, fmt, qv, word);
+      hint.style.color = QC[focus];
+      hint.style.fontWeight = 600;
+    } else {
+      hint.textContent = view === 'dots' ? 'Groups run top to bottom, left to right' : (view === 'area' ? 'Width = P(H), shaded height = chance of this result' : 'Multiply along a path, then compare the highlighted leaves');
+      hint.style.color = '';
+      hint.style.fontWeight = '';
+    }
+
+    $('ansLabel').textContent = qLabel('post') + ', has it given ' + word;
     $('answer').textContent = pct(q);
     var eH = TOTAL * v.p * lh, eN = TOTAL * (1 - v.p) * ln;
     $('live').textContent = view === 'dots' ? (n.a + n.c) + ' ' + word + ' · ' + n.a + ' truly have it' : 'posterior ' + pct(q);
-    $('readout').textContent =
+    $('readout').innerHTML =
       'expected, per ' + TOTAL + ' people:\n' +
-      (TOTAL * v.p).toFixed(1) + ' have it → ' + eH.toFixed(1) + ' test ' + word + '\n' +
-      (TOTAL * (1 - v.p)).toFixed(1) + ' do not → ' + eN.toFixed(1) + ' test ' + word + '\n\n' +
-      word + ' results: ' + (eH + eN).toFixed(1) + ', of which ' + eH.toFixed(1) + ' have it\n' +
-      'base rate ' + pct(v.p) + ' → ' + pct(q) + '  (×' + (q / v.p).toFixed(2) + ')\n' +
-      'likelihood ratio = ' + lh.toFixed(3) + ' / ' + ln.toFixed(3) + ' = ' + (lh / ln).toFixed(3);
+      sp('pH', (TOTAL * v.p).toFixed(1)) + ' have it → ' + sp('joint', eH.toFixed(1)) + ' test ' + word + '\n' +
+      sp('pN', (TOTAL * (1 - v.p)).toFixed(1)) + ' do not → ' + eN.toFixed(1) + ' test ' + word + '\n\n' +
+      word + ' results: ' + sp('pE', (eH + eN).toFixed(1)) + ', of which ' + sp('joint', eH.toFixed(1)) + ' have it\n' +
+      'base rate ' + sp('pH', pct(v.p)) + ' → ' + sp('post', pct(q)) + '  (×' + (q / v.p).toFixed(2) + ')\n' +
+      'likelihood ratio = ' + sp('lH', lh.toFixed(3)) + ' / ' + sp('lN', ln.toFixed(3)) + ' = ' + (lh / ln).toFixed(3);
 
-    var tex = 'P(H\\mid ' + (pos ? 'E' : '\\neg E') + ')=\\frac{' + lh.toFixed(3) + '\\cdot' + v.p.toFixed(3) + '}{' + lh.toFixed(3) + '\\cdot' + v.p.toFixed(3) +
-      '+' + ln.toFixed(3) + '\\cdot' + (1 - v.p).toFixed(3) + '}=' + q.toFixed(4);
-    if (window.katex) window.katex.render(tex, $('calc'), { throwOnError: false, displayMode: false });
-    else $('calc').textContent = tex;
+    var Et = pos ? 'E' : '\\neg E', l3 = lh.toFixed(3), n3 = ln.toFixed(3), p3 = v.p.toFixed(3), c3 = (1 - v.p).toFixed(3);
+    tex($('calc1'), tc('post', 'P(H\\mid ' + Et + ')') + '=\\frac{' + tc('lH', 'P(' + Et + '\\mid H)') + '\\,' + tc('pH', 'P(H)') + '}{' +
+      tc('lH', 'P(' + Et + '\\mid H)') + '\\,' + tc('pH', 'P(H)') + '+' + tc('lN', 'P(' + Et + '\\mid \\neg H)') + '\\,' + tc('pN', 'P(\\neg H)') + '}=\\frac{' +
+      tc('joint', 'P(H\\cap ' + Et + ')') + '}{' + tc('pE', 'P(' + Et + ')') + '}');
+    tex($('calc2'), '=\\frac{' + tc('lH', l3) + '\\cdot' + tc('pH', p3) + '}{' + tc('lH', l3) + '\\cdot' + tc('pH', p3) + '+' + tc('lN', n3) + '\\cdot' + tc('pN', c3) +
+      '}=\\frac{' + tc('joint', (lh * v.p).toFixed(4)) + '}{' + tc('pE', pe.toFixed(4)) + '}=' + tc('post', q.toFixed(4)));
 
     drawCurve(v);
     drawSeq(v);
