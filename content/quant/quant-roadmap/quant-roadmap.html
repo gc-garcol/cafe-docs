@@ -77,6 +77,36 @@ a.topic:hover{background:var(--link);color:#fff}
 .stat h3{margin:0 0 6px;font-size:22px}
 .stat p{font-size:14px;color:var(--muted);margin:0}
 
+.order{display:flex;flex-wrap:wrap;align-items:center;gap:6px;list-style:none;padding:0;margin:16px 0;font:500 12px var(--mono)}
+.order li{padding:4px 10px;border:1px solid var(--rule-solid);border-radius:4px;background:#fff}
+.order li+li::before{content:"\2192";margin:0 8px 0 -2px;color:var(--soft)}
+.ck-bar{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:20px 0 12px}
+.ck-meter{flex:1 1 220px;height:8px;background:var(--paper-2);border:1px solid var(--rule-solid);border-radius:4px;overflow:hidden}
+.ck-meter span{display:block;height:100%;width:0;background:var(--accent)}
+.ck-total{font:500 13px var(--mono);color:var(--muted);min-width:9ch}
+.ck-groups{display:grid;gap:10px}
+.ck-group{background:#fff;border:1px solid var(--rule-solid);border-left-width:3px;border-radius:8px}
+.ck-group[data-track=math]{border-left-color:#bf4520}
+.ck-group[data-track=code]{border-left-color:#2e5aa8}
+.ck-group[data-track=fin]{border-left-color:#3d7a4f}
+.ck-group[data-track=ml]{border-left-color:#7a4fa8}
+.ck-group summary{display:flex;align-items:baseline;gap:14px;padding:14px 18px;cursor:pointer;list-style:none}
+.ck-group summary::-webkit-details-marker{display:none}
+.ck-group summary::after{content:"+";margin-left:auto;font:500 16px var(--mono);color:var(--soft)}
+.ck-group[open] summary::after{content:"\2212"}
+.ck-group summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+.ck-num{font-family:var(--serif);font-size:28px;line-height:1;color:var(--accent);min-width:2ch}
+.ck-title{font-family:var(--serif);font-size:22px;line-height:1.2}
+.ck-count{font:500 12px var(--mono);color:var(--soft)}
+.ck-group > p{margin:0 18px 8px;font-size:14px;color:var(--muted);max-width:none}
+.ck-list{list-style:none;margin:0;padding:4px 18px 16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:2px 16px}
+.ck-list li{display:flex;align-items:center;gap:8px;min-height:32px;font-size:14px}
+.ck-list label{display:inline-flex;align-items:center;gap:8px;cursor:pointer}
+.ck-list input{width:16px;height:16px;margin:0;accent-color:var(--accent)}
+.ck-list input:checked + span{color:var(--soft);text-decoration:line-through}
+.ck-doc{font:500 11px var(--mono);color:var(--link);border:1px solid var(--link);border-radius:4px;padding:1px 6px;text-decoration:none}
+.ck-doc:hover{background:var(--link);color:#fff}
+
 @media (max-width:860px){.page{padding:32px 16px 72px}.stats{grid-template-columns:1fr}.phase{grid-template-columns:1fr}.phase .num{font-size:44px}}
 @media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
 
@@ -315,6 +345,25 @@ a.topic:hover{background:var(--link);color:#fff}
   </ol>
 </section>
 
+<section id="checklist" aria-labelledby="ck-heading">
+  <h2 id="ck-heading">Quant research engineer checklist</h2>
+  <p>The phases above are the route. This is the full inventory behind them, grouped by subject, for checking what you know and planning what to relearn. Not every item needs depth: for most roles a working knowledge is enough, and the phase table in the role section tells you where to go deep. Items with a <span class="ck-doc">doc</span> tag have a page on this site.</p>
+  <p>Suggested priority when relearning:</p>
+  <ol class="order" aria-label="Priority order">
+    <li>Mathematics</li><li>Probability</li><li>Statistics</li><li>Time series</li><li>Financial markets</li><li>Quant research</li><li>Machine learning</li><li>Financial ML</li><li>AI engineering</li><li>Production systems</li>
+  </ol>
+  <div class="ck-bar">
+    <div class="ck-meter" role="progressbar" aria-label="Checklist progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span></span></div>
+    <span class="ck-total" aria-live="polite">0 / 0</span>
+    <button type="button" class="chip-btn" data-ck="open">Expand all</button>
+    <button type="button" class="chip-btn" data-ck="close">Collapse all</button>
+    <button type="button" class="chip-btn" data-ck="reset">Clear ticks</button>
+  </div>
+  <p>Ticks are saved in this browser only.</p>
+  <div class="ck-groups">
+  </div>
+</section>
+
 <section>
   <h2>How to use this path</h2>
   <ul class="tight">
@@ -345,7 +394,7 @@ a.topic:hover{background:var(--link);color:#fff}
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-  var buttons = Array.prototype.slice.call(document.querySelectorAll('.chip-btn'));
+  var buttons = Array.prototype.slice.call(document.querySelectorAll('.filters .chip-btn'));
   var topics = Array.prototype.slice.call(document.querySelectorAll('.topic'));
   buttons.forEach(function (b) {
     b.addEventListener('click', function () {
@@ -356,6 +405,55 @@ document.addEventListener('DOMContentLoaded', function () {
       });
     });
   });
+  // Checklist: ticks are keyed by group key and item label, stored in localStorage.
+  var KEY = 'quant-roadmap-checklist-v1';
+  var saved = {};
+  try { saved = JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { saved = {}; }
+  var groups = Array.prototype.slice.call(document.querySelectorAll('.ck-group'));
+  var boxes = [];
+  groups.forEach(function (g) {
+    Array.prototype.slice.call(g.querySelectorAll('.ck-list input')).forEach(function (box) {
+      var id = g.getAttribute('data-key') + ':' + box.nextElementSibling.textContent.trim();
+      box.setAttribute('data-id', id);
+      box.checked = !!saved[id];
+      boxes.push(box);
+    });
+  });
+  var meter = document.querySelector('.ck-meter');
+  var total = document.querySelector('.ck-total');
+  function refresh() {
+    var done = 0;
+    groups.forEach(function (g) {
+      var all = g.querySelectorAll('.ck-list input');
+      var on = g.querySelectorAll('.ck-list input:checked').length;
+      done += on;
+      g.querySelector('.ck-count').textContent = on + ' / ' + all.length;
+    });
+    var pct = boxes.length ? Math.round(done * 100 / boxes.length) : 0;
+    meter.firstElementChild.style.width = pct + '%';
+    meter.setAttribute('aria-valuenow', String(pct));
+    total.textContent = done + ' / ' + boxes.length;
+  }
+  function store() {
+    var out = {};
+    boxes.forEach(function (b) { if (b.checked) out[b.getAttribute('data-id')] = 1; });
+    try { localStorage.setItem(KEY, JSON.stringify(out)); } catch (e) { /* storage unavailable */ }
+  }
+  boxes.forEach(function (b) { b.addEventListener('change', function () { store(); refresh(); }); });
+  Array.prototype.slice.call(document.querySelectorAll('[data-ck]')).forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var a = btn.getAttribute('data-ck');
+      if (a === 'reset') {
+        if (!window.confirm('Clear all ticks in the checklist?')) return;
+        boxes.forEach(function (b) { b.checked = false; });
+        store(); refresh();
+      } else {
+        groups.forEach(function (g) { g.open = a === 'open'; });
+      }
+    });
+  });
+  refresh();
+
   if (window.renderMathInElement) {
     window.renderMathInElement(document.body, {
       delimiters: [{ left: '$$', right: '$$', display: true }, { left: '$', right: '$', display: false }],
