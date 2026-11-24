@@ -29,6 +29,7 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);f
 .back:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
 h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+h3{font-family:var(--serif);font-weight:400;font-size:24px;line-height:1.2;margin:32px 0 10px}
 .lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
 section{margin-top:64px}
 section p{max-width:68ch;margin:0 0 14px}
@@ -41,20 +42,22 @@ a{color:var(--link)}
 .card-title{font-family:var(--serif);font-size:20px}
 .hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
 .live{font-family:var(--mono);font-size:12px;font-weight:600}
-#plot{display:block;width:100%;height:auto;background:#fff;touch-action:none}
+#plot,#smx{display:block;width:100%;height:auto;background:#fff;touch-action:none}
 .controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;margin-top:16px;align-items:start}
 .panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
 .row{display:grid;grid-template-columns:72px 1fr 64px;gap:12px;align-items:center;margin:12px 0 0}
 .row label{font-family:var(--mono);font-size:13px;font-weight:600}
 .row output{font-family:var(--mono);font-size:12px;text-align:right}
+.row.off{opacity:.45}
 input[type=range]{width:100%;accent-color:var(--accent);min-height:28px}
 .group-label{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);margin:16px 0 6px}
 .group-label:first-child{margin-top:0}
 .seg{display:flex;flex-wrap:wrap;border:1px solid var(--rule-solid);border-radius:6px;overflow:hidden}
-.seg button{flex:1;min-height:40px;border:0;background:transparent;font:500 13px var(--sans);color:var(--muted);cursor:pointer;padding:0 10px}
-.seg button+button{border-left:1px solid var(--rule-solid)}
+.seg button{flex:1 1 auto;min-height:40px;border:0;background:transparent;font:500 13px var(--sans);color:var(--muted);cursor:pointer;padding:0 10px;box-shadow:inset 1px 0 0 var(--rule-solid),inset 0 1px 0 var(--rule-solid)}
 .seg button:hover{background:var(--paper-2)}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.chk{display:flex;align-items:center;gap:8px;margin-top:14px;font-size:14px;color:var(--muted)}
+.chk input{width:18px;height:18px;accent-color:var(--accent)}
 button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .big-answer{font-family:var(--serif);font-size:44px;line-height:1.1;margin:4px 0 8px;color:var(--accent)}
 .readout{margin:0;padding:0;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink);border:0;background:none}
@@ -67,16 +70,25 @@ pre.code{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;pa
 .formula .katex{font-size:1.25em}
 .katex{color:var(--ink)}
 p .katex,td .katex,li .katex{font-size:1.05em}
-table.ops{border-collapse:collapse;width:100%;max-width:820px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
+.tw{overflow-x:auto}
+table.ops{border-collapse:collapse;width:100%;max-width:900px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
 table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
 table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
 table.ops tr:last-child td{border-bottom:0}
+table.ops td:first-child{font-weight:600;white-space:nowrap}
 ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
-@media (max-width:860px){.controls{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:26px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+.check{list-style:none;padding:0;margin:12px 0 0;max-width:640px}
+.check li{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--rule)}
+.check input{width:18px;height:18px;accent-color:var(--accent)}
+.check li.done a{color:var(--soft);text-decoration:line-through}
+.prog{font-family:var(--mono);font-size:12px;color:var(--soft)}
+@media (max-width:860px){.controls,.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}table.ops td:first-child{white-space:normal}}
 @media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
-
-
-
 .doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}.doc-tags a{font:500 12px "Geist Mono",ui-monospace,monospace;padding:4px 10px;border:1px solid var(--rule-solid,#bfc0c0);border-radius:4px;background:#fff;color:var(--muted,#4f5d75);text-decoration:none}.doc-tags a:hover{border-color:var(--ink,#2d3142);color:var(--ink,#2d3142)}.doc-tags a:focus-visible{outline:2px solid var(--accent,#bf4520);outline-offset:2px}
 </style>
 </head>
@@ -89,45 +101,60 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
 <header>
   <div class="eyebrow">AI · Deep learning</div>
   <h1>Activation Functions</h1>
-  <p class="lede">The small nonlinear bend after every layer. Without it a deep network is just one linear map. With the wrong one, gradients fade to nothing before they reach the first layer.</p>
-  
-  
-  
+  <p class="lede">The small nonlinear bend after every layer. Without it a deep network is just one linear map. With the wrong one, gradients fade to nothing before they reach the first layer. This page plots fourteen activations with their slopes, from sigmoid to the SwiGLU blocks inside today's language models, and covers softmax, initialization and which models use what.</p>
   <nav class="doc-tags" aria-label="Main tags"><a href="../../../../index.html#tag=activation">#activation</a><a href="../../../../index.html#tag=sigmoid">#sigmoid</a><a href="../../../../index.html#tag=tanh">#tanh</a><a href="../../../../index.html#tag=relu">#relu</a></nav>
 </header>
 
 <section>
   <h2>Try it first</h2>
-  <p>Pick an activation and drag the input $z$. The solid curve is the function $f(z)$. The dashed curve is its slope $f'(z)$, which is the number backpropagation multiplies by at this neuron. Look for the regions where the slope is nearly flat at zero.</p>
+  <p>Pick an activation and drag the input $z$. The solid curve is the function $f(z)$. The dashed curve is its slope $f'(z)$, the number backpropagation multiplies by at this neuron. Some functions have a parameter ($\alpha$ or $\beta$): move it and watch the shape change. Tick "Compare with ReLU" to see how far a function is from the default. The right panel raises the slope to the number of layers, to show how fast a gradient grows or fades with depth.</p>
 
   <figure class="card">
     <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title" id="ftitle">Function and slope</span></div>
     <svg id="plot" viewBox="0 0 640 320" role="img" aria-labelledby="plot-title plot-desc">
       <title id="plot-title">Plot of an activation function and its derivative</title>
-      <desc id="plot-desc">A line chart over input values from minus 5 to 5. The solid line is the chosen activation function and the dashed line is its derivative. A vertical marker shows the input chosen with the slider. The exact values at that input are given in the readout beside the figure.</desc>
+      <desc id="plot-desc">A line chart over input values from minus 5 to 5. The solid line is the chosen activation function and the dashed line is its derivative. An optional grey line shows ReLU for comparison. A vertical marker shows the input chosen with the slider. The exact values at that input are given in the readout beside the figure.</desc>
     </svg>
-    <div class="card-bottom"><span class="hint">Solid: f(z) · Dashed: f'(z)</span><span class="live" id="live"></span></div>
+    <div class="card-bottom"><span class="hint" id="formulaHint">Solid: f(z) · Dashed: f'(z)</span><span class="live" id="live"></span></div>
   </figure>
 
   <div class="controls">
     <div class="panel">
-      <div class="group-label" id="fn-label">Activation</div>
-      <div class="seg" role="group" aria-labelledby="fn-label">
-        <button type="button" data-fn="sigmoid" aria-pressed="false">Sigmoid</button>
-        <button type="button" data-fn="tanh" aria-pressed="true">Tanh</button>
-        <button type="button" data-fn="relu" aria-pressed="false">ReLU</button>
-        <button type="button" data-fn="leaky" aria-pressed="false">Leaky</button>
-        <button type="button" data-fn="gelu" aria-pressed="false">GELU</button>
+      <div class="group-label" id="g1">Classic</div>
+      <div class="seg" role="group" aria-labelledby="g1">
+        <button type="button" data-fn="sigmoid">Sigmoid</button>
+        <button type="button" data-fn="tanh">Tanh</button>
+        <button type="button" data-fn="softsign">Softsign</button>
+        <button type="button" data-fn="hsig">Hard sigmoid</button>
       </div>
-      <div class="row"><label for="z">Input z</label><input type="range" id="z" min="-5" max="5" step="0.05" value="1"><output id="o-z" for="z"></output></div>
-      <div class="row"><label for="depth">Layers</label><input type="range" id="depth" min="1" max="20" step="1" value="10"><output id="o-depth" for="depth"></output></div>
+      <div class="group-label" id="g2">ReLU family</div>
+      <div class="seg" role="group" aria-labelledby="g2">
+        <button type="button" data-fn="relu">ReLU</button>
+        <button type="button" data-fn="leaky">Leaky / PReLU</button>
+        <button type="button" data-fn="relu6">ReLU6</button>
+        <button type="button" data-fn="elu">ELU</button>
+        <button type="button" data-fn="selu">SELU</button>
+      </div>
+      <div class="group-label" id="g3">Smooth, modern</div>
+      <div class="seg" role="group" aria-labelledby="g3">
+        <button type="button" data-fn="softplus">Softplus</button>
+        <button type="button" data-fn="gelu">GELU</button>
+        <button type="button" data-fn="swish">Swish / SiLU</button>
+        <button type="button" data-fn="mish">Mish</button>
+        <button type="button" data-fn="hswish">Hard swish</button>
+      </div>
+      <div class="row"><label for="z">Input z</label><input type="range" id="z" min="-5" max="5" step="0.05" value="-1"><output id="o-z" for="z"></output></div>
+      <div class="row" id="pRow"><label for="p" id="pLabel">α</label><input type="range" id="p" min="0" max="1" step="0.01" value="0.1"><output id="o-p" for="p"></output></div>
+      <div class="row"><label for="depth">Layers</label><input type="range" id="depth" min="1" max="30" step="1" value="10"><output id="o-depth" for="depth"></output></div>
+      <label class="chk"><input type="checkbox" id="cmp"> Compare with ReLU</label>
       <div class="legend" aria-label="Legend">
         <span><i class="sw" style="background:#2d3142"></i>f(z)</span>
         <span><i class="sw" style="background:#bf4520"></i>f'(z)</span>
+        <span><i class="sw" style="background:#bfc0c0;border-color:#bfc0c0"></i>ReLU</span>
       </div>
     </div>
     <div class="panel">
-      <div class="eyebrow">Best-case gradient after the chosen layers</div>
+      <div class="eyebrow">Slope at z, multiplied over the layers</div>
       <div class="big-answer" id="answer"></div>
       <pre class="readout" id="readout" aria-live="polite"></pre>
     </div>
@@ -135,68 +162,274 @@ ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
 </section>
 
 <section>
+  <h2>Contents</h2>
+  <div class="prog" id="prog" aria-live="polite"></div>
+  <ol class="check">
+    <li><input type="checkbox" id="c-why" aria-label="Mark Why a network needs one as done"><a href="#why">Why a network needs one</a></li>
+    <li><input type="checkbox" id="c-good" aria-label="Mark What makes a good activation as done"><a href="#good">What makes a good activation</a></li>
+    <li><input type="checkbox" id="c-classic" aria-label="Mark Classic as done"><a href="#classic">Classic: sigmoid and tanh</a></li>
+    <li><input type="checkbox" id="c-relu" aria-label="Mark ReLU family as done"><a href="#relu">The ReLU family</a></li>
+    <li><input type="checkbox" id="c-smooth" aria-label="Mark Smooth activations as done"><a href="#smooth">Smooth activations: GELU, Swish, Mish</a></li>
+    <li><input type="checkbox" id="c-glu" aria-label="Mark Gated linear units as done"><a href="#glu">Gated linear units: GLU to SwiGLU</a></li>
+    <li><input type="checkbox" id="c-out" aria-label="Mark Output activations as done"><a href="#output">Output layers and softmax</a></li>
+    <li><input type="checkbox" id="c-grad" aria-label="Mark Vanishing and dying gradients as done"><a href="#gradients">Vanishing and dying gradients</a></li>
+    <li><input type="checkbox" id="c-init" aria-label="Mark Initialization as done"><a href="#init">Activations and initialization</a></li>
+    <li><input type="checkbox" id="c-models" aria-label="Mark Who uses what as done"><a href="#models">Who uses what</a></li>
+    <li><input type="checkbox" id="c-pick" aria-label="Mark Which one to pick as done"><a href="#pick">Which one to pick</a></li>
+    <li><input type="checkbox" id="c-code" aria-label="Mark In code as done"><a href="#code">The same thing in code</a></li>
+    <li><input type="checkbox" id="c-mist" aria-label="Mark Common mistakes as done"><a href="#mistakes">Common mistakes</a></li>
+  </ol>
+</section>
+
+<section id="why">
   <h2>1. Why a network needs one</h2>
   <p>A layer computes $W\mathbf{x} + \mathbf{b}$. Feed that into the next layer and you get $W_2(W_1\mathbf{x}+\mathbf{b}_1)+\mathbf{b}_2$, which is still a matrix times $\mathbf{x}$ plus a vector. Any number of purely linear layers collapse into one. The activation $f$ breaks this:</p>
   <div class="formula">$$\mathbf{h} = f(W\mathbf{x} + \mathbf{b})$$</div>
-  <p>Applied entry by entry, it lets the network bend its decision boundary. See the <a href="../deep-learning-overview/deep-learning-overview.html">Deep Learning Overview</a> lab, where a single neuron draws only a line.</p>
+  <p>Applied entry by entry, it lets the network bend its decision boundary. With a nonlinear $f$, a wide enough network with one hidden layer can approximate any continuous function on a bounded region (the universal approximation theorem). Depth makes that far more efficient. See the <a href="../deep-learning-overview/deep-learning-overview.html">Deep Learning Overview</a> lab, where a single neuron draws only a line.</p>
   <div class="callout">No nonlinearity, no depth. A hundred linear layers equal one.</div>
 </section>
 
-<section>
-  <h2>2. The common choices</h2>
-  <table class="ops">
-    <thead><tr><th>Name</th><th>Formula</th><th>Range</th><th>Notes</th></tr></thead>
+<section id="good">
+  <h2>2. What makes a good activation</h2>
+  <div class="tw"><table class="ops">
+    <thead><tr><th>Property</th><th>Why it matters</th><th>Who has it</th></tr></thead>
     <tbody>
-      <tr><td>Sigmoid</td><td>$\dfrac{1}{1+e^{-z}}$</td><td>$(0,1)$</td><td>A probability. Slope never exceeds $0.25$.</td></tr>
-      <tr><td>Tanh</td><td>$\tanh z$</td><td>$(-1,1)$</td><td>Zero centered. Slope up to $1$ at $z=0$.</td></tr>
-      <tr><td>ReLU</td><td>$\max(0,z)$</td><td>$[0,\infty)$</td><td>Cheap. Slope is exactly $1$ when active.</td></tr>
-      <tr><td>Leaky ReLU</td><td>$\max(\alpha z, z)$</td><td>$(-\infty,\infty)$</td><td>Small slope $\alpha$ on the negative side keeps neurons alive.</td></tr>
-      <tr><td>GELU</td><td>$z\,\Phi(z)$</td><td>$\approx[-0.17,\infty)$</td><td>A smooth ReLU. Common in transformers.</td></tr>
+      <tr><td>Non-saturating</td><td>A slope that does not go to zero for large inputs keeps gradients flowing.</td><td>ReLU family, GELU, Swish, Mish on the positive side</td></tr>
+      <tr><td>Nonzero slope for $z &lt; 0$</td><td>Neurons cannot "die" and stop learning.</td><td>Leaky ReLU, ELU, SELU, GELU, Swish, Mish</td></tr>
+      <tr><td>Zero-centered output</td><td>Mean activations near zero keep the next layer's updates balanced.</td><td>Tanh, ELU, SELU (approximately)</td></tr>
+      <tr><td>Smooth</td><td>A continuous derivative gives a smoother loss surface and helps optimizers.</td><td>Sigmoid, tanh, softplus, GELU, Swish, Mish</td></tr>
+      <tr><td>Cheap</td><td>Applied to every unit, billions of times. Exponentials and erf cost more than a comparison.</td><td>ReLU, Leaky ReLU, ReLU6, hard sigmoid, hard swish</td></tr>
+      <tr><td>Bounded</td><td>Keeps values in a fixed range: good for gates, probabilities and low-precision hardware.</td><td>Sigmoid, tanh, softsign, ReLU6, hard sigmoid</td></tr>
     </tbody>
-  </table>
-  <p>Here $\Phi$ is the standard normal cumulative distribution function. The lab uses $\alpha = 0.1$ for Leaky ReLU, and the common tanh approximation for GELU.</p>
+  </table></div>
+  <p>No function wins on every row, which is why so many exist. The default moved from sigmoid (1980s), to tanh (1990s), to ReLU (2010s), to GELU and SwiGLU in transformers today.</p>
 </section>
 
-<section>
-  <h2>3. Vanishing and dying gradients</h2>
+<section id="classic">
+  <h2>3. Classic: sigmoid and tanh</h2>
+  <div class="tw"><table class="ops">
+    <thead><tr><th>Name</th><th>$f(z)$</th><th>$f'(z)$</th><th>Range</th></tr></thead>
+    <tbody>
+      <tr><td>Sigmoid $\sigma$</td><td>$\dfrac{1}{1+e^{-z}}$</td><td>$\sigma(z)\,(1-\sigma(z))$, at most $0.25$</td><td>$(0,1)$</td></tr>
+      <tr><td>Tanh</td><td>$\dfrac{e^{z}-e^{-z}}{e^{z}+e^{-z}}$</td><td>$1-\tanh^2 z$, at most $1$</td><td>$(-1,1)$</td></tr>
+      <tr><td>Softsign</td><td>$\dfrac{z}{1+|z|}$</td><td>$\dfrac{1}{(1+|z|)^2}$</td><td>$(-1,1)$</td></tr>
+      <tr><td>Hard sigmoid</td><td>$\min\!\big(1, \max(0, \tfrac{z}{6} + \tfrac12)\big)$</td><td>$\tfrac16$ on $(-3,3)$, else $0$</td><td>$[0,1]$</td></tr>
+    </tbody>
+  </table></div>
+  <p>Tanh is a sigmoid shifted and stretched: $\tanh z = 2\sigma(2z) - 1$. Being zero-centered and four times steeper at the origin, it trains better as a hidden activation. Both <b>saturate</b>: for $|z| &gt; 4$ the slope is nearly zero, and stacked layers multiply those small slopes together.</p>
+  <p>They are still everywhere as <b>gates</b>. In an LSTM, sigmoid outputs in $(0,1)$ act as soft switches for what to forget, store and emit, and tanh squashes the cell values. Softsign approaches its limits polynomially instead of exponentially, so it saturates more gently. The hard sigmoid replaces the curve with three straight pieces, which is much cheaper on phones and in integer arithmetic. Its slope $\tfrac16$ is the slope used by PyTorch and Keras 3; older Keras versions used $0.2z + 0.5$.</p>
+</section>
+
+<section id="relu">
+  <h2>4. The ReLU family</h2>
+  <p>The rectified linear unit $\max(0, z)$ made deep networks trainable at scale (AlexNet, 2012). Its slope is exactly $1$ for every positive input, so gradients pass through active units without shrinking, and it costs one comparison. Its weakness is the flat half: a unit whose input is always negative gets zero gradient and stops learning. Every variant below changes the negative side.</p>
+  <div class="tw"><table class="ops">
+    <thead><tr><th>Name</th><th>$z &gt; 0$</th><th>$z \le 0$</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>ReLU</td><td>$z$</td><td>$0$</td><td>The default for CNNs and MLPs.</td></tr>
+      <tr><td>Leaky ReLU</td><td>$z$</td><td>$\alpha z$, with fixed $\alpha \approx 0.01$</td><td>Keeps a small gradient; never fully dies.</td></tr>
+      <tr><td>PReLU</td><td>$z$</td><td>$\alpha z$, with $\alpha$ learned</td><td>One $\alpha$ per channel, trained with the weights (He et al., 2015).</td></tr>
+      <tr><td>RReLU</td><td>$z$</td><td>$\alpha z$, $\alpha$ random in training</td><td>The randomness acts as a regularizer; the mean is used at test time.</td></tr>
+      <tr><td>ReLU6</td><td>$\min(z, 6)$</td><td>$0$</td><td>Capped, so it survives low-precision arithmetic (MobileNetV2).</td></tr>
+      <tr><td>ELU</td><td>$z$</td><td>$\alpha\,(e^{z} - 1)$</td><td>Smooth, tends to $-\alpha$; pushes mean activations toward zero.</td></tr>
+      <tr><td>SELU</td><td>$\lambda z$</td><td>$\lambda\alpha\,(e^{z}-1)$</td><td>$\lambda \approx 1.0507$, $\alpha \approx 1.6733$: self-normalizing.</td></tr>
+      <tr><td>CELU</td><td>$z$</td><td>$\alpha\,(e^{z/\alpha} - 1)$</td><td>ELU rewritten so the slope is continuous at $0$ for every $\alpha$.</td></tr>
+    </tbody>
+  </table></div>
+  <p><b>SELU</b> deserves a note. Its two constants are chosen so that, in a plain fully connected network with LeCun-normal initialization, activations converge toward zero mean and unit variance layer after layer without batch normalization (Klambauer et al., 2017). The promise holds only under those conditions: dropout must be replaced by alpha dropout, and it does not carry over to convolutions or residual connections. In Fig 1 its slope is above $1$ on parts of the curve, which is fine because the normalization keeps inputs near zero.</p>
+  <p>ReLU is not differentiable at $0$. Frameworks simply use $0$ as the slope there. The exact value almost never matters, because an input landing exactly on $0.0$ is rare.</p>
+</section>
+
+<section id="smooth">
+  <h2>5. Smooth activations: GELU, Swish, Mish</h2>
+  <p>These look like ReLU from a distance, but they are smooth, dip slightly below zero for negative inputs, and are not monotonic. Empirically they train a little better in deep networks, at a higher compute cost.</p>
+  <div class="tw"><table class="ops">
+    <thead><tr><th>Name</th><th>$f(z)$</th><th>Minimum</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>Softplus</td><td>$\ln(1 + e^{z})$</td><td>none, $&gt; 0$</td><td>A smooth ReLU. Its derivative is exactly $\sigma(z)$. Used for positive outputs.</td></tr>
+      <tr><td>GELU</td><td>$z\,\Phi(z)$</td><td>$\approx -0.17$</td><td>Weights $z$ by how likely a standard normal is below it. BERT, GPT, ViT.</td></tr>
+      <tr><td>Swish</td><td>$z\,\sigma(\beta z)$</td><td>$\approx -0.28$ at $\beta=1$</td><td>Found by automated search (Ramachandran et al., 2017).</td></tr>
+      <tr><td>SiLU</td><td>$z\,\sigma(z)$</td><td>$\approx -0.28$</td><td>Swish with $\beta = 1$. EfficientNet, YOLOv5 and later.</td></tr>
+      <tr><td>Mish</td><td>$z \tanh\!\big(\ln(1+e^{z})\big)$</td><td>$\approx -0.31$</td><td>Slightly smoother than Swish. YOLOv4.</td></tr>
+      <tr><td>Hard swish</td><td>$z \cdot \dfrac{\mathrm{ReLU6}(z+3)}{6}$</td><td>$-0.375$</td><td>Piecewise approximation of Swish for mobile chips (MobileNetV3).</td></tr>
+    </tbody>
+  </table></div>
+  <p>GELU is usually computed with one of two approximations instead of the error function inside $\Phi$:</p>
+  <div class="formula">$$\mathrm{GELU}(z) \approx \tfrac12 z\left(1 + \tanh\!\Big[\sqrt{2/\pi}\,\big(z + 0.044715\,z^3\big)\Big]\right) \approx z\,\sigma(1.702\,z)$$</div>
+  <p>The second form shows that GELU and Swish are close cousins: both multiply $z$ by a sigmoid-like gate of itself. Swish's $\beta$ slides between two extremes. Set $\beta = 0$ in Fig 1 and you get the straight line $z/2$. Push $\beta$ up and the curve sharpens into ReLU, since $\sigma(\beta z)$ becomes a step function.</p>
+  <div class="formula">$$\lim_{\beta \to \infty} z\,\sigma(\beta z) = \max(0, z), \qquad z\,\sigma(0 \cdot z) = \tfrac{z}{2}$$</div>
+</section>
+
+<section id="glu">
+  <h2>6. Gated linear units: GLU to SwiGLU</h2>
+  <p>Modern language models mostly do not put a plain activation in their feed-forward blocks. They use a <b>gated linear unit</b>: two linear projections of the same input, one passed through an activation and used as a gate, multiplied element by element with the other.</p>
+  <div class="formula">$$\mathrm{GLU}(\mathbf{x}) = \sigma(\mathbf{x}W) \odot (\mathbf{x}V), \qquad \mathrm{FFN}_{\mathrm{SwiGLU}}(\mathbf{x}) = \big(\mathrm{SiLU}(\mathbf{x}W) \odot \mathbf{x}V\big)\,W_2$$</div>
+  <div class="tw"><table class="ops">
+    <thead><tr><th>Variant</th><th>Gate activation</th><th>Used in</th></tr></thead>
+    <tbody>
+      <tr><td>GLU</td><td>Sigmoid</td><td>Gated convolutional language models (Dauphin et al., 2017)</td></tr>
+      <tr><td>ReGLU</td><td>ReLU</td><td>Experiments in Shazeer (2020)</td></tr>
+      <tr><td>GeGLU</td><td>GELU</td><td>T5 v1.1, Gemma</td></tr>
+      <tr><td>SwiGLU</td><td>SiLU (Swish)</td><td>PaLM, LLaMA, Mistral, Qwen and most open LLMs</td></tr>
+    </tbody>
+  </table></div>
+  <p>The product of two linear paths is a quadratic interaction, which gives the block more expressive power per parameter. In Shazeer's comparison, GeGLU and SwiGLU gave the lowest perplexity among the variants tested. A gated block has three weight matrices instead of two, so to keep the parameter count equal the hidden width is cut from $4d$ to about $\tfrac{2}{3} \cdot 4d = \tfrac{8}{3}d$. LLaMA rounds that to a multiple of 256.</p>
+  <p>An older idea in the same spirit is <b>maxout</b>: compute $k$ linear pieces and keep the largest, $\max_i (\mathbf{w}_i^{\mathsf T}\mathbf{x} + b_i)$. It learns its own convex piecewise-linear activation, at $k$ times the parameters.</p>
+</section>
+
+<section id="output">
+  <h2>7. Output layers and softmax</h2>
+  <p>The last layer's activation is not a tuning choice. It is set by what the output means, and it is paired with a specific loss:</p>
+  <div class="tw"><table class="ops">
+    <thead><tr><th>Task</th><th>Output activation</th><th>Loss</th></tr></thead>
+    <tbody>
+      <tr><td>Real number</td><td>None (identity)</td><td>Mean squared error</td></tr>
+      <tr><td>Positive number</td><td>Softplus or $\exp$</td><td>MSE, or a likelihood such as Poisson</td></tr>
+      <tr><td>Value in a range</td><td>Tanh or sigmoid, rescaled</td><td>MSE</td></tr>
+      <tr><td>Two classes, or multi-label</td><td>Sigmoid per output</td><td>Binary cross-entropy</td></tr>
+      <tr><td>One of $K$ classes</td><td>Softmax</td><td>Cross-entropy</td></tr>
+    </tbody>
+  </table></div>
+  <p>Softmax turns a vector of scores (logits) into probabilities that are positive and sum to $1$. A temperature $T$ controls how peaked the result is:</p>
+  <div class="formula">$$\mathrm{softmax}(\mathbf{z})_i = \frac{e^{z_i / T}}{\sum_{j} e^{z_j / T}}$$</div>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 2</span><span class="card-title">Softmax and temperature</span></div>
+    <svg id="smx" viewBox="0 0 640 220" role="img" aria-labelledby="smx-title smx-desc">
+      <title id="smx-title">Probabilities produced by softmax for four logits</title>
+      <desc id="smx-desc">Four bars, one per class, show the softmax probability of each logit at the chosen temperature. Low temperature puts almost all probability on the largest logit. High temperature makes the bars nearly equal. Exact values are listed in the readout.</desc>
+    </svg>
+    <div class="controls" style="margin:0;padding:0 16px 16px">
+      <div>
+        <div class="row"><label for="l0">z₁ cat</label><input type="range" id="l0" min="-4" max="6" step="0.1" value="3"><output id="o-l0" for="l0"></output></div>
+        <div class="row"><label for="l1">z₂ dog</label><input type="range" id="l1" min="-4" max="6" step="0.1" value="2"><output id="o-l1" for="l1"></output></div>
+        <div class="row"><label for="l2">z₃ fox</label><input type="range" id="l2" min="-4" max="6" step="0.1" value="0.5"><output id="o-l2" for="l2"></output></div>
+        <div class="row"><label for="l3">z₄ owl</label><input type="range" id="l3" min="-4" max="6" step="0.1" value="-1"><output id="o-l3" for="l3"></output></div>
+        <div class="row"><label for="temp">T</label><input type="range" id="temp" min="-2" max="2" step="0.05" value="0"><output id="o-temp" for="temp"></output></div>
+      </div>
+      <pre class="readout" id="smxOut" aria-live="polite" style="padding-top:12px"></pre>
+    </div>
+  </figure>
+
+  <p>At $T \to 0$ softmax becomes argmax: all probability on the largest logit. At large $T$ it tends to uniform. Language models sample with $T$ below $1$ for focused text and above $1$ for more variety. Knowledge distillation trains a small model on a large model's softmax at high $T$, where the near-misses carry information.</p>
+  <h3>Three practical details</h3>
+  <ul class="tight">
+    <li><b>Subtract the max.</b> $e^{1000}$ overflows. Softmax does not change when every logit shifts by the same amount, so compute $e^{z_i - \max_j z_j}$ instead.</li>
+    <li><b>Use log-softmax with the loss.</b> $\log \mathrm{softmax}(\mathbf{z})_i = z_i - \log\sum_j e^{z_j}$, computed with the log-sum-exp trick, avoids taking the log of a value that underflowed to $0$. Framework losses such as <code>CrossEntropyLoss</code> take raw logits for this reason.</li>
+    <li><b>The gradient is simple.</b> With probabilities $\mathbf{p}$ and one-hot target $\mathbf{y}$, the gradient of cross-entropy with respect to the logits is $\mathbf{p} - \mathbf{y}$. Sigmoid with binary cross-entropy gives the same form, $p - y$. That cancellation is why these pairs are standard.</li>
+  </ul>
+</section>
+
+<section id="gradients">
+  <h2>8. Vanishing and dying gradients</h2>
   <p>Backpropagation multiplies one slope per layer. If every slope is below $1$, the product shrinks exponentially with depth:</p>
   <div class="formula">$$\frac{\partial L}{\partial \mathbf{h}_1} \;\propto\; \prod_{l=1}^{n} f'(z_l)\;\le\; \big(\max f'\big)^{n}$$</div>
-  <p>Sigmoid has $\max f' = 0.25$, so ten layers shrink the signal by at least $0.25^{10} \approx 10^{-6}$. The early layers barely learn. Move the <b>Layers</b> slider and compare. This is only the best case and ignores the weights, so real gradients are usually smaller still.</p>
+  <p>Sigmoid has $\max f' = 0.25$, so ten layers shrink the signal by at least $0.25^{10} \approx 10^{-6}$. The early layers barely learn. In Fig 1, pick sigmoid, set $z = 0$ (its best case) and move the <b>Layers</b> slider. The real product also includes the weights, so it can be larger or smaller, but saturated slopes always pull it down.</p>
   <ul class="tight">
     <li><b>Saturation.</b> At large $|z|$, sigmoid and tanh go flat and the slope is near zero. Drag $z$ to $4$ and read the slope.</li>
-    <li><b>Dying ReLU.</b> If $z<0$ for every input, the slope is $0$ and the neuron never updates again. Leaky ReLU and GELU keep a small gradient there.</li>
-    <li><b>Exploding gradients.</b> A slope above $1$ repeated many times grows instead. Initialization, normalization and gradient clipping handle this.</li>
+    <li><b>Dying ReLU.</b> If $z&lt;0$ for every input, the slope is $0$ and the neuron never updates again. A too-large learning rate or a big negative bias can kill a large share of units. Leaky ReLU, ELU and the smooth functions keep a small gradient there.</li>
+    <li><b>Exploding gradients.</b> A product of factors above $1$ grows instead. Careful initialization, normalization layers and gradient clipping handle this.</li>
+    <li><b>Residual connections</b> sidestep the product altogether: $\mathbf{h}_{l+1} = \mathbf{h}_l + F(\mathbf{h}_l)$ adds an identity path whose slope is always $1$. That, more than the choice of activation, is what makes networks with hundreds of layers trainable.</li>
   </ul>
 </section>
 
-<section>
-  <h2>4. Which one to pick</h2>
-  <ul class="tight">
-    <li>Hidden layers: start with ReLU. Try Leaky ReLU or GELU if many neurons go silent, and GELU for transformers.</li>
-    <li>Output for two classes: sigmoid, paired with cross-entropy loss.</li>
-    <li>Output for many classes: softmax, $\dfrac{e^{z_i}}{\sum_j e^{z_j}}$, so the outputs sum to $1$.</li>
-    <li>Output for a real number: no activation (identity).</li>
-  </ul>
+<section id="init">
+  <h2>9. Activations and initialization</h2>
+  <p>Weights are initialized so that the variance of activations stays roughly constant from layer to layer. The right scale depends on the activation, because ReLU zeroes half of its inputs and so halves the variance:</p>
+  <div class="tw"><table class="ops">
+    <thead><tr><th>Scheme</th><th>$\mathrm{Var}(W)$</th><th>Pairs with</th></tr></thead>
+    <tbody>
+      <tr><td>Xavier / Glorot</td><td>$\dfrac{2}{n_{\text{in}} + n_{\text{out}}}$</td><td>Tanh, sigmoid, softsign</td></tr>
+      <tr><td>He / Kaiming</td><td>$\dfrac{2}{n_{\text{in}}}$</td><td>ReLU, Leaky ReLU (with a gain), GELU, Swish</td></tr>
+      <tr><td>LeCun</td><td>$\dfrac{1}{n_{\text{in}}}$</td><td>SELU (required for self-normalization)</td></tr>
+    </tbody>
+  </table></div>
+  <p>Here $n_{\text{in}}$ and $n_{\text{out}}$ are the number of inputs and outputs of the layer. For Leaky ReLU with slope $\alpha$, the He variance becomes $\frac{2}{(1+\alpha^2)\,n_{\text{in}}}$. PyTorch's <code>nn.init.calculate_gain</code> returns these factors. With normalization layers (BatchNorm, LayerNorm) in the network, the exact choice matters much less.</p>
 </section>
 
-<section>
-  <h2>5. The same thing in code</h2>
-  <pre class="code"><span class="k">const</span> sigmoid = z =&gt; <span class="t">1</span> / (<span class="t">1</span> + Math.exp(-z));
-<span class="k">const</span> relu    = z =&gt; Math.max(<span class="t">0</span>, z);
-<span class="k">const</span> leaky   = (z, a = <span class="t">0.1</span>) =&gt; (z &gt; <span class="t">0</span> ? z : a * z);
+<section id="models">
+  <h2>10. Who uses what</h2>
+  <div class="tw"><table class="ops">
+    <thead><tr><th>Model</th><th>Year</th><th>Hidden activation</th></tr></thead>
+    <tbody>
+      <tr><td>LeNet-5</td><td>1998</td><td>Scaled tanh</td></tr>
+      <tr><td>LSTM, GRU</td><td>1997, 2014</td><td>Sigmoid gates, tanh for the state</td></tr>
+      <tr><td>AlexNet, VGG, ResNet</td><td>2012–2015</td><td>ReLU</td></tr>
+      <tr><td>MobileNetV2</td><td>2018</td><td>ReLU6</td></tr>
+      <tr><td>BERT, GPT-2, GPT-3, ViT</td><td>2018–2020</td><td>GELU</td></tr>
+      <tr><td>MobileNetV3</td><td>2019</td><td>Hard swish (and ReLU in early layers)</td></tr>
+      <tr><td>EfficientNet</td><td>2019</td><td>Swish / SiLU</td></tr>
+      <tr><td>YOLOv4</td><td>2020</td><td>Mish</td></tr>
+      <tr><td>YOLOv5 and later</td><td>2020+</td><td>SiLU</td></tr>
+      <tr><td>T5 v1.1, Gemma</td><td>2020, 2024</td><td>GeGLU</td></tr>
+      <tr><td>PaLM, LLaMA, Mistral</td><td>2022–2023</td><td>SwiGLU</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="pick">
+  <h2>11. Which one to pick</h2>
+  <div class="cards">
+    <div class="stat focal"><div class="eyebrow">Default</div><div class="big">ReLU</div><p>CNNs and MLPs. Fast, well understood, pairs with He initialization. Switch to Leaky ReLU if many units die.</p></div>
+    <div class="stat"><div class="eyebrow">Transformers</div><div class="big">GELU or SwiGLU</div><p>GELU in encoder models and small transformers; SwiGLU in the feed-forward blocks of large language models.</p></div>
+    <div class="stat"><div class="eyebrow">Mobile, quantized</div><div class="big">ReLU6, hard swish</div><p>Piecewise linear, bounded, no exponentials. Friendly to 8-bit integer inference.</p></div>
+  </div>
+  <ul class="tight" style="margin-top:20px">
+    <li><b>Deep CNNs where a small accuracy gain matters:</b> SiLU or Mish, at some extra compute.</li>
+    <li><b>Plain deep MLP without normalization:</b> SELU with LeCun-normal initialization and alpha dropout.</li>
+    <li><b>Gates and attention-style weights:</b> sigmoid. <b>Recurrent state:</b> tanh.</li>
+    <li><b>Output layer:</b> follow the table in section 7, never a hidden-layer habit.</li>
+  </ul>
+  <p>The activation is rarely the biggest lever. Architecture, normalization, learning rate and data usually matter more. Change it last, and measure.</p>
+</section>
+
+<section id="code">
+  <h2>12. The same thing in code</h2>
+  <pre class="code"><span class="k">const</span> sigmoid  = z =&gt; <span class="t">1</span> / (<span class="t">1</span> + Math.exp(-z));
+<span class="k">const</span> relu     = z =&gt; Math.max(<span class="t">0</span>, z);
+<span class="k">const</span> leaky    = (z, a = <span class="t">0.01</span>) =&gt; (z &gt; <span class="t">0</span> ? z : a * z);
+<span class="k">const</span> elu      = (z, a = <span class="t">1</span>) =&gt; (z &gt; <span class="t">0</span> ? z : a * Math.expm1(z));
+<span class="k">const</span> softplus = z =&gt; Math.max(z, <span class="t">0</span>) + Math.log1p(Math.exp(-Math.abs(z)));  <span class="c">// stable for large |z|</span>
+<span class="k">const</span> silu     = z =&gt; z * sigmoid(z);
+<span class="k">const</span> gelu     = z =&gt; <span class="t">0.5</span> * z * (<span class="t">1</span> + Math.tanh(Math.sqrt(<span class="t">2</span> / Math.PI) * (z + <span class="t">0.044715</span> * z ** <span class="t">3</span>)));
+<span class="k">const</span> mish     = z =&gt; z * Math.tanh(softplus(z));
+<span class="k">const</span> hswish   = z =&gt; z * Math.min(Math.max(z + <span class="t">3</span>, <span class="t">0</span>), <span class="t">6</span>) / <span class="t">6</span>;
 
 <span class="c">// slopes used by backpropagation</span>
 <span class="k">const</span> dSigmoid = z =&gt; { <span class="k">const</span> s = sigmoid(z); <span class="k">return</span> s * (<span class="t">1</span> - s); };
 <span class="k">const</span> dTanh    = z =&gt; <span class="t">1</span> - Math.tanh(z) ** <span class="t">2</span>;
 <span class="k">const</span> dRelu    = z =&gt; (z &gt; <span class="t">0</span> ? <span class="t">1</span> : <span class="t">0</span>);
+<span class="k">const</span> dSilu    = z =&gt; { <span class="k">const</span> s = sigmoid(z); <span class="k">return</span> s * (<span class="t">1</span> + z * (<span class="t">1</span> - s)); };
 
-<span class="k">function</span> softmax(zs) {
+<span class="k">function</span> softmax(zs, T = <span class="t">1</span>) {
   <span class="k">const</span> m = Math.max(...zs);            <span class="c">// subtract the max for stability</span>
-  <span class="k">const</span> e = zs.map(z =&gt; Math.exp(z - m));
+  <span class="k">const</span> e = zs.map(z =&gt; Math.exp((z - m) / T));
   <span class="k">const</span> s = e.reduce((a, b) =&gt; a + b, <span class="t">0</span>);
   <span class="k">return</span> e.map(v =&gt; v / s);
+}
+
+<span class="c">// SwiGLU feed-forward block for one token vector x (matrices as arrays of rows)</span>
+<span class="k">const</span> matvec = (M, x) =&gt; M.map(row =&gt; row.reduce((s, w, i) =&gt; s + w * x[i], <span class="t">0</span>));
+<span class="k">function</span> swiglu(x, W, V, W2) {
+  <span class="k">const</span> g = matvec(W, x).map(silu);      <span class="c">// gate</span>
+  <span class="k">const</span> u = matvec(V, x);                <span class="c">// value</span>
+  <span class="k">return</span> matvec(W2, g.map((gi, i) =&gt; gi * u[i]));
 }</pre>
-  <p>Related: <a href="../../machine-learning/gradient-descent/gradient-descent.html">Gradient Descent</a> and <a href="../../../math/derivatives/derivatives.html">Derivatives</a>.</p>
+  <p>In PyTorch the same functions are <code>nn.ReLU</code>, <code>nn.LeakyReLU</code>, <code>nn.PReLU</code>, <code>nn.ReLU6</code>, <code>nn.ELU</code>, <code>nn.SELU</code>, <code>nn.GELU(approximate='tanh')</code>, <code>nn.SiLU</code>, <code>nn.Mish</code>, <code>nn.Hardswish</code>, <code>nn.Hardsigmoid</code>, <code>nn.Softplus</code> and <code>nn.Softsign</code>, with functional forms in <code>torch.nn.functional</code>.</p>
+</section>
+
+<section id="mistakes">
+  <h2>13. Common mistakes</h2>
+  <ul class="tight">
+    <li>Applying softmax in the model and then passing its output to <code>CrossEntropyLoss</code>, which applies log-softmax again. Pass raw logits.</li>
+    <li>Using softmax for multi-label problems, where several classes can be true at once. Use one sigmoid per class.</li>
+    <li>Putting ReLU on the output of a regression model, so it can never predict a negative value.</li>
+    <li>Sigmoid or tanh in every hidden layer of a deep network without residual connections or normalization.</li>
+    <li>Mixing activation and initialization: Xavier with ReLU halves the variance at each layer; SELU without LeCun initialization loses self-normalization.</li>
+    <li>Using a large learning rate with ReLU and finding that much of the network has died. Check the fraction of units that are never active.</li>
+    <li>Forgetting the max-subtraction in a hand-written softmax and getting <code>NaN</code> for large logits.</li>
+  </ul>
+  <p>Related: <a href="../backpropagation/backpropagation.html">Backpropagation</a>, <a href="../sequence-models-transformers/sequence-models-transformers.html">Sequence Models and Transformers</a>, <a href="../../machine-learning/logistic-regression/logistic-regression.html">Logistic Regression</a>, <a href="../../machine-learning/gradient-descent/gradient-descent.html">Gradient Descent</a> and <a href="../../../math/derivatives/derivatives.html">Derivatives</a>.</p>
 </section>
 
 </main>
@@ -212,89 +445,199 @@ document.addEventListener('DOMContentLoaded', function () {
   }
   var NS = 'http://www.w3.org/2000/svg';
   var $ = function (id) { return document.getElementById(id); };
-  var A = 0.1;
-  var gelu = function (z) { return 0.5 * z * (1 + Math.tanh(0.7978845608 * (z + 0.044715 * z * z * z))); };
+  var sig = function (z) { return 1 / (1 + Math.exp(-z)); };
+  var sp = function (z) { return Math.max(z, 0) + Math.log1p(Math.exp(-Math.abs(z))); };
+  var LAM = 1.0507009873554805, ALP = 1.6732632423543772;
+  var num = function (f) { return function (z, p) { var h = 1e-4; return (f(z + h, p) - f(z - h, p)) / (2 * h); }; };
+
+  // p: { label, min, max, step, def } for functions with a parameter
   var FN = {
-    sigmoid: { name: 'Sigmoid', f: function (z) { return 1 / (1 + Math.exp(-z)); }, d: function (z) { var s = 1 / (1 + Math.exp(-z)); return s * (1 - s); } },
-    tanh: { name: 'Tanh', f: Math.tanh, d: function (z) { var t = Math.tanh(z); return 1 - t * t; } },
-    relu: { name: 'ReLU', f: function (z) { return Math.max(0, z); }, d: function (z) { return z > 0 ? 1 : 0; } },
-    leaky: { name: 'Leaky ReLU', f: function (z) { return z > 0 ? z : A * z; }, d: function (z) { return z > 0 ? 1 : A; } },
-    gelu: { name: 'GELU', f: gelu, d: function (z) { var h = 1e-4; return (gelu(z + h) - gelu(z - h)) / (2 * h); } }
+    sigmoid: { name: 'Sigmoid', tex: 'σ(z) = 1 / (1 + e^(−z))', f: sig, d: function (z) { var s = sig(z); return s * (1 - s); } },
+    tanh: { name: 'Tanh', tex: 'tanh z', f: Math.tanh, d: function (z) { var t = Math.tanh(z); return 1 - t * t; } },
+    softsign: { name: 'Softsign', tex: 'z / (1 + |z|)', f: function (z) { return z / (1 + Math.abs(z)); }, d: function (z) { var a = 1 + Math.abs(z); return 1 / (a * a); } },
+    hsig: { name: 'Hard sigmoid', tex: 'clip(z/6 + 1/2, 0, 1)', f: function (z) { return Math.min(1, Math.max(0, z / 6 + 0.5)); }, d: function (z) { return z > -3 && z < 3 ? 1 / 6 : 0; } },
+    relu: { name: 'ReLU', tex: 'max(0, z)', f: function (z) { return Math.max(0, z); }, d: function (z) { return z > 0 ? 1 : 0; } },
+    leaky: { name: 'Leaky ReLU / PReLU', tex: 'z if z > 0, else αz', p: { label: 'α', min: 0, max: 0.5, step: 0.01, def: 0.1 },
+      f: function (z, a) { return z > 0 ? z : a * z; }, d: function (z, a) { return z > 0 ? 1 : a; } },
+    relu6: { name: 'ReLU6', tex: 'min(max(0, z), 6)', f: function (z) { return Math.min(6, Math.max(0, z)); }, d: function (z) { return z > 0 && z < 6 ? 1 : 0; } },
+    elu: { name: 'ELU', tex: 'z if z > 0, else α(e^z − 1)', p: { label: 'α', min: 0.1, max: 2, step: 0.05, def: 1 },
+      f: function (z, a) { return z > 0 ? z : a * Math.expm1(z); }, d: function (z, a) { return z > 0 ? 1 : a * Math.exp(z); } },
+    selu: { name: 'SELU', tex: 'λz if z > 0, else λα(e^z − 1)', f: function (z) { return z > 0 ? LAM * z : LAM * ALP * Math.expm1(z); }, d: function (z) { return z > 0 ? LAM : LAM * ALP * Math.exp(z); } },
+    softplus: { name: 'Softplus', tex: 'ln(1 + e^z)', f: sp, d: sig },
+    gelu: { name: 'GELU', tex: 'z·Φ(z), tanh approximation', f: function (z) { return 0.5 * z * (1 + Math.tanh(0.7978845608 * (z + 0.044715 * z * z * z))); } },
+    swish: { name: 'Swish / SiLU', tex: 'z·σ(βz), SiLU at β = 1', p: { label: 'β', min: 0, max: 8, step: 0.1, def: 1 },
+      f: function (z, b) { return z * sig(b * z); }, d: function (z, b) { var s = sig(b * z); return s + b * z * s * (1 - s); } },
+    mish: { name: 'Mish', tex: 'z·tanh(ln(1 + e^z))', f: function (z) { return z * Math.tanh(sp(z)); } },
+    hswish: { name: 'Hard swish', tex: 'z·ReLU6(z + 3) / 6', f: function (z) { return z * Math.min(Math.max(z + 3, 0), 6) / 6; },
+      d: function (z) { return z <= -3 ? 0 : z >= 3 ? 1 : (2 * z + 3) / 6; } }
   };
-  var cur = 'tanh';
+  for (var k in FN) if (!FN[k].d) FN[k].d = num(FN[k].f);
+  var cur = 'sigmoid', params = {};
+  for (k in FN) if (FN[k].p) params[k] = FN[k].p.def;
+
   var X0 = -5, X1 = 5, Y0 = -1.5, Y1 = 3, W = 640, H = 320, PAD = 28;
   var sx = function (x) { return PAD + (x - X0) / (X1 - X0) * (W - 2 * PAD); };
-  var sy = function (y) { return H - PAD - (Math.max(Y0, Math.min(Y1, y)) - Y0) / (Y1 - Y0) * (H - 2 * PAD); };
+  var sy = function (y) { return H - PAD - (Math.max(Y0 - 0.2, Math.min(Y1 + 0.2, y)) - Y0) / (Y1 - Y0) * (H - 2 * PAD); };
 
   function el(name, attrs, parent) {
     var e = document.createElementNS(NS, name);
-    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    for (var a in attrs) e.setAttribute(a, attrs[a]);
     if (parent) parent.appendChild(e);
     return e;
   }
-  function maxSlope(fn) {
-    var m = 0;
-    for (var x = -6; x <= 6; x += 0.01) m = Math.max(m, fn.d(x));
-    return m;
+  function clear(svg) {
+    Array.prototype.slice.call(svg.childNodes).forEach(function (c) {
+      var nm = (c.localName || '').toLowerCase();
+      if (nm !== 'title' && nm !== 'desc') svg.removeChild(c);
+    });
   }
-  function path(fn, key) {
+  function path(fn, key, p) {
     var d = '';
-    for (var i = 0; i <= 300; i++) {
-      var x = X0 + (X1 - X0) * i / 300;
-      d += (i ? 'L' : 'M') + sx(x).toFixed(1) + ' ' + sy(fn[key](x)).toFixed(1);
+    for (var i = 0; i <= 400; i++) {
+      var x = X0 + (X1 - X0) * i / 400;
+      d += (i ? 'L' : 'M') + sx(x).toFixed(1) + ' ' + sy(fn[key](x, p)).toFixed(1);
     }
     return d;
   }
   function fmt(v) {
     if (v === 0) return '0';
-    return Math.abs(v) < 0.001 || Math.abs(v) >= 1000 ? v.toExponential(2) : v.toFixed(3);
+    if (!isFinite(v)) return String(v);
+    return Math.abs(v) < 0.001 || Math.abs(v) >= 1000 ? v.toExponential(2) : v.toFixed(4);
+  }
+  function stats(fn, p) {
+    var mx = 0, mn = Infinity, at = 0;
+    for (var x = -8; x <= 8; x += 0.005) { mx = Math.max(mx, fn.d(x, p)); var y = fn.f(x, p); if (y < mn) { mn = y; at = x; } }
+    return { maxSlope: mx, min: mn, minAt: at };
+  }
+
+  function minText(fn, p, st) {
+    if (st.min >= -1e-3) return 'none below 0';
+    if (st.minAt > -7.9) return st.min.toFixed(3) + ' at z ≈ ' + st.minAt.toFixed(2);
+    var a = fn.f(-1e4, p), b = fn.f(-2e4, p);     // lowest value is at the left edge: bounded or not?
+    return Math.abs(a - b) < 1e-3 ? 'tends to ' + b.toFixed(3) + ' as z → −∞' : 'unbounded below';
   }
 
   function render() {
-    var svg = $('plot'), fn = FN[cur], z = +$('z').value, n = +$('depth').value;
-    Array.prototype.slice.call(svg.childNodes).forEach(function (c) {
-      var nm = (c.localName || '').toLowerCase();
-      if (nm !== 'title' && nm !== 'desc') svg.removeChild(c);
-    });
+    var svg = $('plot'), fn = FN[cur], z = +$('z').value, n = +$('depth').value, p = params[cur];
+    clear(svg);
     var g = el('g', {}, svg), y;
     for (y = -1; y <= 3; y++) {
       el('line', { x1: PAD, x2: W - PAD, y1: sy(y), y2: sy(y), stroke: y === 0 ? 'rgba(45,49,66,.4)' : 'rgba(45,49,66,.1)' }, g);
       var tl = el('text', { x: 6, y: sy(y) + 4, 'font-size': 10, fill: '#5a6580', 'font-family': 'Geist Mono, monospace' }, g);
       tl.textContent = y;
     }
+    for (var x = -4; x <= 4; x += 2) {
+      var tx = el('text', { x: sx(x), y: H - 10, 'font-size': 10, fill: '#5a6580', 'font-family': 'Geist Mono, monospace', 'text-anchor': 'middle' }, g);
+      tx.textContent = x;
+    }
     el('line', { x1: sx(0), x2: sx(0), y1: PAD, y2: H - PAD, stroke: 'rgba(45,49,66,.4)' }, g);
-    el('path', { d: path(fn, 'd'), fill: 'none', stroke: '#bf4520', 'stroke-width': 2, 'stroke-dasharray': '6 4' }, g);
-    el('path', { d: path(fn, 'f'), fill: 'none', stroke: '#2d3142', 'stroke-width': 2.4 }, g);
+    var clip = el('clipPath', { id: 'clp' }, el('defs', {}, g));
+    el('rect', { x: PAD, y: PAD - 4, width: W - 2 * PAD, height: H - 2 * PAD + 8 }, clip);
+    var c = el('g', { 'clip-path': 'url(#clp)' }, g);
+    if ($('cmp').checked && cur !== 'relu') el('path', { d: path(FN.relu, 'f'), fill: 'none', stroke: '#bfc0c0', 'stroke-width': 3 }, c);
+    el('path', { d: path(fn, 'd', p), fill: 'none', stroke: '#bf4520', 'stroke-width': 2, 'stroke-dasharray': '6 4' }, c);
+    el('path', { d: path(fn, 'f', p), fill: 'none', stroke: '#2d3142', 'stroke-width': 2.4 }, c);
     el('line', { x1: sx(z), x2: sx(z), y1: PAD, y2: H - PAD, stroke: '#2e5aa8', 'stroke-width': 1.2, 'stroke-dasharray': '2 3' }, g);
-    el('circle', { cx: sx(z), cy: sy(fn.f(z)), r: 5, fill: '#2d3142', stroke: '#fff', 'stroke-width': 1.5 }, g);
-    el('circle', { cx: sx(z), cy: sy(fn.d(z)), r: 5, fill: '#bf4520', stroke: '#fff', 'stroke-width': 1.5 }, g);
+    el('circle', { cx: sx(z), cy: sy(fn.f(z, p)), r: 5, fill: '#2d3142', stroke: '#fff', 'stroke-width': 1.5 }, c);
+    el('circle', { cx: sx(z), cy: sy(fn.d(z, p)), r: 5, fill: '#bf4520', stroke: '#fff', 'stroke-width': 1.5 }, c);
 
-    var fz = fn.f(z), dz = fn.d(z), m = maxSlope(fn), chain = Math.pow(m, n);
+    // parameter row
+    var pr = $('pRow'), ps = $('p');
+    if (fn.p) {
+      pr.classList.remove('off'); ps.disabled = false;
+      ps.min = fn.p.min; ps.max = fn.p.max; ps.step = fn.p.step; ps.value = p;
+      $('pLabel').textContent = fn.p.label; $('o-p').textContent = (+p).toFixed(2);
+    } else {
+      pr.classList.add('off'); ps.disabled = true; $('pLabel').textContent = 'param'; $('o-p').textContent = '—';
+    }
+
+    var fz = fn.f(z, p), dz = fn.d(z, p), st = stats(fn, p), chain = Math.pow(Math.abs(dz), n), best = Math.pow(st.maxSlope, n);
     $('o-z').textContent = z.toFixed(2);
     $('o-depth').textContent = n;
+    $('ftitle').textContent = fn.name;
+    $('formulaHint').textContent = 'f(z) = ' + fn.tex;
     $('live').textContent = fn.name + ' · z = ' + z.toFixed(2);
-    $('answer').textContent = chain >= 0.01 && chain < 1000 ? chain.toFixed(3) : chain.toExponential(1);
-    var verdict = chain < 1e-3 ? 'The gradient has vanished. Early layers hardly learn.' :
-      chain > 1.5 ? 'Slopes above 1 compound, so gradients can explode.' : 'The gradient survives this depth.';
+    $('answer').textContent = chain === 0 ? '0' : (chain >= 0.01 && chain < 1000 ? chain.toFixed(3) : chain.toExponential(1));
+    var verdict = chain === 0 ? 'Zero slope: no gradient reaches earlier layers. A dead unit.' :
+      chain < 1e-3 ? 'The gradient has vanished. Early layers hardly learn.' :
+      chain > 10 ? 'Slopes above 1 compound, so gradients can explode.' :
+      chain > 1.5 ? 'Slightly above 1 per layer; normalization keeps this in check.' : 'The gradient survives this depth.';
     $('readout').textContent =
-      'f(z)        = ' + fmt(fz) + '\n' +
-      "f'(z)       = " + fmt(dz) + '\n' +
-      "max f'      = " + m.toFixed(3) + '\n' +
-      'layers      = ' + n + '\n' +
-      "(max f')^n  = " + fmt(chain) + '\n' + verdict +
-      (dz < 0.01 ? '\nThis neuron is saturated at this input: the slope is near zero.' : '');
+      'f(z)          = ' + fmt(fz) + '\n' +
+      "f'(z)         = " + fmt(dz) + '\n' +
+      "|f'(z)|^n     = " + fmt(chain) + '   (n = ' + n + ')\n' +
+      "max f'        = " + st.maxSlope.toFixed(3) + '   best case ^n = ' + fmt(best) + '\n' +
+      'minimum f     = ' + minText(fn, p, st) + '\n' +
+      verdict +
+      (Math.abs(dz) > 0 && Math.abs(dz) < 0.01 ? '\nSaturated at this input: the slope is near zero.' : '') +
+      (cur === 'swish' && p >= 6 ? '\nLarge β: Swish is almost ReLU now.' : '') +
+      (cur === 'swish' && p === 0 ? '\nβ = 0: Swish is the straight line z/2.' : '') +
+      (cur === 'selu' ? '\nSELU relies on self-normalization, not on slopes ≤ 1.' : '');
   }
 
-  Array.prototype.forEach.call(document.querySelectorAll('[data-fn]'), function (b) {
+  var btns = document.querySelectorAll('[data-fn]');
+  Array.prototype.forEach.call(btns, function (b) {
+    b.setAttribute('aria-pressed', String(b.getAttribute('data-fn') === cur));
     b.addEventListener('click', function () {
       cur = b.getAttribute('data-fn');
-      Array.prototype.forEach.call(document.querySelectorAll('[data-fn]'), function (o) { o.setAttribute('aria-pressed', String(o === b)); });
+      Array.prototype.forEach.call(btns, function (o) { o.setAttribute('aria-pressed', String(o === b)); });
       render();
     });
   });
   $('z').addEventListener('input', render);
   $('depth').addEventListener('input', render);
+  $('cmp').addEventListener('change', render);
+  $('p').addEventListener('input', function () { if (FN[cur].p) { params[cur] = +$('p').value; render(); } });
   render();
+
+  // Fig 2: softmax with temperature (slider is log10 T)
+  var NAMES = ['cat', 'dog', 'fox', 'owl'];
+  function smx() {
+    var zs = [0, 1, 2, 3].map(function (i) { return +$('l' + i).value; });
+    var T = Math.pow(10, +$('temp').value);
+    var m = Math.max.apply(null, zs);
+    var e = zs.map(function (v) { return Math.exp((v - m) / T); });
+    var s = e.reduce(function (a, b) { return a + b; }, 0);
+    var pr = e.map(function (v) { return v / s; });
+    var H2 = -pr.reduce(function (a, q) { return a + (q > 0 ? q * Math.log2(q) : 0); }, 0);
+    zs.forEach(function (v, i) { $('o-l' + i).textContent = v.toFixed(1); });
+    $('o-temp').textContent = T < 0.1 ? T.toFixed(3) : T.toFixed(2);
+    var svg = $('smx'); clear(svg);
+    var g = el('g', {}, svg), bw = 110, gap = 40, x0 = 70, base = 180, top = 24, top1 = pr.indexOf(Math.max.apply(null, pr));
+    el('line', { x1: 40, x2: 620, y1: base, y2: base, stroke: '#2d3142' }, g);
+    [0, 0.5, 1].forEach(function (v) {
+      var yy = base - v * (base - top);
+      el('line', { x1: 40, x2: 620, y1: yy, y2: yy, stroke: 'rgba(45,49,66,.1)' }, g);
+      var t = el('text', { x: 34, y: yy + 4, 'text-anchor': 'end', 'font-size': 10, fill: '#5a6580', 'font-family': 'Geist Mono, monospace' }, g); t.textContent = v;
+    });
+    pr.forEach(function (q, i) {
+      var x = x0 + i * (bw + gap), h = q * (base - top);
+      el('rect', { x: x, y: base - h, width: bw, height: Math.max(h, 1), fill: i === top1 ? '#bf4520' : '#2e5aa8', rx: 3 }, g);
+      var t1 = el('text', { x: x + bw / 2, y: base - h - 6, 'text-anchor': 'middle', 'font-size': 12, 'font-weight': 600, fill: '#2d3142', 'font-family': 'Geist Mono, monospace' }, g); t1.textContent = (q * 100).toFixed(1) + '%';
+      var t2 = el('text', { x: x + bw / 2, y: base + 18, 'text-anchor': 'middle', 'font-size': 11, fill: '#4f5d75', 'font-family': 'Geist Mono, monospace' }, g); t2.textContent = NAMES[i] + ' · z = ' + zs[i].toFixed(1);
+    });
+    $('smxOut').textContent =
+      'T            = ' + (T < 0.1 ? T.toFixed(3) : T.toFixed(2)) + '\n' +
+      pr.map(function (q, i) { return 'p(' + NAMES[i] + ')'.padEnd(11 - NAMES[i].length) + '= ' + q.toFixed(4); }).join('\n') + '\n' +
+      'sum          = ' + pr.reduce(function (a, b) { return a + b; }, 0).toFixed(4) + '\n' +
+      'entropy      = ' + H2.toFixed(3) + ' bits (max 2)\n' +
+      (T < 0.2 ? 'Low T: close to argmax, almost certain.' : T > 3 ? 'High T: close to uniform, very unsure.' : 'T near 1: plain softmax.');
+  }
+  ['l0', 'l1', 'l2', 'l3', 'temp'].forEach(function (id) { $(id).addEventListener('input', smx); });
+  smx();
+
+  // reading checklist
+  var key = 'activation-check:' + location.pathname, saved = {};
+  try { saved = JSON.parse(localStorage.getItem(key) || '{}'); } catch (e) {}
+  var boxes = document.querySelectorAll('.check input'), out = $('prog');
+  function upd() {
+    var cnt = 0, o = {};
+    boxes.forEach(function (b) { if (b.checked) { cnt++; o[b.id] = 1; } b.closest('li').classList.toggle('done', b.checked); });
+    out.textContent = cnt + '/' + boxes.length + ' completed';
+    try { localStorage.setItem(key, JSON.stringify(o)); } catch (e) {}
+  }
+  boxes.forEach(function (b) { b.checked = !!saved[b.id]; b.addEventListener('change', upd); });
+  upd();
 });
 </script>
 </body>

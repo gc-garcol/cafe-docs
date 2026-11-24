@@ -825,9 +825,9 @@ const DOCS = [
     topic: 'Deep learning',
     order: 28,
     level: 'Beginner',
-    tags: ['activation', 'sigmoid', 'tanh', 'relu', 'gelu', 'softmax', 'vanishing gradient', 'saturation', 'nonlinearity'],
-    summary: 'The nonlinear bend after every layer. Plot sigmoid, tanh, ReLU, Leaky ReLU and GELU with their slopes, and see why stacking small slopes makes gradients vanish with depth.',
-    related: ['Deep Learning Overview', 'Backpropagation', 'Gradient Descent', 'Derivatives'],
+    tags: ['activation', 'sigmoid', 'tanh', 'relu', 'leaky relu', 'elu', 'selu', 'gelu', 'swish', 'silu', 'mish', 'swiglu', 'glu', 'softmax', 'temperature', 'vanishing gradient', 'dying relu', 'initialization', 'nonlinearity'],
+    summary: 'The nonlinear bend after every layer. Plot fourteen activations, from sigmoid and ReLU to GELU, Swish and Mish, with their slopes and see gradients vanish or explode with depth. Then cover SwiGLU in LLMs, softmax with temperature, initialization pairs and which models use what.',
+    related: ['Deep Learning Overview', 'Backpropagation', 'Gradient Descent', 'Sequence Models and Transformers', 'Logistic Regression', 'Derivatives'],
   },
   {
     title: 'Backpropagation',
