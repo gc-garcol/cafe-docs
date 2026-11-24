@@ -111,7 +111,7 @@ p .katex,td .katex,li .katex{font-size:1.05em}
 <header>
   <div class="eyebrow">Engineering · Databases</div>
   <h1>Database types and use cases</h1>
-  <p class="lede">Every database is a bet on what you will ask it. A relational store bets on joins and transactions, a key-value store on lookups by one key, a column store on scanning millions of rows for one number. This page maps the ten main families, shows the data model each one is built around, and matches them to real workloads.</p>
+  <p class="lede">Every database is a bet on what you will ask it. A relational store bets on joins and transactions, a key-value store on lookups by one key, a column store on scanning millions of rows for one number. This page maps the ten main families plus append-only stores, names real products in each, shows the data model each one is built around, and matches them to real workloads.</p>
   <nav class="doc-tags" aria-label="Main tags"><a href="../../../../index.html#tag=database">#database</a><a href="../../../../index.html#tag=sql">#sql</a><a href="../../../../index.html#tag=nosql">#nosql</a><a href="../../../../index.html#tag=key-value">#key-value</a></nav>
 </header>
 
@@ -128,7 +128,7 @@ p .katex,td .katex,li .katex{font-size:1.05em}
     <figure class="card" style="margin-top:0">
       <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title" id="fitTitle">Ranking</span></div>
       <div class="scroll">
-        <svg id="bars" width="520" height="330" viewBox="0 0 520 330" style="width:100%;max-width:520px" role="img" aria-labelledby="bars-title bars-desc">
+        <svg id="bars" width="520" height="362" viewBox="0 0 520 362" style="width:100%;max-width:520px" role="img" aria-labelledby="bars-title bars-desc">
           <title id="bars-title">How well each database family fits the chosen workload</title>
           <desc id="bars-desc">Horizontal bars, one per database family, sorted from best to worst fit. The top bar is highlighted. The score is a percentage of the best possible match. The same ranking is written out in the text box below the chart.</desc>
         </svg>
@@ -145,6 +145,7 @@ p .katex,td .katex,li .katex{font-size:1.05em}
     <li><input type="checkbox" id="c-why" aria-label="Mark Why so many kinds as done"><a href="#why">Why there are so many kinds</a></li>
     <li><input type="checkbox" id="c-map" aria-label="Mark Ten data models as done"><a href="#map">Ten data models at a glance</a></li>
     <li><input type="checkbox" id="c-fam" aria-label="Mark The families as done"><a href="#families">The families in detail</a></li>
+    <li><input type="checkbox" id="c-append" aria-label="Mark Append-only databases as done"><a href="#append">Append-only databases</a></li>
     <li><input type="checkbox" id="c-olap" aria-label="Mark OLTP vs OLAP as done"><a href="#olap">OLTP vs OLAP: rows vs columns</a></li>
     <li><input type="checkbox" id="c-engine" aria-label="Mark Storage engines as done"><a href="#engines">Storage engines: B-tree vs LSM-tree</a></li>
     <li><input type="checkbox" id="c-uses" aria-label="Mark Use case table as done"><a href="#uses">Use case cheat sheet</a></li>
@@ -284,7 +285,8 @@ p .katex,td .katex,li .katex{font-size:1.05em}
 
   <div class="fam">
     <h3>Relational (SQL)</h3>
-    <p class="ex">PostgreSQL · MySQL · SQL Server · Oracle · SQLite</p>
+    <p class="ex"><b>Self-hosted / open source:</b> PostgreSQL · MySQL · MariaDB · SQLite · Microsoft SQL Server · Oracle Database · IBM Db2</p>
+    <p class="ex"><b>Managed / cloud:</b> Amazon RDS · Amazon Aurora · Google Cloud SQL · AlloyDB · Azure SQL Database · Neon · Supabase</p>
     <p>Data lives in tables with a fixed schema, rows reference each other with foreign keys, and SQL describes <i>what</i> you want while the planner decides <i>how</i>. ACID transactions keep several changes all-or-nothing.</p>
     <dl>
       <dt>Good at</dt><dd>Integrity constraints, joins, ad-hoc queries, transactions across many rows and tables.</dd>
@@ -295,7 +297,8 @@ p .katex,td .katex,li .katex{font-size:1.05em}
 
   <div class="fam">
     <h3>Key-value</h3>
-    <p class="ex">Redis · Memcached · DynamoDB · etcd · RocksDB</p>
+    <p class="ex"><b>Self-hosted / open source:</b> Redis · Valkey · Memcached · etcd · Aerospike · FoundationDB · RocksDB · LMDB</p>
+    <p class="ex"><b>Managed / cloud:</b> Amazon DynamoDB · Amazon ElastiCache · MemoryDB · Azure Cache for Redis · Google Memorystore · Upstash</p>
     <p>A giant hash map: <code>get(key)</code>, <code>put(key, value)</code>, <code>delete(key)</code>. The store does not look inside the value, so it can spread keys over many nodes and answer in well under a millisecond when the data is in memory.</p>
     <dl>
       <dt>Good at</dt><dd>Very fast lookups by exact key, huge request rates, simple horizontal scaling, TTLs.</dd>
@@ -306,7 +309,8 @@ p .katex,td .katex,li .katex{font-size:1.05em}
 
   <div class="fam">
     <h3>Document</h3>
-    <p class="ex">MongoDB · Couchbase · Firestore · DynamoDB (items) · PostgreSQL <code>jsonb</code></p>
+    <p class="ex"><b>Self-hosted / open source:</b> MongoDB · Couchbase · Apache CouchDB · RavenDB · FerretDB · PostgreSQL <code>jsonb</code></p>
+    <p class="ex"><b>Managed / cloud:</b> MongoDB Atlas · Google Firestore · Amazon DocumentDB · Azure Cosmos DB · DynamoDB (items)</p>
     <p>Each record is a self-contained JSON-like document that can nest arrays and objects. Data that is read together is stored together, so loading a product page is one read instead of five joins. Fields can differ from document to document.</p>
     <dl>
       <dt>Good at</dt><dd>Aggregates that are read as a whole, evolving schemas, secondary indexes on nested fields, sharding by document id.</dd>
@@ -317,7 +321,8 @@ p .katex,td .katex,li .katex{font-size:1.05em}
 
   <div class="fam">
     <h3>Wide-column</h3>
-    <p class="ex">Apache Cassandra · ScyllaDB · HBase · Google Bigtable</p>
+    <p class="ex"><b>Self-hosted / open source:</b> Apache Cassandra · ScyllaDB · Apache HBase · Apache Accumulo</p>
+    <p class="ex"><b>Managed / cloud:</b> Google Bigtable · Amazon Keyspaces · DataStax Astra DB · ScyllaDB Cloud · Azure Cosmos DB for Apache Cassandra</p>
     <p>Rows are grouped by a partition key that decides which nodes own them, and sorted inside the partition by clustering columns. You design one table per query, so every read hits one partition. Built on LSM-trees, they absorb enormous write rates across many machines and data centers.</p>
     <dl>
       <dt>Good at</dt><dd>Massive write throughput, linear scale-out, multi-region replication, time-ordered data per entity.</dd>
@@ -328,7 +333,8 @@ p .katex,td .katex,li .katex{font-size:1.05em}
 
   <div class="fam">
     <h3>Graph</h3>
-    <p class="ex">Neo4j · Amazon Neptune · JanusGraph · Memgraph</p>
+    <p class="ex"><b>Self-hosted / open source:</b> Neo4j · Memgraph · JanusGraph · NebulaGraph · Dgraph · ArangoDB (multi-model)</p>
+    <p class="ex"><b>Managed / cloud:</b> Amazon Neptune · Neo4j AuraDB · TigerGraph Cloud · Azure Cosmos DB for Apache Gremlin</p>
     <p>Nodes and edges are first-class, and both carry properties. A query walks the graph hop by hop (in Cypher, Gremlin or the ISO GQL standard) and each hop costs about the same however large the graph is, where SQL would need one self-join per hop.</p>
     <dl>
       <dt>Good at</dt><dd>Multi-hop traversals, shortest paths, pattern matching, recommendations from connections.</dd>
@@ -339,7 +345,8 @@ p .katex,td .katex,li .katex{font-size:1.05em}
 
   <div class="fam">
     <h3>Time-series</h3>
-    <p class="ex">TimescaleDB · InfluxDB · Prometheus · QuestDB · kdb+</p>
+    <p class="ex"><b>Self-hosted / open source:</b> TimescaleDB · InfluxDB · Prometheus · VictoriaMetrics · QuestDB · TDengine · Apache IoTDB · kdb+</p>
+    <p class="ex"><b>Managed / cloud:</b> Amazon Timestream · InfluxDB Cloud · Timescale Cloud · Grafana Cloud (Mimir) · Azure Data Explorer</p>
     <p>Optimized for data that arrives in time order and is mostly appended, never updated. Points are stored in time-partitioned chunks, compressed with delta encoding, and queried by window: "average per minute over the last 6 hours". Retention policies drop or downsample old data automatically.</p>
     <dl>
       <dt>Good at</dt><dd>High-rate ingestion, time-window aggregates, compression of 10x or more, retention and downsampling.</dd>
@@ -350,7 +357,8 @@ p .katex,td .katex,li .katex{font-size:1.05em}
 
   <div class="fam">
     <h3>Search engine</h3>
-    <p class="ex">Elasticsearch · OpenSearch · Apache Solr · Meilisearch · Typesense</p>
+    <p class="ex"><b>Self-hosted / open source:</b> Elasticsearch · OpenSearch · Apache Solr · Meilisearch · Typesense · Vespa · Apache Lucene (library)</p>
+    <p class="ex"><b>Managed / cloud:</b> Elastic Cloud · Amazon OpenSearch Service · Algolia · Azure AI Search</p>
     <p>Text is split into terms, and an inverted index maps every term to the documents that contain it. Queries rank matches by relevance (BM25), and support fuzzy matching, stemming, facets and highlighting. Indexing is near real time: a new document becomes searchable after a short refresh, about a second by default in Elasticsearch.</p>
     <dl>
       <dt>Good at</dt><dd>Full-text search, relevance ranking, faceted filters, log search and exploration.</dd>
@@ -361,7 +369,8 @@ p .katex,td .katex,li .katex{font-size:1.05em}
 
   <div class="fam">
     <h3>Vector</h3>
-    <p class="ex">pgvector · Pinecone · Milvus · Qdrant · Weaviate</p>
+    <p class="ex"><b>Self-hosted / open source:</b> pgvector · Milvus · Qdrant · Weaviate · Chroma · LanceDB · FAISS (library)</p>
+    <p class="ex"><b>Managed / cloud:</b> Pinecone · Zilliz Cloud · Qdrant Cloud · Weaviate Cloud · vector search in OpenSearch, MongoDB Atlas and Redis</p>
     <p>Stores embeddings, arrays of hundreds of numbers produced by a model, and finds the nearest ones to a query vector. Exact search compares against every vector, so engines use approximate indexes such as HNSW or IVF that trade a little recall for orders of magnitude in speed.</p>
     <dl>
       <dt>Good at</dt><dd>Semantic similarity: "find things like this" for text, images or users, combined with metadata filters.</dd>
@@ -372,7 +381,8 @@ p .katex,td .katex,li .katex{font-size:1.05em}
 
   <div class="fam">
     <h3>Columnar / analytical (OLAP)</h3>
-    <p class="ex">ClickHouse · Snowflake · BigQuery · Amazon Redshift · DuckDB</p>
+    <p class="ex"><b>Self-hosted / open source:</b> ClickHouse · DuckDB · Apache Druid · Apache Pinot · StarRocks · Apache Doris</p>
+    <p class="ex"><b>Managed / cloud:</b> Snowflake · Google BigQuery · Amazon Redshift · Databricks SQL · ClickHouse Cloud · MotherDuck · Azure Synapse</p>
     <p>Each column is stored on its own, compressed, and processed in vectorized batches. A query that touches 3 of 80 columns reads only those 3, which makes scanning billions of rows in seconds routine. Data usually arrives in bulk loads or streams from the operational databases.</p>
     <dl>
       <dt>Good at</dt><dd>Aggregations, group-bys and joins over huge tables, dashboards, ad-hoc analysis.</dd>
@@ -383,7 +393,8 @@ p .katex,td .katex,li .katex{font-size:1.05em}
 
   <div class="fam">
     <h3>Distributed SQL (NewSQL)</h3>
-    <p class="ex">Google Spanner · CockroachDB · TiDB · YugabyteDB</p>
+    <p class="ex"><b>Self-hosted / open source:</b> CockroachDB · TiDB · YugabyteDB · Citus (distributed PostgreSQL) · Vitess (sharded MySQL)</p>
+    <p class="ex"><b>Managed / cloud:</b> Google Spanner · Amazon Aurora DSQL · CockroachDB Cloud · TiDB Cloud · PlanetScale</p>
     <p>SQL and ACID transactions on top of automatic sharding. Tables are split into ranges, each range is replicated with a consensus protocol (Paxos or Raft), and transactions span ranges. You get relational semantics that survive a node or a whole region failing.</p>
     <dl>
       <dt>Good at</dt><dd>Strongly consistent transactions at a scale one node cannot hold, multi-region deployments, no manual sharding.</dd>
@@ -392,14 +403,94 @@ p .katex,td .katex,li .katex{font-size:1.05em}
     </dl>
   </div>
 
+  <div class="fam">
+    <h3>Append-only (event store, ledger, log)</h3>
+    <p class="ex"><b>Self-hosted / open source:</b> KurrentDB (formerly EventStoreDB) · Axon Server · immudb · TigerBeetle · Datomic · XTDB · Apache Kafka · Redpanda</p>
+    <p class="ex"><b>Managed / cloud:</b> Kurrent Cloud · Confluent Cloud · Amazon MSK · Amazon Kinesis · SQL Server and Azure SQL ledger tables</p>
+    <p>Nothing is updated or deleted in place. Every change is a new record appended to the end, so the full history is kept and the current state is derived from it. Section 4 covers the kinds and how they work.</p>
+    <dl>
+      <dt>Good at</dt><dd>Audit trails, "what did it look like on date X", tamper evidence, very fast sequential writes, replaying history into new views.</dd>
+      <dt>Weak at</dt><dd>Ad-hoc queries on current state (you build read models for that), unbounded growth, real deletion for privacy rules.</dd>
+      <dt>Use for</dt><dd>Financial ledgers, event sourcing, compliance and audit logs, order and payment histories, integration events between services.</dd>
+    </dl>
+  </div>
+
   <p>Two neighbours worth knowing: <b>object storage</b> (Amazon S3, GCS) is the cheap, durable bottom layer for files, backups and data lakes queried by engines like Trino or Athena, and <b>embedded</b> databases (SQLite, DuckDB, RocksDB) run inside your process with no server at all.</p>
 </section>
 
+<section id="append">
+  <h2>4. Append-only databases</h2>
+  <p>"Append-only" is a design property more than a data model. The log of changes is the source of truth, and records are never overwritten. To change a value you append a new fact; to remove one you append a tombstone or a reversing entry. It shows up at three levels: whole databases built around it, storage engines that use it underneath, and workloads that are naturally append-only.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 3</span><span class="card-title">An event log and the state it produces</span></div>
+    <div class="scroll">
+<svg width="760" height="250" viewBox="0 0 760 250" style="min-width:720px" role="img" aria-labelledby="ao-title ao-desc">
+<title id="ao-title">Append-only event log, replay, snapshot and compaction</title>
+<desc id="ao-desc">Six events for account A are appended in order at offsets 1 to 6: opened, deposit 100, withdraw 30, deposit 50, withdraw 20, deposit 10. Replaying them from the start gives a balance of 110. A snapshot taken after offset 4 stores balance 120, so a reader only replays offsets 5 and 6 to reach 110. Below, a compacted log keeps only the latest value for each key.</desc>
+<defs><marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10z" fill="#2e5aa8"/></marker></defs>
+<g font-family="'Geist Mono',monospace" font-size="10" fill="#2d3142">
+  <text x="10" y="20" font-size="11" font-weight="600">Event log (account A)</text><text x="200" y="20" fill="#5a6580">append at the end, never edit</text>
+  <g>
+    <rect x="10" y="32" width="100" height="48" fill="#fff" stroke="#2d3142"/><text x="16" y="47" fill="#5a6580">#1</text><text x="16" y="66">Opened</text>
+    <rect x="114" y="32" width="100" height="48" fill="#fff" stroke="#2d3142"/><text x="120" y="47" fill="#5a6580">#2</text><text x="120" y="66">Deposit 100</text>
+    <rect x="218" y="32" width="100" height="48" fill="#fff" stroke="#2d3142"/><text x="224" y="47" fill="#5a6580">#3</text><text x="224" y="66">Withdraw 30</text>
+    <rect x="322" y="32" width="100" height="48" fill="#fff" stroke="#2d3142"/><text x="328" y="47" fill="#5a6580">#4</text><text x="328" y="66">Deposit 50</text>
+    <rect x="426" y="32" width="100" height="48" fill="rgba(46,90,168,.08)" stroke="#2e5aa8"/><text x="432" y="47" fill="#5a6580">#5</text><text x="432" y="66">Withdraw 20</text>
+    <rect x="530" y="32" width="100" height="48" fill="rgba(46,90,168,.08)" stroke="#2e5aa8"/><text x="536" y="47" fill="#5a6580">#6</text><text x="536" y="66">Deposit 10</text>
+    <rect x="634" y="32" width="70" height="48" fill="none" stroke="#bf4520" stroke-dasharray="4 3"/><text x="669" y="60" text-anchor="middle" fill="#bf4520">next →</text>
+  </g>
+  <line x1="424" y1="26" x2="424" y2="96" stroke="#bf4520" stroke-width="2"/>
+  <text x="424" y="110" text-anchor="middle" fill="#bf4520" font-weight="600">snapshot @4: balance 120</text>
+  <path d="M478 84 C 520 120, 600 120, 640 140" fill="none" stroke="#2e5aa8" stroke-width="1.6" marker-end="url(#ar2)"/>
+  <rect x="644" y="128" width="106" height="40" rx="6" fill="#fff" stroke="#2e5aa8" stroke-width="1.6"/><text x="697" y="145" text-anchor="middle" font-weight="600">state now</text><text x="697" y="160" text-anchor="middle" fill="#2e5aa8">balance 110</text>
+  <text x="424" y="126" text-anchor="middle" fill="#5a6580">then replay only #5, #6: 120 − 20 + 10 = 110</text>
+  <text x="10" y="138" fill="#5a6580">full replay: 0 + 100 − 30 + 50 − 20 + 10 = 110</text>
+
+  <text x="10" y="192" font-size="11" font-weight="600">Compacted log</text><text x="120" y="192" fill="#5a6580">keep only the latest record per key (Kafka log compaction)</text>
+  <rect x="10" y="202" width="96" height="32" fill="#ececec" stroke="#bfc0c0"/><text x="16" y="222" fill="#5a6580">user:1 = Ana</text>
+  <rect x="110" y="202" width="96" height="32" fill="#ececec" stroke="#bfc0c0"/><text x="116" y="222" fill="#5a6580">user:2 = Bo</text>
+  <rect x="210" y="202" width="110" height="32" fill="#fff" stroke="#2d3142"/><text x="216" y="222">user:1 = Ana T.</text>
+  <rect x="324" y="202" width="96" height="32" fill="#fff" stroke="#2d3142"/><text x="330" y="222">user:3 = Cy</text>
+  <rect x="424" y="202" width="110" height="32" fill="#fff" stroke="#bf4520"/><text x="430" y="222" fill="#bf4520">user:2 = null</text>
+  <text x="546" y="222" fill="#5a6580">grey: dropped · null: tombstone</text>
+</g>
+</svg>
+    </div>
+    <p class="cap">Fig 3 · State is a fold over the log. Snapshots bound replay time; compaction bounds disk use.</p>
+  </figure>
+
+  <p style="margin-top:20px">The state after $n$ events is the previous state with one more event applied. Starting from an empty state $S_0$ and an apply function $f$:</p>
+  <div class="formula">$$S_n = f(S_{n-1}, e_n) = f(\cdots f(f(S_0, e_1), e_2) \cdots, e_n)$$</div>
+  <p>A snapshot stores some $S_k$, so a reader replays only $e_{k+1}, \ldots, e_n$. Replaying the same log with a different $f$ builds a new view, such as a monthly report, without touching the source data.</p>
+
+  <h3>The kinds, with examples</h3>
+  <div class="tw"><table class="ops">
+    <thead><tr><th>Kind</th><th>What it is</th><th>Examples</th></tr></thead>
+    <tbody>
+      <tr><td>Event store</td><td>Streams of domain events per entity, with optimistic concurrency on the stream version and subscriptions for building read models. The basis of event sourcing and CQRS.</td><td>KurrentDB (formerly EventStoreDB), Axon Server, Marten (on PostgreSQL), Eventuous</td></tr>
+      <tr><td>Ledger / verifiable</td><td>Each entry is chained by cryptographic hash to the previous one, so any edit to history is detectable. Balances follow double-entry rules.</td><td>immudb, TigerBeetle, SQL Server and Azure SQL ledger tables, Oracle blockchain tables, Hyperledger Fabric. Amazon QLDB was in this group until AWS ended support in 2025.</td></tr>
+      <tr><td>Immutable / temporal</td><td>Facts are added with a time, never overwritten, so you can query the database "as of" any past moment.</td><td>Datomic, XTDB (bitemporal), Dolt (Git-style versioned SQL), TerminusDB</td></tr>
+      <tr><td>Distributed log</td><td>A partitioned, replicated append-only log with retention. Consumers read by offset and can rewind.</td><td>Apache Kafka, Redpanda, Apache Pulsar (on BookKeeper), Amazon Kinesis, NATS JetStream</td></tr>
+      <tr><td>Append-only table formats</td><td>Data files are never modified; each commit adds files and a new snapshot, which enables time travel on a data lake.</td><td>Apache Iceberg, Delta Lake, Apache Hudi</td></tr>
+      <tr><td>Append-only storage engines</td><td>The database looks mutable from outside, but writes are appended underneath and old versions are cleaned up later.</td><td>LSM-trees (RocksDB, LevelDB, Cassandra, ScyllaDB), Bitcask (Riak), PostgreSQL MVCC with VACUUM, and the write-ahead log in almost every database</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Trade-offs</h3>
+  <div class="cards">
+    <div class="stat focal"><div class="eyebrow">You get</div><div class="big">history</div><p>A complete audit trail, debugging by replay, time travel, and new read models built from old events.</p></div>
+    <div class="stat"><div class="eyebrow">You get</div><div class="big">fast writes</div><p>Appends are sequential and need no locks on existing records. Replication is just shipping the tail of the log.</p></div>
+    <div class="stat"><div class="eyebrow">You pay</div><div class="big">growth</div><p>Storage grows forever without snapshots, compaction or retention, and current-state queries need a separate read model.</p></div>
+  </div>
+  <p style="margin-top:20px"><b>Deleting personal data</b> is the hard case, because rules such as GDPR require real erasure. The common answer is crypto-shredding: encrypt each person's data with its own key and delete the key, which leaves the log intact but the data unreadable.</p>
+</section>
+
 <section id="olap">
-  <h2>4. OLTP vs OLAP: rows vs columns</h2>
+  <h2>5. OLTP vs OLAP: rows vs columns</h2>
   <p>Operational (OLTP) work touches a few whole rows at a time: insert this order, load that user. Analytical (OLAP) work touches a few columns of very many rows: total revenue per month. The physical layout decides which one is cheap.</p>
   <figure class="card">
-    <div class="card-top"><span class="eyebrow">Fig 3</span><span class="card-title">Same table, two layouts, one query</span></div>
+    <div class="card-top"><span class="eyebrow">Fig 4</span><span class="card-title">Same table, two layouts, one query</span></div>
     <div class="scroll">
 <svg width="760" height="210" viewBox="0 0 760 210" style="min-width:720px" role="img" aria-labelledby="rc-title rc-desc">
 <title id="rc-title">Row store and column store reading SUM of amount</title>
@@ -412,7 +503,7 @@ p .katex,td .katex,li .katex{font-size:1.05em}
 </g>
 </svg>
     </div>
-    <p class="cap">Fig 3 · Orange cells are the ones the query needs. Grey outline means the block is read from disk anyway.</p>
+    <p class="cap">Fig 4 · Orange cells are the ones the query needs. Grey outline means the block is read from disk anyway.</p>
   </figure>
   <p>Column stores also compress far better, because a column holds values of one type that often repeat. With $c$ columns of similar width and a query that needs $k$ of them, a column store reads roughly a fraction $k / c$ of the bytes a row store would, before compression widens the gap further.</p>
   <div class="tw"><table class="ops">
@@ -429,7 +520,7 @@ p .katex,td .katex,li .katex{font-size:1.05em}
 </section>
 
 <section id="engines">
-  <h2>5. Storage engines: B-tree vs LSM-tree</h2>
+  <h2>6. Storage engines: B-tree vs LSM-tree</h2>
   <p>Under the data model sits an index structure, and two designs dominate.</p>
   <h3>B-tree</h3>
   <p>A wide, balanced tree of fixed-size pages, updated in place. With a branching factor $b$ the depth for $n$ keys is about $\log_b n$, so with $b = 500$ a billion rows need only about four page reads, and the top levels are always cached. Reads and range scans are fast and predictable. Writes cost a random page update plus a write-ahead log entry. Used by PostgreSQL, MySQL InnoDB, SQL Server, Oracle and SQLite.</p>
@@ -448,7 +539,7 @@ p .katex,td .katex,li .katex{font-size:1.05em}
 </section>
 
 <section id="uses">
-  <h2>6. Use case cheat sheet</h2>
+  <h2>7. Use case cheat sheet</h2>
   <div class="tw"><table class="ops">
     <thead><tr><th>Use case</th><th>Good first choice</th><th>Why</th></tr></thead>
     <tbody>
@@ -464,16 +555,19 @@ p .katex,td .katex,li .katex{font-size:1.05em}
       <tr><td>Site search, log search</td><td>Search engine</td><td>Relevance ranking, fuzzy match, facets.</td></tr>
       <tr><td>RAG, semantic search</td><td>Vector (or pgvector)</td><td>Nearest neighbours on embeddings.</td></tr>
       <tr><td>BI dashboards, reporting</td><td>Columnar warehouse</td><td>Scans of billions of rows in seconds.</td></tr>
+      <tr><td>Audit trail, compliance log</td><td>Append-only ledger (immudb, ledger tables)</td><td>Tamper-evident history that is never rewritten.</td></tr>
+      <tr><td>Event sourcing, CQRS</td><td>Event store (KurrentDB, Axon)</td><td>Events are the truth; read models are rebuilt from them.</td></tr>
+      <tr><td>Double-entry accounting at high volume</td><td>Ledger (TigerBeetle)</td><td>Immutable transfers, balances that always add up.</td></tr>
       <tr><td>Files, backups, data lake</td><td>Object storage</td><td>Cheap, durable, effectively unlimited.</td></tr>
     </tbody>
   </table></div>
 </section>
 
 <section id="poly">
-  <h2>7. Polyglot persistence</h2>
+  <h2>8. Polyglot persistence</h2>
   <p>Real systems combine several stores, each doing the job it is built for. One database stays the <b>source of truth</b>; the others are derived from it and can be rebuilt.</p>
   <figure class="card">
-    <div class="card-top"><span class="eyebrow">Fig 4</span><span class="card-title">An online shop</span></div>
+    <div class="card-top"><span class="eyebrow">Fig 5</span><span class="card-title">An online shop</span></div>
     <div class="scroll">
 <svg width="760" height="300" viewBox="0 0 760 300" style="min-width:720px" role="img" aria-labelledby="poly-title poly-desc">
 <title id="poly-title">Several databases behind one online shop</title>
@@ -497,14 +591,14 @@ p .katex,td .katex,li .katex{font-size:1.05em}
 <text x="379" y="140" font-family="'Geist Mono',monospace" font-size="10" fill="#2e5aa8" text-anchor="middle">CDC</text>
 </svg>
     </div>
-    <p class="cap">Fig 4 · Black arrows are writes from the app. Blue arrows are derived copies fed from the change log.</p>
+    <p class="cap">Fig 5 · Black arrows are writes from the app. Blue arrows are derived copies fed from the change log.</p>
   </figure>
   <p>The danger is keeping copies in sync. Writing to PostgreSQL and then to OpenSearch from the app is a dual write: if the second call fails, the stores disagree forever. Instead, read the database's own change log (change data capture with Debezium, or an outbox table) and publish it through Kafka, as the <a href="../../kafka/kafka-use-cases/kafka-use-cases.html">Kafka use cases</a> page shows. Every derived store then converges on the source of truth, a little later.</p>
   <p class="callout">Add a second database when a real query demands it, not because the architecture diagram looks thin.</p>
 </section>
 
 <section id="choose">
-  <h2>8. How to choose</h2>
+  <h2>9. How to choose</h2>
   <ol class="tight">
     <li><b>List the top queries and writes</b>, with rates and latency targets. "Get order by id, 2k/s, p99 &lt; 20 ms" is a requirement; "we might need graphs" is not.</li>
     <li><b>Decide what must be transactional.</b> Money, stock and uniqueness usually do. Likes, views and feeds usually don't.</li>
@@ -516,7 +610,7 @@ p .katex,td .katex,li .katex{font-size:1.05em}
 </section>
 
 <section id="mistakes">
-  <h2>9. Common mistakes</h2>
+  <h2>10. Common mistakes</h2>
   <ul class="tight">
     <li>Choosing NoSQL "for scale" with a dataset that fits in RAM on one machine, then rebuilding joins in application code.</li>
     <li>Modeling Cassandra or DynamoDB like SQL tables. Without designing per access pattern you get full scans or hot partitions.</li>
@@ -524,6 +618,7 @@ p .katex,td .katex,li .katex{font-size:1.05em}
     <li>Running analytics on the OLTP primary. Use a replica or a warehouse.</li>
     <li>Dual writes to two stores without an outbox or CDC, so they drift apart on the first failure.</li>
     <li>Picking a low-cardinality partition key (country, status), which sends most traffic to a few nodes.</li>
+    <li>Querying an event store directly for current state. Project the events into a read model built for the query.</li>
     <li>Ignoring the extensions you already have: <code>jsonb</code>, full-text search, PostGIS and pgvector cover many "we need a new database" moments.</li>
   </ul>
   <p>Next: how distributed databases behave when the network splits, in the <a href="../cap-theorem/cap-theorem.html">CAP theorem</a> guide.</p>
@@ -540,34 +635,36 @@ p .katex,td .katex,li .katex{font-size:1.05em}
 
   // Questions: key, label, weight, options [value, label]
   var Q = [
-    { k: 'shape', label: 'Data shape', w: 3, opts: [['tables', 'Related tables'], ['docs', 'Nested documents'], ['kv', 'Key → blob'], ['graph', 'Connected entities'], ['ts', 'Timestamped events'], ['text', 'Text'], ['vec', 'Embeddings']] },
-    { k: 'query', label: 'Main query', w: 3, opts: [['key', 'By key'], ['adhoc', 'Filters & joins'], ['agg', 'Aggregates'], ['trav', 'Multi-hop'], ['fts', 'Full-text'], ['sim', 'Similarity']] },
+    { k: 'shape', label: 'Data shape', w: 3, opts: [['tables', 'Related tables'], ['docs', 'Nested documents'], ['kv', 'Key → blob'], ['graph', 'Connected entities'], ['ts', 'Timestamped events'], ['text', 'Text'], ['vec', 'Embeddings'], ['log', 'Append-only history']] },
+    { k: 'query', label: 'Main query', w: 3, opts: [['key', 'By key'], ['adhoc', 'Filters & joins'], ['agg', 'Aggregates'], ['trav', 'Multi-hop'], ['fts', 'Full-text'], ['sim', 'Similarity'], ['replay', 'History & replay']] },
     { k: 'cons', label: 'Consistency', w: 1.5, opts: [['acid', 'Strict transactions'], ['eventual', 'Eventual is fine']] },
     { k: 'scale', label: 'Write scale', w: 1.5, opts: [['one', 'One node is enough'], ['many', 'Many nodes']] },
     { k: 'lat', label: 'Latency', w: 1, opts: [['sub', '< 1 ms'], ['ms', 'Milliseconds'], ['sec', 'Seconds OK']] }
   ];
   // Fit scores 0..3 per option, in the same order as Q[i].opts
   var F = [
-    { id: 'rel', name: 'Relational', ex: 'PostgreSQL, MySQL', s: { shape: [3, 2, 1, 1, 2, 1, 1], query: [2, 3, 2, 1, 1, 1], cons: [3, 1], scale: [3, 1], lat: [1, 3, 2] },
+    { id: 'rel', name: 'Relational', ex: 'PostgreSQL, MySQL, SQL Server, Aurora', s: { shape: [3, 2, 1, 1, 2, 1, 1, 1], query: [2, 3, 2, 1, 1, 1, 1], cons: [3, 1], scale: [3, 1], lat: [1, 3, 2] },
       why: 'joins, constraints and ACID transactions', watch: 'scaling writes past one primary needs sharding or a distributed SQL engine' },
-    { id: 'kv', name: 'Key-value', ex: 'Redis, DynamoDB, etcd', s: { shape: [0, 1, 3, 0, 1, 0, 0], query: [3, 0, 0, 0, 0, 0], cons: [1, 3], scale: [2, 3], lat: [3, 2, 0] },
+    { id: 'kv', name: 'Key-value', ex: 'Redis, Valkey, DynamoDB, etcd, Aerospike', s: { shape: [0, 1, 3, 0, 1, 0, 0, 0], query: [3, 0, 0, 0, 0, 0, 0], cons: [1, 3], scale: [2, 3], lat: [3, 2, 0] },
       why: 'exact-key lookups at very high rates, often in memory', watch: 'anything not by key needs another index or another store' },
-    { id: 'doc', name: 'Document', ex: 'MongoDB, Firestore', s: { shape: [1, 3, 2, 0, 1, 1, 1], query: [3, 2, 1, 0, 1, 1], cons: [2, 2], scale: [2, 3], lat: [1, 3, 1] },
+    { id: 'doc', name: 'Document', ex: 'MongoDB, Couchbase, Firestore, Cosmos DB', s: { shape: [1, 3, 2, 0, 1, 1, 1, 1], query: [3, 2, 1, 0, 1, 1, 0], cons: [2, 2], scale: [2, 3], lat: [1, 3, 1] },
       why: 'a whole aggregate in one read, flexible fields', watch: 'many-to-many relations and duplicated data that must stay in sync' },
-    { id: 'wide', name: 'Wide-column', ex: 'Cassandra, ScyllaDB', s: { shape: [1, 1, 2, 0, 3, 0, 0], query: [3, 0, 0, 0, 0, 0], cons: [0, 3], scale: [0, 3], lat: [1, 3, 1] },
+    { id: 'wide', name: 'Wide-column', ex: 'Cassandra, ScyllaDB, Bigtable, HBase', s: { shape: [1, 1, 2, 0, 3, 0, 0, 2], query: [3, 0, 0, 0, 0, 0, 1], cons: [0, 3], scale: [0, 3], lat: [1, 3, 1] },
       why: 'huge write throughput, one partition per read, multi-region', watch: 'one table per query; ad-hoc questions are expensive' },
-    { id: 'graph', name: 'Graph', ex: 'Neo4j, Neptune', s: { shape: [1, 0, 0, 3, 0, 0, 0], query: [1, 1, 0, 3, 0, 0], cons: [2, 1], scale: [2, 1], lat: [1, 3, 1] },
+    { id: 'graph', name: 'Graph', ex: 'Neo4j, Neptune, Memgraph, TigerGraph', s: { shape: [1, 0, 0, 3, 0, 0, 0, 0], query: [1, 1, 0, 3, 0, 0, 0], cons: [2, 1], scale: [2, 1], lat: [1, 3, 1] },
       why: 'traversals whose cost does not grow with the graph', watch: 'bulk analytics and sharding dense graphs' },
-    { id: 'ts', name: 'Time-series', ex: 'TimescaleDB, InfluxDB', s: { shape: [1, 0, 0, 0, 3, 0, 0], query: [1, 1, 3, 0, 0, 0], cons: [1, 2], scale: [2, 3], lat: [1, 3, 2] },
+    { id: 'ts', name: 'Time-series', ex: 'TimescaleDB, InfluxDB, Prometheus, QuestDB', s: { shape: [1, 0, 0, 0, 3, 0, 0, 2], query: [1, 1, 3, 0, 0, 0, 1], cons: [1, 2], scale: [2, 3], lat: [1, 3, 2] },
       why: 'append-heavy ingestion, window aggregates, retention', watch: 'updates and high-cardinality labels' },
-    { id: 'search', name: 'Search engine', ex: 'Elasticsearch, OpenSearch', s: { shape: [0, 2, 0, 0, 1, 3, 1], query: [1, 2, 1, 0, 3, 1], cons: [0, 3], scale: [1, 3], lat: [0, 3, 1] },
+    { id: 'search', name: 'Search engine', ex: 'Elasticsearch, OpenSearch, Solr, Algolia', s: { shape: [0, 2, 0, 0, 1, 3, 1, 0], query: [1, 2, 1, 0, 3, 1, 0], cons: [0, 3], scale: [1, 3], lat: [0, 3, 1] },
       why: 'relevance-ranked full-text search and facets', watch: 'not a source of truth; keep the original data elsewhere' },
-    { id: 'vec', name: 'Vector', ex: 'pgvector, Qdrant, Pinecone', s: { shape: [0, 1, 0, 0, 0, 1, 3], query: [1, 0, 0, 0, 1, 3], cons: [0, 2], scale: [2, 2], lat: [1, 3, 1] },
+    { id: 'vec', name: 'Vector', ex: 'pgvector, Pinecone, Milvus, Qdrant, Weaviate', s: { shape: [0, 1, 0, 0, 0, 1, 3, 0], query: [1, 0, 0, 0, 1, 3, 0], cons: [0, 2], scale: [2, 2], lat: [1, 3, 1] },
       why: 'approximate nearest neighbours over embeddings', watch: 'recall vs speed tuning; add keyword search for exact terms' },
-    { id: 'olap', name: 'Columnar / OLAP', ex: 'ClickHouse, Snowflake', s: { shape: [3, 1, 0, 0, 2, 0, 0], query: [0, 2, 3, 0, 0, 0], cons: [1, 2], scale: [1, 3], lat: [0, 1, 3] },
+    { id: 'olap', name: 'Columnar / OLAP', ex: 'ClickHouse, Snowflake, BigQuery, Redshift, DuckDB', s: { shape: [3, 1, 0, 0, 2, 0, 0, 1], query: [0, 2, 3, 0, 0, 0, 1], cons: [1, 2], scale: [1, 3], lat: [0, 1, 3] },
       why: 'scans and aggregates over billions of rows', watch: 'single-row reads and frequent small updates' },
-    { id: 'newsql', name: 'Distributed SQL', ex: 'Spanner, CockroachDB', s: { shape: [3, 1, 1, 1, 1, 0, 0], query: [2, 3, 2, 1, 0, 0], cons: [3, 1], scale: [1, 3], lat: [0, 3, 1] },
-      why: 'SQL and ACID across shards and regions', watch: 'consensus adds write latency and cost' }
+    { id: 'newsql', name: 'Distributed SQL', ex: 'Spanner, CockroachDB, TiDB, YugabyteDB', s: { shape: [3, 1, 1, 1, 1, 0, 0, 1], query: [2, 3, 2, 1, 0, 0, 1], cons: [3, 1], scale: [1, 3], lat: [0, 3, 1] },
+      why: 'SQL and ACID across shards and regions', watch: 'consensus adds write latency and cost' },
+    { id: 'log', name: 'Append-only', ex: 'KurrentDB, immudb, TigerBeetle, Datomic, Kafka', s: { shape: [1, 1, 1, 0, 2, 0, 0, 3], query: [2, 1, 1, 0, 0, 0, 3], cons: [3, 2], scale: [2, 3], lat: [1, 3, 1] },
+      why: 'full history, tamper evidence, replay into new views', watch: 'build read models for current-state queries; plan compaction and erasure' }
   ];
   var P = [
     { name: 'Orders & payments', v: { shape: 'tables', query: 'adhoc', cons: 'acid', scale: 'one', lat: 'ms' } },
@@ -579,6 +676,7 @@ p .katex,td .katex,li .katex{font-size:1.05em}
     { name: 'Site search', v: { shape: 'text', query: 'fts', cons: 'eventual', scale: 'many', lat: 'ms' } },
     { name: 'RAG chatbot', v: { shape: 'vec', query: 'sim', cons: 'eventual', scale: 'one', lat: 'ms' } },
     { name: 'BI dashboard', v: { shape: 'tables', query: 'agg', cons: 'eventual', scale: 'many', lat: 'sec' } },
+    { name: 'Audit & event sourcing', v: { shape: 'log', query: 'replay', cons: 'acid', scale: 'many', lat: 'ms' } },
     { name: 'Global ledger', v: { shape: 'tables', query: 'adhoc', cons: 'acid', scale: 'many', lat: 'ms' } }
   ];
   var state = Object.assign({}, P[0].v), preset = 0;
@@ -638,7 +736,7 @@ p .katex,td .katex,li .katex{font-size:1.05em}
   }
   sync(); render();
 
-  // Fig 3 cells
+  // Fig 4 cells
   var rows = [['1', '05-01', 'ana', '30'], ['2', '05-01', 'bo', '12'], ['3', '05-02', 'cy', '45'], ['4', '05-03', 'ana', '8']];
   var cw = 44, gap = 2, x = 10;
   var rg = $('rowcells'), cg = $('colcells');

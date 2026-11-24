@@ -1222,8 +1222,8 @@ const DOCS = [
     topic: 'Databases',
     order: 6,
     level: 'Beginner',
-    tags: ['database', 'sql', 'nosql', 'key-value', 'document', 'wide-column', 'graph', 'time-series', 'search', 'vector', 'olap', 'oltp', 'b-tree', 'lsm-tree', 'polyglot persistence'],
-    summary: 'Relational, key-value, document, wide-column, graph, time-series, search, vector, columnar and distributed SQL on one page. Describe a workload and see which family fits, compare row and column layouts, B-trees and LSM-trees, and match each store to real use cases.',
+    tags: ['database', 'sql', 'nosql', 'key-value', 'document', 'wide-column', 'graph', 'time-series', 'search', 'vector', 'olap', 'oltp', 'b-tree', 'lsm-tree', 'append-only', 'event store', 'ledger', 'event sourcing', 'polyglot persistence'],
+    summary: 'Relational, key-value, document, wide-column, graph, time-series, search, vector, columnar, distributed SQL and append-only stores on one page, with real product names for each. Describe a workload and see which family fits, compare row and column layouts, B-trees and LSM-trees, and match each store to real use cases.',
     related: ['CAP Theorem', 'AWS Databases', 'Caching Strategies', 'Kafka Use Cases', 'Bloom Filter'],
   },
   {
