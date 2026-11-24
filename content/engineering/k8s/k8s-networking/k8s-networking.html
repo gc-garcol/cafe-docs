@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kubernetes Networking: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible,a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+a{color:var(--link)}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+
+.card{margin:24px 0 0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.scroll{overflow-x:auto;padding:0 8px}
+.scroll svg{display:block;height:auto}
+
+.controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;margin-top:16px;align-items:start}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:0 0 12px}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.btn:disabled{opacity:.4;cursor:not-allowed;background:transparent;color:var(--ink)}
+#readout{margin:0;padding:0;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink);border:0;background:none}
+
+.nodes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;padding:16px}
+.node{border:1px solid var(--rule-solid);border-radius:8px;padding:14px;background:#fff}
+.node.leader{border-color:var(--accent);background:var(--accent-tint)}
+.node.down{opacity:.45;border-style:dashed}
+.node h3{margin:0 0 2px;font-family:var(--serif);font-weight:400;font-size:22px}
+.role{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft)}
+.log{display:flex;flex-wrap:wrap;gap:4px;margin:12px 0;min-height:30px}
+.ent{font-family:var(--mono);font-size:11px;min-width:34px;padding:3px 5px;border:1px solid var(--ink);border-radius:4px;text-align:center;background:#fff}
+.ent.c{background:var(--ink);color:var(--paper)}
+.ent.u{border-style:dashed;color:var(--muted)}
+.state{font-family:var(--mono);font-size:12px;font-weight:600}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:8px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+
+pre{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .c2{color:var(--soft);font-style:italic}
+
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat p{font-size:14px;color:var(--muted);margin:6px 0 0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+
+table.ops{border-collapse:collapse;width:100%;max-width:860px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+table.ops td:first-child{white-space:nowrap}
+ul.tight,ol.toc{padding-left:22px;max-width:68ch}ul.tight li,ol.toc li{margin:6px 0}
+.src{font-size:14px;color:var(--muted)}
+
+@media (max-width:860px){.controls,.cards,.nodes{grid-template-columns:1fr}.page{padding:32px 16px 72px}table.ops td:first-child{white-space:normal}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+
+.cell{display:inline-block;width:26px;height:26px;margin:2px;border:1px solid var(--rule-solid);border-radius:4px;background:#fff;font:600 10px var(--mono);text-align:center;line-height:24px}
+.cell.w{background:var(--paper-2);border-color:var(--ink)}
+.cell.s{background:rgba(46,90,168,.18);border-color:var(--link)}
+.cell.r{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.cell.lost{background:#fff;border:1px dashed var(--accent);color:var(--accent)}
+.cell.pad{background:var(--paper-2);border:1px dotted var(--soft);color:var(--soft)}
+.cell.nak{background:var(--accent-tint);border-color:var(--accent)}
+.cell.cur{outline:2px solid var(--accent)}
+button.cell{cursor:pointer;padding:0}
+.term{display:flex;align-items:center;gap:8px;margin:6px 0;flex-wrap:wrap}
+.term .lbl{font-family:var(--mono);font-size:11px;color:var(--soft);width:96px}
+.bar{position:relative;height:30px;margin:14px 16px;background:var(--paper-2);border-radius:4px}
+.bar i{position:absolute;top:0;bottom:0;left:0;border-radius:4px}
+.lane{margin:6px 16px 0;font-family:var(--mono);font-size:11px;color:var(--muted)}
+label.f{display:flex;flex-direction:column;gap:4px;font-family:var(--mono);font-size:12px;font-weight:600;margin:0 0 12px}
+select,input[type=text]{min-height:40px;padding:0 10px;border:1px solid var(--rule-solid);border-radius:6px;font:500 14px var(--mono);color:var(--ink);background:#fff;max-width:100%}
+select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.uri{font-family:var(--mono);font-size:14px;word-break:break-all;padding:14px 16px;background:var(--ink);color:var(--paper);border-radius:6px;margin:0 0 12px}
+
+
+.pod{display:inline-flex;align-items:center;justify-content:center;min-width:64px;height:36px;margin:3px;padding:0 8px;border:1px solid var(--ink);border-radius:6px;background:#fff;font:600 11px var(--mono);color:var(--ink)}
+button.pod{cursor:pointer}
+.pod.new{background:var(--ink);color:var(--paper)}
+.pod.pend{border-style:dashed;color:var(--muted);background:var(--paper-2)}
+.pod.bad{border-color:var(--accent);color:var(--accent);background:var(--accent-tint)}
+.pod.off{opacity:.4;border-style:dashed}
+.pod.hit{outline:2px solid var(--accent)}
+.comp{border:1px solid var(--rule-solid);border-radius:8px;padding:12px 14px;background:#fff;font-size:14px}
+.comp.on{border-color:var(--accent);background:var(--accent-tint)}
+.comp b{font-family:var(--serif);font-weight:400;font-size:19px;display:block}
+.comp span{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.split{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;padding:16px}
+.split3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;padding:16px}
+.ok{color:#1f7a4d}.no{color:var(--accent)}
+@media (max-width:860px){.split,.split3{grid-template-columns:1fr}}
+
+.check{list-style:none;padding:0;margin:12px 0 0;max-width:640px}
+.check li{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--rule)}
+.check input{width:18px;height:18px;accent-color:var(--accent)}
+.check li.done a{color:var(--soft);text-decoration:line-through}
+.prog{font-family:var(--mono);font-size:12px;color:var(--soft)}
+
+
+.doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}.doc-tags a{font:500 12px "Geist Mono",ui-monospace,monospace;padding:4px 10px;border:1px solid var(--rule-solid,#bfc0c0);border-radius:4px;background:#fff;color:var(--muted,#4f5d75);text-decoration:none}.doc-tags a:hover{border-color:var(--ink,#2d3142);color:var(--ink,#2d3142)}.doc-tags a:focus-visible{outline:2px solid var(--accent,#bf4520);outline-offset:2px}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" style="margin-right:8px" href="../../../../index.html">&larr; Back to home</a>
+<a class="back back-cat" href="../../../../index.html#cat=Engineering">&larr; Back to Engineering</a>
+
+<header>
+  <div class="eyebrow">Engineering · Kubernetes</div>
+  <h1>Kubernetes Networking</h1>
+  <p class="lede">How Pods find and reach each other and the outside world. Services, DNS, ingress, the CNI plugin and the rules that enforce it all.</p>
+  
+  
+  <nav class="doc-tags" aria-label="Main tags"><a href="../../../../index.html#tag=kubernetes">#kubernetes</a><a href="../../../../index.html#tag=k8s">#k8s</a><a href="../../../../index.html#tag=service">#service</a><a href="../../../../index.html#tag=coredns">#coredns</a></nav>
+</header>
+
+<section>
+  <h2>Which Pods does a Service reach?</h2>
+  <p>A Service has a stable address and a label selector. Its endpoints are the Pods that match the selector <b>and</b> are ready. Click a Pod to flip its readiness, then send requests.</p>
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">Service endpoints</span></div>
+    <div style="padding:16px" id="pods" role="group" aria-label="Pods"></div>
+    <div class="card-bottom"><span class="hint">solid = endpoint, dashed = not ready, faded = label does not match</span><span class="live" id="live"></span></div>
+  </figure>
+  <div class="controls">
+    <div class="panel">
+      <label class="f">Service selector <select id="sel"><option value="web">app=web</option><option value="api">app=api</option><option value="none">app=cache</option></select></label>
+      <div class="row"><button class="btn" id="send">Send request</button><button class="btn" id="reset">Reset</button></div>
+      <p class="src">Pods: three labeled <code>app=web</code>, two labeled <code>app=api</code>.</p>
+    </div>
+    <div class="panel"><pre id="readout" aria-live="polite"></pre></div>
+  </div>
+</section>
+
+<section>
+  <h2>Contents</h2>
+  <div class="prog" id="prog" aria-live="polite"></div>
+  <ol class="check">
+    <li><input type="checkbox" id="c-podnet" aria-label="Mark Pod Networking as done"><a href="#podnet">Pod Networking</a></li>
+    <li><input type="checkbox" id="c-svc" aria-label="Mark ClusterIP / NodePort / LoadBalancer as done"><a href="#svc">ClusterIP / NodePort / LoadBalancer</a></li>
+    <li><input type="checkbox" id="c-dns" aria-label="Mark CoreDNS as done"><a href="#dns">CoreDNS</a></li>
+    <li><input type="checkbox" id="c-ingress" aria-label="Mark Ingress Controller as done"><a href="#ingress">Ingress Controller</a></li>
+    <li><input type="checkbox" id="c-gateway" aria-label="Mark Gateway API as done"><a href="#gateway">Gateway API</a></li>
+    <li><input type="checkbox" id="c-cni" aria-label="Mark CNI as done"><a href="#cni">CNI</a></li>
+    <li><input type="checkbox" id="c-netpol" aria-label="Mark NetworkPolicy as done"><a href="#netpol">NetworkPolicy</a></li>
+    <li><input type="checkbox" id="c-proxy" aria-label="Mark kube-proxy / iptables / IPVS as done"><a href="#proxy">kube-proxy / iptables / IPVS</a></li>
+  </ol>
+</section>
+
+<section id="podnet">
+  <h2>1. Pod Networking</h2>
+  <p>Every Pod gets its own IP. Any Pod can reach any other Pod by IP with no NAT, across nodes. Containers in one Pod share the network namespace and talk over <code>localhost</code>. The CNI plugin builds this flat network.</p>
+
+</section>
+
+<section id="svc">
+  <h2>2. ClusterIP / NodePort / LoadBalancer</h2>
+  <table class="ops">
+    <thead><tr><th>Type</th><th>Reachable from</th></tr></thead>
+    <tbody>
+      <tr><td>ClusterIP</td><td>Inside the cluster only. The default.</td></tr>
+      <tr><td>NodePort</td><td>A fixed port on every node.</td></tr>
+      <tr><td>LoadBalancer</td><td>An external load balancer from the cloud provider.</td></tr>
+      <tr><td>ExternalName</td><td>A DNS alias to a name outside the cluster.</td></tr>
+    </tbody>
+  </table>  <p>A Service has a stable virtual IP and picks ready Pods by label. A headless Service (<code>clusterIP: None</code>) skips the virtual IP and returns Pod IPs.</p>
+
+</section>
+
+<section id="dns">
+  <h2>3. CoreDNS</h2>
+  <p>CoreDNS is the cluster DNS server. A Service <code>web</code> in namespace <code>shop</code> is <code>web.shop.svc.cluster.local</code>. Inside the same namespace the short name <code>web</code> works because of the search list in each Pod's <code>/etc/resolv.conf</code>.</p>
+
+</section>
+
+<section id="ingress">
+  <h2>4. Ingress Controller</h2>
+  <p>An <b>Ingress</b> routes outside HTTP and HTTPS traffic to Services by host and path, and terminates TLS. It does nothing alone. An <b>ingress controller</b> such as NGINX or Traefik watches Ingress objects and does the routing.</p>
+
+</section>
+
+<section id="gateway">
+  <h2>5. Gateway API</h2>
+  <p>The successor to Ingress with roles split across objects: a <b>GatewayClass</b> (the implementation), a <b>Gateway</b> (listeners, owned by platform teams) and <b>HTTPRoute</b> (rules, owned by app teams). It also supports TCP, gRPC, header matching and traffic splitting without vendor annotations.</p>
+
+</section>
+
+<section id="cni">
+  <h2>6. CNI</h2>
+  <p>The Container Network Interface is the plugin contract the kubelet uses to wire up a Pod. The plugin assigns the IP and sets up routes. Common choices are Calico, Cilium (eBPF) and Flannel. Many also enforce NetworkPolicy. Without a CNI, nodes stay <code>NotReady</code>.</p>
+
+</section>
+
+<section id="netpol">
+  <h2>7. NetworkPolicy</h2>
+  <p>By default all Pods can talk to all Pods. A NetworkPolicy selects Pods and lists allowed ingress and egress. Once a Pod is selected, anything not allowed is dropped. The CNI must support it.</p>
+<pre>kind: NetworkPolicy
+spec:
+  podSelector: {}           <span class="c2"># every Pod in the namespace</span>
+  policyTypes: [Ingress]    <span class="c2"># no rules = deny all ingress</span></pre>
+</section>
+
+<section id="proxy">
+  <h2>8. kube-proxy / iptables / IPVS</h2>
+  <p>On every node, kube-proxy turns the Service and endpoint lists into kernel rules. In <b>iptables</b> mode a packet to the Service IP is rewritten to one endpoint, and rule lookup grows with the number of Services. <b>IPVS</b> mode uses hash tables and scales better. No proxy process sits in the data path. Some CNIs, such as Cilium, replace kube-proxy with eBPF.</p>
+
+</section>
+
+<section id="sources">
+  <h2>Sources</h2>
+  <p class="src">Written from the official <a href="https://kubernetes.io/docs/concepts/">Kubernetes documentation</a>. The text and the demo are original summaries. Kubernetes is a trademark of The Linux Foundation.</p>
+</section>
+
+</main>
+
+<script>
+(function () {
+  function $(id) { return document.getElementById(id); }
+  var pods, sent, last;
+  function reset() {
+    pods = [['web', 1], ['web', 1], ['web', 1], ['api', 1], ['api', 1]].map(function (p, i) { return { app: p[0], ready: true, id: i + 1, hits: 0 }; });
+    sent = 0; last = -1; draw('Click a Pod to mark it not ready, or press Send request.');
+  }
+  function eps() { var a = $('sel').value; return pods.filter(function (p) { return p.app === a && p.ready; }); }
+  function draw(msg) {
+    var a = $('sel').value, h = '';
+    pods.forEach(function (p, i) {
+      var match = p.app === a, cl = 'pod' + (!match ? ' off' : (!p.ready ? ' pend' : '')) + (i === last ? ' hit' : '');
+      h += '<button class="' + cl + '" data-i="' + i + '" aria-pressed="' + (!p.ready) + '">' + p.app + '-' + p.id + (p.hits ? ' · ' + p.hits : '') + '</button>';
+    });
+    $('pods').innerHTML = h;
+    var e = eps();
+    $('live').textContent = e.length + ' endpoint(s)';
+    $('readout').textContent = msg;
+    $('send').disabled = false;
+  }
+  $('pods').addEventListener('click', function (ev) {
+    var b = ev.target.closest('button'); if (!b) return;
+    var p = pods[+b.dataset.i]; p.ready = !p.ready; last = -1;
+    draw(p.app + '-' + p.id + ' is now ' + (p.ready ? 'ready' : 'not ready') + '. ' + (p.app === $('sel').value ? 'The endpoint list changed.' : 'This Service does not select it.'));
+  });
+  $('send').addEventListener('click', function () {
+    var e = eps();
+    if (!e.length) { last = -1; draw('No endpoints. The request fails with connection refused.'); return; }
+    var p = e[sent % e.length]; sent++; p.hits++; last = pods.indexOf(p);
+    draw('Request ' + sent + ' goes to ' + p.app + '-' + p.id + '. Endpoints: ' + e.map(function (x) { return x.app + '-' + x.id; }).join(', '));
+  });
+  $('sel').addEventListener('change', function () { last = -1; draw('Selector changed. Endpoints are recomputed from labels and readiness.'); });
+  $('reset').addEventListener('click', reset);
+  reset();
+})();
+</script>
+<script>
+(function () {
+  var key = 'k8s-check:' + location.pathname, saved = {};
+  try { saved = JSON.parse(localStorage.getItem(key) || '{}'); } catch (e) {}
+  var boxes = document.querySelectorAll('.check input'), out = document.getElementById('prog');
+  function upd() {
+    var n = 0, o = {};
+    boxes.forEach(function (b) { if (b.checked) { n++; o[b.id] = 1; } b.closest('li').classList.toggle('done', b.checked); });
+    out.textContent = n + '/' + boxes.length + ' completed';
+    try { localStorage.setItem(key, JSON.stringify(o)); } catch (e) {}
+  }
+  boxes.forEach(function (b) { b.checked = !!saved[b.id]; b.addEventListener('change', upd); });
+  upd();
+})();
+</script>
+</body>
+</html>

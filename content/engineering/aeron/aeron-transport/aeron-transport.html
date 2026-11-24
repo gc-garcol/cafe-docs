@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aeron Transport: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible,a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+a{color:var(--link)}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+
+.card{margin:24px 0 0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.scroll{overflow-x:auto;padding:0 8px}
+.scroll svg{display:block;height:auto}
+
+.controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;margin-top:16px;align-items:start}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:0 0 12px}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.btn:disabled{opacity:.4;cursor:not-allowed;background:transparent;color:var(--ink)}
+#readout{margin:0;padding:0;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink);border:0;background:none}
+
+.nodes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;padding:16px}
+.node{border:1px solid var(--rule-solid);border-radius:8px;padding:14px;background:#fff}
+.node.leader{border-color:var(--accent);background:var(--accent-tint)}
+.node.down{opacity:.45;border-style:dashed}
+.node h3{margin:0 0 2px;font-family:var(--serif);font-weight:400;font-size:22px}
+.role{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft)}
+.log{display:flex;flex-wrap:wrap;gap:4px;margin:12px 0;min-height:30px}
+.ent{font-family:var(--mono);font-size:11px;min-width:34px;padding:3px 5px;border:1px solid var(--ink);border-radius:4px;text-align:center;background:#fff}
+.ent.c{background:var(--ink);color:var(--paper)}
+.ent.u{border-style:dashed;color:var(--muted)}
+.state{font-family:var(--mono);font-size:12px;font-weight:600}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:8px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+
+pre{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .c2{color:var(--soft);font-style:italic}
+
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat p{font-size:14px;color:var(--muted);margin:6px 0 0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+
+table.ops{border-collapse:collapse;width:100%;max-width:860px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+table.ops td:first-child{white-space:nowrap}
+ul.tight,ol.toc{padding-left:22px;max-width:68ch}ul.tight li,ol.toc li{margin:6px 0}
+.src{font-size:14px;color:var(--muted)}
+
+@media (max-width:860px){.controls,.cards,.nodes{grid-template-columns:1fr}.page{padding:32px 16px 72px}table.ops td:first-child{white-space:normal}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+
+.cell{display:inline-block;width:26px;height:26px;margin:2px;border:1px solid var(--rule-solid);border-radius:4px;background:#fff;font:600 10px var(--mono);text-align:center;line-height:24px}
+.cell.w{background:var(--paper-2);border-color:var(--ink)}
+.cell.s{background:rgba(46,90,168,.18);border-color:var(--link)}
+.cell.r{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.cell.lost{background:#fff;border:1px dashed var(--accent);color:var(--accent)}
+.cell.pad{background:var(--paper-2);border:1px dotted var(--soft);color:var(--soft)}
+.cell.nak{background:var(--accent-tint);border-color:var(--accent)}
+.cell.cur{outline:2px solid var(--accent)}
+button.cell{cursor:pointer;padding:0}
+.term{display:flex;align-items:center;gap:8px;margin:6px 0;flex-wrap:wrap}
+.term .lbl{font-family:var(--mono);font-size:11px;color:var(--soft);width:96px}
+.bar{position:relative;height:30px;margin:14px 16px;background:var(--paper-2);border-radius:4px}
+.bar i{position:absolute;top:0;bottom:0;left:0;border-radius:4px}
+.lane{margin:6px 16px 0;font-family:var(--mono);font-size:11px;color:var(--muted)}
+label.f{display:flex;flex-direction:column;gap:4px;font-family:var(--mono);font-size:12px;font-weight:600;margin:0 0 12px}
+select,input[type=text]{min-height:40px;padding:0 10px;border:1px solid var(--rule-solid);border-radius:6px;font:500 14px var(--mono);color:var(--ink);background:#fff;max-width:100%}
+select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.uri{font-family:var(--mono);font-size:14px;word-break:break-all;padding:14px 16px;background:var(--ink);color:var(--paper);border-radius:6px;margin:0 0 12px}
+
+
+
+.doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}.doc-tags a{font:500 12px "Geist Mono",ui-monospace,monospace;padding:4px 10px;border:1px solid var(--rule-solid,#bfc0c0);border-radius:4px;background:#fff;color:var(--muted,#4f5d75);text-decoration:none}.doc-tags a:hover{border-color:var(--ink,#2d3142);color:var(--ink,#2d3142)}.doc-tags a:focus-visible{outline:2px solid var(--accent,#bf4520);outline-offset:2px}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" style="margin-right:8px" href="../../../../index.html">&larr; Back to home</a>
+<a class="back back-cat" href="../../../../index.html#cat=Engineering">&larr; Back to Engineering</a>
+
+<header>
+  <div class="eyebrow">Engineering · Messaging</div>
+  <h1>Aeron Transport</h1>
+  <p class="lede">The messaging layer under everything else in Aeron. Publishers write into a shared memory log buffer, a media driver moves it over UDP or IPC, and subscribers read it by position.</p>
+  
+  
+  
+  <nav class="doc-tags" aria-label="Main tags"><a href="../../../../index.html#tag=aeron">#aeron</a><a href="../../../../index.html#tag=messaging">#messaging</a><a href="../../../../index.html#tag=low%20latency">#low latency</a><a href="../../../../index.html#tag=log%20buffer">#log buffer</a></nav>
+</header>
+
+
+<section>
+  <h2>Try the log buffer first</h2>
+  <p>A publication writes messages into a ring of three <b>terms</b>. <b>Offer</b> appends a message. <b>Send</b> lets the driver's Sender move data onto the wire. <b>Poll</b> lets a subscriber read it. When the publisher gets too far ahead of the Sender, an offer is refused. That is back-pressure.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">One stream in a three-term log buffer</span></div>
+    <div id="terms" style="padding:8px 16px 4px" role="group" aria-label="Log buffer terms"></div>
+    <div class="card-bottom"><span class="hint">grey = written · blue = sent · dark = consumed</span><span class="live" id="live"></span></div>
+  </figure>
+
+  <div class="controls">
+    <div class="panel">
+      <div class="row">
+        <button type="button" class="btn" id="offer">Offer</button>
+        <button type="button" class="btn" id="offer4">Offer x4</button>
+        <button type="button" class="btn" id="send">Send</button>
+        <button type="button" class="btn" id="poll">Poll</button>
+        <button type="button" class="btn" id="reset">Reset</button>
+      </div>
+      <p class="src">Each cell is one message. Real frames are bytes, aligned to 32.</p>
+    </div>
+    <div class="panel"><pre id="readout" aria-live="polite"></pre></div>
+  </div>
+</section>
+
+<section>
+  <h2>Contents</h2>
+  <ol class="toc">
+    <li><a href="#model">The model</a></li>
+    <li><a href="#terms">Terms and positions</a></li>
+    <li><a href="#driver">The media driver</a></li>
+    <li><a href="#ipc">IPC and network</a></li>
+    <li><a href="#threads">Threading modes</a></li>
+    <li><a href="#api">Offering and polling</a></li>
+    <li><a href="#sources">Sources</a></li>
+  </ol>
+</section>
+
+<section id="model">
+  <h2>1. The model</h2>
+  <p>Aeron is a message transport. An application uses a <b>publication</b> to send and a <b>subscription</b> to receive. The two meet on a <b>channel</b> and a <b>stream</b>. Between them sits the <b>media driver</b>, which does the real work of moving bytes.</p>
+  <p>The application and the driver share memory. The client writes into a file-backed buffer and the driver reads it, so the hot path needs no system call and no copy between processes.</p>
+  <p class="callout">The log buffer is the heart of Aeron. Everything else moves or watches it.</p>
+</section>
+
+<section id="terms">
+  <h2>2. Terms and positions</h2>
+  <p>Each publication owns a log buffer split into three equal <b>terms</b>. A writer fills one term, then rotates to the next. Three terms let one be active, one be cleaned and ready, and one be draining to the reader.</p>
+  <p>A <b>position</b> is a 64-bit byte count since the stream began. It is the same on both ends. From a position you can compute where you are:</p>
+  <pre>termCount  = position / termLength
+termOffset = position % termLength
+termIndex  = termCount % 3        <span class="c2">// which of the three buffers</span></pre>
+  <p>Three positions matter. The <b>publisher position</b> is how far the application has written. The <b>sender position</b> is how far the driver has sent. The <b>subscriber position</b> is how far a reader has consumed. The gaps between them are the queue.</p>
+  <p>The publisher may only run ahead of the sender by a window, by default half a term. Past that, an offer fails with a back-pressure result and the caller retries.</p>
+</section>
+
+<section id="driver">
+  <h2>3. The media driver</h2>
+  <div class="cards">
+    <div class="stat focal"><div class="eyebrow">Conductor</div><p>Handles commands from clients, creates and cleans up resources, detects loss.</p></div>
+    <div class="stat"><div class="eyebrow">Sender</div><p>Reads publication buffers and sends frames over UDP.</p></div>
+    <div class="stat"><div class="eyebrow">Receiver</div><p>Reads UDP frames and rebuilds the stream in an image buffer.</p></div>
+  </div>
+  <p>Clients talk to the Conductor through a command ring buffer in shared memory. Counters in shared memory expose positions and health, so monitoring tools can read them without asking the driver.</p>
+</section>
+
+<section id="ipc">
+  <h2>4. IPC and network</h2>
+  <table class="ops">
+    <thead><tr><th>Kind</th><th>Path of a message</th></tr></thead>
+    <tbody>
+      <tr><td>IPC</td><td>Publisher writes the log buffer. A subscriber on the same machine reads that same buffer. No Sender or Receiver.</td></tr>
+      <tr><td>Network</td><td>Publisher writes the log buffer. The Sender sends UDP. The Receiver rebuilds a copy, the <b>image</b>. A subscriber reads the image.</td></tr>
+    </tbody>
+  </table>
+  <p>The image is a replica of the publication buffer. When it is caught up the data part is identical.</p>
+</section>
+
+<section id="threads">
+  <h2>5. Threading modes</h2>
+  <p>The driver has three agents. The threading mode decides how they map to threads.</p>
+  <table class="ops">
+    <thead><tr><th>Mode</th><th>Threads</th><th>Use</th></tr></thead>
+    <tbody>
+      <tr><td>DEDICATED</td><td>3, one per agent</td><td>The default. Lowest latency when cores are free.</td></tr>
+      <tr><td>SHARED_NETWORK</td><td>2</td><td>Sender and Receiver share a thread.</td></tr>
+      <tr><td>SHARED</td><td>1</td><td>All agents on one thread.</td></tr>
+      <tr><td>INVOKER</td><td>0</td><td>Your code calls the duty cycle. Good for limited CPU.</td></tr>
+    </tbody>
+  </table>
+  <p>Fewer threads cost little with few streams. With tens of streams or more, dedicated threads give more throughput. Match the idle strategy to the mode, since a thread that spins burns a core.</p>
+</section>
+
+<section id="api">
+  <h2>6. Offering and polling</h2>
+  <p>A publisher calls <code>offer</code> and checks the result. A subscriber calls <code>poll</code> with a handler, and gets any fragments that are ready.</p>
+  <pre><span class="k">long</span> result = publication.offer(buffer, 0, length);
+<span class="k">if</span> (result &lt; 0) {
+  <span class="c2">// BACK_PRESSURED, NOT_CONNECTED, ADMIN_ACTION: retry or back off</span>
+}
+
+<span class="k">int</span> fragments = subscription.poll(handler, 10);
+<span class="k">if</span> (fragments == 0) idleStrategy.idle();</pre>
+  <p>A negative result is normal flow, not an error. Aeron never blocks the caller. It reports the state and lets the application choose how to wait.</p>
+</section>
+
+
+<section id="sources">
+  <h2>Sources</h2>
+  <p class="src">Written from the Aeron project documentation on the <a href="https://github.com/aeron-io/aeron/wiki">Aeron GitHub wiki</a> and <a href="https://aeron.io/docs/">aeron.io</a>. The text and the demo are original summaries. Aeron is open source, and its trademark belongs to its owner.</p>
+</section>
+
+</main>
+
+<script>
+
+(function () {
+  var TL = 8, WIN = 6, T = 3;
+  var pub, snd, sub, log;
+  function fresh() { pub = snd = sub = 0; log = 'Empty log buffer. Offer a message.'; }
+  function cls(p) { return p < sub ? 'cell r' : p < snd ? 'cell s' : p < pub ? 'cell w' : 'cell'; }
+  function render() {
+    var box = document.getElementById('terms');
+    box.textContent = '';
+    var tc = Math.floor(pub / TL);
+    for (var t = 0; t < T; t++) {
+      var row = document.createElement('div'); row.className = 'term';
+      var l = document.createElement('span'); l.className = 'lbl'; l.textContent = 'term buffer ' + t; row.appendChild(l);
+      // the term in this buffer is the latest termCount whose index is t
+      var base = (tc - ((tc - t) % T + T) % T) * TL;
+      var active = ((tc % T) === t);
+      for (var i = 0; i < TL; i++) {
+        var p = base + i, c = document.createElement('span');
+        c.className = (base < 0 ? 'cell' : cls(p)) + ((p === pub && active) ? ' cur' : '');
+        c.textContent = base >= 0 ? p : '';
+        c.setAttribute('aria-hidden', 'true');
+        row.appendChild(c);
+      }
+      if (active) { var a = document.createElement('span'); a.className = 'hint'; a.textContent = 'active'; row.appendChild(a); }
+      box.appendChild(row);
+    }
+    document.getElementById('readout').textContent = log + '\n\npublisher position  ' + pub + '\nsender position     ' + snd + '\nsubscriber position ' + sub + '\n\nterm count ' + Math.floor(pub / TL) + ' · offset ' + (pub % TL) + ' · buffer ' + (Math.floor(pub / TL) % T);
+    document.getElementById('live').textContent = 'ahead of sender: ' + (pub - snd) + ' / ' + WIN;
+  }
+  function offer() {
+    if (pub - snd >= WIN) { log = 'offer returns BACK_PRESSURED.\nThe publisher is ' + (pub - snd) + ' ahead of the Sender, the window is ' + WIN + '.\nPress Send, then retry.'; return false; }
+    pub++; log = 'offer succeeds. Message written at position ' + (pub - 1) + '.'; return true;
+  }
+  function send() {
+    if (snd >= pub) { log = 'Nothing to send. The Sender is level with the publisher.'; return; }
+    snd = pub; log = 'Sender transmitted up to position ' + snd + '.\nA Receiver rebuilds it in an image buffer.';
+  }
+  function poll() {
+    if (sub >= snd) { log = 'poll returns 0 fragments. Nothing has arrived yet.'; return; }
+    var n = snd - sub; sub = snd; log = 'poll delivered ' + n + ' message(s). Subscriber position is ' + sub + '.';
+  }
+  document.getElementById('offer').addEventListener('click', function () { offer(); render(); });
+  document.getElementById('offer4').addEventListener('click', function () { var ok = 0; for (var i = 0; i < 4; i++) if (offer()) ok++; if (ok === 4) log = '4 messages written.'; render(); });
+  document.getElementById('send').addEventListener('click', function () { send(); render(); });
+  document.getElementById('poll').addEventListener('click', function () { poll(); render(); });
+  document.getElementById('reset').addEventListener('click', function () { fresh(); render(); });
+  fresh(); render();
+})();
+
+</script>
+</body>
+</html>

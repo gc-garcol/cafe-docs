@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>False Sharing: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+
+/* Fig 1: framed card */
+.lab{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:24px;align-items:start;margin-top:24px}
+.card{margin:0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--ink)}
+.stage{padding:0 8px}
+.stage svg{display:block;width:100%;height:auto;max-height:640px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:2px;border:1px solid var(--ink);display:inline-block}
+
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.seg{display:flex;gap:0;border:1px solid var(--rule-solid);border-radius:6px;overflow:hidden;margin-bottom:16px}
+.seg button{flex:1;min-height:40px;border:0;background:transparent;font:500 14px var(--sans);color:var(--muted);cursor:pointer}
+.seg button+button{border-left:1px solid var(--rule-solid)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.row{display:grid;grid-template-columns:96px 1fr 28px;gap:12px;align-items:center;margin:10px 0}
+.row label{font-family:var(--mono);font-size:12px;font-weight:600}
+.howto{margin:16px 0 0;padding:16px 20px;background:#fff;border:1px solid var(--rule-solid);border-left:3px solid var(--accent);border-radius:8px;max-width:760px}
+.howto h3{font:600 11px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--soft);margin:0 0 8px}
+.howto ol{margin:0;padding-left:20px}.howto li{margin:4px 0}
+.task{margin:0 0 16px;padding:12px 14px;background:var(--accent-tint);border:1px solid rgba(191,69,32,.25);border-radius:6px;font-size:13.5px;line-height:1.55}
+.task .rule{display:block;margin-top:6px;font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+.arr-label,.chips-label,.res-label{font:500 11px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--soft);margin:12px 0 6px}
+.arr{display:flex;gap:4px;margin-bottom:8px}
+.arr button{flex:1;min-width:0;min-height:48px;border:1px solid var(--rule-solid);border-radius:6px;background:#fff;font:600 15px var(--sans);color:var(--ink);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2px 0;line-height:1.25}
+.arr button small{font:400 9px var(--mono);color:var(--soft)}
+.arr button:hover{border-color:var(--ink)}
+.arr button[aria-pressed="true"]{background:var(--accent-tint);border-color:var(--accent)}
+.arr button.end{background:var(--accent);border-color:var(--accent);color:#fff}
+.arr button.end small{color:#fff}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 4px}
+.chip{min-height:34px;padding:0 12px;border:1px solid var(--rule-solid);border-radius:999px;background:#fff;color:var(--ink);font:500 12.5px var(--sans);cursor:pointer}
+.chip:hover{border-color:var(--ink)}
+.chip:focus-visible,.arr button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.row output{font-family:var(--mono);font-size:13px;text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);min-height:28px}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer;margin-top:8px}
+.btn:hover{background:var(--ink);color:var(--paper)}
+#readout{margin:0;padding:14px 16px;background:var(--paper);border:1px solid var(--rule);border-radius:6px;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink)}
+.na{color:var(--soft)}
+.c-a{color:var(--link);font-weight:600}.c-b{color:var(--accent);font-weight:600}
+
+/* static diagrams */
+.fig{margin:20px 0 8px}
+.scroll{overflow-x:auto;border:1px solid var(--rule);border-radius:8px;background:#fff;padding:8px}
+.scroll svg{display:block;height:auto}
+.cap{font-family:var(--mono);font-size:11px;color:var(--soft);margin:8px 0 0}
+
+pre{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .t{color:var(--link)} .c{color:var(--soft);font-style:italic}
+
+.cards{display:grid;grid-template-columns:1.1fr 1fr .9fr;gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:36px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+
+table.ops{border-collapse:collapse;width:100%;max-width:720px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);border-radius:6px;font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule)}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+.ok{color:#1d6b3a;font-weight:600}.no{color:var(--accent);font-weight:600}
+ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
+
+@media (max-width:860px){.lab{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+
+
+
+.doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}.doc-tags a{font:500 12px "Geist Mono",ui-monospace,monospace;padding:4px 10px;border:1px solid var(--rule-solid,#bfc0c0);border-radius:4px;background:#fff;color:var(--muted,#4f5d75);text-decoration:none}.doc-tags a:hover{border-color:var(--ink,#2d3142);color:var(--ink,#2d3142)}.doc-tags a:focus-visible{outline:2px solid var(--accent,#bf4520);outline-offset:2px}
+.btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.btns .btn{margin-top:0}
+.btn:disabled{opacity:.4;cursor:default}.btn:disabled:hover{background:transparent;color:var(--ink)}
+.bars{margin:0;display:grid;gap:8px}
+.bar{display:grid;grid-template-columns:64px 1fr 92px;gap:10px;align-items:center;font-family:var(--mono);font-size:12px}
+.bar .track{height:14px;background:var(--paper);border:1px solid var(--rule);border-radius:3px;overflow:hidden}
+.bar .fill{height:100%;background:var(--accent)}
+.bar .fill.pad{background:var(--link)}
+.bar output{text-align:right}
+#stage [data-slot]{cursor:pointer}
+.lab{grid-template-columns:1fr}
+.stage svg{max-height:none}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:0 16px 12px;border-bottom:1px solid var(--rule)}
+.toolbar .seg{margin:0;flex:1 1 280px}
+.toolbar .btn{margin-top:0}
+.stage{padding:8px}
+.stage svg{margin:0 auto}
+.stage svg{max-height:calc(100vh - 230px);min-height:300px}
+.panel{display:grid;grid-template-columns:1fr 1fr;gap:0 24px}
+.panel .task{grid-column:1/-1}
+.panel .res-label:first-of-type{margin-top:0}
+@media (max-width:760px){.panel{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" style="margin-right:8px" href="../../../../index.html">&larr; Back to home</a>
+<a class="back back-cat" href="../../../../index.html#cat=Engineering">&larr; Back to Engineering</a>
+
+<header>
+  <div class="eyebrow">Engineering · Concurrency</div>
+  <h1>False Sharing</h1>
+  <p class="lede">Two threads write two different variables, yet they slow each other down. The variables share one cache line, and the hardware moves whole lines between cores.</p>
+  <nav class="doc-tags" aria-label="Main tags"><a href="../../../../index.html#tag=false%20sharing">#false sharing</a><a href="../../../../index.html#tag=cache%20line">#cache line</a><a href="../../../../index.html#tag=concurrency">#concurrency</a><a href="../../../../index.html#tag=performance">#performance</a></nav>
+</header>
+
+<section>
+  <h2>Watch the line bounce</h2>
+  <p>Thread A on core 0 runs <code>a++</code> in a loop. Thread B on core 1 runs <code>b++</code>. They never touch each other's variable. Choose how <code>a</code> and <code>b</code> are laid out in memory, then step through the writes.</p>
+
+  <div class="howto">
+    <h3>How to use this simulator</h3>
+    <ol>
+      <li>Start with <b>Packed</b>: <code>a</code> and <code>b</code> sit next to each other in one 64-byte line. Press <b>Step</b> a few times.</li>
+      <li>Watch the state badges. Before a core can write, it must own the line in state <b>M</b>, so the other core's copy becomes <b>I</b>.</li>
+      <li>Switch to <b>Padded</b>. Each variable gets its own line, and after the first write every write is a cheap hit.</li>
+      <li>Press <b>+100 writes</b> and compare the cycle bars for both layouts.</li>
+    </ol>
+  </div>
+
+  <div class="lab">
+    <figure class="card">
+      <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">Two cores, one cache line</span></div>
+      <div class="toolbar">
+          <div class="seg" role="group" aria-label="Memory layout">
+            <button type="button" id="layP" aria-pressed="true">Packed · same line</button>
+            <button type="button" id="layD" aria-pressed="false">Padded · own lines</button>
+          </div>
+          <button type="button" class="btn" id="bStep">Step</button>
+          <button type="button" class="btn" id="bPlay">Play</button>
+          <button type="button" class="btn" id="bRun">+100 writes</button>
+          <button type="button" class="btn" id="bReset">Reset</button>
+      </div>
+      <div class="stage">
+        <svg id="stage" viewBox="0 0 640 420" role="img" aria-labelledby="fs-title fs-desc">
+          <title id="fs-title">Two cores writing to variables in shared or separate cache lines</title>
+          <desc id="fs-desc">Each core has a private L1 cache holding copies of cache lines with a MESI state. Memory below shows two 64-byte lines split into eight 8-byte slots. When a and b share a line, every write moves the line to the writing core and invalidates the other copy.</desc>
+          <g id="scene"></g>
+        </svg>
+      </div>
+      <div class="card-bottom"><span class="hint">Cycle costs are illustrative</span><span class="live" id="live"></span></div>
+    </figure>
+
+    <div>
+      <div class="panel">
+        <div class="task" id="task"></div>
+        <div><div class="res-label">Last write</div>
+        <div id="readout" aria-live="polite"></div></div>
+        <div><div class="res-label">Same writes, both layouts</div>
+        <div class="bars" id="bars"></div></div>
+      </div>
+      <div class="legend" aria-label="Legend">
+        <span><i class="sw" style="background:#f4b79d;border-color:#bf4520"></i>M · modified, owned</span>
+        <span><i class="sw" style="background:#dbe8fa;border-color:#2e5aa8"></i>E · exclusive, clean</span>
+        <span><i class="sw" style="background:#fff;border-color:#aab0bd;border-style:dashed"></i>I · invalid</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>1. Caches move lines, not variables</h2>
+  <p>A CPU core never loads a single <code>long</code> from memory. It loads the whole <b>cache line</b> around it, usually 64 bytes on x86 and most ARM servers, and 128 bytes on Apple silicon. Every variable inside those bytes travels together.</p>
+  <p>That is great for reading arrays. It becomes a problem when two cores write to different variables that happen to share one line.</p>
+
+  <div class="fig">
+    <div class="scroll"><svg width="920" height="232" viewBox="0 0 920 232" style="min-width:920px" role="img" aria-labelledby="lay-title lay-desc">
+<title id="lay-title">Packed and padded layouts</title>
+<desc id="lay-desc">Packed: a at offset 0 and b at offset 8 share cache line 0. Padded: a fills line 0 with padding and b sits at the start of line 1.</desc>
+<g font-family="'Geist',sans-serif" font-size="13" font-weight="600" fill="#2d3142">
+  <text x="16" y="66">Packed</text><text x="16" y="170">Padded</text>
+</g>
+<g font-family="'Geist Mono',monospace" font-size="10" fill="#5a6580">
+  <text x="16" y="82">struct { long a, b; }</text><text x="16" y="186">alignas(64) each</text>
+</g>
+<rect x="176" y="44" width="352" height="44" rx="6" fill="none" stroke="#2d3142" stroke-width="1.2"/>
+<rect x="180" y="48" width="40" height="36" rx="4" fill="#dbe8fa" stroke="#2e5aa8"/><text x="200" y="71" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="13" font-weight="600" fill="#1f3f7a">a</text>
+<rect x="224" y="48" width="40" height="36" rx="4" fill="#f8ddd2" stroke="#bf4520"/><text x="244" y="71" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="13" font-weight="600" fill="#8f2f12">b</text>
+<g fill="#f5f5f5" stroke="rgba(45,49,66,.2)"><rect x="268" y="48" width="40" height="36" rx="4"/><rect x="312" y="48" width="40" height="36" rx="4"/><rect x="356" y="48" width="40" height="36" rx="4"/><rect x="400" y="48" width="40" height="36" rx="4"/><rect x="444" y="48" width="40" height="36" rx="4"/><rect x="488" y="48" width="40" height="36" rx="4"/></g>
+<text x="352" y="34" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="10" fill="#5a6580">cache line 0 · 64 bytes</text>
+<text x="552" y="62" font-family="'Instrument Serif',serif" font-style="italic" font-size="16" fill="#2d3142">Core 0 writes a, core 1 writes b.</text>
+<text x="552" y="82" font-family="'Instrument Serif',serif" font-style="italic" font-size="16" fill="#bf4520">Both need to own the same line.</text>
+<rect x="176" y="148" width="352" height="44" rx="6" fill="none" stroke="#2d3142" stroke-width="1.2"/>
+<rect x="544" y="148" width="352" height="44" rx="6" fill="none" stroke="#2d3142" stroke-width="1.2"/>
+<rect x="180" y="152" width="40" height="36" rx="4" fill="#dbe8fa" stroke="#2e5aa8"/><text x="200" y="175" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="13" font-weight="600" fill="#1f3f7a">a</text>
+<rect x="548" y="152" width="40" height="36" rx="4" fill="#f8ddd2" stroke="#bf4520"/><text x="568" y="175" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="13" font-weight="600" fill="#8f2f12">b</text>
+<g fill="rgba(45,49,66,.06)" stroke="rgba(45,49,66,.2)" stroke-dasharray="3 2">
+  <rect x="224" y="152" width="300" height="36" rx="4"/><rect x="592" y="152" width="300" height="36" rx="4"/>
+</g>
+<g font-family="'Geist Mono',monospace" font-size="10" fill="#5a6580" text-anchor="middle">
+  <text x="374" y="174">56 bytes padding</text><text x="742" y="174">56 bytes padding</text>
+  <text x="352" y="138">cache line 0</text><text x="720" y="138">cache line 1</text>
+  <text x="200" y="104">0</text><text x="244" y="104">8</text><text x="200" y="208">0</text><text x="568" y="208">64</text>
+</g>
+<text x="460" y="226" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="10" fill="#4f5d75">byte offsets shown under the first slots</text>
+</svg></div>
+    <p class="cap">Fig 2 · Packed puts a and b 8 bytes apart in one line. Padded pushes b to the next line, at the cost of 112 unused bytes.</p>
+  </div>
+</section>
+
+<section>
+  <h2>2. Coherence turns writes into a ping-pong</h2>
+  <p>Caches stay consistent with a coherence protocol such as <b>MESI</b>. Each core's copy of a line is Modified, Exclusive, Shared or Invalid. Only a core holding the line in M or E may write it. To write a line it does not own, the core sends a <b>read-for-ownership</b> request, every other copy is invalidated, and the data moves across the interconnect.</p>
+  <p>With a packed layout, each <code>a++</code> steals the line from core 1 and each <code>b++</code> steals it back. A write that should cost about a cycle now waits for a cross-core transfer of tens to over a hundred cycles.</p>
+
+  <div class="fig">
+    <div class="scroll"><svg width="920" height="210" viewBox="0 0 920 210" style="min-width:920px" role="img" aria-labelledby="pp-title pp-desc">
+<title id="pp-title">The line state over six alternating writes</title>
+<desc id="pp-desc">On every write the writing core moves to Modified and the other core moves to Invalid, so the line crosses the interconnect on every single write.</desc>
+<g font-family="'Geist',sans-serif" font-size="13" font-weight="600" fill="#2d3142"><text x="16" y="72">Core 0</text><text x="16" y="160">Core 1</text></g>
+<g font-family="'Geist Mono',monospace" font-size="10" fill="#5a6580"><text x="16" y="88">writes a</text><text x="16" y="176">writes b</text></g>
+<g font-family="'Geist Mono',monospace" font-size="10" fill="#5a6580" text-anchor="middle">
+  <text x="190" y="30">t1</text><text x="310" y="30">t2</text><text x="430" y="30">t3</text><text x="550" y="30">t4</text><text x="670" y="30">t5</text><text x="790" y="30">t6</text>
+</g>
+<g stroke="#bf4520" stroke-width="1.6" fill="none">
+  <path d="M310,90 V136"/><path d="M430,136 V90"/><path d="M550,90 V136"/><path d="M670,136 V90"/><path d="M790,90 V136"/>
+</g>
+<g fill="#bf4520"><path d="M305,128 L310,138 L315,128 Z"/><path d="M425,98 L430,88 L435,98 Z"/><path d="M545,128 L550,138 L555,128 Z"/><path d="M665,98 L670,88 L675,98 Z"/><path d="M785,128 L790,138 L795,128 Z"/></g>
+<g font-family="'Geist Mono',monospace" font-size="15" font-weight="600" text-anchor="middle">
+  <rect x="160" y="50" width="60" height="40" rx="6" fill="#f4b79d" stroke="#bf4520" stroke-width="1.6"/><text x="190" y="75" fill="#3d1405">M</text>
+  <rect x="280" y="50" width="60" height="40" rx="6" fill="#fff" stroke="#aab0bd" stroke-dasharray="4 3"/><text x="310" y="75" fill="#8a92a3">I</text>
+  <rect x="400" y="50" width="60" height="40" rx="6" fill="#f4b79d" stroke="#bf4520" stroke-width="1.6"/><text x="430" y="75" fill="#3d1405">M</text>
+  <rect x="520" y="50" width="60" height="40" rx="6" fill="#fff" stroke="#aab0bd" stroke-dasharray="4 3"/><text x="550" y="75" fill="#8a92a3">I</text>
+  <rect x="640" y="50" width="60" height="40" rx="6" fill="#f4b79d" stroke="#bf4520" stroke-width="1.6"/><text x="670" y="75" fill="#3d1405">M</text>
+  <rect x="760" y="50" width="60" height="40" rx="6" fill="#fff" stroke="#aab0bd" stroke-dasharray="4 3"/><text x="790" y="75" fill="#8a92a3">I</text>
+  <rect x="160" y="138" width="60" height="40" rx="6" fill="#fff" stroke="#aab0bd" stroke-dasharray="4 3"/><text x="190" y="163" fill="#8a92a3">I</text>
+  <rect x="280" y="138" width="60" height="40" rx="6" fill="#f4b79d" stroke="#bf4520" stroke-width="1.6"/><text x="310" y="163" fill="#3d1405">M</text>
+  <rect x="400" y="138" width="60" height="40" rx="6" fill="#fff" stroke="#aab0bd" stroke-dasharray="4 3"/><text x="430" y="163" fill="#8a92a3">I</text>
+  <rect x="520" y="138" width="60" height="40" rx="6" fill="#f4b79d" stroke="#bf4520" stroke-width="1.6"/><text x="550" y="163" fill="#3d1405">M</text>
+  <rect x="640" y="138" width="60" height="40" rx="6" fill="#fff" stroke="#aab0bd" stroke-dasharray="4 3"/><text x="670" y="163" fill="#8a92a3">I</text>
+  <rect x="760" y="138" width="60" height="40" rx="6" fill="#f4b79d" stroke="#bf4520" stroke-width="1.6"/><text x="790" y="163" fill="#3d1405">M</text>
+</g>
+<text x="460" y="204" text-anchor="middle" font-family="'Geist Mono',monospace" font-size="10" fill="#4f5d75">orange arrow = read-for-ownership: the line moves and the old copy is invalidated</text>
+</svg></div>
+    <p class="cap">Fig 3 · Packed layout, strictly alternating writes. After the first write, every write is a coherence miss.</p>
+  </div>
+  <div class="callout">The sharing is false because no data is actually shared. The cost is real because the hardware only tracks ownership per line.</div>
+</section>
+
+<section>
+  <h2>3. The fix: give hot fields their own line</h2>
+  <p>Align or pad every variable that one thread writes often so that no other thread's hot data lands in the same line. Read-only data can share a line freely, because many cores can hold it in state S at once.</p>
+<pre><span class="c">// C++17: the standard names the padding size</span>
+<span class="k">#include</span> &lt;new&gt;
+<span class="k">struct alignas</span>(std::hardware_destructive_interference_size) PaddedCounter {
+    std::atomic&lt;<span class="k">long</span>&gt; value{0};
+};
+PaddedCounter counters[NUM_THREADS];   <span class="c">// one line per thread, no false sharing</span>
+
+<span class="c">// The classic bug: per-thread slots packed into one array</span>
+std::atomic&lt;<span class="k">long</span>&gt; bad[NUM_THREADS];  <span class="c">// 8 counters share each 64-byte line</span></pre>
+  <p>Other languages have the same tool. Java offers <code>@Contended</code> (enable it outside the JDK with <code>-XX:-RestrictContended</code>), and libraries such as the LMAX Disruptor and Agrona pad fields by hand. Rust has <code>crossbeam_utils::CachePadded</code>.</p>
+  <p>The other fix is to share less. Let each thread accumulate into a local variable and publish the total once at the end.</p>
+</section>
+
+<section>
+  <h2>4. Finding it</h2>
+  <ul class="tight">
+    <li>The symptom: adding threads makes the program slower or barely faster, even though the threads touch disjoint data.</li>
+    <li>On Linux, <code>perf c2c record</code> then <code>perf c2c report</code> lists cache lines with many HITM events, meaning loads that hit a line modified in another core's cache. It also shows which offsets inside the line are touched.</li>
+    <li>Hardware counters for cross-core snoops or remote hits tell the same story in VTune and other profilers.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>5. Cost</h2>
+  <div class="cards">
+    <div class="stat"><div class="eyebrow">L1 hit</div><div class="big">~1–4 cycles</div><p>The line is already owned in M or E.</p></div>
+    <div class="stat focal"><div class="eyebrow">Cross-core transfer</div><div class="big">~40–200 cycles</div><p>Higher across sockets. Paid on every write under false sharing.</p></div>
+    <div class="stat"><div class="eyebrow">Padding</div><div class="big">64–128 B</div><p>Memory spent per hot field to buy back the speed.</p></div>
+  </div>
+</section>
+
+<section>
+  <h2>Pitfalls</h2>
+  <ul class="tight">
+    <li>64 bytes is not always enough. Intel's adjacent-line prefetcher fetches lines in pairs, and Apple silicon uses 128-byte lines, so many libraries pad to 128 bytes.</li>
+    <li>Padding only helps <b>false</b> sharing. If two threads really write the same counter, the fix is to split the work, not to add bytes.</li>
+    <li>Padding everything wastes cache. Pad only the fields that different threads write in hot loops.</li>
+    <li>Heap allocators may not honour your alignment unless you use aligned allocation, such as C++17 aligned <code>new</code> or <code>posix_memalign</code>.</li>
+    <li>Fields of an object a JVM or compiler reorders can end up next to each other again. Check the real layout, for example with JOL on the JVM.</li>
+  </ul>
+</section>
+
+</main>
+<script>
+(() => {
+  // ---------- model ----------
+  const HIT = 1, XFER = 70, MEM = 200;            // illustrative cycle costs
+  const st = { packed: true, n: 0 };
+  let lines, last, tot;
+  const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const lineOf = (core, packed) => core === 0 || packed ? 0 : 1;
+
+  function fresh() { return [['I', 'I'], ['I', 'I']]; }
+  // one write by `core`; mutates the line states and returns what happened
+  function write(ls, core, packed) {
+    const L = lineOf(core, packed), o = 1 - core, s = ls[L];
+    if (s[core] === 'M' || s[core] === 'E') { s[core] = 'M'; return { core, L, kind: 'hit', cost: HIT }; }
+    const kind = s[o] !== 'I' ? 'xfer' : 'mem';
+    s[o] = 'I'; s[core] = 'M';
+    return { core, L, kind, cost: kind === 'xfer' ? XFER : MEM };
+  }
+  function simulate(packed, n) {
+    const ls = fresh(), t = { hit: 0, xfer: 0, mem: 0, cycles: 0 };
+    for (let k = 0; k < n; k++) { const e = write(ls, k % 2, packed); t[e.kind]++; t.cycles += e.cost; }
+    return t;
+  }
+  function reset() { lines = fresh(); last = null; st.n = 0; tot = { hit: 0, xfer: 0, mem: 0, cycles: 0 }; }
+  function step() {
+    last = write(lines, st.n % 2, st.packed); st.n++;
+    tot[last.kind]++; tot.cycles += last.cost;
+  }
+
+  // ---------- drawing ----------
+  const $ = id => document.getElementById(id);
+  const scene = $('scene');
+  const txt = (s, x, y, size, fill, weight, mono, anchor) =>
+    `<text x="${x}" y="${y}" text-anchor="${anchor || 'middle'}" font-size="${size}" font-weight="${weight || 400}" fill="${fill}" font-family="${mono ? "'Geist Mono',ui-monospace,monospace" : "'Geist',system-ui,sans-serif"}">${s}</text>`;
+  const BADGE = {
+    M: { f: '#f4b79d', s: '#bf4520', t: '#3d1405', d: '' },
+    E: { f: '#dbe8fa', s: '#2e5aa8', t: '#1f3f7a', d: '' },
+    S: { f: '#e6e9f0', s: '#4f5d75', t: '#2d3142', d: '' },
+    I: { f: '#ffffff', s: '#aab0bd', t: '#8a92a3', d: ' stroke-dasharray="4 3"' }
+  };
+  const SLOT = 32, MX = [64, 352], MY = 330;
+  const slotX = (L, i) => MX[L] + 4 + i * (SLOT + 2);
+  const slotOf = (core, packed) => core === 0 ? [0, 0] : packed ? [0, 1] : [1, 0];
+
+  function drawCore(c) {
+    const x = c ? 340 : 20, w = 280, y = 16, act = last && last.core === c;
+    let s = `<rect x="${x}" y="${y}" width="${w}" height="168" rx="8" fill="#fff" stroke="${act ? '#bf4520' : '#2d3142'}" stroke-width="${act ? 2 : 1.2}"/>`;
+    s += txt(`Core ${c}`, x + 14, y + 26, 15, '#2d3142', 600, false, 'start');
+    s += txt(c ? 'thread B: b++' : 'thread A: a++', x + w - 14, y + 26, 12, c ? '#bf4520' : '#2e5aa8', 600, true, 'end');
+    s += txt('L1 cache', x + 14, y + 52, 10, '#5a6580', 500, true, 'start');
+    for (let L = 0; L < 2; L++) {
+      const ry = y + 62 + L * 50, stt = lines[L][c], b = BADGE[stt];
+      const used = L === 0 || !st.packed;
+      s += `<rect x="${x + 14}" y="${ry}" width="${w - 28}" height="40" rx="6" fill="${used ? '#f8f9fb' : '#fafafa'}" stroke="rgba(45,49,66,.18)"/>`;
+      s += txt(`line ${L}`, x + 26, ry + 25, 12, used ? '#2d3142' : '#aab0bd', 600, true, 'start');
+      s += `<rect x="${x + 84}" y="${ry + 7}" width="34" height="26" rx="5" fill="${b.f}" stroke="${b.s}" stroke-width="1.4"${b.d}/>` + txt(stt, x + 101, ry + 25, 14, b.t, 700, true);
+      const note = !used ? 'not used' : stt === 'I' ? 'no valid copy' : stt === 'M' ? 'owned, dirty' : stt === 'E' ? 'owned, clean' : 'shared, read only';
+      s += txt(note, x + 130, ry + 25, 11, '#5a6580', 400, true, 'start');
+    }
+    return s;
+  }
+
+  function render() {
+    let s = `<defs><marker id="fsAr" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#bf4520" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>`;
+    s += drawCore(0) + drawCore(1);
+    // interconnect
+    const xfer = last && last.kind === 'xfer', mem = last && last.kind === 'mem';
+    s += `<rect x="20" y="214" width="600" height="34" rx="6" fill="${xfer ? 'rgba(191,69,32,.10)' : '#f5f5f5'}" stroke="${xfer ? '#bf4520' : 'rgba(45,49,66,.25)'}"/>`;
+    s += txt('interconnect', 34, 235, 11, '#5a6580', 500, true, 'start');
+    if (xfer) {
+      const from = last.core ? 160 : 480, to = last.core ? 480 : 160;
+      s += `<line x1="${from}" y1="${last.core ? 196 : 196}" x2="${from}" y2="214" stroke="#bf4520" stroke-width="2"/>` +
+        `<line x1="${from}" y1="231" x2="${to}" y2="231" stroke="#bf4520" stroke-width="2.4" marker-end="url(#fsAr)"/>` +
+        `<line x1="${to}" y1="214" x2="${to}" y2="190" stroke="#bf4520" stroke-width="2" marker-end="url(#fsAr)"/>` +
+        txt(`line ${last.L} moves to core ${last.core}, core ${1 - last.core} invalidated`, 320, 268, 11, '#bf4520', 600, true);
+    }
+    // memory
+    s += txt('Memory', 20, 296, 13, '#2d3142', 600, false, 'start');
+    if (mem) {
+      const cx = last.core ? 480 : 160;
+      s += `<line x1="${cx}" y1="312" x2="${cx}" y2="190" stroke="#2e5aa8" stroke-width="2" stroke-dasharray="5 3" marker-end="url(#fsAr)"/>` +
+        txt(`cold miss: line ${last.L} loaded from memory`, 320, 268, 11, '#2e5aa8', 600, true);
+    }
+    for (let L = 0; L < 2; L++) {
+      const used = L === 0 || !st.packed;
+      s += `<rect x="${MX[L]}" y="${MY}" width="${8 * (SLOT + 2) + 6}" height="${SLOT + 8}" rx="6" fill="none" stroke="${used ? '#2d3142' : 'rgba(45,49,66,.3)'}" stroke-width="1.2"/>`;
+      s += txt(`line ${L} · bytes ${L * 64}–${L * 64 + 63}`, MX[L] + 4, MY - 8, 10, '#5a6580', 500, true, 'start');
+      for (let i = 0; i < 8; i++) {
+        let lab = '', f = '#f5f5f5', sk = 'rgba(45,49,66,.2)', tc = '#8a92a3';
+        const [aL, aI] = slotOf(0, st.packed), [bL, bI] = slotOf(1, st.packed);
+        if (L === aL && i === aI) { lab = 'a'; f = '#dbe8fa'; sk = '#2e5aa8'; tc = '#1f3f7a'; }
+        else if (L === bL && i === bI) { lab = 'b'; f = '#f8ddd2'; sk = '#bf4520'; tc = '#8f2f12'; }
+        else if (!st.packed) { lab = 'pad'; f = 'rgba(45,49,66,.05)'; }
+        const hot = last && lab && ((lab === 'a' && last.core === 0) || (lab === 'b' && last.core === 1));
+        s += `<rect x="${slotX(L, i)}" y="${MY + 4}" width="${SLOT}" height="${SLOT}" rx="4" fill="${f}" stroke="${hot ? '#2d3142' : sk}" stroke-width="${hot ? 2.2 : 1}"/>`;
+        if (lab) s += txt(lab, slotX(L, i) + SLOT / 2, MY + 25, lab === 'pad' ? 9 : 14, tc, 600, true);
+      }
+    }
+    s += txt('8-byte slots · a is written by core 0, b by core 1', 320, 404, 11, '#4f5d75', 400, true);
+    scene.innerHTML = s;
+  }
+
+  // ---------- readout ----------
+  function words() {
+    if (!last) return `<span class="na">No writes yet. Press Step.</span>`;
+    const v = last.core ? 'b' : 'a', o = 1 - last.core;
+    const head = `<b>write #${st.n}: core ${last.core} runs ${v}++</b>  (line ${last.L})\n`;
+    if (last.kind === 'hit') return head + `core ${last.core} already owns line ${last.L} in M\n<span class="c-a">L1 hit · ~${HIT} cycle</span>`;
+    if (last.kind === 'mem') return head + `nobody has line ${last.L} yet, fetch it from memory\n<span class="c-a">cold miss · ~${MEM} cycles</span> <span class="na">(paid once)</span>`;
+    return head + `core ${o} owns line ${last.L}, so core ${last.core} sends read-for-ownership\ncore ${o}'s copy → I, core ${last.core}'s copy → M\n<span class="c-b">coherence miss · ~${XFER} cycles</span>`;
+  }
+  const fmt = n => n.toLocaleString('en-US');
+  function bars() {
+    const p = simulate(true, st.n), d = simulate(false, st.n), mx = Math.max(1, p.cycles, d.cycles);
+    const row = (name, t, cls) => `<div class="bar"><span>${name}</span><span class="track"><span class="fill ${cls}" style="display:block;width:${(100 * t.cycles / mx).toFixed(1)}%"></span></span><output>${fmt(t.cycles)} cyc</output></div>`;
+    return row('Packed', p, '') + row('Padded', d, 'pad') +
+      `<div class="bar"><span></span><span class="na" style="font-size:11px">${st.n ? `${fmt(st.n)} writes · packed is ${(p.cycles / Math.max(1, d.cycles)).toFixed(1)}× slower` : 'run some writes to compare'}</span><span></span></div>`;
+  }
+
+  function update() {
+    $('layP').setAttribute('aria-pressed', st.packed);
+    $('layD').setAttribute('aria-pressed', !st.packed);
+    $('task').innerHTML = st.packed
+      ? `<b>Layout:</b> <code>a</code> at byte 0, <code>b</code> at byte 8, both in line 0.<br><b>Expect:</b> after the first write, every write steals the line from the other core.`
+      : `<b>Layout:</b> <code>a</code> in line 0, <code>b</code> in line 1, 56 bytes of padding each.<br><b>Expect:</b> one cold miss per core, then only L1 hits.`;
+    $('readout').innerHTML = words();
+    $('bars').innerHTML = bars();
+    $('live').textContent = `${fmt(st.n)} writes · ${fmt(tot.xfer)} transfers · ~${fmt(tot.cycles)} cycles`;
+    render();
+  }
+
+  let timer = 0;
+  const stop = () => { clearInterval(timer); timer = 0; $('bPlay').textContent = 'Play'; };
+  const setLayout = packed => { stop(); st.packed = packed; reset(); update(); };
+  $('layP').onclick = () => setLayout(true);
+  $('layD').onclick = () => setLayout(false);
+  $('bStep').onclick = () => { step(); update(); };
+  $('bRun').onclick = () => { for (let k = 0; k < 100; k++) step(); update(); };
+  $('bReset').onclick = () => { stop(); reset(); update(); };
+  $('bPlay').onclick = () => {
+    if (timer) { stop(); return; }
+    $('bPlay').textContent = 'Pause';
+    step(); update();
+    timer = setInterval(() => { step(); update(); }, reduce ? 1200 : 700);
+  };
+
+  reset(); update();
+})();
+</script>
+</body>
+</html>

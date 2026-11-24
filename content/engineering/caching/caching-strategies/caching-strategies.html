@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Caching strategies: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible,a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+h3{font-family:var(--serif);font-weight:400;font-size:24px;line-height:1.2;margin:32px 0 10px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+a{color:var(--link)}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+
+.card{margin:24px 0 0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.scroll{overflow-x:auto;padding:0 8px}
+.scroll svg{display:block;margin:0 auto;min-width:640px;height:auto}
+
+/* strategy picker */
+.strats{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,420px),1fr));gap:10px;padding:0 16px 16px}
+.strat{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:88px;padding:10px 12px 10px 16px;border:1px solid var(--rule-solid);border-radius:8px;background:var(--paper);color:var(--ink);text-align:left;cursor:pointer;font:inherit}
+.strat:hover{border-color:var(--ink)}
+.strat[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-tint)}
+.strat b{display:block;font:600 17px var(--sans);line-height:1.25}
+.strat span{display:block;font:12px var(--mono);color:var(--muted);margin-top:4px}
+.strat svg{flex:none;width:168px;height:auto}
+
+.controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;margin-top:16px;align-items:start}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:0 0 12px}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.btn:disabled{opacity:.4;cursor:not-allowed;background:transparent;color:var(--ink)}
+.btn.warn{border-color:var(--accent);color:var(--accent)}
+.btn.warn:hover{background:var(--accent);color:#fff}
+.group-label{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);margin:16px 0 6px}
+.group-label:first-child{margin-top:0}
+.readout{margin:0;padding:0;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink);border:0;background:none;min-height:9em}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:4px}
+.stats div{border:1px solid var(--rule);border-radius:6px;padding:8px 10px}
+.stats b{display:block;font:600 20px var(--mono)}
+.stats span{font:11px var(--mono);color:var(--soft)}
+.stats .bad b{color:var(--accent)}
+.desc{font-size:14px;color:var(--muted);margin:0 0 12px}
+
+/* eviction */
+.ev{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;padding:0 16px 16px}
+.ev h3{margin:0 0 6px;font:600 15px var(--sans)}
+.ev .sub{font:11px var(--mono);color:var(--soft);margin-bottom:8px}
+.slots{display:flex;gap:6px;flex-wrap:wrap;min-height:46px}
+.slot{width:44px;height:44px;border:1px solid var(--rule-solid);border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;font:600 15px var(--mono);background:#fff}
+.slot small{font:10px var(--mono);color:var(--soft)}
+.slot.empty{border-style:dashed;color:var(--rule-solid)}
+.slot.hit{border-color:var(--ink);background:var(--paper-2)}
+.slot.new{border-color:var(--link);background:rgba(46,90,168,.1)}
+.evout{font:12px var(--mono);margin-top:8px;color:var(--muted)}
+.evout .x{color:var(--accent);font-weight:600}
+.keys{display:flex;flex-wrap:wrap;gap:6px;padding:0 16px 12px;align-items:center}
+.keys .btn{min-width:44px;padding:0 12px;font-family:var(--mono)}
+.trace{font:12px var(--mono);color:var(--soft);padding:0 16px 12px;word-break:break-all}
+
+pre{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .c2{color:var(--soft);font-style:italic} .t{color:var(--link)}
+
+.cards{display:grid;grid-template-columns:1.1fr 1fr .9fr;gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:26px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+
+table.ops{border-collapse:collapse;width:100%;max-width:900px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+table.ops td:first-child{white-space:nowrap;font-weight:600}
+.tw{overflow-x:auto}
+ul.tight{padding-left:22px;max-width:68ch}ul.tight li{margin:6px 0}
+
+.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;text-align:center;overflow-x:auto}
+.formula .katex{font-size:1.25em}
+.katex{color:var(--ink)}
+p .katex,td .katex,li .katex{font-size:1.05em}
+
+.check{list-style:none;padding:0;margin:12px 0 0;max-width:640px}
+.check li{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--rule)}
+.check input{width:18px;height:18px;accent-color:var(--accent)}
+.check li.done a{color:var(--soft);text-decoration:line-through}
+.prog{font-family:var(--mono);font-size:12px;color:var(--soft)}
+
+.doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}.doc-tags a{font:500 12px "Geist Mono",ui-monospace,monospace;padding:4px 10px;border:1px solid var(--rule-solid,#bfc0c0);border-radius:4px;background:#fff;color:var(--muted,#4f5d75);text-decoration:none}.doc-tags a:hover{border-color:var(--ink,#2d3142);color:var(--ink,#2d3142)}.doc-tags a:focus-visible{outline:2px solid var(--accent,#bf4520);outline-offset:2px}
+
+@media (max-width:520px){.strat{flex-direction:column;align-items:flex-start}.strat b{white-space:normal}}
+@media (max-width:860px){.controls,.cards,.ev{grid-template-columns:1fr}.page{padding:32px 16px 72px}table.ops td:first-child{white-space:normal}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" style="margin-right:8px" href="../../../../index.html">&larr; Back to home</a>
+<a class="back back-cat" href="../../../../index.html#cat=Engineering">&larr; Back to Engineering</a>
+
+<header>
+  <div class="eyebrow">Engineering · Caching</div>
+  <h1>Caching strategies</h1>
+  <p class="lede">A cache is a fast copy of slow data. The hard part is not storing the copy, it is deciding who fills it, who updates it, and when it stops being true. This page runs eight read and write strategies side by side, then covers eviction, invalidation, stampedes and the layers a real system stacks up.</p>
+  <nav class="doc-tags" aria-label="Main tags"><a href="../../../../index.html#tag=caching">#caching</a><a href="../../../../index.html#tag=cache-aside">#cache-aside</a><a href="../../../../index.html#tag=write-through">#write-through</a><a href="../../../../index.html#tag=write-behind">#write-behind</a></nav>
+</header>
+
+<section>
+  <h2>Run the strategies</h2>
+  <p>Pick a strategy, then read, write, fire five reads at once, or let time pass. One key, <code>user:42</code>, lives in a database and maybe in a cache with a 30 second TTL. Watch who talks to whom, how many queries reach the database, and when a read returns an old version.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title" id="simTitle">Cache-aside</span></div>
+    <div class="strats" id="strats" role="group" aria-label="Caching strategy"></div>
+    <div class="scroll">
+      <svg id="sim" width="640" height="320" viewBox="0 0 640 320" role="img" aria-labelledby="sim-title sim-desc">
+        <title id="sim-title">App, cache and database for the selected strategy</title>
+        <desc id="sim-desc">The app sits on the left, the cache top right and the database bottom right. Messages travel along the connectors as you read and write. The cache box shows the cached version and its remaining time to live, the database box shows the stored version. Every step is also written to the log next to the figure.</desc>
+      </svg>
+    </div>
+    <div class="card-bottom"><span class="hint" id="simHint"></span><span class="live" id="simLive"></span></div>
+  </figure>
+
+  <div class="controls">
+    <div class="panel">
+      <p class="desc" id="stratDesc"></p>
+      <div class="group-label">Actions</div>
+      <div class="row">
+        <button type="button" class="btn" id="aRead">Read</button>
+        <button type="button" class="btn" id="aWrite">Write</button>
+        <button type="button" class="btn" id="aBurst">5 reads at once</button>
+      </div>
+      <div class="row">
+        <button type="button" class="btn" id="aTime">+10 s</button>
+        <button type="button" class="btn warn" id="aCrash">Crash cache</button>
+        <button type="button" class="btn" id="aReset">Reset</button>
+      </div>
+      <div class="group-label">Counters</div>
+      <div class="stats">
+        <div><b id="sHit">0</b><span>cache hits</span></div>
+        <div><b id="sMiss">0</b><span>cache misses</span></div>
+        <div><b id="sDbR">0</b><span>DB reads</span></div>
+        <div><b id="sDbW">0</b><span>DB writes</span></div>
+        <div class="bad"><b id="sStale">0</b><span>stale reads</span></div>
+        <div class="bad"><b id="sLost">0</b><span>lost writes</span></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="group-label">Log</div>
+      <pre class="readout" id="log" aria-live="polite"></pre>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Contents</h2>
+  <div class="prog" id="prog" aria-live="polite"></div>
+  <ol class="check">
+    <li><input type="checkbox" id="c-why" aria-label="Mark Why cache as done"><a href="#why">Why cache, and what it costs</a></li>
+    <li><input type="checkbox" id="c-read" aria-label="Mark Read strategies as done"><a href="#read">Read strategies</a></li>
+    <li><input type="checkbox" id="c-write" aria-label="Mark Write strategies as done"><a href="#write">Write strategies</a></li>
+    <li><input type="checkbox" id="c-fresh" aria-label="Mark Keeping it fresh as done"><a href="#fresh">Keeping it fresh</a></li>
+    <li><input type="checkbox" id="c-inval" aria-label="Mark Invalidation as done"><a href="#inval">Invalidation</a></li>
+    <li><input type="checkbox" id="c-evict" aria-label="Mark Eviction policies as done"><a href="#evict">Eviction policies</a></li>
+    <li><input type="checkbox" id="c-stampede" aria-label="Mark Stampedes and hot keys as done"><a href="#stampede">Stampedes and hot keys</a></li>
+    <li><input type="checkbox" id="c-more" aria-label="Mark More patterns as done"><a href="#more">More patterns</a></li>
+    <li><input type="checkbox" id="c-layers" aria-label="Mark Cache layers as done"><a href="#layers">Cache layers</a></li>
+    <li><input type="checkbox" id="c-choose" aria-label="Mark Choosing a strategy as done"><a href="#choose">Choosing a strategy</a></li>
+    <li><input type="checkbox" id="c-code" aria-label="Mark In code as done"><a href="#code">In code</a></li>
+  </ol>
+</section>
+
+<section id="why">
+  <h2>1. Why cache, and what it costs</h2>
+  <p>A database query might take 5 ms. A read from an in-memory cache such as Redis takes about 0.3 ms over the network, and a read from the process's own memory takes well under a microsecond. If most reads can be served from the copy, the average read gets much faster and the database does much less work.</p>
+  <p>With hit ratio $h$, the expected read time is a weighted average of a hit and a miss. A miss pays for the cache lookup and the database:</p>
+  <div class="formula">$$T = h\,t_{\text{cache}} + (1-h)\,\bigl(t_{\text{cache}} + t_{\text{db}}\bigr) = t_{\text{cache}} + (1-h)\,t_{\text{db}}$$</div>
+  <p>With $t_{\text{cache}} = 0.3$ ms and $t_{\text{db}} = 5$ ms, a 90% hit ratio gives 0.8 ms and a 99% hit ratio gives 0.35 ms. Going from 90% to 99% cuts the database load by a factor of ten, which is often worth more than the latency.</p>
+  <p>The price is that you now have two copies of the truth. Every strategy below is a different answer to three questions:</p>
+  <ul class="tight">
+    <li><b>Who fills the cache</b> on a miss: the application, or the cache itself?</li>
+    <li><b>What happens on a write</b>: update the cache, delete the entry, or leave it alone?</li>
+    <li><b>When does the database learn</b> about a write: before the call returns, or later?</li>
+  </ul>
+  <p class="callout">There are only two hard things in computer science: cache invalidation and naming things. The rest of this page is about the first one.</p>
+</section>
+
+<section id="read">
+  <h2>2. Read strategies</h2>
+  <h3>Cache-aside (lazy loading)</h3>
+  <p>The application owns the logic. It asks the cache first. On a miss it reads the database itself and puts the result in the cache with a TTL. The cache is a plain key-value store and knows nothing about the database.</p>
+  <ul class="tight">
+    <li>Only data that is actually read gets cached, so memory is not wasted on cold keys.</li>
+    <li>If the cache is down, the app can still read the database, just slower.</li>
+    <li>The first read of every key is a miss, and the miss path costs three round trips.</li>
+    <li>Writes go to the database and usually delete the cache entry, so the next read reloads it.</li>
+  </ul>
+  <p>This is the default choice for Redis and Memcached, and the most common pattern in practice.</p>
+
+  <h3>Read-through</h3>
+  <p>The same flow, but the cache does the loading. The application only ever talks to the cache. On a miss, the cache calls a loader you registered, stores the result and returns it. Libraries such as Caffeine and Guava <code>LoadingCache</code>, and products such as NCache or a DynamoDB Accelerator (DAX) cluster, work this way.</p>
+  <p>The app code gets simpler, and the loading logic lives in one place, which makes it easy to add request coalescing there. In exchange, the cache must know how to reach the database, and a cache outage now blocks reads.</p>
+
+  <h3>Refresh-ahead</h3>
+  <p>A hot key that expires causes a miss, and on a busy key many readers see it at the same moment. Refresh-ahead reloads an entry in the background <b>before</b> it expires, when it is read late in its life (for example in the last 40% of the TTL). Readers keep getting hits. In Fig 1, read the key, press "+10 s" twice and read again: the cache refreshes itself while still serving the old value.</p>
+  <p>It works well when access is predictable. For keys that are read once and never again, it wastes database queries.</p>
+
+  <h3>Stale-while-revalidate</h3>
+  <p>A softer version of the same idea. When an entry has expired but is still in memory, return it immediately and refresh it in the background. The reader pays no latency, at the cost of one possibly stale answer. The HTTP header <code>Cache-Control: max-age=60, stale-while-revalidate=30</code> asks browsers and CDNs to do exactly this for 30 seconds after expiry.</p>
+</section>
+
+<section id="write">
+  <h2>3. Write strategies</h2>
+  <h3>Write-through</h3>
+  <p>The application writes to the cache, and the cache writes to the database in the same call. The call returns only after both have the new value. The cache is never behind the database for that key, so reads right after a write are fresh.</p>
+  <p>The write is slower, because it waits for two stores. Data that is written but never read still fills the cache, so write-through is usually paired with a TTL. Without a transaction across both, a failure between the two writes still leaves them different, so production code retries or falls back to deleting the entry.</p>
+
+  <h3>Write-behind (write-back)</h3>
+  <p>The application writes to the cache and gets an answer at once. The cache queues the change and writes it to the database later, often in batches. Writes are as fast as the cache, and ten updates of the same key can collapse into one database write.</p>
+  <p>The risk is durability. Until the queue is flushed, the only copy of the new value is in the cache. In Fig 1, choose write-behind, write twice and press "Crash cache": both writes are gone. Use it for data you can afford to lose or rebuild, such as view counters and metrics, or back the queue with a durable log.</p>
+
+  <h3>Write-around</h3>
+  <p>Writes go straight to the database and skip the cache. The cache is filled only by reads, as in cache-aside. This keeps write-heavy, rarely read data such as logs or bulk imports from flushing useful entries out of the cache.</p>
+  <p>If the key is already cached, the old value stays there until its TTL runs out. In Fig 1, read, then write with write-around and read again: the cache returns the previous version. That is why write-around is usually combined with a short TTL, or with a delete on write, which turns it into cache-aside.</p>
+
+  <h3>Update or delete on write?</h3>
+  <p>With cache-aside, after writing the database you can either set the new value in the cache or delete the entry. Prefer <b>delete</b>. Two concurrent writers can set their values in the cache in the opposite order to the database, leaving the cache wrong until the TTL. A delete is idempotent: whatever the order, the next read loads the current value.</p>
+</section>
+
+<section id="fresh">
+  <h2>4. Keeping it fresh: TTLs</h2>
+  <p>A time to live is the safety net under every strategy. Even if an invalidation is lost, an entry cannot be wrong for longer than its TTL. Choosing it is a trade between staleness and hit ratio:</p>
+  <div class="tw"><table class="ops">
+    <thead><tr><th>Data</th><th>Typical TTL</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td>Exchange rates, prices</td><td>seconds</td><td>Stale values cost money, but even 1 s absorbs thousands of reads.</td></tr>
+      <tr><td>User profile, settings</td><td>minutes</td><td>Changes are rare and usually invalidated on write.</td></tr>
+      <tr><td>Product catalog, config</td><td>hours</td><td>Changes are deployed or published, and can purge explicitly.</td></tr>
+      <tr><td>Static assets with a hash in the name</td><td>a year</td><td>The content never changes; a new version gets a new URL.</td></tr>
+    </tbody>
+  </table></div>
+  <p>Add <b>jitter</b>. If a deploy warms 100,000 keys with the same 300 s TTL, they all expire in the same second and the database takes the whole load at once. Use a TTL of $300 \pm 30$ s chosen at random per key instead.</p>
+</section>
+
+<section id="inval">
+  <h2>5. Invalidation</h2>
+  <p>Deleting the right entries at the right time is where most caching bugs live. The common approaches, from simplest to most robust:</p>
+  <div class="tw"><table class="ops">
+    <thead><tr><th>Approach</th><th>How</th><th>Weak spot</th></tr></thead>
+    <tbody>
+      <tr><td>TTL only</td><td>Never delete; let entries expire.</td><td>Stale for up to one TTL after every write.</td></tr>
+      <tr><td>Delete on write</td><td>The code that writes the DB deletes the key.</td><td>Every write path must remember to do it, including scripts and admin tools.</td></tr>
+      <tr><td>Versioned keys</td><td>Put a version in the key: <code>user:42:v7</code>. Bump the version on write.</td><td>Old versions linger until evicted; the version itself must be read from somewhere.</td></tr>
+      <tr><td>Event-driven (CDC)</td><td>Read the database's change log (Debezium, DynamoDB Streams) and delete keys from it.</td><td>More moving parts; deletes arrive a little after the commit.</td></tr>
+      <tr><td>Tag or group purge</td><td>Tag entries (<code>product:9</code>) and purge everything with a tag, as CDNs do.</td><td>Needs a cache or CDN that supports tags.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>The cache-aside race</h3>
+  <p>Even "write the DB, then delete the key" can leave a stale entry, when a slow reader overlaps a writer:</p>
+  <div class="tw"><table class="ops">
+    <thead><tr><th>Step</th><th>Reader</th><th>Writer</th><th>Cache</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>miss, reads v1 from DB</td><td></td><td>empty</td></tr>
+      <tr><td>2</td><td>(paused)</td><td>writes v2 to DB, deletes key</td><td>empty</td></tr>
+      <tr><td>3</td><td>sets v1 in cache</td><td></td><td>v1, stale until TTL</td></tr>
+    </tbody>
+  </table></div>
+  <p>The window is small, because a database read is usually faster than a write, but under load it happens. Fixes, in order of effort: keep TTLs short so the damage is bounded; delete again a moment later ("delayed double delete"); or set with a condition, for example store the row version and only overwrite when the new version is higher, or use a lease token that a delete invalidates, as Memcached leases at Facebook do.</p>
+</section>
+
+<section id="evict">
+  <h2>6. Eviction policies</h2>
+  <p>A cache has a fixed amount of memory. When it is full and a new key arrives, something has to go. The policy decides what, and the right one depends on the access pattern. Click keys below, or play a pattern, and compare three policies on the same capacity of 3.</p>
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 2</span><span class="card-title">LRU, LFU and FIFO on the same requests</span></div>
+    <div class="keys" id="evKeys" role="group" aria-label="Request a key"></div>
+    <div class="keys" id="evPatterns" role="group" aria-label="Play an access pattern"></div>
+    <div class="trace" id="evTrace" aria-live="polite"></div>
+    <div class="ev" id="ev"></div>
+    <div class="card-bottom"><span class="hint">Grey = hit, blue = just inserted. Small number: LRU age, LFU count, FIFO arrival.</span><span class="live" id="evLive"></span></div>
+  </figure>
+  <div class="tw"><table class="ops">
+    <thead><tr><th>Policy</th><th>Evicts</th><th>Good at</th><th>Bad at</th></tr></thead>
+    <tbody>
+      <tr><td>LRU</td><td>The least recently used key</td><td>Recency: what was read lately is read again</td><td>One big scan flushes the whole cache</td></tr>
+      <tr><td>LFU</td><td>The least frequently used key</td><td>Stable hot sets, scans</td><td>Old popular keys stay forever without aging</td></tr>
+      <tr><td>FIFO</td><td>The oldest inserted key</td><td>Simplicity, very cheap</td><td>Evicts hot keys just because they are old</td></tr>
+      <tr><td>Random</td><td>Any key</td><td>Zero bookkeeping; surprisingly close to LRU</td><td>No guarantees for hot keys</td></tr>
+      <tr><td>TTL first</td><td>Keys closest to expiry</td><td>Data with natural lifetimes</td><td>Keys without a TTL</td></tr>
+      <tr><td>W-TinyLFU, ARC</td><td>Mix of recency and frequency</td><td>Real workloads; used by Caffeine and ZFS</td><td>More complex to implement</td></tr>
+    </tbody>
+  </table></div>
+  <p>Redis exposes these as <code>maxmemory-policy</code>: <code>allkeys-lru</code>, <code>allkeys-lfu</code>, <code>volatile-ttl</code>, <code>allkeys-random</code> and others. Its LRU and LFU are approximate: it samples a few keys and evicts the best candidate among them, which costs far less memory than a full linked list.</p>
+</section>
+
+<section id="stampede">
+  <h2>7. Stampedes and hot keys</h2>
+  <p>A <b>cache stampede</b> (thundering herd, dog-piling) happens when a popular key expires and every concurrent request misses at once. Each one queries the database for the same row. In Fig 1, choose cache-aside and press "5 reads at once" on an empty cache: five database reads for one value. Switch to request coalescing and try again: one.</p>
+  <h3>Request coalescing (single-flight)</h3>
+  <p>The first miss for a key starts the load and registers it as in flight. Later misses for the same key wait for that load instead of starting their own. Go's <code>singleflight</code> package, Caffeine's loaders and CDN "collapsed forwarding" all do this. Inside one process it is a map of promises; across many servers it needs a short distributed lock, such as <code>SET key:lock NX PX 2000</code> in Redis.</p>
+  <h3>Probabilistic early expiration</h3>
+  <p>Instead of everyone missing at the expiry time, let each reader decide at random to refresh a little early, with a probability that grows as expiry approaches. The XFetch rule refreshes when</p>
+  <div class="formula">$$t_{\text{now}} - \delta\,\beta\,\ln(u) \;\ge\; t_{\text{expiry}}, \qquad u \sim \text{Uniform}(0,1)$$</div>
+  <p>where $\delta$ is how long the recompute takes and $\beta \ge 1$ tunes how eager it is. Since $\ln(u) \le 0$, the left side is "now, pushed forward by a random amount". Usually one reader refreshes shortly before expiry and nobody else notices, with no locks at all.</p>
+  <h3>Hot keys</h3>
+  <p>One key can receive more traffic than one cache node can serve, for example a celebrity's profile. Spread it: keep a small in-process copy in every app server for a second or two, or store replicas under <code>key#1</code> to <code>key#N</code> and pick one at random on read.</p>
+</section>
+
+<section id="more">
+  <h2>8. More patterns</h2>
+  <div class="tw"><table class="ops">
+    <thead><tr><th>Pattern</th><th>What it does</th><th>Use when</th></tr></thead>
+    <tbody>
+      <tr><td>Negative caching</td><td>Cache "not found" with a short TTL.</td><td>Lookups of missing keys, or attackers probing random IDs, would otherwise always hit the DB.</td></tr>
+      <tr><td>Cache warming</td><td>Load the hot set before traffic arrives, after a deploy or a cache restart.</td><td>A cold cache would melt the database.</td></tr>
+      <tr><td>Bloom filter in front</td><td>Answer "definitely not present" without a lookup.</td><td>Most requests are for keys that do not exist.</td></tr>
+      <tr><td>Circuit breaker on miss path</td><td>When the DB is slow, serve stale data or fail fast instead of piling up queries.</td><td>A cache outage must not cascade into a DB outage.</td></tr>
+      <tr><td>Materialized view</td><td>Precompute an expensive query result and store it as a value.</td><td>Feeds, leaderboards, aggregates.</td></tr>
+      <tr><td>Memoization</td><td>Cache a pure function's result by its arguments, in process.</td><td>Repeated expensive computation, parsing, rendering.</td></tr>
+      <tr><td>Sharding</td><td>Spread keys over nodes with consistent hashing.</td><td>The data or traffic is larger than one node; adding a node should move only a slice of the keys.</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="layers">
+  <h2>9. Cache layers</h2>
+  <p>Real systems stack caches. A request can be answered by the first layer that has a fresh copy, and each layer shields the next.</p>
+  <div class="tw"><table class="ops">
+    <thead><tr><th>Layer</th><th>Example</th><th>Latency</th><th>Invalidation</th></tr></thead>
+    <tbody>
+      <tr><td>Browser</td><td><code>Cache-Control</code>, <code>ETag</code></td><td>0</td><td>Hard: you cannot reach it, so use versioned URLs</td></tr>
+      <tr><td>CDN edge</td><td>CloudFront, Fastly, Cloudflare</td><td>~10 ms</td><td>Purge API, tags, short TTLs</td></tr>
+      <tr><td>Reverse proxy</td><td>Nginx, Varnish</td><td>~1 ms</td><td>Purge, TTL</td></tr>
+      <tr><td>In-process (L1)</td><td>Caffeine, a map with TTL</td><td>&lt; 1 µs</td><td>Per server: needs pub/sub to broadcast deletes</td></tr>
+      <tr><td>Distributed (L2)</td><td>Redis, Memcached, ElastiCache</td><td>~0.3 ms</td><td>One place to delete</td></tr>
+      <tr><td>Database</td><td>Buffer pool, query cache</td><td>~1–5 ms</td><td>Automatic</td></tr>
+    </tbody>
+  </table></div>
+  <p>A two-level setup, a small L1 per server with a TTL of a few seconds in front of a shared L2, takes most of the load off the network for hot keys. The price is that each server may be a few seconds behind, so keep the L1 TTL short or broadcast invalidations over Redis pub/sub.</p>
+  <p>HTTP has caching built in. <code>Cache-Control: max-age</code> sets the TTL, <code>ETag</code> with <code>If-None-Match</code> lets a client revalidate and get a tiny <code>304 Not Modified</code> instead of the full body, and <code>stale-while-revalidate</code> and <code>stale-if-error</code> are the HTTP versions of the patterns above.</p>
+</section>
+
+<section id="choose">
+  <h2>10. Choosing a strategy</h2>
+  <div class="tw"><table class="ops">
+    <thead><tr><th>Strategy</th><th>Read after write</th><th>Write latency</th><th>Main risk</th><th>Good fit</th></tr></thead>
+    <tbody>
+      <tr><td>Cache-aside</td><td>Fresh after delete</td><td>DB</td><td>Race above, stampede on miss</td><td>General purpose, read-heavy</td></tr>
+      <tr><td>Read-through</td><td>Fresh after delete</td><td>DB</td><td>Cache outage blocks reads</td><td>Library caches, uniform loading</td></tr>
+      <tr><td>Write-through</td><td>Fresh</td><td>Cache + DB</td><td>Slower writes, cold data cached</td><td>Read soon after write, e.g. sessions</td></tr>
+      <tr><td>Write-behind</td><td>Fresh in cache, DB lags</td><td>Cache only</td><td>Data loss on crash</td><td>Counters, metrics, write bursts</td></tr>
+      <tr><td>Write-around</td><td>Stale until TTL</td><td>DB</td><td>Stale reads</td><td>Write-heavy, rarely read data</td></tr>
+      <tr><td>Refresh-ahead</td><td>Stale until refresh</td><td>DB</td><td>Wasted refreshes</td><td>Predictable hot keys</td></tr>
+      <tr><td>Request coalescing</td><td>Same as base</td><td>Same as base</td><td>Waiters share one failure</td><td>Any hot key; add it everywhere</td></tr>
+      <tr><td>Stale-while-revalidate</td><td>One stale read</td><td>Same as base</td><td>Bounded staleness</td><td>Latency matters more than freshness</td></tr>
+    </tbody>
+  </table></div>
+  <p>The strategies combine. A common production setup is cache-aside or read-through for reads, delete on write, a jittered TTL as a safety net, and coalescing on the miss path.</p>
+  <div class="cards">
+    <div class="stat focal"><div class="eyebrow">Start here</div><div class="big">cache-aside + delete</div><p>Simple, survives a cache outage, and the TTL bounds every mistake.</p></div>
+    <div class="stat"><div class="eyebrow">Always add</div><div class="big">TTL with jitter</div><p>No entry can be wrong forever, and keys do not expire together.</p></div>
+    <div class="stat"><div class="eyebrow">For hot keys</div><div class="big">coalescing</div><p>One database query per key per expiry, however many readers.</p></div>
+  </div>
+</section>
+
+<section id="code">
+  <h2>11. In code</h2>
+  <p>Cache-aside with delete on write, a jittered TTL and in-process request coalescing, in JavaScript against a Redis-like client:</p>
+  <pre><span class="k">const</span> inflight = <span class="k">new</span> Map();                     <span class="c2">// key -> Promise of the value being loaded</span>
+<span class="k">const</span> ttl = (base) =&gt; base + Math.floor(Math.random() * base * <span class="t">0.1</span>); <span class="c2">// +0..10% jitter</span>
+
+<span class="k">async function</span> getUser(id) {
+  <span class="k">const</span> key = <span class="t">`user:${id}`</span>;
+  <span class="k">const</span> hit = <span class="k">await</span> cache.get(key);
+  <span class="k">if</span> (hit !== <span class="k">null</span>) <span class="k">return</span> JSON.parse(hit);         <span class="c2">// hit</span>
+
+  <span class="k">if</span> (!inflight.has(key)) {                         <span class="c2">// first miss loads, others wait</span>
+    inflight.set(key, (<span class="k">async</span> () =&gt; {
+      <span class="k">try</span> {
+        <span class="k">const</span> row = <span class="k">await</span> db.query(<span class="t">'SELECT * FROM users WHERE id = $1'</span>, [id]);
+        <span class="k">await</span> cache.set(key, JSON.stringify(row), { EX: ttl(<span class="t">300</span>) });
+        <span class="k">return</span> row;
+      } <span class="k">finally</span> {
+        inflight.delete(key);
+      }
+    })());
+  }
+  <span class="k">return</span> inflight.get(key);
+}
+
+<span class="k">async function</span> updateUser(id, fields) {
+  <span class="k">await</span> db.query(<span class="t">'UPDATE users SET name = $2 WHERE id = $1'</span>, [id, fields.name]);
+  <span class="k">await</span> cache.del(<span class="t">`user:${id}`</span>);                    <span class="c2">// delete, do not set</span>
+}</pre>
+  <p>The query uses parameters, never string concatenation. The <code>finally</code> clears the in-flight entry even when the database fails, so the next request retries instead of waiting forever on a rejected promise.</p>
+</section>
+
+</main>
+
+<script>
+(function () {
+  var NS = 'http://www.w3.org/2000/svg';
+  var INK = '#2d3142', SOFT = '#5a6580', MUTED = '#8a90a0', RULE = '#bfc0c0', ACCENT = '#bf4520', LINK = '#2e5aa8', PAPER = '#f5f5f5';
+  var $ = function (id) { return document.getElementById(id); };
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function el(name, attrs, parent) {
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function txt(parent, x, y, s, extra) {
+    var a = { x: x, y: y, 'font-size': 12, fill: INK, 'font-family': 'Geist Mono, monospace' };
+    for (var k in extra) a[k] = extra[k];
+    var t = el('text', a, parent); t.textContent = s; return t;
+  }
+  function clear(svg) {
+    Array.prototype.slice.call(svg.childNodes).forEach(function (n) {
+      var nm = (n.localName || '').toLowerCase();
+      if (nm !== 'title' && nm !== 'desc') svg.removeChild(n);
+    });
+  }
+  // rounded orthogonal path through points
+  function pathD(pts, r) {
+    var d = 'M' + pts[0][0] + ' ' + pts[0][1];
+    for (var i = 1; i < pts.length - 1; i++) {
+      var p = pts[i - 1], c = pts[i], n = pts[i + 1];
+      var d1 = Math.hypot(c[0] - p[0], c[1] - p[1]), d2 = Math.hypot(n[0] - c[0], n[1] - c[1]), rr = Math.min(r, d1 / 2, d2 / 2);
+      var a = [c[0] - (c[0] - p[0]) / d1 * rr, c[1] - (c[1] - p[1]) / d1 * rr], b = [c[0] + (n[0] - c[0]) / d2 * rr, c[1] + (n[1] - c[1]) / d2 * rr];
+      d += ' L' + a[0] + ' ' + a[1] + ' Q' + c[0] + ' ' + c[1] + ' ' + b[0] + ' ' + b[1];
+    }
+    var l = pts[pts.length - 1];
+    return d + ' L' + l[0] + ' ' + l[1];
+  }
+
+  // ---------- strategies ----------
+  var S = {
+    aside:   { name: 'Cache-aside', short: 'app fills it on a miss', edges: { ac: 1, ad: 1 }, mark: {},
+               desc: 'Read: the app checks the cache, and on a miss reads the DB and sets the cache. Write: the app updates the DB and deletes the cache entry.' },
+    through: { name: 'Read-through', short: 'cache loads from DB', edges: { ac: 1, cd: 1 }, mark: {},
+               desc: 'Read: the app only talks to the cache; on a miss the cache loads from the DB itself. Write: the app updates the DB and deletes the entry.' },
+    wthru:   { name: 'Write-through', short: 'cache + DB, same call', edges: { ac: 1, cd: 1 }, mark: {},
+               desc: 'Write: the app writes the cache, which writes the DB before answering. Reads after a write are fresh. Reads load through the cache.' },
+    behind:  { name: 'Write-behind', short: 'DB later, in batches', edges: { ac: 1, cd: 2 }, mark: { cd: 'later' },
+               desc: 'Write: the cache answers at once and queues the change. The queue is flushed to the DB every 10 s. Crash the cache before a flush to lose writes.' },
+    around:  { name: 'Write-around', short: 'DB only, skip cache', edges: { ac: 1, ad: 1 }, mark: { ad: 'write' },
+               desc: 'Write: straight to the DB, the cache is left alone. Reads fill the cache as in cache-aside, so a cached key stays old until its TTL ends.' },
+    ahead:   { name: 'Refresh-ahead', short: 'reload before expiry', edges: { ac: 1, cd: 1 }, mark: { cd: 'refresh' },
+               desc: 'Read-through, plus: an entry read in the last 40% of its TTL is reloaded in the background, so hot keys never expire under readers.' },
+    single:  { name: 'Request coalescing', short: '5 misses, 1 query', edges: { ac: 1, cd: 1 }, mark: { ac: '×5', cd: '×1' },
+               desc: 'Read-through, plus: concurrent misses for one key share a single in-flight DB load. Try "5 reads at once" on an empty cache.' },
+    swr:     { name: 'Stale-while-revalidate', short: 'serve old, refresh behind', edges: { ac: 1, cd: 2 }, mark: { cd: 'revalidate' },
+               desc: 'Read-through, plus: an expired entry is still returned at once while the cache reloads it in the background. Expired readers never wait.' }
+  };
+  var ORDER = ['aside', 'through', 'wthru', 'behind', 'around', 'ahead', 'single', 'swr'];
+
+  // mini diagram for a strategy card
+  function mini(svg, s) {
+    var M = { a: [4, 36, 52, 26], c: [118, 4, 74, 26], d: [118, 70, 74, 26] };
+    var E = { ac: [[56, 44], [88, 44], [88, 17], [118, 17]], ad: [[56, 54], [88, 54], [88, 83], [118, 83]], cd: [[155, 30], [155, 70]] };
+    Object.keys(E).forEach(function (k) {
+      var use = s.edges[k];
+      el('path', { d: pathD(E[k], 6), fill: 'none', stroke: use ? (use === 2 ? LINK : INK) : RULE, 'stroke-width': use ? 1.4 : 1, 'stroke-dasharray': use === 2 ? '4 3' : (use ? '' : '2 3') }, svg);
+    });
+    [['a', 'App'], ['c', 'Cache'], ['d', 'DB']].forEach(function (n) {
+      var r = M[n[0]];
+      el('rect', { x: r[0], y: r[1], width: r[2], height: r[3], rx: 5, fill: '#fff', stroke: INK }, svg);
+      txt(svg, r[0] + r[2] / 2, r[1] + 17, n[1], { 'font-size': 11, 'font-weight': 600, 'text-anchor': 'middle', 'font-family': 'Geist, sans-serif' });
+    });
+    var MP = { ac: [72, 30, 'middle'], ad: [72, 74, 'middle'], cd: [160, 53, 'start'] };
+    Object.keys(s.mark).forEach(function (k) {
+      var p = MP[k], w = s.mark[k].length * 6 + 6, x = p[2] === 'middle' ? p[0] - w / 2 : p[0];
+      el('rect', { x: x, y: p[1] - 9, width: w, height: 13, fill: PAPER }, svg);
+      txt(svg, x + 3, p[1], s.mark[k], { 'font-size': 9.5, fill: k === 'cd' && s.edges.cd === 2 ? LINK : ACCENT, 'font-weight': 600 });
+    });
+  }
+
+  // ---------- simulator state ----------
+  var TTL = 30, cur = 'aside', st, busy = false;
+  function reset() {
+    st = { t: 0, db: 1, cache: null, queue: [], hit: 0, miss: 0, dbr: 0, dbw: 0, stale: 0, lost: 0, log: [] };
+  }
+  reset();
+  function fresh() { return st.cache && st.cache.exp > st.t; }
+  function log(s) { st.log.push('t=' + st.t + 's  ' + s); if (st.log.length > 9) st.log.shift(); }
+  function setCache(v) { st.cache = { v: v, exp: st.t + TTL, born: st.t }; }
+  function readHit(n) { st.hit += n; if (st.cache.v < st.db) { st.stale += n; log('⚠ stale: cache has v' + st.cache.v + ', DB has v' + st.db); } }
+
+  // geometry of the big figure
+  var NODE = { a: [40, 132, 128, 56], c: [400, 28, 176, 104], d: [400, 212, 176, 84] };
+  var EDGE = {
+    ac: [[168, 148], [284, 148], [284, 80], [400, 80]],
+    ad: [[168, 172], [284, 172], [284, 254], [400, 254]],
+    cd: [[488, 132], [488, 212]]
+  };
+  function route(from, to) {
+    var k = from + to, rev = to + from;
+    if (EDGE[k]) return { key: k, pts: EDGE[k] };
+    return { key: rev, pts: EDGE[rev].slice().reverse() };
+  }
+
+  // a step: message from node to node with a label; fx runs on arrival
+  function msg(from, to, label, fx) { return { from: from, to: to, label: label, fx: fx }; }
+
+  function planRead(n) {
+    var s = cur, steps = [], many = n > 1, x = many ? ' ×' + n : '';
+    var appFills = s === 'aside' || s === 'around';
+    if (fresh()) {
+      steps.push(msg('a', 'c', 'GET' + x));
+      steps.push(msg('c', 'a', 'HIT v' + st.cache.v + x, function () { readHit(n); log((many ? n + ' reads' : 'read') + ': hit v' + st.cache.v); }));
+      if (s === 'ahead' && st.cache.exp - st.t <= TTL * 0.4) {
+        steps.push(msg('c', 'd', 'REFRESH', function () { st.dbr++; log('refresh-ahead: entry is late in its TTL, reload in background'); }));
+        steps.push(msg('d', 'c', 'v' + st.db, function () { setCache(st.db); }));
+      }
+      return steps;
+    }
+    if (s === 'swr' && st.cache) {
+      steps.push(msg('a', 'c', 'GET' + x));
+      steps.push(msg('c', 'a', 'STALE v' + st.cache.v + x, function () { readHit(n); log('expired entry served at once, revalidating'); }));
+      steps.push(msg('c', 'd', 'REVALIDATE', function () { st.dbr++; }));
+      steps.push(msg('d', 'c', 'v' + st.db, function () { setCache(st.db); }));
+      return steps;
+    }
+    var q = (s === 'single') ? 1 : n;
+    steps.push(msg('a', 'c', 'GET' + x));
+    if (appFills) {
+      steps.push(msg('c', 'a', 'MISS' + x, function () { st.miss += n; }));
+      steps.push(msg('a', 'd', 'SELECT' + (q > 1 ? ' ×' + q : ''), function () { st.dbr += q; log(q > 1 ? 'stampede: ' + q + ' identical DB queries' : 'miss: app reads the DB'); }));
+      steps.push(msg('d', 'a', 'v' + st.db + (q > 1 ? ' ×' + q : '')));
+      steps.push(msg('a', 'c', 'SET v' + st.db + (q > 1 ? ' ×' + q : ''), function () { setCache(st.db); log('app sets the cache, TTL ' + TTL + 's'); }));
+    } else {
+      steps.push(msg('c', 'd', 'LOAD' + (many ? ' ×' + q : ''), function () {
+        st.miss += n; st.dbr += q;
+        log(many ? (q === 1 ? n + ' misses coalesced into 1 DB load' : 'stampede: ' + q + ' identical DB loads') : 'miss: cache loads from the DB');
+      }));
+      steps.push(msg('d', 'c', 'v' + st.db, function () { setCache(st.db); }));
+      steps.push(msg('c', 'a', 'v' + st.db + x));
+    }
+    return steps;
+  }
+
+  function latest() { return Math.max(st.db, st.cache ? st.cache.v : 0, st.queue.length ? st.queue[st.queue.length - 1] : 0); }
+  function planWrite() {
+    var s = cur, v = latest() + 1, steps = [];
+    if (s === 'wthru') {
+      steps.push(msg('a', 'c', 'SET v' + v, function () { setCache(v); }));
+      steps.push(msg('c', 'd', 'UPDATE v' + v, function () { st.db = v; st.dbw++; }));
+      steps.push(msg('d', 'c', 'OK'));
+      steps.push(msg('c', 'a', 'OK', function () { log('write-through: cache and DB both at v' + v); }));
+    } else if (s === 'behind') {
+      steps.push(msg('a', 'c', 'SET v' + v, function () { setCache(v); st.queue.push(v); }));
+      steps.push(msg('c', 'a', 'OK', function () { log('write-behind: acked, v' + v + ' queued (' + st.queue.length + ' pending)'); }));
+    } else if (s === 'around') {
+      steps.push(msg('a', 'd', 'UPDATE v' + v, function () {
+        st.db = v; st.dbw++;
+        log(st.cache ? 'write-around: DB at v' + v + ', cache still has v' + st.cache.v : 'write-around: DB at v' + v + ', cache untouched');
+      }));
+    } else {
+      steps.push(msg('a', 'd', 'UPDATE v' + v, function () { st.db = v; st.dbw++; }));
+      steps.push(msg('a', 'c', 'DEL', function () { st.cache = null; log('DB at v' + v + ', cache entry deleted'); }));
+    }
+    return steps;
+  }
+
+  function planTime() {
+    var steps = [];
+    st.t += 10;
+    if (cur === 'behind' && st.queue.length) {
+      var n = st.queue.length, last = st.queue[n - 1];
+      steps.push(msg('c', 'd', 'FLUSH ' + n + (n > 1 ? ' writes' : ' write'), function () {
+        st.db = last; st.dbw++; st.queue = [];
+        log('flush: ' + n + ' queued write' + (n > 1 ? 's' : '') + ' → 1 DB write, DB at v' + last);
+      }));
+    } else if (cur === 'ahead' && st.cache && st.cache.exp > st.t && st.cache.exp - st.t <= TTL * 0.4) {
+      log('+10s: entry has ' + (st.cache.exp - st.t) + 's left, next read refreshes it');
+    } else {
+      log('+10s' + (st.cache ? (st.cache.exp > st.t ? ', entry has ' + (st.cache.exp - st.t) + 's left' : ', entry expired') : ''));
+    }
+    return steps;
+  }
+
+  // ---------- drawing ----------
+  var svg = $('sim'), layer, edgeEls = {};
+  function drawSim(activeEdge) {
+    clear(svg);
+    var g = el('g', {}, svg), s = S[cur];
+    el('rect', { width: 640, height: 320, fill: '#fff' }, g);
+    edgeEls = {};
+    Object.keys(EDGE).forEach(function (k) {
+      var use = s.edges[k], on = k === activeEdge;
+      edgeEls[k] = el('path', { d: pathD(EDGE[k], 8), fill: 'none', stroke: on ? ACCENT : (use ? (use === 2 ? LINK : MUTED) : RULE),
+        'stroke-width': on ? 2.4 : (use ? 1.6 : 1), 'stroke-dasharray': use === 2 && !on ? '5 4' : (use ? '' : '2 4') }, g);
+    });
+    // App
+    var A = NODE.a;
+    el('rect', { x: A[0], y: A[1], width: A[2], height: A[3], rx: 6, fill: '#fff', stroke: INK, 'stroke-width': 1.4 }, g);
+    txt(g, A[0] + 14, A[1] + 24, 'App', { 'font-size': 15, 'font-weight': 600, 'font-family': 'Geist, sans-serif' });
+    txt(g, A[0] + 14, A[1] + 42, 'service', { 'font-size': 11, fill: SOFT });
+    // Cache
+    var C = NODE.c, c = st.cache, isFresh = fresh();
+    el('rect', { x: C[0], y: C[1], width: C[2], height: C[3], rx: 6, fill: '#fff', stroke: INK, 'stroke-width': 1.4 }, g);
+    txt(g, C[0] + 14, C[1] + 22, 'Cache', { 'font-size': 15, 'font-weight': 600, 'font-family': 'Geist, sans-serif' });
+    txt(g, C[0] + C[2] - 12, C[1] + 22, 'Redis', { 'font-size': 11, fill: SOFT, 'text-anchor': 'end' });
+    txt(g, C[0] + 14, C[1] + 46, c ? 'user:42 = v' + c.v : 'user:42  (empty)', { 'font-size': 12, fill: c ? INK : SOFT, 'font-weight': c ? 600 : 400 });
+    if (c && c.v < st.db) {
+      el('rect', { x: C[0] + C[2] - 58, y: C[1] + 34, width: 46, height: 17, rx: 2, fill: ACCENT }, g);
+      txt(g, C[0] + C[2] - 35, C[1] + 46, 'STALE', { 'font-size': 10, fill: '#fff', 'font-weight': 600, 'text-anchor': 'middle' });
+    }
+    // TTL bar
+    var left = c ? Math.max(0, c.exp - st.t) : 0, bw = C[2] - 28;
+    el('rect', { x: C[0] + 14, y: C[1] + 58, width: bw, height: 6, rx: 3, fill: '#ececec' }, g);
+    if (left > 0) el('rect', { x: C[0] + 14, y: C[1] + 58, width: bw * left / TTL, height: 6, rx: 3, fill: left <= TTL * 0.4 ? ACCENT : INK }, g);
+    txt(g, C[0] + 14, C[1] + 82, c ? (isFresh ? 'TTL ' + left + 's left' : 'expired') : 'no entry', { 'font-size': 11, fill: SOFT });
+    if (cur === 'behind') txt(g, C[0] + C[2] - 12, C[1] + 82, 'queue: ' + st.queue.length, { 'font-size': 11, fill: st.queue.length ? ACCENT : SOFT, 'font-weight': st.queue.length ? 600 : 400, 'text-anchor': 'end' });
+    // DB
+    var D = NODE.d;
+    el('rect', { x: D[0], y: D[1], width: D[2], height: D[3], rx: 6, fill: PAPER, stroke: INK, 'stroke-width': 1.4 }, g);
+    txt(g, D[0] + 14, D[1] + 22, 'DB', { 'font-size': 15, 'font-weight': 600, 'font-family': 'Geist, sans-serif' });
+    txt(g, D[0] + D[2] - 12, D[1] + 22, 'Postgres', { 'font-size': 11, fill: SOFT, 'text-anchor': 'end' });
+    txt(g, D[0] + 14, D[1] + 46, 'user:42 = v' + st.db, { 'font-size': 12, 'font-weight': 600 });
+    txt(g, D[0] + 14, D[1] + 68, 'source of truth', { 'font-size': 11, fill: SOFT });
+    // clock
+    txt(g, 40, 40, 't = ' + st.t + ' s', { 'font-size': 13, 'font-weight': 600 });
+    txt(g, 40, 58, 'TTL = ' + TTL + ' s', { 'font-size': 11, fill: SOFT });
+    layer = el('g', {}, g);
+  }
+
+  function updatePanel() {
+    $('sHit').textContent = st.hit; $('sMiss').textContent = st.miss; $('sDbR').textContent = st.dbr;
+    $('sDbW').textContent = st.dbw; $('sStale').textContent = st.stale; $('sLost').textContent = st.lost;
+    $('log').textContent = st.log.length ? st.log.join('\n') : 'Press Read to start. The cache is empty.';
+    $('simTitle').textContent = S[cur].name;
+    $('stratDesc').textContent = S[cur].desc;
+    $('simHint').textContent = 'solid = used by this strategy, dashed blue = background, dotted = unused';
+    $('simLive').textContent = 'DB reads ' + st.dbr + ' · hits ' + st.hit + ' · stale ' + st.stale;
+    ['aRead', 'aWrite', 'aBurst', 'aTime', 'aCrash', 'aReset'].forEach(function (id) { $(id).disabled = busy; });
+    Array.prototype.forEach.call(document.querySelectorAll('.strat'), function (b) { b.disabled = busy; });
+  }
+  function render(activeEdge) { drawSim(activeEdge); updatePanel(); }
+
+  // animate a dot with a label along the polyline, then call done
+  function fly(stepObj, done) {
+    var r = route(stepObj.from, stepObj.to);
+    render(r.key);
+    var pts = r.pts, segs = [], total = 0;
+    for (var i = 1; i < pts.length; i++) { var L = Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); segs.push(L); total += L; }
+    var w = stepObj.label.length * 7 + 12;
+    var g = el('g', {}, layer);
+    var dot = el('circle', { r: 5, fill: ACCENT }, g);
+    var pill = el('rect', { width: w, height: 18, rx: 3, fill: ACCENT }, g);
+    var lab = txt(g, 0, 0, stepObj.label, { 'font-size': 11, fill: '#fff', 'font-weight': 600, 'text-anchor': 'middle' });
+    function at(f) {
+      var dist = f * total, i = 0;
+      while (i < segs.length - 1 && dist > segs[i]) { dist -= segs[i]; i++; }
+      var t = segs[i] ? Math.min(1, dist / segs[i]) : 1;
+      var x = pts[i][0] + (pts[i + 1][0] - pts[i][0]) * t, y = pts[i][1] + (pts[i + 1][1] - pts[i][1]) * t;
+      dot.setAttribute('cx', x); dot.setAttribute('cy', y);
+      pill.setAttribute('x', x - w / 2); pill.setAttribute('y', y - 30);
+      lab.setAttribute('x', x); lab.setAttribute('y', y - 17);
+    }
+    if (reduce) { at(1); setTimeout(done, 250); return; }
+    var dur = 650, t0 = null;
+    function frame(ts) {
+      if (t0 === null) t0 = ts;
+      var f = Math.min(1, (ts - t0) / dur), e = f < 0.5 ? 2 * f * f : 1 - Math.pow(-2 * f + 2, 2) / 2;
+      at(e);
+      if (f < 1) requestAnimationFrame(frame); else setTimeout(done, 120);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  function play(steps) {
+    if (!steps.length) { render(); return; }
+    busy = true; updatePanel();
+    var i = 0;
+    (function next() {
+      if (i >= steps.length) { busy = false; render(); return; }
+      var s = steps[i++];
+      fly(s, function () { if (s.fx) s.fx(); next(); });
+    })();
+  }
+
+  // strategy cards
+  ORDER.forEach(function (k) {
+    var s = S[k], b = document.createElement('button');
+    b.type = 'button'; b.className = 'strat'; b.setAttribute('aria-pressed', k === cur ? 'true' : 'false');
+    b.innerHTML = '<div><b></b><span></span></div>';
+    b.querySelector('b').textContent = s.name.replace(/-/g, '\u2011'); // non-breaking hyphens keep names on one line
+    b.querySelector('span').textContent = s.short;
+    var m = el('svg', { viewBox: '0 0 232 100', 'aria-hidden': 'true' }, b);
+    mini(m, s);
+    b.addEventListener('click', function () {
+      cur = k; reset();
+      Array.prototype.forEach.call(document.querySelectorAll('.strat'), function (o) { o.setAttribute('aria-pressed', o === b ? 'true' : 'false'); });
+      render();
+    });
+    $('strats').appendChild(b);
+  });
+
+  $('aRead').addEventListener('click', function () { play(planRead(1)); });
+  $('aBurst').addEventListener('click', function () { play(planRead(5)); });
+  $('aWrite').addEventListener('click', function () { play(planWrite()); });
+  $('aTime').addEventListener('click', function () { var s = planTime(); render(); play(s); });
+  $('aCrash').addEventListener('click', function () {
+    var n = st.queue.length;
+    st.cache = null;
+    if (n) { st.lost += n; st.queue = []; log('cache crashed: ' + n + ' queued write' + (n > 1 ? 's' : '') + ' lost, DB still at v' + st.db); }
+    else log('cache crashed: entry gone, next read is a miss');
+    render();
+  });
+  $('aReset').addEventListener('click', function () { reset(); render(); });
+  render();
+
+  // ---------- Fig 2: eviction ----------
+  var CAP = 3, KEYS = ['A', 'B', 'C', 'D', 'E', 'F'];
+  var PATTERNS = { 'Hot key': 'ABACADAEAF', 'Scan': 'ABCABCDEFABC', 'Loop of 4': 'ABCDABCDABCD', 'Shifting': 'AABBCCDDAEEF' };
+  var pol, trace, clock;
+  function evReset() {
+    clock = 0; trace = [];
+    pol = { LRU: { items: [], hit: 0, miss: 0, last: '' }, LFU: { items: [], hit: 0, miss: 0, last: '' }, FIFO: { items: [], hit: 0, miss: 0, last: '' } };
+  }
+  function access(k) {
+    clock++; trace.push(k);
+    Object.keys(pol).forEach(function (name) {
+      var P = pol[name], it = P.items.filter(function (x) { return x.k === k; })[0];
+      P.items.forEach(function (x) { x.flag = ''; });
+      if (it) { P.hit++; it.used = clock; it.n++; it.flag = 'hit'; P.last = k + ': hit'; return; }
+      P.miss++;
+      var evicted = '';
+      if (P.items.length >= CAP) {
+        var victim = P.items.slice().sort(function (a, b) {
+          if (name === 'LRU') return a.used - b.used;
+          if (name === 'LFU') return a.n - b.n || a.used - b.used;
+          return a.born - b.born;
+        })[0];
+        evicted = victim.k;
+        P.items = P.items.filter(function (x) { return x !== victim; });
+      }
+      P.items.push({ k: k, used: clock, born: clock, n: 1, flag: 'new' });
+      P.last = k + ': miss' + (evicted ? ', evict ' + evicted : '');
+    });
+  }
+  function evRender() {
+    var box = $('ev'); box.innerHTML = '';
+    var subs = { LRU: 'evict least recently used', LFU: 'evict least frequently used', FIFO: 'evict oldest inserted' };
+    Object.keys(pol).forEach(function (name) {
+      var P = pol[name], d = document.createElement('div');
+      var h = document.createElement('h3'); h.textContent = name; d.appendChild(h);
+      var sb = document.createElement('div'); sb.className = 'sub'; sb.textContent = subs[name]; d.appendChild(sb);
+      var sl = document.createElement('div'); sl.className = 'slots';
+      for (var i = 0; i < CAP; i++) {
+        var x = P.items[i], s = document.createElement('div');
+        if (!x) { s.className = 'slot empty'; s.textContent = '·'; }
+        else {
+          s.className = 'slot' + (x.flag ? ' ' + x.flag : '');
+          s.textContent = x.k;
+          var sm = document.createElement('small');
+          sm.textContent = name === 'LRU' ? 't' + x.used : (name === 'LFU' ? '×' + x.n : '#' + x.born);
+          s.appendChild(sm);
+        }
+        sl.appendChild(s);
+      }
+      d.appendChild(sl);
+      var o = document.createElement('div'); o.className = 'evout';
+      var tot = P.hit + P.miss;
+      o.innerHTML = 'hits <b>' + P.hit + '</b> / ' + tot + (tot ? ' (' + Math.round(100 * P.hit / tot) + '%)' : '') + (P.last ? ' · <span class="' + (P.last.indexOf('evict') >= 0 ? 'x' : '') + '"></span>' : '');
+      var sp = o.querySelector('span'); if (sp) sp.textContent = P.last;
+      d.appendChild(o);
+      box.appendChild(d);
+    });
+    $('evTrace').textContent = trace.length ? 'requests: ' + trace.join(' ') : 'requests: none yet';
+    var best = Object.keys(pol).sort(function (a, b) { return pol[b].hit - pol[a].hit; });
+    $('evLive').textContent = trace.length ? 'most hits: ' + best[0] + (pol[best[0]].hit === pol[best[1]].hit ? ' (tied)' : '') : '';
+  }
+  KEYS.forEach(function (k) {
+    var b = document.createElement('button'); b.type = 'button'; b.className = 'btn'; b.textContent = k;
+    b.setAttribute('aria-label', 'Request key ' + k);
+    b.addEventListener('click', function () { access(k); evRender(); });
+    $('evKeys').appendChild(b);
+  });
+  Object.keys(PATTERNS).forEach(function (name) {
+    var b = document.createElement('button'); b.type = 'button'; b.className = 'btn'; b.textContent = name + ': ' + PATTERNS[name].split('').join(' ');
+    b.addEventListener('click', function () { evReset(); PATTERNS[name].split('').forEach(access); evRender(); });
+    $('evPatterns').appendChild(b);
+  });
+  var rb = document.createElement('button'); rb.type = 'button'; rb.className = 'btn'; rb.textContent = 'Clear';
+  rb.addEventListener('click', function () { evReset(); evRender(); });
+  $('evKeys').appendChild(rb);
+  evReset(); evRender();
+})();
+
+(function () {
+  var key = 'caching-check:' + location.pathname, saved = {};
+  try { saved = JSON.parse(localStorage.getItem(key) || '{}'); } catch (e) {}
+  var boxes = document.querySelectorAll('.check input'), out = document.getElementById('prog');
+  function upd() {
+    var n = 0, o = {};
+    boxes.forEach(function (b) { if (b.checked) { n++; o[b.id] = 1; } b.closest('li').classList.toggle('done', b.checked); });
+    out.textContent = n + '/' + boxes.length + ' completed';
+    try { localStorage.setItem(key, JSON.stringify(o)); } catch (e) {}
+  }
+  boxes.forEach(function (b) { b.checked = !!saved[b.id]; b.addEventListener('change', upd); });
+  upd();
+})();
+
+document.addEventListener('DOMContentLoaded', function () {
+  if (!window.renderMathInElement) return;
+  renderMathInElement(document.body, {
+    delimiters: [{ left: '$$', right: '$$', display: true }, { left: '$', right: '$', display: false }],
+    ignoredTags: ['script', 'style', 'textarea', 'pre', 'code'],
+    throwOnError: false
+  });
+});
+</script>
+</body>
+</html>

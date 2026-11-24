@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aeron Reliability and Flow Control: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible,a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+a{color:var(--link)}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+
+.card{margin:24px 0 0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.scroll{overflow-x:auto;padding:0 8px}
+.scroll svg{display:block;height:auto}
+
+.controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;margin-top:16px;align-items:start}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:0 0 12px}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.btn:disabled{opacity:.4;cursor:not-allowed;background:transparent;color:var(--ink)}
+#readout{margin:0;padding:0;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink);border:0;background:none}
+
+.nodes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;padding:16px}
+.node{border:1px solid var(--rule-solid);border-radius:8px;padding:14px;background:#fff}
+.node.leader{border-color:var(--accent);background:var(--accent-tint)}
+.node.down{opacity:.45;border-style:dashed}
+.node h3{margin:0 0 2px;font-family:var(--serif);font-weight:400;font-size:22px}
+.role{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft)}
+.log{display:flex;flex-wrap:wrap;gap:4px;margin:12px 0;min-height:30px}
+.ent{font-family:var(--mono);font-size:11px;min-width:34px;padding:3px 5px;border:1px solid var(--ink);border-radius:4px;text-align:center;background:#fff}
+.ent.c{background:var(--ink);color:var(--paper)}
+.ent.u{border-style:dashed;color:var(--muted)}
+.state{font-family:var(--mono);font-size:12px;font-weight:600}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:8px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+
+pre{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .c2{color:var(--soft);font-style:italic}
+
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat p{font-size:14px;color:var(--muted);margin:6px 0 0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+
+table.ops{border-collapse:collapse;width:100%;max-width:860px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+table.ops td:first-child{white-space:nowrap}
+ul.tight,ol.toc{padding-left:22px;max-width:68ch}ul.tight li,ol.toc li{margin:6px 0}
+.src{font-size:14px;color:var(--muted)}
+
+@media (max-width:860px){.controls,.cards,.nodes{grid-template-columns:1fr}.page{padding:32px 16px 72px}table.ops td:first-child{white-space:normal}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+
+.cell{display:inline-block;width:26px;height:26px;margin:2px;border:1px solid var(--rule-solid);border-radius:4px;background:#fff;font:600 10px var(--mono);text-align:center;line-height:24px}
+.cell.w{background:var(--paper-2);border-color:var(--ink)}
+.cell.s{background:rgba(46,90,168,.18);border-color:var(--link)}
+.cell.r{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.cell.lost{background:#fff;border:1px dashed var(--accent);color:var(--accent)}
+.cell.pad{background:var(--paper-2);border:1px dotted var(--soft);color:var(--soft)}
+.cell.nak{background:var(--accent-tint);border-color:var(--accent)}
+.cell.cur{outline:2px solid var(--accent)}
+button.cell{cursor:pointer;padding:0}
+.term{display:flex;align-items:center;gap:8px;margin:6px 0;flex-wrap:wrap}
+.term .lbl{font-family:var(--mono);font-size:11px;color:var(--soft);width:96px}
+.bar{position:relative;height:30px;margin:14px 16px;background:var(--paper-2);border-radius:4px}
+.bar i{position:absolute;top:0;bottom:0;left:0;border-radius:4px}
+.lane{margin:6px 16px 0;font-family:var(--mono);font-size:11px;color:var(--muted)}
+label.f{display:flex;flex-direction:column;gap:4px;font-family:var(--mono);font-size:12px;font-weight:600;margin:0 0 12px}
+select,input[type=text]{min-height:40px;padding:0 10px;border:1px solid var(--rule-solid);border-radius:6px;font:500 14px var(--mono);color:var(--ink);background:#fff;max-width:100%}
+select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.uri{font-family:var(--mono);font-size:14px;word-break:break-all;padding:14px 16px;background:var(--ink);color:var(--paper);border-radius:6px;margin:0 0 12px}
+
+
+
+.doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}.doc-tags a{font:500 12px "Geist Mono",ui-monospace,monospace;padding:4px 10px;border:1px solid var(--rule-solid,#bfc0c0);border-radius:4px;background:#fff;color:var(--muted,#4f5d75);text-decoration:none}.doc-tags a:hover{border-color:var(--ink,#2d3142);color:var(--ink,#2d3142)}.doc-tags a:focus-visible{outline:2px solid var(--accent,#bf4520);outline-offset:2px}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" style="margin-right:8px" href="../../../../index.html">&larr; Back to home</a>
+<a class="back back-cat" href="../../../../index.html#cat=Engineering">&larr; Back to Engineering</a>
+
+<header>
+  <div class="eyebrow">Engineering · Messaging</div>
+  <h1>Aeron Reliability and Flow Control</h1>
+  <p class="lede">What happens when packets are lost or a subscriber is slow. Receivers detect gaps and send NAKs, status messages set windows, and flow control gives publishers back-pressure.</p>
+  
+  
+  
+  <nav class="doc-tags" aria-label="Main tags"><a href="../../../../index.html#tag=aeron">#aeron</a><a href="../../../../index.html#tag=nak">#nak</a><a href="../../../../index.html#tag=loss">#loss</a><a href="../../../../index.html#tag=flow%20control">#flow control</a></nav>
+</header>
+
+
+<section>
+  <h2>Try the lossy link first</h2>
+  <p>Ten packets will cross a network. Click packets to mark them as lost on the wire, then <b>Send all</b>. A reliable stream detects the gap, sends a NAK and gets the packet again. Switch to unreliable and the gap is filled with padding instead.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">Sender to receiver over UDP</span></div>
+    <div style="padding:8px 16px">
+      <div class="lane">Sender (click a packet to drop it)</div>
+      <div id="sent" role="group" aria-label="Packets to send"></div>
+      <div class="lane">Receiver</div>
+      <div id="recv" aria-label="Packets delivered"></div>
+    </div>
+    <div class="card-bottom"><span class="hint">dashed = lost · dotted = padding · outlined = resent after NAK</span><span class="live" id="live"></span></div>
+  </figure>
+
+  <div class="controls">
+    <div class="panel">
+      <div class="row">
+        <button type="button" class="btn" id="mode" aria-pressed="true">Reliable: on</button>
+        <button type="button" class="btn" id="go">Send all</button>
+        <button type="button" class="btn" id="reset">Reset</button>
+      </div>
+    </div>
+    <div class="panel"><pre id="readout" aria-live="polite"></pre></div>
+  </div>
+</section>
+
+<section>
+  <h2>Contents</h2>
+  <ol class="toc">
+    <li><a href="#assure">What Aeron promises</a></li>
+    <li><a href="#loss">Loss and NAKs</a></li>
+    <li><a href="#unreliable">Unreliable streams</a></li>
+    <li><a href="#flow">Flow control</a></li>
+    <li><a href="#calc">How far ahead can a publisher be</a></li>
+    <li><a href="#strategies">Multicast strategies</a></li>
+    <li><a href="#sources">Sources</a></li>
+  </ol>
+</section>
+
+<section id="assure">
+  <h2>1. What Aeron promises</h2>
+  <p>Aeron moves messages reliably between media drivers. Order is kept, gaps are found and repaired, much like TCP. That is delivery. It does not mean the subscriber finished processing a message, because a subscriber can crash right after it reads one.</p>
+  <p>True guarantees need the application to take part: process messages idempotently, know how far you got, and acknowledge back. Aeron gives the building blocks, and Archive and Cluster add durability on top.</p>
+  <p class="callout">Delivery to a driver is not the same as processing by an application.</p>
+</section>
+
+<section id="loss">
+  <h2>2. Loss and NAKs</h2>
+  <p>Every frame carries its position in the stream. The Receiver notices a gap when a frame arrives beyond the position it expects. After a short delay, so reordered packets are not mistaken for loss, the driver sends a <b>NAK</b> that names the missing range. The Sender retransmits from its log buffer.</p>
+  <ul class="tight">
+    <li>NAKs repeat until the gap is filled, as long as the sender is considered alive.</li>
+    <li>A reliable session only exists while both ends are active. There is no store and forward when the subscriber is away.</li>
+    <li>The driver records unresolved loss in a loss report file. Monitoring tools read it.</li>
+  </ul>
+</section>
+
+<section id="unreliable">
+  <h2>3. Unreliable streams</h2>
+  <p>Some subscribers prefer a hole to a delay, for example fast market data on multicast. Set <code>reliable=false</code> on the subscription channel. When loss is found, the driver fills the gap with padding that the subscription skips, with no wait for a NAK.</p>
+  <pre>aeron:udp?endpoint=localhost:54325|reliable=false</pre>
+  <p>IPC delivery and spy subscriptions are always reliable, because no network is involved.</p>
+</section>
+
+<section id="flow">
+  <h2>4. Flow control</h2>
+  <p>Flow control stops a publisher from overrunning a subscriber. It works per stream, so a slow stream does not slow another. It has three checkpoints.</p>
+  <ol class="toc">
+    <li><b>Application to Sender:</b> an offer succeeds only while the publisher stays within the term window of the driver's consumption point. Otherwise it returns back-pressure.</li>
+    <li><b>Sender to Receiver:</b> the Sender may send only up to the receiver window past what the receiver has consumed.</li>
+    <li><b>Receiver to subscription:</b> the Receiver buffers only data inside the window it last advertised.</li>
+  </ol>
+  <p>Receivers advertise their state in <b>status messages</b>. Each one gives the highest consumed position and the window the receiver is willing to accept.</p>
+</section>
+
+<section id="calc">
+  <h2>5. How far ahead can a publisher be</h2>
+  <p>End to end, a publisher can be ahead of a subscriber by the publication term window plus the receiver window. Choose a term length to see it.</p>
+  <div class="panel" style="max-width:520px">
+    <label class="f">Term length
+      <select id="termsel">
+        <option value="65536">64 KB</option>
+        <option value="1048576">1 MB</option>
+        <option value="16777216" selected>16 MB</option>
+        <option value="67108864">64 MB</option>
+      </select>
+    </label>
+    <pre id="calc" style="margin:0" aria-live="polite"></pre>
+  </div>
+  <p>The defaults are half a term for the publication window, and 128 KB for the receiver window. Both are capped at half a term.</p>
+</section>
+
+<section id="strategies">
+  <h2>6. Multicast strategies</h2>
+  <p>With several receivers, the Sender needs one view of their progress. A flow control strategy combines their status messages.</p>
+  <table class="ops">
+    <thead><tr><th>Strategy</th><th>Pace set by</th><th>Effect</th></tr></thead>
+    <tbody>
+      <tr><td>max (default)</td><td>The fastest receiver</td><td>A slow receiver may fall behind, lose its image and rejoin at the live point.</td></tr>
+      <tr><td>min</td><td>The slowest receiver</td><td>No receiver is left behind, and one slow one slows everyone.</td></tr>
+      <tr><td>tagged</td><td>The slowest tagged receiver</td><td>Only receivers you tag hold the stream back.</td></tr>
+    </tbody>
+  </table>
+  <p>The min and tagged strategies can also require a minimum group size before the publication reports as connected.</p>
+</section>
+
+
+<section id="sources">
+  <h2>Sources</h2>
+  <p class="src">Written from the Aeron project documentation on the <a href="https://github.com/aeron-io/aeron/wiki">Aeron GitHub wiki</a> and <a href="https://aeron.io/docs/">aeron.io</a>. The text and the demo are original summaries. Aeron is open source, and its trademark belongs to its owner.</p>
+</section>
+
+</main>
+
+<script>
+
+(function () {
+  var N = 10;
+  var drop, reliable, out, log;
+  function $(id) { return document.getElementById(id); }
+  function fresh() { drop = {}; out = null; log = 'Click packets to mark them lost, then Send all.'; }
+  function cell(txt, cls, onclick, label) {
+    var e = document.createElement(onclick ? 'button' : 'span');
+    e.className = 'cell ' + cls; e.textContent = txt;
+    if (onclick) { e.type = 'button'; e.addEventListener('click', onclick); e.setAttribute('aria-label', label); e.setAttribute('aria-pressed', cls.indexOf('lost') >= 0 ? 'true' : 'false'); }
+    return e;
+  }
+  function render() {
+    var s = $('sent'), r = $('recv'); s.textContent = ''; r.textContent = '';
+    for (var i = 0; i < N; i++) {
+      (function (i) {
+        s.appendChild(cell(i, drop[i] ? 'lost' : 's', function () { if (out) return; drop[i] = !drop[i]; log = drop[i] ? 'Packet ' + i + ' will be lost on the wire.' : 'Packet ' + i + ' will arrive.'; render(); }, 'Packet ' + i + (drop[i] ? ', will be lost' : ', will arrive')));
+      })(i);
+      var st = out ? out[i] : null;
+      r.appendChild(cell(st ? st.t : '', st ? st.c : '', null));
+    }
+    $('mode').textContent = 'Reliable: ' + (reliable ? 'on' : 'off');
+    $('mode').setAttribute('aria-pressed', reliable ? 'true' : 'false');
+    $('readout').textContent = log;
+    var lost = Object.keys(drop).filter(function (k) { return drop[k]; }).length;
+    $('live').textContent = lost + ' lost on wire' + (out ? ' · ' + out.filter(function (x) { return x && x.c === 'r'; }).length + ' delivered' : '');
+  }
+  function go() {
+    out = []; var lines = [];
+    var gaps = [];
+    for (var i = 0; i < N; i++) {
+      if (drop[i]) { gaps.push(i); lines.push('packet ' + i + ': lost on the wire'); continue; }
+      if (i > 0 && drop[i - 1]) lines.push('packet ' + i + ' arrives beyond the expected position: gap detected at ' + gaps.join(', '));
+      out[i] = { t: i, c: 'r' };
+    }
+    gaps.forEach(function (g) {
+      if (reliable) { out[g] = { t: g, c: 'r nak' }; lines.push('NAK for ' + g + ' sent, Sender retransmits, packet ' + g + ' delivered in order'); }
+      else { out[g] = { t: 'pad', c: 'pad' }; lines.push('reliable=false: gap at ' + g + ' filled with padding, subscriber skips it'); }
+    });
+    if (!gaps.length) lines.push('No loss. Every packet was delivered in order.');
+    log = lines.join('\n'); render();
+  }
+  function calc() {
+    var t = parseInt($('termsel').value, 10), half = t / 2;
+    var pubw = half, rcv = Math.min(131072, half);
+    function f(b) { return b >= 1048576 ? (b / 1048576) + ' MB' : (b / 1024) + ' KB'; }
+    $('calc').textContent = 'publication term window  ' + f(pubw) + '\nreceiver window           ' + f(rcv) + '\n--------------------------------\nmax lead of publisher     ' + f(pubw + rcv);
+  }
+  reliable = true;
+  $('mode').addEventListener('click', function () { reliable = !reliable; if (out) { out = null; } render(); });
+  $('go').addEventListener('click', go);
+  $('reset').addEventListener('click', function () { fresh(); render(); });
+  $('termsel').addEventListener('change', calc);
+  fresh(); render(); calc();
+})();
+
+</script>
+</body>
+</html>
