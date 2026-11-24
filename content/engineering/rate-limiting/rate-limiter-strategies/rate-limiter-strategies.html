@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rate limiter strategies: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible,a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,svg:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+h3{font-family:var(--serif);font-weight:400;font-size:24px;line-height:1.2;margin:32px 0 10px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+a{color:var(--link)}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+
+.card{margin:24px 0 0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.scroll{overflow-x:auto;padding:0 8px}
+.scroll svg{display:block;margin:0 auto;min-width:680px;width:100%;height:auto}
+#tl{cursor:crosshair}
+
+.bar{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;padding:0 16px 12px}
+.bar .row{margin:0}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 12px}
+.btn{min-height:40px;padding:0 14px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.btn[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-tint);color:var(--ink)}
+.btn.warn{border-color:var(--accent);color:var(--accent)}
+.btn.warn:hover{background:var(--accent);color:#fff}
+label.rng{display:flex;align-items:center;gap:8px;font:12px var(--mono);color:var(--muted)}
+label.rng input{accent-color:var(--accent);width:120px}
+label.rng output{font-weight:600;color:var(--ink);min-width:3.5em}
+select{min-height:36px;border:1px solid var(--ink);border-radius:6px;background:#fff;color:var(--ink);font:13px var(--mono);padding:0 8px}
+
+.controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;margin-top:16px;align-items:start}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.group-label{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);margin:16px 0 6px}
+.group-label:first-child{margin-top:0}
+.readout{margin:0;padding:0;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink);border:0;background:none;min-height:12em}
+.desc{font-size:14px;color:var(--muted);margin:0 0 12px}
+
+pre{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .c2{color:var(--soft);font-style:italic} .t{color:var(--link)}
+
+.cards{display:grid;grid-template-columns:1.1fr 1fr .9fr;gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:26px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+
+table.ops{border-collapse:collapse;width:100%;max-width:900px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+table.ops td:first-child{white-space:nowrap;font-weight:600}
+table.ops td.num{font-family:var(--mono)}
+table.ops td.over{color:var(--accent);font-weight:600}
+.card table.ops{margin:0;max-width:none;border:0;border-top:1px solid var(--rule-solid)}
+.tw{overflow-x:auto}
+ul.tight{padding-left:22px;max-width:68ch}ul.tight li{margin:6px 0}
+
+.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;text-align:center;overflow-x:auto}
+.formula .katex{font-size:1.25em}
+.katex{color:var(--ink)}
+p .katex,td .katex,li .katex{font-size:1.05em}
+
+.check{list-style:none;padding:0;margin:12px 0 0;max-width:640px}
+.check li{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--rule)}
+.check input{width:18px;height:18px;accent-color:var(--accent)}
+.check li.done a{color:var(--soft);text-decoration:line-through}
+.prog{font-family:var(--mono);font-size:12px;color:var(--soft)}
+
+.doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}.doc-tags a{font:500 12px "Geist Mono",ui-monospace,monospace;padding:4px 10px;border:1px solid var(--rule-solid,#bfc0c0);border-radius:4px;background:#fff;color:var(--muted,#4f5d75);text-decoration:none}.doc-tags a:hover{border-color:var(--ink,#2d3142);color:var(--ink,#2d3142)}.doc-tags a:focus-visible{outline:2px solid var(--accent,#bf4520);outline-offset:2px}
+
+@media (max-width:860px){.controls,.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}table.ops td:first-child{white-space:normal}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" style="margin-right:8px" href="../../../../index.html">&larr; Back to home</a>
+<a class="back back-cat" href="../../../../index.html#cat=Engineering">&larr; Back to Engineering</a>
+
+<header>
+  <div class="eyebrow">Engineering · Rate limiting</div>
+  <h1>Rate limiter strategies</h1>
+  <p class="lede">A rate limiter decides, for each request, whether it may go through now, wait, or be turned away. Every algorithm answers "how many is too many, and over what span of time?" a little differently. This page runs six of them on the same traffic, then covers concurrency limits, distributed counters, where to enforce limits and how to tell clients to slow down.</p>
+  <nav class="doc-tags" aria-label="Main tags"><a href="../../../../index.html#tag=rate%20limiting">#rate limiting</a><a href="../../../../index.html#tag=token%20bucket">#token bucket</a><a href="../../../../index.html#tag=leaky%20bucket">#leaky bucket</a><a href="../../../../index.html#tag=sliding%20window">#sliding window</a></nav>
+</header>
+
+<section>
+  <h2>Run the algorithms</h2>
+  <p>The top lane is incoming traffic over 30 seconds. Each row below is one algorithm deciding on the same requests with the same policy: at most <b id="pLabel">5 requests per 10 s</b>. Dark dots pass, red crosses are rejected, and blue dots in the leaky bucket row are queued and leave later. The shaded area shows how close each limiter is to full. Pick a pattern, or click the timeline to add requests of your own.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">Six limiters, one stream of requests</span></div>
+    <div class="bar">
+      <div class="row" id="patterns" role="group" aria-label="Traffic pattern"></div>
+    </div>
+    <div class="bar">
+      <label class="rng">limit N <input type="range" id="nIn" min="2" max="10" step="1" value="5"><output id="nOut" for="nIn">5</output></label>
+      <label class="rng">window W <input type="range" id="wIn" min="4" max="15" step="1" value="10"><output id="wOut" for="wIn">10 s</output></label>
+    </div>
+    <div class="scroll">
+      <svg id="tl" width="760" height="424" viewBox="0 0 760 424" role="img" aria-labelledby="tl-title tl-desc">
+        <title id="tl-title">Timeline of requests and the decisions of six rate limiting algorithms</title>
+        <desc id="tl-desc">A 30 second time axis. The first lane shows every incoming request as a dot. Six rows below show fixed window, sliding log, sliding window counter, token bucket, leaky bucket and GCRA. In each row an accepted request is a dark dot and a rejected one is a red cross; the leaky bucket row draws a queued request as a hollow blue dot joined to the moment it leaves. Dashed vertical lines mark fixed window boundaries. A shaded area in each row shows how full the limiter is over time. The same numbers are listed in the table below the figure.</desc>
+      </svg>
+    </div>
+    <div class="tw"><table class="ops" id="cmp" aria-live="polite"></table></div>
+    <div class="card-bottom"><span class="hint">Click the timeline to add a request. Red count in "max in any W" means the limit was exceeded over some span.</span><span class="live" id="tlLive"></span></div>
+  </figure>
+</section>
+
+<section>
+  <h2>Contents</h2>
+  <div class="prog" id="prog" aria-live="polite"></div>
+  <ol class="check">
+    <li><input type="checkbox" id="c-why" aria-label="Mark Why limit as done"><a href="#why">Why limit, and what to call it</a></li>
+    <li><input type="checkbox" id="c-fixed" aria-label="Mark Fixed window as done"><a href="#fixed">Fixed window counter</a></li>
+    <li><input type="checkbox" id="c-log" aria-label="Mark Sliding window log as done"><a href="#log">Sliding window log</a></li>
+    <li><input type="checkbox" id="c-swc" aria-label="Mark Sliding window counter as done"><a href="#swc">Sliding window counter</a></li>
+    <li><input type="checkbox" id="c-token" aria-label="Mark Token bucket as done"><a href="#token">Token bucket</a></li>
+    <li><input type="checkbox" id="c-leaky" aria-label="Mark Leaky bucket as done"><a href="#leaky">Leaky bucket</a></li>
+    <li><input type="checkbox" id="c-gcra" aria-label="Mark GCRA as done"><a href="#gcra">GCRA</a></li>
+    <li><input type="checkbox" id="c-conc" aria-label="Mark Concurrency and adaptive limits as done"><a href="#conc">Concurrency and adaptive limits</a></li>
+    <li><input type="checkbox" id="c-dist" aria-label="Mark Distributed rate limiting as done"><a href="#dist">Distributed rate limiting</a></li>
+    <li><input type="checkbox" id="c-where" aria-label="Mark Keys, tiers and where to enforce as done"><a href="#where">Keys, tiers and where to enforce</a></li>
+    <li><input type="checkbox" id="c-client" aria-label="Mark Telling the client as done"><a href="#client">Telling the client</a></li>
+    <li><input type="checkbox" id="c-choose" aria-label="Mark Choosing an algorithm as done"><a href="#choose">Choosing an algorithm</a></li>
+    <li><input type="checkbox" id="c-code" aria-label="Mark In code as done"><a href="#code">In code</a></li>
+  </ol>
+</section>
+
+<section id="why">
+  <h2>1. Why limit, and what to call it</h2>
+  <p>A service has finite capacity: threads, database connections, CPU, money for a downstream API billed per call. Without a limit, one client with a bug in a retry loop, one scraper, or one sudden viral moment can use all of it, and everyone else gets timeouts. A rate limiter caps how much each caller may use, so that overload hits the caller who causes it, early and cheaply, instead of hitting everyone deep inside the system.</p>
+  <ul class="tight">
+    <li><b>Protection.</b> Keep the service inside the load it was sized for.</li>
+    <li><b>Fairness.</b> Share capacity between tenants so one cannot starve the rest.</li>
+    <li><b>Cost.</b> Cap spend on metered dependencies such as an LLM or SMS API.</li>
+    <li><b>Abuse.</b> Slow down credential stuffing, scraping and enumeration of IDs.</li>
+  </ul>
+  <p>The words get mixed up, so it helps to separate them:</p>
+  <div class="tw"><table class="ops">
+    <thead><tr><th>Term</th><th>Meaning</th><th>Example</th></tr></thead>
+    <tbody>
+      <tr><td>Rate limit</td><td>Requests per unit of time, per key. Excess is rejected.</td><td>100 requests per minute per API key</td></tr>
+      <tr><td>Throttling / shaping</td><td>Excess is delayed instead of rejected, so the output is smooth.</td><td>A queue that sends 10 messages per second</td></tr>
+      <tr><td>Quota</td><td>A budget over a long period, often tied to billing.</td><td>1 million calls per month</td></tr>
+      <tr><td>Concurrency limit</td><td>Requests in flight at the same time, not per second.</td><td>At most 20 open queries per tenant</td></tr>
+      <tr><td>Load shedding</td><td>The server drops work because it is overloaded, whoever sent it.</td><td>Reject low-priority traffic when CPU is above 90%</td></tr>
+    </tbody>
+  </table></div>
+  <p class="callout">A limit is a promise to the callers you keep, paid for by the callers you turn away. The algorithm decides how fair and how predictable that trade is.</p>
+</section>
+
+<section id="fixed">
+  <h2>2. Fixed window counter</h2>
+  <p>Cut time into windows of length $W$, for example whole minutes. Keep one counter per key per window. Each request increments it; if the count is above $N$, reject. When the window ends, start a new counter at zero. In Redis this is two commands, <code>INCR rl:42:1700000040</code> and an <code>EXPIRE</code> on the first increment.</p>
+  <ul class="tight">
+    <li>One integer per key, O(1) per request, trivial to explain to users ("1000 per hour, resets on the hour").</li>
+    <li>All clients get their reset at the same instant, so traffic spikes at the top of every window.</li>
+    <li>The boundary problem: a client can send $N$ just before a reset and $N$ just after.</li>
+  </ul>
+  <p>A span of length $W$ that straddles a boundary can hold the end of one window and the start of the next, so the fixed window lets through up to twice the limit:</p>
+  <div class="formula">$$\max_{t}\ \bigl|\{\text{accepted in } [t,\ t+W)\}\bigr| \;=\; 2N \quad\text{(fixed window, worst case)}$$</div>
+  <p>Choose "Window edge" in Fig 1: the fixed window row accepts every request, and the table shows $2N$ in one span of $W$ seconds. The sliding log holds that span to exactly $N$ and the sliding counter to about $N$. The token bucket and GCRA allow $N$ plus whatever refilled during the span, by design, and the leaky queue keeps its output at $N$ by delaying the excess instead of rejecting it.</p>
+</section>
+
+<section id="log">
+  <h2>3. Sliding window log</h2>
+  <p>Store the timestamp of every accepted request, per key. On a new request, drop timestamps older than $t - W$, count the rest, and accept if the count is below $N$. The window is anchored at "now", so there is no boundary to exploit, and the limit holds exactly over every span.</p>
+  <p>It costs memory and time proportional to $N$: a limit of 10,000 per hour is up to 10,000 timestamps per key. In Redis it is usually a sorted set: <code>ZREMRANGEBYSCORE</code> to trim, <code>ZCARD</code> to count, <code>ZADD</code> to record, all in one Lua script or <code>MULTI</code>. Use it when limits are small and exactness matters, such as login attempts or password resets.</p>
+  <p>A variant also records rejected requests. Then a client that keeps hammering stays blocked until it stops for a full window, which is a useful penalty for abuse but harsh for an honest client in a retry loop.</p>
+</section>
+
+<section id="swc">
+  <h2>4. Sliding window counter</h2>
+  <p>A cheap approximation of the log. Keep the fixed window counters for the current and the previous window. Assume the previous window's requests were spread evenly, and count only the part of it that still overlaps the sliding window that ends now:</p>
+  <div class="formula">$$\hat n(t) \;=\; n_{\text{prev}}\cdot\frac{W - (t - t_w)}{W} \;+\; n_{\text{cur}}$$</div>
+  <p>where $t_w$ is the start of the current window. Accept if $\hat n + 1 \le N$. For example, with $N = 100$ per minute, 84 requests last minute and 36 so far this minute, 15 s into it: $\hat n = 84 \cdot 0.75 + 36 = 99$, so one more is allowed.</p>
+  <p>Two integers per key, no boundary burst, and close to the exact log on real traffic, which is why Cloudflare and many API gateways use it. It is wrong when traffic in the previous window was very uneven: if all of it arrived in the last second, the estimate undercounts.</p>
+</section>
+
+<section id="token">
+  <h2>5. Token bucket</h2>
+  <p>A bucket holds up to $C$ tokens and is refilled at $r$ tokens per second. Each request takes one token (or $c$ tokens for an expensive call). If there are not enough tokens, reject. You do not need a timer to refill: store the token count and the time of the last update, and top up lazily when the next request arrives.</p>
+  <div class="formula">$$b(t) \;=\; \min\bigl(C,\; b(t_0) + r\,(t - t_0)\bigr), \qquad \text{accept if } b(t) \ge c$$</div>
+  <p>Two numbers set two separate things: $r$ is the sustained rate and $C$ is the burst. Over any span of length $\Delta$, the bucket accepts at most $C + r\Delta$ tokens' worth. That makes it a good fit for APIs where clients are idle, then send a short burst, and is why AWS API Gateway, Stripe and Envoy's local rate limit describe their limits as "rate and burst".</p>
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 2</span><span class="card-title">A live token bucket</span></div>
+    <div class="scroll">
+      <svg id="tb" width="680" height="250" viewBox="0 0 680 250" role="img" aria-labelledby="tb-title tb-desc">
+        <title id="tb-title">Token bucket with capacity, current tokens and refill progress</title>
+        <desc id="tb-desc">A bucket on the left holds token slots up to its capacity. Solid circles are available tokens and dashed circles are empty slots. A blue partial circle shows progress toward the next token. On the right, the current time, token count, refill rate and the response to the last request are written out. The log next to the figure lists every request with its status code.</desc>
+      </svg>
+    </div>
+    <div class="card-bottom"><span class="hint">Tokens refill in real time while the clock runs.</span><span class="live" id="tbLive"></span></div>
+  </figure>
+  <div class="controls">
+    <div class="panel">
+      <div class="group-label">Requests</div>
+      <div class="row">
+        <button type="button" class="btn" id="tSend">Send 1</button>
+        <button type="button" class="btn" id="tBurst">Send 5 at once</button>
+        <label class="rng">cost <select id="tCost" aria-label="Tokens per request"><option value="1">1 token</option><option value="3">3 tokens</option></select></label>
+      </div>
+      <div class="group-label">Bucket</div>
+      <div class="row"><label class="rng">capacity C <input type="range" id="tCap" min="1" max="10" step="1" value="5"><output id="tCapOut" for="tCap">5</output></label></div>
+      <div class="row"><label class="rng">refill r <input type="range" id="tRate" min="0.5" max="5" step="0.5" value="1"><output id="tRateOut" for="tRate">1 /s</output></label></div>
+      <div class="row">
+        <button type="button" class="btn" id="tPause" aria-pressed="false">Pause clock</button>
+        <button type="button" class="btn" id="tReset">Reset</button>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="group-label">Responses</div>
+      <pre class="readout" id="tLog" aria-live="polite"></pre>
+    </div>
+  </div>
+  <p>Try it: press "Send 5 at once" with a full bucket of 5, then again right away. The first burst passes, the second gets five <code>429</code>s, each with a <code>Retry-After</code> computed from the refill rate. Switch the cost to 3 tokens to see how weighted requests drain the bucket faster.</p>
+</section>
+
+<section id="leaky">
+  <h2>6. Leaky bucket</h2>
+  <p>The name covers two different things, and both appear in the literature.</p>
+  <h3>As a queue (traffic shaping)</h3>
+  <p>Requests enter a FIFO queue of size $C$. A worker takes one out every $1/r$ seconds and passes it on. If the queue is full, new requests are dropped. The output is perfectly smooth, never faster than $r$, whatever the input looks like. In Fig 1 the leaky bucket row is this version: bursts become evenly spaced blue dots, and the table shows the average wait.</p>
+  <p>Good when the thing behind the limiter cannot take bursts at all: a legacy system, a hardware device, a partner API with a strict per-second limit. Bad for interactive APIs, because queued requests wait, and a client cannot tell a slow server from a long queue. Nginx <code>limit_req</code> works this way; with <code>burst=20 nodelay</code> it stops delaying and behaves like the meter below.</p>
+  <h3>As a meter (policing)</h3>
+  <p>Keep a level that drains at rate $r$. Each request adds 1; if that would overflow capacity $C$, reject. Nothing is queued. This is the token bucket seen from the other side: the level is $C - b$, the used tokens instead of the free ones, and it makes exactly the same decisions.</p>
+</section>
+
+<section id="gcra">
+  <h2>7. GCRA</h2>
+  <p>The Generic Cell Rate Algorithm comes from ATM networks and is the leaky bucket meter with a clever encoding: it stores one timestamp per key and no counter. Let $T = 1/r$ be the spacing between requests at the sustained rate and $\tau = (C - 1)\,T$ the burst tolerance. The state is the theoretical arrival time $\text{TAT}$, the time the next request would be due if the client sent at exactly rate $r$.</p>
+  <div class="formula">$$\text{accept at } t \iff t \;\ge\; \text{TAT} - \tau, \qquad \text{then } \text{TAT} \leftarrow \max(\text{TAT},\, t) + T$$</div>
+  <p>A client ahead of schedule by more than $\tau$ is rejected. A rejected request does not change the state. Compare the token bucket and GCRA rows in Fig 1: they always agree, because they are the same limiter. GCRA wins in practice because it is one value to read and write, which fits an atomic compare-and-set and costs less memory in Redis. The <code>redis-cell</code> module and several gateway libraries implement it. The time to wait after a rejection is simply $\text{TAT} - \tau - t$.</p>
+</section>
+
+<section id="conc">
+  <h2>8. Concurrency and adaptive limits</h2>
+  <p>Rate is not the only resource. A request that takes 30 s holds a connection for 30 s, and 10 of those per second exhaust a pool that 10 fast requests per second would never touch. Little's law ties the three together: the number in flight $L$ equals the arrival rate $\lambda$ times the time each one spends inside, $d$.</p>
+  <div class="formula">$$L \;=\; \lambda\, d$$</div>
+  <p>At 200 requests per second and 50 ms each, about 10 are in flight. If latency jumps to 2 s because a dependency is slow, the same rate means 400 in flight. A concurrency limit (a semaphore, a bulkhead, a connection pool) caps $L$ directly and protects against exactly this case, which a per-second limit does not.</p>
+  <h3>Adaptive limits</h3>
+  <p>A fixed number goes stale as the code, hardware and dependencies change. An adaptive limiter measures and adjusts, like TCP congestion control. The simplest rule is AIMD, additive increase and multiplicative decrease:</p>
+  <div class="formula">$$L \leftarrow \begin{cases} L + 1 & \text{request succeeded and latency is normal} \\ \lfloor \beta L \rfloor & \text{timeout, error or latency spike}, \quad 0.5 \le \beta < 1 \end{cases}$$</div>
+  <p>Netflix's <code>concurrency-limits</code> library and Envoy's adaptive concurrency filter grow the limit while latency stays near its minimum and shrink it when queueing shows up. Google's SRE book describes client-side adaptive throttling: each client tracks its own requests and accepts, and rejects locally with probability</p>
+  <div class="formula">$$p_{\text{reject}} \;=\; \max\!\left(0,\ \frac{\text{requests} - K\cdot\text{accepts}}{\text{requests} + 1}\right)$$</div>
+  <p>with $K$ around 2. When the backend starts refusing, clients stop sending most of the doomed requests before they reach the network.</p>
+  <h3>Load shedding by priority</h3>
+  <p>When the server itself is overloaded, it should drop the least valuable work first: background syncs and prefetches before user clicks, and user clicks before checkout. Tag requests with a priority at the edge and let every limiter consult it.</p>
+</section>
+
+<section id="dist">
+  <h2>9. Distributed rate limiting</h2>
+  <p>With one server, a limiter is a map in memory. With 20 servers behind a load balancer, a limit of 100 per minute per user must hold across all of them. There are three broad options.</p>
+  <div class="tw"><table class="ops">
+    <thead><tr><th>Option</th><th>How</th><th>Trade-off</th></tr></thead>
+    <tbody>
+      <tr><td>Local only</td><td>Each of $K$ servers enforces $N / K$.</td><td>No network call. Wrong when load is uneven or $K$ changes; a user pinned to one server gets only $N/K$.</td></tr>
+      <tr><td>Central store</td><td>All servers update one counter in Redis per request, atomically.</td><td>Exact, but adds a round trip (about 0.3 ms) and makes Redis a dependency of every request.</td></tr>
+      <tr><td>Local + sync</td><td>Enforce locally and push usage to a shared store every few hundred ms, or lease batches of tokens.</td><td>Cheap and fast; may overshoot by one sync interval of traffic.</td></tr>
+    </tbody>
+  </table></div>
+  <h3>The read-modify-write race</h3>
+  <p>A central counter is only correct if each update is atomic. Two gateways that read, compare and write in separate steps can both let a request through when only one should go:</p>
+  <div class="tw"><table class="ops">
+    <thead><tr><th>Step</th><th>Gateway A</th><th>Gateway B</th><th>Counter (limit 5)</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td><code>GET</code> → 4</td><td></td><td>4</td></tr>
+      <tr><td>2</td><td></td><td><code>GET</code> → 4</td><td>4</td></tr>
+      <tr><td>3</td><td>4 &lt; 5, allow, <code>SET 5</code></td><td></td><td>5</td></tr>
+      <tr><td>4</td><td></td><td>4 &lt; 5, allow, <code>SET 5</code></td><td>5, but 6 were allowed</td></tr>
+    </tbody>
+  </table></div>
+  <p>Fix it by letting the store do the arithmetic. For a fixed window, <code>INCR</code> returns the new value atomically, so compare after incrementing. For a token bucket, sliding log or GCRA, put the read, the decision and the write in one Lua script (<code>EVALSHA</code>), which Redis runs without interleaving. Use the store's clock (<code>TIME</code> in the script) rather than each server's, so clock skew between servers does not create or destroy tokens.</p>
+  <h3>Failure modes</h3>
+  <ul class="tight">
+    <li><b>Fail open or closed.</b> If Redis is unreachable, allowing everything (fail open) keeps the API up but unprotected; rejecting everything (fail closed) turns a cache outage into a full outage. Most public APIs fail open with a local fallback limit, while security limits such as login attempts fail closed.</li>
+    <li><b>Hot keys.</b> One tenant's counter lives on one Redis shard. A giant tenant can overload it; split the key into $M$ sub-counters, each with $N/M$, and pick one at random.</li>
+    <li><b>Multiple regions.</b> A global counter across regions costs a cross-region round trip. Usually each region gets its own share, and the shares are rebalanced from usage now and then.</li>
+  </ul>
+</section>
+
+<section id="where">
+  <h2>10. Keys, tiers and where to enforce</h2>
+  <h3>What to count by</h3>
+  <p>The key decides who shares a budget. Common keys are the API key or OAuth client, the authenticated user, the tenant, the source IP (for anonymous traffic), and the endpoint. Real systems combine several, for example 1000 per minute per tenant and 20 per minute per user on <code>POST /login</code>. IP keys are weak: many users share one IP behind a corporate NAT or a mobile carrier, and an attacker with a botnet has thousands. Behind a proxy, read the client IP from a header that only your own proxy can set, otherwise anyone can forge it.</p>
+  <p>Not all requests cost the same. A search across a year of data is worth more tokens than a lookup by ID. Weighted limits, where each request takes a cost $c$ from the bucket, model this. GitHub's GraphQL API, for example, charges points per query based on the nodes it may return.</p>
+  <h3>Where to enforce</h3>
+  <div class="tw"><table class="ops">
+    <thead><tr><th>Layer</th><th>Example</th><th>Good for</th></tr></thead>
+    <tbody>
+      <tr><td>Client</td><td>SDK with a local token bucket, adaptive throttling</td><td>Being a good citizen; avoids wasted round trips</td></tr>
+      <tr><td>Edge / WAF</td><td>Cloudflare, AWS WAF rate-based rules</td><td>Floods and abuse by IP, before traffic reaches you</td></tr>
+      <tr><td>API gateway</td><td>AWS API Gateway, Kong, Envoy global rate limit service</td><td>Per API key and plan limits, one place for all services</td></tr>
+      <tr><td>Service mesh sidecar</td><td>Envoy local rate limit, Istio</td><td>Service-to-service protection without code changes</td></tr>
+      <tr><td>Application</td><td>Middleware, a library like Bucket4j or Resilience4j</td><td>Limits that need business context: tenant plan, request cost</td></tr>
+      <tr><td>Resource</td><td>Connection pool, semaphore, queue length</td><td>The last line: caps concurrency on what actually runs out</td></tr>
+    </tbody>
+  </table></div>
+  <p>Layers complement each other. The edge stops floods cheaply and coarsely, the gateway enforces the contract per customer, and the resource limits catch whatever got through.</p>
+</section>
+
+<section id="client">
+  <h2>11. Telling the client</h2>
+  <p>A rejected request should say so clearly: HTTP <code>429 Too Many Requests</code>, with a <code>Retry-After</code> header in seconds. Do not use <code>503</code> for a client exceeding its own limit; keep that for server overload, where the client is not at fault. gRPC uses the status <code>RESOURCE_EXHAUSTED</code>.</p>
+  <p>Many APIs also advertise the remaining budget on every response. The de facto headers are <code>X-RateLimit-Limit</code>, <code>X-RateLimit-Remaining</code> and <code>X-RateLimit-Reset</code>. The IETF HTTPAPI working group is standardizing this in the <a href="https://www.ietf.org/archive/id/draft-ietf-httpapi-ratelimit-headers-11.html">RateLimit header fields draft</a>, with a <code>RateLimit-Policy</code> field for the policy and a <code>RateLimit</code> field for the quota left:</p>
+  <pre>HTTP/1.1 429 Too Many Requests
+Retry-After: 2
+RateLimit-Policy: <span class="t">"default"</span>;q=100;w=60
+RateLimit: <span class="t">"default"</span>;r=0;t=2
+Content-Type: application/problem+json</pre>
+  <p>As an Internet-Draft it may still change; check the current version before relying on the exact syntax. The headers tell clients what is left, but a limit is still enforced on the server: a header is advice, never a grant.</p>
+  <h3>Retrying well</h3>
+  <p>A client that retries a <code>429</code> immediately makes the overload worse, and a thousand clients that all wait exactly 2 s and retry together create a new spike. Honour <code>Retry-After</code> when it is present. Otherwise use exponential backoff with full jitter, where attempt $k$ waits a random time:</p>
+  <div class="formula">$$\text{sleep}_k \;\sim\; \text{Uniform}\bigl(0,\ \min(\text{cap},\ \text{base}\cdot 2^{k})\bigr)$$</div>
+  <p>Cap the number of attempts, retry only idempotent requests (or send an idempotency key), and use a retry budget, for example "retries may add at most 10% to traffic", so retries cannot multiply load during an outage.</p>
+</section>
+
+<section id="choose">
+  <h2>12. Choosing an algorithm</h2>
+  <div class="tw"><table class="ops">
+    <thead><tr><th>Algorithm</th><th>State per key</th><th>Bursts</th><th>Accuracy</th><th>Good fit</th></tr></thead>
+    <tbody>
+      <tr><td>Fixed window</td><td>1 counter</td><td>Up to 2N at a boundary</td><td>Loose</td><td>Quotas, coarse limits, simplest possible code</td></tr>
+      <tr><td>Sliding log</td><td>Up to N timestamps</td><td>None beyond N</td><td>Exact</td><td>Small limits that must be exact: logins, OTPs</td></tr>
+      <tr><td>Sliding counter</td><td>2 counters</td><td>Smoothed</td><td>Close</td><td>General API limits at large scale</td></tr>
+      <tr><td>Token bucket</td><td>Tokens + timestamp</td><td>Up to C, then rate r</td><td>Exact for its model</td><td>APIs with bursty clients; weighted costs</td></tr>
+      <tr><td>Leaky bucket (queue)</td><td>Queue of up to C</td><td>Queued, output smooth</td><td>Exact</td><td>Shaping traffic to a fragile downstream</td></tr>
+      <tr><td>GCRA</td><td>1 timestamp</td><td>Up to C, then rate r</td><td>Exact for its model</td><td>Token bucket semantics with the least state</td></tr>
+      <tr><td>Concurrency limit</td><td>In-flight count</td><td>Not about rate</td><td>Exact</td><td>Slow or variable requests, pools, bulkheads</td></tr>
+    </tbody>
+  </table></div>
+  <div class="cards">
+    <div class="stat focal"><div class="eyebrow">Start here</div><div class="big">token bucket or GCRA</div><p>Two clear knobs, rate and burst, and one atomic script in Redis.</p></div>
+    <div class="stat"><div class="eyebrow">Add behind it</div><div class="big">concurrency limit</div><p>Caps what is in flight when latency, not rate, is the problem.</p></div>
+    <div class="stat"><div class="eyebrow">Always send</div><div class="big">429 + Retry-After</div><p>And make clients back off with jitter.</p></div>
+  </div>
+</section>
+
+<section id="code">
+  <h2>13. In code</h2>
+  <p>A token bucket in a Redis Lua script. Redis runs the whole script atomically, so there is no race between servers, and it uses the Redis clock, so server clock skew does not matter:</p>
+  <pre><span class="c2">-- KEYS[1] = bucket key; ARGV = capacity, refill per second, cost</span>
+<span class="k">local</span> cap  = tonumber(ARGV[<span class="t">1</span>])
+<span class="k">local</span> rate = tonumber(ARGV[<span class="t">2</span>])
+<span class="k">local</span> cost = tonumber(ARGV[<span class="t">3</span>])
+<span class="k">local</span> tm   = redis.call(<span class="t">'TIME'</span>)                  <span class="c2">-- {seconds, microseconds}</span>
+<span class="k">local</span> now  = tonumber(tm[<span class="t">1</span>]) + tonumber(tm[<span class="t">2</span>]) / <span class="t">1e6</span>
+
+<span class="k">local</span> s      = redis.call(<span class="t">'HMGET'</span>, KEYS[<span class="t">1</span>], <span class="t">'tokens'</span>, <span class="t">'ts'</span>)
+<span class="k">local</span> tokens = tonumber(s[<span class="t">1</span>]) <span class="k">or</span> cap               <span class="c2">-- a new key starts full</span>
+<span class="k">local</span> ts     = tonumber(s[<span class="t">2</span>]) <span class="k">or</span> now
+tokens = math.min(cap, tokens + (now - ts) * rate)  <span class="c2">-- lazy refill</span>
+
+<span class="k">local</span> allowed = tokens &gt;= cost
+<span class="k">if</span> allowed <span class="k">then</span> tokens = tokens - cost <span class="k">end</span>
+redis.call(<span class="t">'HSET'</span>, KEYS[<span class="t">1</span>], <span class="t">'tokens'</span>, tokens, <span class="t">'ts'</span>, now)
+redis.call(<span class="t">'PEXPIRE'</span>, KEYS[<span class="t">1</span>], math.ceil(cap / rate * <span class="t">1000</span>)) <span class="c2">-- a full bucket needs no state</span>
+
+<span class="k">local</span> retry = <span class="t">0</span>
+<span class="k">if not</span> allowed <span class="k">then</span> retry = (cost - tokens) / rate <span class="k">end</span>
+<span class="k">return</span> { allowed <span class="k">and</span> <span class="t">1</span> <span class="k">or</span> <span class="t">0</span>, math.floor(tokens), tostring(retry) } <span class="c2">-- floats as strings</span></pre>
+  <p>And a middleware that calls it, keys by user or by IP, sets the headers and fails open if Redis is down, in JavaScript with node-redis and Express:</p>
+  <pre><span class="k">const</span> POLICY = { cap: <span class="t">20</span>, rate: <span class="t">5</span> };               <span class="c2">// burst 20, then 5 requests/s</span>
+
+<span class="k">async function</span> rateLimit(req, res, next) {
+  <span class="k">const</span> who = req.user ? <span class="t">`u:${req.user.id}`</span> : <span class="t">`ip:${req.ip}`</span>; <span class="c2">// req.ip needs 'trust proxy' set correctly</span>
+  <span class="k">let</span> reply;
+  <span class="k">try</span> {
+    reply = <span class="k">await</span> redis.evalSha(TOKEN_BUCKET_SHA, {
+      keys: [<span class="t">`rl:${who}`</span>],
+      arguments: [String(POLICY.cap), String(POLICY.rate), <span class="t">'1'</span>],
+    });
+  } <span class="k">catch</span> (err) {
+    log.warn(<span class="t">'rate limiter unavailable, failing open'</span>, err);
+    <span class="k">return</span> next();
+  }
+  <span class="k">const</span> [allowed, remaining, retry] = reply;
+  res.set(<span class="t">'RateLimit-Policy'</span>, <span class="t">`"default";q=${POLICY.cap};w=${POLICY.cap / POLICY.rate}`</span>);
+  res.set(<span class="t">'RateLimit'</span>, <span class="t">`"default";r=${remaining}`</span>);
+  <span class="k">if</span> (allowed === <span class="t">1</span>) <span class="k">return</span> next();
+
+  res.set(<span class="t">'Retry-After'</span>, String(Math.max(<span class="t">1</span>, Math.ceil(Number(retry)))));
+  res.status(<span class="t">429</span>).json({ error: <span class="t">'rate_limited'</span>, retryAfterSeconds: Math.ceil(Number(retry)) });
+}</pre>
+  <p>Load the script once with <code>SCRIPT LOAD</code> to get its SHA, and reload it on a <code>NOSCRIPT</code> error after a Redis restart. On a Redis Cluster, every key a script touches must be in <code>KEYS</code> so it routes to the right shard. The fail-open branch keeps the API up during a Redis outage; for login or OTP limits, return <code>503</code> there instead.</p>
+</section>
+
+</main>
+
+<script>
+(function () {
+  var NS = 'http://www.w3.org/2000/svg';
+  var INK = '#2d3142', SOFT = '#5a6580', RULE = '#bfc0c0', ACCENT = '#bf4520', LINK = '#2e5aa8';
+  var $ = function (id) { return document.getElementById(id); };
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var EPS = 1e-9;
+  function el(name, attrs, parent) {
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function txt(parent, x, y, s, extra) {
+    var a = { x: x, y: y, 'font-size': 12, fill: INK, 'font-family': 'Geist Mono, monospace' };
+    for (var k in extra) a[k] = extra[k];
+    var t = el('text', a, parent); t.textContent = s; return t;
+  }
+  function clear(svg) {
+    Array.prototype.slice.call(svg.childNodes).forEach(function (n) {
+      var nm = (n.localName || '').toLowerCase();
+      if (nm !== 'title' && nm !== 'desc') svg.removeChild(n);
+    });
+  }
+  function r1(x) { return Math.round(x * 10) / 10; }
+  function fmt(x) { return (Math.round(x * 10) / 10).toFixed(1); }
+
+  // ================= Fig 1: timeline =================
+  var DUR = 30, N = 5, W = 10;
+
+  // each limiter: advance(t) moves state to time t; offer(t) decides; level() is how full it is, 0..1
+  var ALGS = [
+    { id: 'fixed', name: 'Fixed window', sub: '1 counter per window', make: function () {
+      var cur = 0, count = 0;
+      return {
+        advance: function (t) { var w = Math.floor(t / W + EPS); if (w !== cur) { cur = w; count = 0; } },
+        offer: function () { if (count < N) { count++; return { ok: true }; } return { ok: false }; },
+        level: function () { return count / N; }
+      };
+    } },
+    { id: 'log', name: 'Sliding log', sub: 'timestamps in last W', make: function () {
+      var log = [];
+      return {
+        advance: function (t) { while (log.length && log[0] <= t - W + EPS) log.shift(); },
+        offer: function (t) { if (log.length < N) { log.push(t); return { ok: true }; } return { ok: false }; },
+        level: function () { return log.length / N; }
+      };
+    } },
+    { id: 'swc', name: 'Sliding counter', sub: 'weighted prev + cur', make: function () {
+      var idx = 0, prev = 0, cur = 0, est = 0;
+      return {
+        advance: function (t) {
+          var i = Math.floor(t / W + EPS);
+          if (i === idx + 1) { prev = cur; cur = 0; } else if (i > idx + 1) { prev = 0; cur = 0; }
+          idx = i;
+          est = prev * (1 - (t - idx * W) / W) + cur;
+        },
+        offer: function () { if (est + 1 <= N + EPS) { cur++; est++; return { ok: true }; } return { ok: false }; },
+        level: function () { return Math.min(1, est / N); }
+      };
+    } },
+    { id: 'token', name: 'Token bucket', sub: 'C = N, r = N / W', make: function () {
+      var tokens = N, last = 0;
+      return {
+        advance: function (t) { tokens = Math.min(N, tokens + (t - last) * N / W); last = t; },
+        offer: function () { if (tokens >= 1 - EPS) { tokens -= 1; return { ok: true }; } return { ok: false }; },
+        level: function () { return Math.max(0, 1 - tokens / N); }
+      };
+    } },
+    { id: 'leaky', name: 'Leaky bucket', sub: 'queue of N, drains at r', make: function () {
+      var q = [], lastOut = -Infinity, T = W / N;
+      return {
+        advance: function (t) { while (q.length && q[0] <= t + EPS) q.shift(); },
+        offer: function (t) {
+          if (q.length < N) {
+            var out = Math.max(t, lastOut + T); lastOut = out;
+            if (out > t + EPS) q.push(out);
+            return { ok: true, out: out };
+          }
+          return { ok: false };
+        },
+        level: function () { return q.length / N; }
+      };
+    } },
+    { id: 'gcra', name: 'GCRA', sub: 'one timestamp (TAT)', make: function () {
+      var T = W / N, tau = (N - 1) * T, tat = 0, now = 0;
+      return {
+        advance: function (t) { now = t; },
+        offer: function (t) { if (t < tat - tau - EPS) return { ok: false }; tat = Math.max(tat, t) + T; return { ok: true }; },
+        level: function () { return Math.min(1, Math.max(0, tat - now) / (N * T)); }
+      };
+    } }
+  ];
+
+  // traffic patterns
+  var seed = 7;
+  function rng(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; var t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+  var PATTERNS = {
+    'Steady': function () { var o = []; for (var t = 0.5; t < DUR; t += 1.2) o.push(r1(t)); return o; },
+    'Bursts': function () {
+      var o = [], i;
+      for (i = 0; i < 10; i++) o.push(r1(1 + i * 0.3));
+      for (i = 0; i < 10; i++) o.push(r1(15 + i * 0.3));
+      [24, 25, 26, 27].forEach(function (t) { o.push(t); });
+      return o;
+    },
+    'Window edge': function () {
+      var o = [], step = Math.min(0.5, (W * 0.25) / N), i;
+      for (i = 0; i < N; i++) o.push(r1(W - 0.1 - (N - 1 - i) * step));
+      for (i = 0; i < N; i++) o.push(r1(W + i * step));
+      for (i = 0; i < N; i++) o.push(r1(3 * W - 0.1 - (N - 1 - i) * step));
+      return o.filter(function (t) { return t >= 0 && t < DUR; });
+    },
+    'Random': function () {
+      var o = [], R = rng(seed), t = 0;
+      while (true) { t += -Math.log(1 - R()) / 0.9; if (t >= DUR) break; o.push(r1(t)); }
+      return o;
+    }
+  };
+  var pattern = 'Bursts', custom = null;
+  function times() {
+    var arr = custom ? custom.slice() : PATTERNS[pattern]();
+    return arr.sort(function (a, b) { return a - b; });
+  }
+
+  function simulate(reqs) {
+    return ALGS.map(function (A) {
+      var L = A.make(), res = [], levels = [], i = 0, ev = [];
+      reqs.forEach(function (t) { ev.push({ t: t, r: true }); });
+      for (var k = 0; k <= DUR * 10; k++) ev.push({ t: k / 10, r: false });
+      ev.sort(function (a, b) { return a.t - b.t || (a.r ? -1 : 1); });
+      ev.forEach(function (e) {
+        L.advance(e.t);
+        if (e.r) { var d = L.offer(e.t); d.t = e.t; res.push(d); }
+        else levels.push([e.t, L.level()]);
+      });
+      return { alg: A, res: res, levels: levels };
+    });
+  }
+  function maxInSpan(ts) {
+    ts = ts.slice().sort(function (a, b) { return a - b; });
+    var best = 0, j = 0;
+    for (var i = 0; i < ts.length; i++) {
+      while (ts[i] - ts[j] >= W - EPS) j++;
+      best = Math.max(best, i - j + 1);
+    }
+    return best;
+  }
+
+  var tl = $('tl'), X0 = 180, X1 = 744, TOP = 44, ROW0 = 100, RH = 48;
+  function X(t) { return X0 + (X1 - X0) * t / DUR; }
+
+  function drawTimeline() {
+    var reqs = times(), sims = simulate(reqs);
+    clear(tl);
+    var g = el('g', {}, tl);
+    el('rect', { width: 760, height: 424, fill: '#fff' }, g);
+    var bottom = ROW0 + ALGS.length * RH;
+    // window boundaries
+    for (var w = 0; w * W < DUR; w++) {
+      var xa = X(w * W), xb = X(Math.min(DUR, (w + 1) * W));
+      txt(g, (xa + xb) / 2, 24, 'window ' + (w + 1), { 'font-size': 10, fill: SOFT, 'text-anchor': 'middle' });
+      if (w > 0) el('line', { x1: xa, x2: xa, y1: 30, y2: bottom, stroke: RULE, 'stroke-dasharray': '3 4' }, g);
+    }
+    // traffic lane
+    el('rect', { x: X0, y: TOP, width: X1 - X0, height: 36, rx: 4, fill: '#f5f5f5' }, g);
+    txt(g, 16, TOP + 16, 'Traffic', { 'font-size': 13, 'font-weight': 600, 'font-family': 'Geist, sans-serif' });
+    txt(g, 16, TOP + 31, reqs.length + ' requests', { 'font-size': 10, fill: SOFT });
+    reqs.forEach(function (t) { el('circle', { cx: X(t), cy: TOP + 18, r: 3.5, fill: INK }, g); });
+
+    var rows = [];
+    sims.forEach(function (S, i) {
+      var y = ROW0 + i * RH, h = 38, mid = y + h / 2;
+      el('rect', { x: X0, y: y, width: X1 - X0, height: h, rx: 4, fill: 'none', stroke: 'rgba(45,49,66,.12)' }, g);
+      // level area
+      var pts = S.levels.map(function (p) { return X(p[0]) + ',' + (y + h - p[1] * (h - 6)); });
+      el('polygon', { points: X(0) + ',' + (y + h) + ' ' + pts.join(' ') + ' ' + X(DUR) + ',' + (y + h), fill: 'rgba(191,69,32,.10)' }, g);
+      var ok = 0, no = 0, outs = [], wait = 0;
+      S.res.forEach(function (d) {
+        var x = X(d.t);
+        if (!d.ok) {
+          no++;
+          el('path', { d: 'M' + (x - 3.5) + ' ' + (mid - 3.5) + 'L' + (x + 3.5) + ' ' + (mid + 3.5) + 'M' + (x + 3.5) + ' ' + (mid - 3.5) + 'L' + (x - 3.5) + ' ' + (mid + 3.5), stroke: ACCENT, 'stroke-width': 1.8 }, g);
+          return;
+        }
+        ok++;
+        if (d.out !== undefined) {
+          outs.push(d.out); wait += d.out - d.t;
+          if (d.out > d.t + EPS) {
+            var xo = X(Math.min(DUR, d.out));
+            el('path', { d: 'M' + x + ' ' + (mid - 6) + ' Q' + ((x + xo) / 2) + ' ' + (mid - 16) + ' ' + xo + ' ' + (mid + 6), fill: 'none', stroke: LINK, 'stroke-width': 1, opacity: 0.55 }, g);
+            el('circle', { cx: x, cy: mid - 6, r: 3, fill: '#fff', stroke: LINK, 'stroke-width': 1.3 }, g);
+            if (d.out < DUR) el('circle', { cx: xo, cy: mid + 6, r: 3.5, fill: LINK }, g);
+          } else el('circle', { cx: x, cy: mid, r: 3.5, fill: INK }, g);
+        } else el('circle', { cx: x, cy: mid, r: 3.5, fill: INK }, g);
+      });
+      txt(g, 16, y + 15, S.alg.name, { 'font-size': 13, 'font-weight': 600, 'font-family': 'Geist, sans-serif' });
+      txt(g, 16, y + 30, S.alg.sub, { 'font-size': 10, fill: SOFT });
+      var acc = outs.length ? outs : S.res.filter(function (d) { return d.ok; }).map(function (d) { return d.t; });
+      rows.push({ name: S.alg.name, id: S.alg.id, ok: ok, no: no, max: maxInSpan(acc), wait: outs.length ? wait / outs.length : null });
+    });
+    // axis
+    for (var s = 0; s <= DUR; s += 5) {
+      el('line', { x1: X(s), x2: X(s), y1: bottom + 2, y2: bottom + 7, stroke: SOFT }, g);
+      txt(g, X(s), bottom + 20, s + ' s', { 'font-size': 10, fill: SOFT, 'text-anchor': 'middle' });
+    }
+    renderTable(rows, reqs.length);
+  }
+
+  function renderTable(rows, total) {
+    var t = $('cmp');
+    t.innerHTML = '<thead><tr><th>Algorithm</th><th>Allowed</th><th>Rejected</th><th>Max in any ' + W + ' s</th><th>Note</th></tr></thead>';
+    var tb = document.createElement('tbody');
+    rows.forEach(function (r) {
+      var tr = document.createElement('tr');
+      var note = r.id === 'leaky' ? (r.wait !== null ? 'avg wait ' + fmt(r.wait) + ' s, output never faster than r' : 'output never faster than r')
+        : r.id === 'fixed' ? (r.max > N ? 'boundary burst: ' + r.max + ' > ' + N : 'resets every ' + W + ' s')
+        : r.id === 'gcra' ? 'same decisions as token bucket' : r.id === 'swc' ? 'estimate of the sliding log' : r.id === 'token' ? 'burst ' + N + ', then 1 per ' + fmt(W / N) + ' s' : 'exact, stores up to ' + N + ' times';
+      [r.name, r.ok, r.no, r.max, note].forEach(function (v, i) {
+        var td = document.createElement('td'); td.textContent = v;
+        if (i > 0 && i < 4) td.className = 'num';
+        if (i === 3 && r.max > N) td.className = 'num over';
+        tr.appendChild(td);
+      });
+      tb.appendChild(tr);
+    });
+    t.appendChild(tb);
+    var fixed = rows[0];
+    $('tlLive').textContent = total + ' requests · fixed window allowed ' + fixed.ok + ', max ' + fixed.max + ' in ' + W + ' s';
+  }
+
+  // pattern buttons
+  var patNames = Object.keys(PATTERNS).concat(['Clear']);
+  patNames.forEach(function (name) {
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'btn'; b.textContent = name;
+    if (name !== 'Clear') b.setAttribute('aria-pressed', name === pattern ? 'true' : 'false');
+    b.addEventListener('click', function () {
+      if (name === 'Clear') { custom = []; }
+      else { if (name === 'Random') seed = (Math.random() * 1e9) | 0; pattern = name; custom = null; }
+      Array.prototype.forEach.call($('patterns').querySelectorAll('[aria-pressed]'), function (o) { o.setAttribute('aria-pressed', !custom && o.textContent === pattern ? 'true' : 'false'); });
+      drawTimeline();
+    });
+    $('patterns').appendChild(b);
+  });
+  function setParams() {
+    N = +$('nIn').value; W = +$('wIn').value;
+    $('nOut').textContent = N; $('wOut').textContent = W + ' s';
+    $('pLabel').textContent = N + ' requests per ' + W + ' s';
+    drawTimeline();
+  }
+  $('nIn').addEventListener('input', setParams);
+  $('wIn').addEventListener('input', setParams);
+  // click to add a request
+  tl.addEventListener('click', function (e) {
+    var pt = tl.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY;
+    var p = pt.matrixTransform(tl.getScreenCTM().inverse());
+    if (p.x < X0 || p.x > X1) return;
+    var t = r1((p.x - X0) / (X1 - X0) * DUR);
+    if (t >= DUR) t = r1(DUR - 0.1);
+    if (!custom) custom = times();
+    custom.push(t);
+    Array.prototype.forEach.call($('patterns').querySelectorAll('[aria-pressed]'), function (o) { o.setAttribute('aria-pressed', 'false'); });
+    drawTimeline();
+  });
+  setParams();
+
+  // ================= Fig 2: live token bucket =================
+  var tb = $('tb'), cap, rate, tokens, clock, running = true, last = null, tlog = [], lastRes = null, lastDraw = 0;
+  function tReset() {
+    cap = +$('tCap').value; rate = +$('tRate').value;
+    tokens = cap; clock = 0; tlog = []; lastRes = null;
+    $('tCapOut').textContent = cap; $('tRateOut').textContent = rate + ' /s';
+    tRenderLog(); drawBucket();
+  }
+  function tRenderLog() {
+    $('tLog').textContent = tlog.length ? tlog.join('\n') : 'Send a request. The bucket starts full.';
+  }
+  function request(n) {
+    var cost = +$('tCost').value;
+    for (var i = 0; i < n; i++) {
+      var line;
+      if (tokens >= cost - EPS) {
+        tokens -= cost;
+        lastRes = { ok: true };
+        line = 't=' + fmt(clock) + 's  200 OK     remaining ' + Math.floor(tokens + EPS);
+      } else {
+        var need = (cost - tokens) / rate;
+        lastRes = { ok: false, need: need };
+        line = 't=' + fmt(clock) + 's  429        Retry-After: ' + Math.max(1, Math.ceil(need)) + '  (next ' + cost + ' token' + (cost > 1 ? 's' : '') + ' in ' + fmt(need) + ' s)';
+      }
+      tlog.push(line);
+    }
+    while (tlog.length > 10) tlog.shift();
+    tRenderLog(); drawBucket();
+  }
+  function drawBucket() {
+    clear(tb);
+    var g = el('g', {}, tb);
+    el('rect', { width: 680, height: 250, fill: '#fff' }, g);
+    // refill spout
+    txt(g, 160, 26, 'refill ' + rate + ' token' + (rate === 1 ? '' : 's') + '/s', { 'font-size': 11, fill: LINK, 'text-anchor': 'middle', 'font-weight': 600 });
+    el('path', { d: 'M160 34 L160 52', stroke: LINK, 'stroke-width': 1.4, 'stroke-dasharray': running ? '3 3' : '' }, g);
+    // bucket
+    el('path', { d: 'M56 58 L66 226 Q66 232 72 232 L248 232 Q254 232 254 226 L264 58', fill: '#f5f5f5', stroke: INK, 'stroke-width': 1.6 }, g);
+    var full = Math.floor(tokens + EPS), frac = tokens - full;
+    for (var i = 0; i < cap; i++) {
+      var col = i % 5, row = Math.floor(i / 5);
+      var cx = 92 + col * 34, cy = 204 - row * 40;
+      if (i < full) {
+        el('circle', { cx: cx, cy: cy, r: 13, fill: INK }, g);
+      } else {
+        el('circle', { cx: cx, cy: cy, r: 13, fill: '#fff', stroke: RULE, 'stroke-dasharray': '3 3' }, g);
+        if (i === full && frac > 0.001) {
+          var a = frac * 2 * Math.PI, x2 = cx + 13 * Math.sin(a), y2 = cy - 13 * Math.cos(a);
+          el('path', { d: 'M' + cx + ' ' + cy + ' L' + cx + ' ' + (cy - 13) + ' A13 13 0 ' + (a > Math.PI ? 1 : 0) + ' 1 ' + x2 + ' ' + y2 + ' Z', fill: LINK, opacity: 0.75 }, g);
+        }
+      }
+    }
+    txt(g, 160, 248, 'capacity C = ' + cap, { 'font-size': 11, fill: SOFT, 'text-anchor': 'middle' });
+    // readout
+    var rx = 320;
+    txt(g, rx, 52, 't = ' + fmt(clock) + ' s' + (running ? '' : '  (paused)'), { 'font-size': 13, 'font-weight': 600 });
+    txt(g, rx, 82, 'tokens   ' + tokens.toFixed(2) + ' / ' + cap, { 'font-size': 12 });
+    txt(g, rx, 104, 'refill   ' + rate + ' per second', { 'font-size': 12, fill: SOFT });
+    txt(g, rx, 126, tokens >= cap - EPS ? 'bucket full, refill idle' : 'next token in ' + ((1 - frac) / rate).toFixed(2) + ' s', { 'font-size': 12, fill: SOFT });
+    txt(g, rx, 148, 'max burst ' + cap + ', sustained ' + rate + '/s', { 'font-size': 12, fill: SOFT });
+    if (lastRes) {
+      var ok = lastRes.ok, label = ok ? '200 OK' : '429 Too Many Requests', w = label.length * 7.6 + 24;
+      el('rect', { x: rx, y: 172, width: w, height: 30, rx: 4, fill: ok ? INK : ACCENT }, g);
+      txt(g, rx + 12, 192, label, { 'font-size': 13, fill: '#fff', 'font-weight': 600 });
+      txt(g, rx, 222, ok ? 'last request took a token' : 'Retry-After: ' + Math.max(1, Math.ceil(lastRes.need)) + ' s', { 'font-size': 11, fill: ok ? SOFT : ACCENT });
+    }
+    $('tbLive').textContent = 'tokens ' + tokens.toFixed(1) + ' / ' + cap;
+  }
+  function frame(ts) {
+    if (last === null) last = ts;
+    var dt = Math.min(1, (ts - last) / 1000); last = ts;
+    if (running) { clock += dt; tokens = Math.min(cap, tokens + rate * dt); }
+    if (!reduce || ts - lastDraw > 250) { drawBucket(); lastDraw = ts; }
+    requestAnimationFrame(frame);
+  }
+  $('tSend').addEventListener('click', function () { request(1); });
+  $('tBurst').addEventListener('click', function () { request(5); });
+  $('tCap').addEventListener('input', function () { cap = +$('tCap').value; $('tCapOut').textContent = cap; tokens = Math.min(tokens, cap); drawBucket(); });
+  $('tRate').addEventListener('input', function () { rate = +$('tRate').value; $('tRateOut').textContent = rate + ' /s'; drawBucket(); });
+  $('tPause').addEventListener('click', function () {
+    running = !running;
+    this.textContent = running ? 'Pause clock' : 'Run clock';
+    this.setAttribute('aria-pressed', running ? 'false' : 'true');
+    drawBucket();
+  });
+  $('tReset').addEventListener('click', tReset);
+  tReset();
+  requestAnimationFrame(frame);
+})();
+
+(function () {
+  var key = 'ratelimit-check:' + location.pathname, saved = {};
+  try { saved = JSON.parse(localStorage.getItem(key) || '{}'); } catch (e) {}
+  var boxes = document.querySelectorAll('.check input'), out = document.getElementById('prog');
+  function upd() {
+    var n = 0, o = {};
+    boxes.forEach(function (b) { if (b.checked) { n++; o[b.id] = 1; } b.closest('li').classList.toggle('done', b.checked); });
+    out.textContent = n + '/' + boxes.length + ' completed';
+    try { localStorage.setItem(key, JSON.stringify(o)); } catch (e) {}
+  }
+  boxes.forEach(function (b) { b.checked = !!saved[b.id]; b.addEventListener('change', upd); });
+  upd();
+})();
+
+document.addEventListener('DOMContentLoaded', function () {
+  if (!window.renderMathInElement) return;
+  renderMathInElement(document.body, {
+    delimiters: [{ left: '$$', right: '$$', display: true }, { left: '$', right: '$', display: false }],
+    ignoredTags: ['script', 'style', 'textarea', 'pre', 'code'],
+    throwOnError: false
+  });
+});
+</script>
+</body>
+</html>
