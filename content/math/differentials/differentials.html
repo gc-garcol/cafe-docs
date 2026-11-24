@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Differentials: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+h3{font-family:var(--serif);font-weight:400;font-size:24px;line-height:1.2;margin:32px 0 10px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;text-align:center;overflow-x:auto}
+.formula .katex{font-size:1.25em}
+.katex{color:var(--ink)}
+p .katex,td .katex,li .katex{font-size:1.05em}
+
+.lab{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:24px;align-items:start;margin-top:24px}
+.card{margin:0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.stage{padding:0 8px}
+.stage svg{display:block;width:100%;height:auto}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.seg{display:flex;flex-wrap:wrap;border:1px solid var(--rule-solid);border-radius:6px;overflow:hidden;margin-bottom:12px}
+.seg button{flex:1 1 18%;min-height:40px;border:0;background:transparent;font:500 13px var(--sans);color:var(--muted);cursor:pointer;padding:0 8px;box-shadow:inset 1px 0 0 var(--rule-solid),inset 0 1px 0 var(--rule-solid)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.seg-label{font-family:var(--mono);font-size:11px;color:var(--soft);margin:0 0 6px;letter-spacing:.08em;text-transform:uppercase}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.row{display:grid;grid-template-columns:70px 1fr 72px;gap:12px;align-items:center;margin:10px 0}
+.row label{font-family:var(--mono);font-size:13px;font-weight:600}
+.row output{font-family:var(--mono);font-size:12px;text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);min-height:28px}
+#readout{margin:14px 0 0;padding:14px 16px;background:var(--paper);border:1px solid var(--rule);border-radius:6px;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;min-height:150px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:2px;border:1px solid var(--ink);display:inline-block}
+
+.fig{margin:20px 0 8px}
+.scroll{overflow-x:auto;border:1px solid var(--rule);border-radius:8px;background:#fff;padding:8px}
+.scroll svg{display:block;height:auto}
+.cap{font-family:var(--mono);font-size:11px;color:var(--soft);margin:8px 0 0}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:30px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+.steps{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;max-width:760px}
+.steps ol{margin:0;padding-left:20px}.steps li{margin:8px 0}
+pre{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .t{color:var(--link)} .c{color:var(--soft);font-style:italic}
+table.ops{border-collapse:collapse;width:100%;max-width:760px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);border-radius:6px;font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule)}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
+@media (max-width:860px){.lab{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+.doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}.doc-tags a{font:500 12px "Geist Mono",ui-monospace,monospace;padding:4px 10px;border:1px solid var(--rule-solid,#bfc0c0);border-radius:4px;background:#fff;color:var(--muted,#4f5d75);text-decoration:none}.doc-tags a:hover{border-color:var(--ink,#2d3142);color:var(--ink,#2d3142)}.doc-tags a:focus-visible{outline:2px solid var(--accent,#bf4520);outline-offset:2px}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" style="margin-right:8px" href="../../../index.html">&larr; Back to home</a>
+<a class="back back-cat" href="../../../index.html#cat=Mathematics">&larr; Back to Mathematics</a>
+
+<header>
+  <div class="eyebrow">Mathematics · Calculus</div>
+  <h1>Differentials</h1>
+  <p class="lede">The derivative is a slope. The differential is what that slope predicts: nudge $x$ by $dx$, and the tangent line says $y$ moves by $dy = f'(x)\,dx$. It is the linear part of the true change, and the leftover shrinks much faster than the nudge.</p>
+  <nav class="doc-tags" aria-label="Main tags"><a href="../../../index.html#tag=differential">#differential</a><a href="../../../index.html#tag=linear%20approximation">#linear approximation</a><a href="../../../index.html#tag=error%20propagation">#error propagation</a><a href="../../../index.html#tag=total%20differential">#total differential</a></nav>
+</header>
+
+<section>
+  <h2>Try it first</h2>
+  <p>Pick a point $a$ and a step $dx$. The orange bar is $dy$, the rise along the tangent. The blue bar is $\Delta y$, the real rise along the curve. The gap between them is the error. Shrink $dx$ and watch the gap vanish faster than $dx$ itself: the ratio $\text{error}/dx$ goes to zero, while $\text{error}/dx^2$ settles on $\tfrac{1}{2}f''(a)$.</p>
+
+  <div class="lab">
+    <figure class="card">
+      <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title" id="fnTitle">dy vs Δy</span></div>
+      <div class="stage">
+        <svg id="plot" viewBox="0 0 560 420" role="img" aria-labelledby="plot-title plot-desc">
+          <title id="plot-title">The differential dy compared with the true change Δy</title>
+          <desc id="plot-desc">A curve with a tangent line at x equals a. A horizontal step of length dx leads to two vertical bars: an orange bar up to the tangent line, which is dy, and a blue bar up to the curve, which is delta y. The small gap between the bar tops is the error of the linear approximation.</desc>
+          <defs><clipPath id="clipPlot"><rect x="40" y="16" width="500" height="364"/></clipPath></defs>
+        </svg>
+      </div>
+      <div class="card-bottom"><span class="hint">Move a, shrink dx toward 0</span><span class="live" id="live"></span></div>
+    </figure>
+
+    <div>
+      <div class="panel">
+        <p class="seg-label">Function</p>
+        <div class="seg" role="group" aria-label="Function">
+          <button type="button" data-fn="0" aria-pressed="true">x²</button>
+          <button type="button" data-fn="1" aria-pressed="false">sin x</button>
+          <button type="button" data-fn="2" aria-pressed="false">√x</button>
+          <button type="button" data-fn="3" aria-pressed="false">eˣ</button>
+          <button type="button" data-fn="4" aria-pressed="false">1/x</button>
+        </div>
+        <div class="row"><label for="inA">a</label><input type="range" id="inA" min="-25" max="25" value="10"><output id="outA" for="inA"></output></div>
+        <div class="row"><label for="inD">dx</label><input type="range" id="inD" min="-150" max="150" value="130"><output id="outD" for="inD"></output></div>
+        <button type="button" class="btn" id="shrink" aria-pressed="false">Shrink dx</button>
+        <div id="readout" aria-live="polite"></div>
+      </div>
+      <div class="legend" aria-label="Legend">
+        <span><i class="sw" style="background:#2d3142"></i>curve f</span>
+        <span><i class="sw" style="background:#fff;border-color:#bf4520;border-style:dashed"></i>tangent at a</span>
+        <span><i class="sw" style="background:#bf4520;border-color:#bf4520"></i>dy = f′(a) dx</span>
+        <span><i class="sw" style="background:#2e5aa8;border-color:#2e5aa8"></i>Δy = f(a+dx) − f(a)</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>1. Two kinds of change</h2>
+  <p>Take $y = f(x)$ and move $x$ from $a$ to $a + \Delta x$. There are two ways to say how much $y$ moved.</p>
+  <div class="cards">
+    <div class="stat"><div class="eyebrow">True change</div><div class="big">Δy</div><p>$f(a + \Delta x) - f(a)$. Exact, but you need to evaluate $f$ twice and subtract.</p></div>
+    <div class="stat focal"><div class="eyebrow">Differential</div><div class="big">dy</div><p>$f'(a)\,dx$. The change if the curve were its tangent line. Linear in $dx$, so it is easy to compute and to combine.</p></div>
+    <div class="stat"><div class="eyebrow">Leftover</div><div class="big">Δy − dy</div><p>Shrinks faster than $dx$. For a smooth $f$ it is about $\tfrac{1}{2}f''(a)\,dx^2$.</p></div>
+  </div>
+  <p style="margin-top:20px">For the independent variable we simply set $dx = \Delta x$. The two notions only split apart for the dependent variable $y$.</p>
+  <h3>A worked example</h3>
+  <p>For $y = x^2$ at $a = 3$ with $dx = 0.1$:</p>
+  <div class="formula">$$\begin{aligned} dy &= 2a\,dx = 2 \cdot 3 \cdot 0.1 = 0.6 \\ \Delta y &= 3.1^2 - 3^2 = 9.61 - 9 = 0.61 \\ \Delta y - dy &= 0.01 = dx^2 \end{aligned}$$</div>
+  <p>Here the error is exactly $dx^2$, because $(a + dx)^2 = a^2 + 2a\,dx + dx^2$. Halve $dx$ and $dy$ halves, but the error drops to a quarter. That is the whole point.</p>
+</section>
+
+<section>
+  <h2>2. The definition</h2>
+  <p>A function is differentiable at $a$ when its change splits into a linear part plus something negligible compared to $dx$:</p>
+  <div class="formula">$$\Delta y = f'(a)\,dx + \varepsilon(dx)\,dx, \qquad \varepsilon(dx) \to 0 \text{ as } dx \to 0$$</div>
+  <p>The linear part is the differential:</p>
+  <div class="formula">$$dy = f'(x)\,dx$$</div>
+  <p>Dividing by $dx$ gives back $\frac{dy}{dx} = f'(x)$. So Leibniz's notation is not just a symbol: it really is a ratio of two differentials. This is also the cleanest way to read the derivative. $f'(a)$ is the number that turns a small input change into the best linear guess of the output change.</p>
+  <div class="callout">The derivative is the rate. The differential is the rate times the step.</div>
+</section>
+
+<section>
+  <h2>3. Rules for differentials</h2>
+  <p>Every derivative rule has a differential twin. Multiply both sides by $dx$ and the rules become statements about small changes, with no reference to which variable is independent.</p>
+  <table class="ops">
+    <thead><tr><th>Rule</th><th>Differential</th></tr></thead>
+    <tbody>
+      <tr><td>Constant</td><td>$d(c) = 0$</td></tr>
+      <tr><td>Sum, constant multiple</td><td>$d(c\,u + v) = c\,du + dv$</td></tr>
+      <tr><td>Product</td><td>$d(uv) = u\,dv + v\,du$</td></tr>
+      <tr><td>Quotient</td><td>$d\!\left(\frac{u}{v}\right) = \frac{v\,du - u\,dv}{v^2}$</td></tr>
+      <tr><td>Composition</td><td>$d\,f(u) = f'(u)\,du$</td></tr>
+      <tr><td>Examples</td><td>$d(x^n) = n x^{n-1} dx$, $d(\sin u) = \cos u\,du$, $d(\ln u) = \frac{du}{u}$</td></tr>
+    </tbody>
+  </table>
+  <div class="fig">
+    <div class="scroll">
+<svg width="760" height="260" viewBox="0 0 760 260" style="min-width:760px" role="img" aria-labelledby="prod-title prod-desc">
+<title id="prod-title">Product rule as the growth of a rectangle</title>
+<desc id="prod-desc">A rectangle with sides u and v. Growing u by du and v by dv adds a thin strip u times dv on top, a thin strip v times du on the right, and a tiny corner du times dv. The two strips are the differential of uv. The corner is second order and is dropped.</desc>
+<rect x="120" y="80" width="360" height="150" fill="#ececec" stroke="#2d3142" stroke-width="1.5"/>
+<rect x="120" y="40" width="360" height="40" fill="rgba(191,69,32,.18)" stroke="#bf4520" stroke-width="1.5"/>
+<rect x="480" y="80" width="60" height="150" fill="rgba(191,69,32,.18)" stroke="#bf4520" stroke-width="1.5"/>
+<rect x="480" y="40" width="60" height="40" fill="rgba(46,90,168,.18)" stroke="#2e5aa8" stroke-width="1.5"/>
+<g font-family="'Geist Mono',monospace" font-size="13" fill="#2d3142" text-anchor="middle">
+<text x="300" y="160">u · v</text>
+<text x="300" y="65" fill="#bf4520">u · dv</text>
+<text x="510" y="160" fill="#bf4520">v · du</text>
+<text x="510" y="64" fill="#2e5aa8" font-size="11">du·dv</text>
+<text x="300" y="250">u</text><text x="510" y="250">du</text>
+<text x="100" y="160" text-anchor="end">v</text><text x="100" y="65" text-anchor="end">dv</text>
+</g>
+<g font-family="'Geist Mono',monospace" font-size="12" fill="#4f5d75">
+<text x="570" y="110">orange strips: d(uv)</text>
+<text x="570" y="132">= u dv + v du</text>
+<text x="570" y="170">blue corner: second order,</text>
+<text x="570" y="192">vanishes faster than du</text>
+</g>
+</svg>
+    </div>
+    <p class="cap">Fig 2 · The product rule is bookkeeping for a growing rectangle.</p>
+  </div>
+  <h3>Invariance of form</h3>
+  <p>The formula $dy = f'(u)\,du$ holds whether $u$ is the independent variable or itself a function $u = g(x)$. In the second case $du = g'(x)\,dx$, and substituting gives $dy = f'(g(x))\,g'(x)\,dx$, which is the chain rule. You can differentiate layer by layer and never decide in advance which variable is "the" variable.</p>
+  <div class="steps"><ol>
+    <li>$y = \sin(x^2)$. Let $u = x^2$, so $du = 2x\,dx$ and $dy = \cos u\,du = 2x\cos(x^2)\,dx$.</li>
+    <li>$y = \ln(1 + e^x)$. Then $dy = \frac{d(1 + e^x)}{1 + e^x} = \frac{e^x}{1 + e^x}\,dx$.</li>
+    <li>$y = x^2 e^{3x}$. Product: $dy = e^{3x}\,d(x^2) + x^2\,d(e^{3x}) = (2x + 3x^2)\,e^{3x}\,dx$.</li>
+  </ol></div>
+</section>
+
+<section>
+  <h2>4. Estimating values</h2>
+  <p>When $f(a)$ and $f'(a)$ are easy but $f(a + dx)$ is not, use $f(a + dx) \approx f(a) + dy$.</p>
+  <div class="steps"><ol>
+    <li>$\sqrt[3]{8.3}$: with $f(x) = x^{1/3}$, $a = 8$, $f'(8) = \frac{1}{3 \cdot 8^{2/3}} = \frac{1}{12}$ and $dx = 0.3$, so $\sqrt[3]{8.3} \approx 2 + \frac{0.3}{12} = 2.025$. True value: $2.02469\ldots$</li>
+    <li>$\sin 31^\circ$: with $a = 30^\circ = \frac{\pi}{6}$ and $dx = 1^\circ = \frac{\pi}{180} \approx 0.017453$ (angles must be in radians), $\sin 31^\circ \approx \frac{1}{2} + \frac{\sqrt{3}}{2} \cdot 0.017453 \approx 0.515115$. True value: $0.515038\ldots$</li>
+    <li>$(1.002)^{50}$: with $f(x) = x^{50}$ at $a = 1$, $dy = 50 \cdot 0.002 = 0.1$, so the estimate is $1.1$. True value: $1.10506\ldots$ The gap is larger because $f''(1) = 2450$ is large.</li>
+  </ol></div>
+  <p>The last case is a warning. The estimate is only as good as the curve is straight over the step, and the second derivative measures how far from straight it is.</p>
+</section>
+
+<section>
+  <h2>5. Error propagation</h2>
+  <p>A measurement $x$ comes with an uncertainty $dx$. Any quantity computed from it inherits an uncertainty $dy = f'(x)\,dx$. This is how lab sheets and engineering tolerances are worked out.</p>
+  <h3>A worked problem</h3>
+  <p>The radius of a ball is measured as $r = 10$ cm, give or take $0.05$ cm. How uncertain is its volume?</p>
+  <div class="steps"><ol>
+    <li>$V = \frac{4}{3}\pi r^3 \approx 4188.8\ \text{cm}^3$.</li>
+    <li>$dV = 4\pi r^2\,dr = 4\pi \cdot 100 \cdot 0.05 = 20\pi \approx 62.8\ \text{cm}^3$.</li>
+    <li>Relative error: $\frac{dV}{V} = 3\,\frac{dr}{r} = 3 \cdot 0.5\% = 1.5\%$.</li>
+  </ol></div>
+  <p>The relative form is the useful habit. Take $d \ln$ of a power law and exponents become multipliers:</p>
+  <div class="formula">$$y = C\,x^n \quad\Longrightarrow\quad \frac{dy}{y} = n\,\frac{dx}{x}$$</div>
+  <p>A cube's volume carries three times the relative error of its side. A square root halves it.</p>
+</section>
+
+<section>
+  <h2>6. Several variables: the total differential</h2>
+  <p>When $z = f(x, y)$ depends on two inputs, each contributes its own linear piece. The partial derivatives are the rates, and the total differential adds them up:</p>
+  <div class="formula">$$dz = \frac{\partial f}{\partial x}\,dx + \frac{\partial f}{\partial y}\,dy$$</div>
+  <p>Geometrically, $dz$ is the rise along the tangent plane, the two-variable version of the tangent line in Fig 1.</p>
+  <h3>A worked problem</h3>
+  <p>A can has radius $r = 3$ cm and height $h = 10$ cm, with errors $dr = 0.01$ and $dh = 0.02$. Its volume is $V = \pi r^2 h = 90\pi \approx 282.74\ \text{cm}^3$.</p>
+  <div class="formula">$$dV = 2\pi r h\,dr + \pi r^2\,dh = 0.6\pi + 0.18\pi = 0.78\pi \approx 2.45\ \text{cm}^3$$</div>
+  <p>That is about $0.87\%$, matching the relative rule $\frac{dV}{V} = 2\frac{dr}{r} + \frac{dh}{h}$. The radius error counts twice, so a better ruler for $r$ pays off more than one for $h$.</p>
+  <h3>Implicit curves</h3>
+  <p>Differentials also handle equations that are not solved for $y$. On the circle $x^2 + y^2 = 25$, take $d$ of both sides: $2x\,dx + 2y\,dy = 0$, so $\frac{dy}{dx} = -\frac{x}{y}$. At $(3, 4)$ the slope is $-\frac{3}{4}$.</p>
+</section>
+
+<section>
+  <h2>7. Differentials inside integrals</h2>
+  <p>The $dx$ in $\int f(x)\,dx$ is the same object. It is the width of a thin slice, and it is why substitution works: rename the inside, and rename its differential with it.</p>
+  <div class="formula">$$\int 2x\cos(x^2)\,dx \;\xrightarrow{\;u = x^2,\; du = 2x\,dx\;}\; \int \cos u\,du = \sin(x^2) + C$$</div>
+  <p>Differential equations use the same notation. $\frac{dy}{dx} = k y$ becomes $\frac{dy}{y} = k\,dx$, and integrating both sides gives $\ln|y| = kx + C$, so $y = A e^{kx}$.</p>
+</section>
+
+<section>
+  <h2>8. Higher-order differentials</h2>
+  <p>Apply $d$ again, holding the step $dx$ fixed. For an independent $x$ that gives $d^2 y = f''(x)\,dx^2$, which is where the notation $\frac{d^2 y}{dx^2}$ comes from. It is also the size of the leftover in the lab: $\Delta y - dy \approx \tfrac{1}{2}\,d^2 y$.</p>
+  <p>One catch: unlike $dy$, the second differential is not invariant. If $x = g(t)$, then $dx$ itself changes and $d^2 y = f''(x)\,dx^2 + f'(x)\,d^2 x$. The extra term is why second-order formulas need care when you change variables.</p>
+</section>
+
+<section>
+  <h2>9. The same thing in code</h2>
+  <p>Comparing $dy$ with $\Delta y$ numerically shows the orders of the error directly. Error propagation is one line per input.</p>
+  <pre><span class="k">const</span> f  = x =&gt; x * x;
+<span class="k">const</span> df = x =&gt; <span class="t">2</span> * x;
+
+<span class="k">for</span> (<span class="k">const</span> dx <span class="k">of</span> [<span class="t">0.1</span>, <span class="t">0.01</span>, <span class="t">0.001</span>]) {
+  <span class="k">const</span> dy = df(<span class="t">3</span>) * dx;            <span class="c">// linear prediction</span>
+  <span class="k">const</span> Dy = f(<span class="t">3</span> + dx) - f(<span class="t">3</span>);      <span class="c">// true change</span>
+  console.log(dx, dy, Dy, Dy - dy);
+}
+<span class="c">// 0.1    0.6     0.61       ≈ 1e-2</span>
+<span class="c">// 0.01   0.06    0.0601     ≈ 1e-4</span>
+<span class="c">// 0.001  0.006   0.006001   ≈ 1e-6   (error = dx², exactly, up to rounding)</span>
+
+<span class="c">// Worst-case error of V = πr²h from the total differential</span>
+<span class="k">const</span> dV = (r, h, dr, dh) =&gt; Math.abs(<span class="t">2</span> * Math.PI * r * h * dr) + Math.abs(Math.PI * r * r * dh);
+dV(<span class="t">3</span>, <span class="t">10</span>, <span class="t">0.01</span>, <span class="t">0.02</span>);  <span class="c">// 2.4504</span></pre>
+  <p>When the input errors are independent and random rather than worst case, statisticians add the pieces in quadrature instead: $\sigma_z^2 \approx (f_x\,\sigma_x)^2 + (f_y\,\sigma_y)^2$. Both come from the same total differential.</p>
+</section>
+
+<section>
+  <h2>10. Common mistakes</h2>
+  <ul class="tight">
+    <li>Treating $dy$ as the exact change. It is the tangent-line change; $\Delta y$ is exact.</li>
+    <li>Using degrees for $dx$ in trig estimates. $d(\sin x) = \cos x\,dx$ only holds with $x$ in radians.</li>
+    <li>Dropping a variable in the total differential. Every input that can move needs its own term.</li>
+    <li>Letting errors cancel. For worst-case bounds, add the absolute values of each term.</li>
+    <li>Trusting the estimate on a large step or where $f''$ is big. Check the size of $\tfrac{1}{2}f''(a)\,dx^2$ first.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>11. Next</h2>
+  <p>The differential keeps only the first-order part of a change. Keeping the $dx^2$, $dx^3$ and higher terms too gives the Taylor series. Adding infinitely many differentials $f(x)\,dx$ back up gives the integral.</p>
+</section>
+
+</main>
+
+<script>
+(function () {
+  var NSV = 'http://www.w3.org/2000/svg';
+  var W = 560, L = 40, R = 540, T = 16, B = 380;
+  var $ = function (s) { return document.querySelector(s); };
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // a range is in tenths; dom is the smallest allowed x
+  var FNS = [
+    { name: 'f(x) = x²', f: function (x) { return x * x; }, d: function (x) { return 2 * x; }, d2: function () { return 2; }, view: [-3, 3, -1.5, 9], aR: [-25, 25], a0: 10, dom: -Infinity },
+    { name: 'f(x) = sin x', f: Math.sin, d: Math.cos, d2: function (x) { return -Math.sin(x); }, view: [-4, 4, -2, 2], aR: [-35, 35], a0: 5, dom: -Infinity },
+    { name: 'f(x) = √x', f: Math.sqrt, d: function (x) { return 0.5 / Math.sqrt(x); }, d2: function (x) { return -0.25 * Math.pow(x, -1.5); }, view: [-0.5, 6, -0.6, 3], aR: [2, 50], a0: 10, dom: 0 },
+    { name: 'f(x) = eˣ', f: Math.exp, d: Math.exp, d2: Math.exp, view: [-3, 2.2, -1, 8], aR: [-25, 15], a0: 0, dom: -Infinity },
+    { name: 'f(x) = 1/x', f: function (x) { return 1 / x; }, d: function (x) { return -1 / (x * x); }, d2: function (x) { return 2 / (x * x * x); }, view: [0, 4, -0.5, 5], aR: [4, 35], a0: 10, dom: 0.05 }
+  ];
+  var cur = 0, timer = null;
+
+  function el(n, attrs, parent) {
+    var e = document.createElementNS(NSV, n);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function text(g, x, y, s, anchor, extra) {
+    var a = { x: x, y: y, 'text-anchor': anchor || 'middle', 'font-size': 10, fill: '#5a6580', 'font-family': 'Geist Mono, monospace' };
+    for (var k in extra) a[k] = extra[k];
+    var t = el('text', a, g); t.textContent = s; return t;
+  }
+  function num(v, p) {
+    if (!isFinite(v)) return 'undefined';
+    if (v === 0) return '0';
+    var av = Math.abs(v);
+    return (av < 1e-3 || av >= 1e5) ? v.toExponential(3) : v.toFixed(p || 5);
+  }
+  function getDx() {
+    var s = +$('#inD').value;
+    // non-linear slider: small values near the middle for fine control
+    var sign = s < 0 ? -1 : 1, t = Math.abs(s) / 150;
+    if (t === 0) return 0;
+    return sign * 1.5 * Math.pow(10, 3 * (t - 1)); // from 0.0015 to 1.5
+  }
+
+  function setFn(i) {
+    cur = i;
+    var F = FNS[i], inA = $('#inA');
+    inA.min = F.aR[0]; inA.max = F.aR[1]; inA.value = F.a0;
+  }
+
+  function render() {
+    var F = FNS[cur], v = F.view;
+    var a = +$('#inA').value / 10;
+    var dx = getDx();
+    var inDomain = a + dx >= F.dom;
+    if (!inDomain) dx = F.dom - a + 1e-9; // clamp into the domain
+    var svg = $('#plot');
+    Array.prototype.slice.call(svg.querySelectorAll('.dyn')).forEach(function (n) { n.remove(); });
+    var g = el('g', { 'class': 'dyn' }, svg);
+    var X = function (x) { return L + (x - v[0]) / (v[1] - v[0]) * (R - L); };
+    var Y = function (y) { return B - (y - v[2]) / (v[3] - v[2]) * (B - T); };
+
+    for (var gx = Math.ceil(v[0]); gx <= v[1]; gx++) {
+      el('line', { x1: X(gx), x2: X(gx), y1: T, y2: B, stroke: gx === 0 ? '#2d3142' : 'rgba(45,49,66,.1)' }, g);
+      text(g, X(gx), B + 16, gx);
+    }
+    var stepY = v[3] - v[2] > 6 ? 2 : 1;
+    for (var gy = Math.ceil(v[2]); gy <= v[3]; gy += stepY) {
+      el('line', { x1: L, x2: R, y1: Y(gy), y2: Y(gy), stroke: gy === 0 ? '#2d3142' : 'rgba(45,49,66,.1)' }, g);
+      text(g, L - 6, Y(gy) + 3, gy, 'end');
+    }
+    text(g, L + 6, T + 14, F.name, 'start', { 'font-size': 11, fill: '#2d3142' });
+
+    var c = el('g', { 'clip-path': 'url(#clipPlot)' }, g);
+    var d = '', n = 400, started = false;
+    for (var i = 0; i <= n; i++) {
+      var x = v[0] + (v[1] - v[0]) * i / n;
+      if (x < F.dom) continue;
+      var y = F.f(x);
+      if (!isFinite(y)) continue;
+      var yy = Math.max(-1e4, Math.min(1e4, Y(y)));
+      d += (started ? ' L' : 'M') + X(x).toFixed(1) + ' ' + yy.toFixed(1);
+      started = true;
+    }
+    el('path', { d: d, fill: 'none', stroke: '#2d3142', 'stroke-width': 2.4 }, c);
+
+    var fa = F.f(a), m = F.d(a), dy = m * dx, fb = F.f(a + dx), Dy = fb - fa, err = Dy - dy;
+    el('line', { x1: X(v[0]), y1: Y(fa + m * (v[0] - a)), x2: X(v[1]), y2: Y(fa + m * (v[1] - a)), stroke: '#bf4520', 'stroke-width': 1.6, 'stroke-dasharray': '6 4' }, c);
+
+    var xb = X(a + dx), ya = Y(fa);
+    // dx step
+    el('line', { x1: X(a), y1: ya, x2: xb, y2: ya, stroke: '#2d3142', 'stroke-width': 1.4, 'stroke-dasharray': '3 3' }, c);
+    // bars: dy left of the step end, Δy right of it
+    var off = 5;
+    el('line', { x1: xb - off, y1: ya, x2: xb - off, y2: Y(fa + dy), stroke: '#bf4520', 'stroke-width': 4, 'stroke-linecap': 'butt' }, c);
+    el('line', { x1: xb + off, y1: ya, x2: xb + off, y2: Y(fb), stroke: '#2e5aa8', 'stroke-width': 4, 'stroke-linecap': 'butt' }, c);
+    // error gap
+    el('line', { x1: xb, y1: Y(fa + dy), x2: xb, y2: Y(fb), stroke: '#2d3142', 'stroke-width': 1.2 }, c);
+    el('circle', { cx: X(a), cy: ya, r: 6, fill: '#bf4520' }, c);
+    el('circle', { cx: xb, cy: Y(fa + dy), r: 4.5, fill: '#fff', stroke: '#bf4520', 'stroke-width': 2 }, c);
+    el('circle', { cx: xb, cy: Y(fb), r: 4.5, fill: '#2e5aa8' }, c);
+    var side = dx >= 0 ? 1 : -1, lx = xb + side * 14, anchor = dx >= 0 ? 'start' : 'end';
+    if (Math.abs(xb - X(a)) > 24) text(c, (X(a) + xb) / 2, ya + (m * dx >= 0 ? 16 : -8), 'dx', 'middle', { 'font-size': 12, fill: '#2d3142' });
+    text(c, lx, (ya + Y(fa + dy)) / 2 + 4, 'dy', anchor, { 'font-size': 12, fill: '#bf4520', 'font-weight': 600 });
+    text(c, lx + side * 26, (ya + Y(fb)) / 2 + 4, 'Δy', anchor, { 'font-size': 12, fill: '#2e5aa8', 'font-weight': 600 });
+
+    $('#outA').textContent = a.toFixed(1);
+    $('#outD').textContent = Math.abs(dx) < 0.01 && dx !== 0 ? dx.toExponential(1) : dx.toFixed(3);
+    $('#fnTitle').textContent = F.name;
+    $('#live').textContent = 'dy = ' + num(dy, 4);
+    var half = F.d2(a) / 2;
+    $('#readout').textContent =
+      'a                 = ' + a.toFixed(1) + '\n' +
+      'dx                = ' + num(dx) + '\n' +
+      'dy = f′(a)·dx     = ' + num(dy) + '\n' +
+      'Δy = f(a+dx)−f(a) = ' + num(Dy) + '\n' +
+      'error = Δy − dy   = ' + num(err) + '\n' +
+      'error / dx        = ' + (dx ? num(err / dx) : '—') + '\n' +
+      'error / dx²       = ' + (dx ? num(err / (dx * dx), 4) : '—') + '\n' +
+      '½f″(a)            = ' + num(half, 4) +
+      (inDomain ? '' : '\na + dx left the domain, dx was clamped.');
+  }
+
+  var btns = document.querySelectorAll('[data-fn]');
+  Array.prototype.forEach.call(btns, function (b) {
+    b.addEventListener('click', function () {
+      setFn(+b.getAttribute('data-fn'));
+      Array.prototype.forEach.call(btns, function (o) { o.setAttribute('aria-pressed', o === b ? 'true' : 'false'); });
+      render();
+    });
+  });
+  $('#inA').addEventListener('input', render);
+  $('#inD').addEventListener('input', function () { stopShrink(); render(); });
+
+  function stopShrink() { if (timer) { clearInterval(timer); timer = null; } $('#shrink').textContent = 'Shrink dx'; $('#shrink').setAttribute('aria-pressed', 'false'); }
+  $('#shrink').addEventListener('click', function () {
+    var inD = $('#inD');
+    if (reduce) { // step instead of animating
+      var s = +inD.value, nv = s > 0 ? s - 15 : s + 15;
+      inD.value = Math.abs(s) <= 15 ? 150 : nv; render(); return;
+    }
+    if (timer) { stopShrink(); return; }
+    if (Math.abs(+inD.value) <= 2) inD.value = 150;
+    $('#shrink').textContent = 'Pause'; $('#shrink').setAttribute('aria-pressed', 'true');
+    timer = setInterval(function () {
+      var s = +inD.value;
+      if (Math.abs(s) <= 2) { stopShrink(); return; }
+      inD.value = s > 0 ? s - 1 : s + 1; render();
+    }, 50);
+  });
+
+  setFn(0);
+  render();
+})();
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  renderMathInElement(document.body, {
+    delimiters: [
+      { left: '$$', right: '$$', display: true },
+      { left: '$', right: '$', display: false }
+    ],
+    ignoredTags: ['script', 'style', 'textarea', 'pre', 'code'],
+    throwOnError: false
+  });
+});
+</script>
+</body>
+</html>
