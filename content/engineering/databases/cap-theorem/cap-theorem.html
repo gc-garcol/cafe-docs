@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CAP theorem: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible,a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+h3{font-family:var(--serif);font-weight:400;font-size:24px;line-height:1.2;margin:32px 0 10px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+a{color:var(--link)}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+
+.card{margin:24px 0 0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.scroll{overflow-x:auto;padding:0 8px}
+.scroll svg{display:block;margin:0 auto;height:auto}
+.cap{font-family:var(--mono);font-size:11px;color:var(--soft);margin:8px 16px 12px}
+
+.controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;margin-top:16px;align-items:start}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:0 0 12px}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.btn.warn{border-color:var(--accent);color:var(--accent)}
+.btn.warn:hover,.btn.warn[aria-pressed="true"]{background:var(--accent);color:#fff}
+.group-label{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);margin:16px 0 6px}
+.group-label:first-child{margin-top:0}
+.seg{display:flex;flex-wrap:wrap;border:1px solid var(--rule-solid);border-radius:6px;overflow:hidden;margin-bottom:6px}
+.seg button{flex:1 1 40%;min-height:40px;border:0;background:transparent;font:500 13px var(--sans);color:var(--muted);cursor:pointer;padding:0 10px;box-shadow:inset 1px 0 0 var(--rule-solid),inset 0 1px 0 var(--rule-solid)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.desc{font-size:14px;color:var(--muted);margin:6px 0 12px}
+.readout{margin:0;padding:0;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink);border:0;background:none;min-height:12em}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:4px}
+.stats div{border:1px solid var(--rule);border-radius:6px;padding:8px 10px}
+.stats b{display:block;font:600 20px var(--mono)}
+.stats span{font:11px var(--mono);color:var(--soft)}
+.stats .bad b{color:var(--accent)}
+
+.qrow{display:grid;grid-template-columns:40px 1fr 40px;gap:12px;align-items:center;margin:8px 0}
+.qrow label{font-family:var(--mono);font-size:13px;font-weight:600}
+.qrow output{font-family:var(--mono);font-size:13px;text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);min-height:28px}
+
+pre{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .c2{color:var(--soft);font-style:italic} .t{color:var(--link)}
+
+.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:26px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+
+table.ops{border-collapse:collapse;width:100%;max-width:900px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+table.ops td:first-child{font-weight:600}
+.tw{overflow-x:auto}
+ul.tight{padding-left:22px;max-width:68ch}ul.tight li{margin:6px 0}
+
+.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;text-align:center;overflow-x:auto}
+.formula .katex{font-size:1.25em}
+.katex{color:var(--ink)}
+p .katex,td .katex,li .katex{font-size:1.05em}
+
+.check{list-style:none;padding:0;margin:12px 0 0;max-width:640px}
+.check li{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--rule)}
+.check input{width:18px;height:18px;accent-color:var(--accent)}
+.check li.done a{color:var(--soft);text-decoration:line-through}
+.prog{font-family:var(--mono);font-size:12px;color:var(--soft)}
+
+.doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}.doc-tags a{font:500 12px "Geist Mono",ui-monospace,monospace;padding:4px 10px;border:1px solid var(--rule-solid,#bfc0c0);border-radius:4px;background:#fff;color:var(--muted,#4f5d75);text-decoration:none}.doc-tags a:hover{border-color:var(--ink,#2d3142);color:var(--ink,#2d3142)}.doc-tags a:focus-visible{outline:2px solid var(--accent,#bf4520);outline-offset:2px}
+
+@media (max-width:860px){.controls,.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" style="margin-right:8px" href="../../../../index.html">&larr; Back to home</a>
+<a class="back back-cat" href="../../../../index.html#cat=Engineering">&larr; Back to Engineering</a>
+
+<header>
+  <div class="eyebrow">Engineering · Databases</div>
+  <h1>CAP theorem</h1>
+  <p class="lede">When the network between replicas breaks, a distributed database has to pick: refuse some requests to stay correct, or answer every request and risk returning old data. That choice, Consistency or Availability under a Partition, is the CAP theorem. This page lets you cut the network yourself and watch both answers play out.</p>
+  <nav class="doc-tags" aria-label="Main tags"><a href="../../../../index.html#tag=cap%20theorem">#cap theorem</a><a href="../../../../index.html#tag=consistency">#consistency</a><a href="../../../../index.html#tag=availability">#availability</a><a href="../../../../index.html#tag=partition%20tolerance">#partition tolerance</a></nav>
+</header>
+
+<section>
+  <h2>Cut the network</h2>
+  <p>Three replicas hold one key, <code>x</code>. A and B sit in one region, 2 ms apart; C is in another region, 70 ms away. Client 1 talks to A, client 2 talks to C. Write and read from both sides, then press "Partition" to cut C off and try again. Switch between CP and AP and compare the counters. Heal the partition at the end to see how each mode recovers.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title" id="simTitle">CP: majority quorum</span></div>
+    <div class="scroll">
+      <svg id="sim" width="640" height="300" viewBox="0 0 640 300" style="width:100%;max-width:720px;min-width:600px" role="img" aria-labelledby="sim-title sim-desc">
+        <title id="sim-title">Three replicas, two clients and an optional network partition</title>
+        <desc id="sim-desc">Client 1 on the left connects to replica A. Replicas A and B sit together on the left, replica C on the right, and client 2 on the far right connects to C. Lines between replicas show the network links. When partitioned, a dashed red line separates A and B from C and the crossing links are cut. Each replica box shows its current value and version, and is marked behind when it misses the latest write. Every action is also written to the log below.</desc>
+      </svg>
+    </div>
+    <div class="card-bottom"><span class="hint" id="simHint">Links in blue carried the last request; red means it was refused</span><span class="live" id="simLive"></span></div>
+  </figure>
+
+  <div class="controls">
+    <div class="panel">
+      <div class="group-label">Mode</div>
+      <div class="seg" role="group" aria-label="Consistency mode">
+        <button type="button" data-mode="CP" aria-pressed="true">CP · consistent</button>
+        <button type="button" data-mode="AP" aria-pressed="false">AP · available</button>
+      </div>
+      <p class="desc" id="modeDesc"></p>
+      <div class="group-label">Client 1 → A</div>
+      <div class="row">
+        <button type="button" class="btn" data-act="w" data-node="A">Write via A</button>
+        <button type="button" class="btn" data-act="r" data-node="A">Read via A</button>
+      </div>
+      <div class="group-label">Client 2 → C</div>
+      <div class="row">
+        <button type="button" class="btn" data-act="w" data-node="C">Write via C</button>
+        <button type="button" class="btn" data-act="r" data-node="C">Read via C</button>
+      </div>
+      <div class="group-label">Network</div>
+      <div class="row">
+        <button type="button" class="btn warn" id="part" aria-pressed="false">Partition</button>
+        <button type="button" class="btn" id="reset">Reset</button>
+      </div>
+      <div class="group-label">Counters</div>
+      <div class="stats">
+        <div><b id="sW">0</b><span>writes ok</span></div>
+        <div><b id="sR">0</b><span>reads ok</span></div>
+        <div class="bad"><b id="sErr">0</b><span>refused</span></div>
+        <div class="bad"><b id="sStale">0</b><span>stale reads</span></div>
+        <div class="bad"><b id="sLost">0</b><span>lost writes</span></div>
+        <div><b id="sLat">0</b><span>last latency, ms</span></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="group-label">Log</div>
+      <pre class="readout" id="log" aria-live="polite"></pre>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Contents</h2>
+  <div class="prog" id="prog" aria-live="polite"></div>
+  <ol class="check">
+    <li><input type="checkbox" id="c-def" aria-label="Mark The three letters as done"><a href="#def">The three letters, precisely</a></li>
+    <li><input type="checkbox" id="c-proof" aria-label="Mark Why you cannot have all three as done"><a href="#proof">Why you cannot have all three</a></li>
+    <li><input type="checkbox" id="c-two" aria-label="Mark Pick two is misleading as done"><a href="#two">"Pick two" is misleading</a></li>
+    <li><input type="checkbox" id="c-cp" aria-label="Mark CP systems as done"><a href="#cp">CP systems</a></li>
+    <li><input type="checkbox" id="c-ap" aria-label="Mark AP systems as done"><a href="#ap">AP systems</a></li>
+    <li><input type="checkbox" id="c-q" aria-label="Mark Quorums as done"><a href="#quorum">Quorums: R + W &gt; N</a></li>
+    <li><input type="checkbox" id="c-pacelc" aria-label="Mark PACELC as done"><a href="#pacelc">PACELC: the trade without a partition</a></li>
+    <li><input type="checkbox" id="c-models" aria-label="Mark Consistency models as done"><a href="#models">Consistency models</a></li>
+    <li><input type="checkbox" id="c-design" aria-label="Mark Designing with CAP as done"><a href="#design">Designing with CAP</a></li>
+    <li><input type="checkbox" id="c-myth" aria-label="Mark Misconceptions as done"><a href="#myths">Misconceptions</a></li>
+  </ol>
+</section>
+
+<section id="def">
+  <h2>1. The three letters, precisely</h2>
+  <p>Eric Brewer stated CAP as a conjecture in 2000. Seth Gilbert and Nancy Lynch proved it in 2002, and the proof depends on these exact meanings, which are stricter than everyday usage:</p>
+  <div class="cards">
+    <div class="stat"><div class="eyebrow">C · Consistency</div><div class="big">linearizable</div><p>Every read returns the most recent completed write, as if there were one copy of the data. Not the "C" of ACID, which is about constraints.</p></div>
+    <div class="stat"><div class="eyebrow">A · Availability</div><div class="big">always answers</div><p>Every request to a node that has not crashed gets a non-error response, eventually. A timeout or "try later" counts as unavailable.</p></div>
+    <div class="stat focal"><div class="eyebrow">P · Partition tolerance</div><div class="big">survives splits</div><p>The system keeps its promises even when the network drops or delays any number of messages between nodes.</p></div>
+  </div>
+  <p style="margin-top:20px">A <b>partition</b> is anything that stops nodes hearing each other: a cut cable, a misconfigured firewall, a switch failure, a long GC pause. To the nodes on each side, a slow peer and a dead peer look the same.</p>
+</section>
+
+<section id="proof">
+  <h2>2. Why you cannot have all three</h2>
+  <p>The proof fits in one picture. Take two replicas, G1 and G2, both holding $x = v_0$, and cut the link between them.</p>
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 2</span><span class="card-title">The impossibility in three steps</span></div>
+    <div class="scroll">
+<svg width="760" height="200" viewBox="0 0 760 200" style="min-width:720px" role="img" aria-labelledby="pf-title pf-desc">
+<title id="pf-title">Sketch of the CAP proof</title>
+<desc id="pf-desc">Step one: a client writes v1 to G1, which cannot tell G2 because the link is cut. Step two: another client reads x from G2. Step three: G2 has two options. It can answer v0, which is stale and breaks consistency, or it can wait or return an error, which breaks availability. There is no third option.</desc>
+<g font-family="'Geist Mono',monospace" font-size="11" fill="#2d3142">
+<g transform="translate(10,20)">
+  <text x="0" y="0" font-weight="600">1 · write to G1</text>
+  <rect x="0" y="20" width="80" height="44" rx="6" fill="#fff" stroke="#2d3142"/><text x="40" y="40" text-anchor="middle" font-weight="600">G1</text><text x="40" y="55" text-anchor="middle" fill="#2e5aa8">x = v1</text>
+  <rect x="150" y="20" width="80" height="44" rx="6" fill="#fff" stroke="#2d3142"/><text x="190" y="40" text-anchor="middle" font-weight="600">G2</text><text x="190" y="55" text-anchor="middle" fill="#5a6580">x = v0</text>
+  <line x1="80" y1="42" x2="150" y2="42" stroke="#bfc0c0" stroke-dasharray="4 4"/><text x="115" y="38" text-anchor="middle" fill="#bf4520" font-size="16">×</text>
+  <text x="40" y="96" text-anchor="middle" fill="#2e5aa8">write v1 ✓</text>
+</g>
+<g transform="translate(270,20)">
+  <text x="0" y="0" font-weight="600">2 · read from G2</text>
+  <rect x="0" y="20" width="80" height="44" rx="6" fill="#fff" stroke="#2d3142"/><text x="40" y="40" text-anchor="middle" font-weight="600">G1</text><text x="40" y="55" text-anchor="middle" fill="#2e5aa8">x = v1</text>
+  <rect x="150" y="20" width="80" height="44" rx="6" fill="#fff" stroke="#bf4520" stroke-width="1.6"/><text x="190" y="40" text-anchor="middle" font-weight="600">G2</text><text x="190" y="55" text-anchor="middle" fill="#5a6580">x = v0</text>
+  <line x1="80" y1="42" x2="150" y2="42" stroke="#bfc0c0" stroke-dasharray="4 4"/><text x="115" y="38" text-anchor="middle" fill="#bf4520" font-size="16">×</text>
+  <text x="190" y="96" text-anchor="middle">read x ?</text>
+</g>
+<g transform="translate(540,20)">
+  <text x="0" y="0" font-weight="600">3 · G2 must choose</text>
+  <rect x="0" y="20" width="200" height="40" rx="6" fill="rgba(191,69,32,.08)" stroke="#bf4520"/><text x="10" y="37">answer v0</text><text x="10" y="52" fill="#bf4520">stale: gives up C</text>
+  <rect x="0" y="72" width="200" height="40" rx="6" fill="rgba(46,90,168,.08)" stroke="#2e5aa8"/><text x="10" y="89">wait or return error</text><text x="10" y="104" fill="#2e5aa8">refuses: gives up A</text>
+</g>
+</g>
+</svg>
+    </div>
+    <p class="cap">Fig 2 · G2 cannot learn about v1 without a message, and the partition can delay messages forever.</p>
+  </figure>
+  <p>That is the whole theorem. It is less a deep result than a precise statement of something engineers already felt: during a partition, a node cut off from the latest write must either guess or refuse.</p>
+</section>
+
+<section id="two">
+  <h2>3. "Pick two" is misleading</h2>
+  <p>CAP is often drawn as a triangle where you pick any two corners. In practice:</p>
+  <ul class="tight">
+    <li><b>P is not optional</b> for anything that runs on more than one machine. Networks do partition. A "CA" system is really a single-node system, or one that stops being correct when the network fails.</li>
+    <li><b>The choice only applies during a partition.</b> When the network is healthy, a well-built system can be both consistent and available. CAP says nothing about normal operation; PACELC (below) does.</li>
+    <li><b>It is per operation, not per product.</b> Cassandra lets each query choose <code>ONE</code> or <code>QUORUM</code>; DynamoDB lets each read ask for <code>ConsistentRead</code>. One app can be CP for payments and AP for likes.</li>
+    <li><b>It is a spectrum.</b> Real systems give up a bit of C (bounded staleness, session guarantees) or a bit of A (only the minority side refuses), not all of either.</li>
+  </ul>
+  <p class="callout">The real question is: when the network splits, does this operation wait, or does it guess?</p>
+</section>
+
+<section id="cp">
+  <h2>4. CP systems</h2>
+  <p>A CP system accepts a write only when a <b>majority</b> of replicas confirm it, usually through a consensus protocol such as Raft or Paxos. With 3 replicas any 2 form a majority, and two majorities always share at least one node, so a later majority read is guaranteed to see the write.</p>
+  <p>In Fig 1, choose CP and partition. The side with A and B still has a majority and keeps working normally. C, alone, can reach neither a write quorum nor a read quorum, so it refuses both. Clients on C's side see errors, but nobody ever reads a stale value. Heal the network and C simply catches up from the majority.</p>
+  <ul class="tight">
+    <li><b>Examples:</b> etcd, ZooKeeper, Consul, Google Spanner, CockroachDB, HBase, MongoDB with majority write and read concern.</li>
+    <li><b>Good for:</b> money, inventory, unique usernames, locks, leader election, configuration. Anything where a wrong answer is worse than no answer.</li>
+    <li><b>Cost:</b> every write waits for the nearest majority, and a minority partition (often a whole region) goes read-only or dark.</li>
+  </ul>
+</section>
+
+<section id="ap">
+  <h2>5. AP systems</h2>
+  <p>An AP system lets any reachable replica accept reads and writes, and copies changes to the others in the background. During a partition both sides keep serving, so the data can <b>diverge</b>. When the partition heals the replicas must reconcile.</p>
+  <p>In Fig 1, choose AP, partition, then write via A and via C. Both writes succeed. A read via C returns C's own value, which is stale from A's point of view. Heal the network: with last-write-wins, the write with the later timestamp survives and the other is silently discarded. That lost-write counter is the price of availability.</p>
+  <h3>How AP systems converge</h3>
+  <div class="tw"><table class="ops">
+    <thead><tr><th>Technique</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td>Last-write-wins (LWW)</td><td>Keep the value with the highest timestamp. Simple, but drops concurrent writes and trusts clocks.</td></tr>
+      <tr><td>Version vectors</td><td>Detect that two writes were concurrent and keep both as siblings for the app to merge (Riak, Amazon's original Dynamo).</td></tr>
+      <tr><td>CRDTs</td><td>Data types whose merges always commute: counters, sets, maps. Replicas converge without conflicts (Riak, Redis Enterprise active-active, Automerge).</td></tr>
+      <tr><td>Read repair</td><td>When a read sees replicas disagree, write the newest value back to the stale ones.</td></tr>
+      <tr><td>Hinted handoff</td><td>A node holds writes meant for an unreachable peer and delivers them when it returns.</td></tr>
+      <tr><td>Anti-entropy</td><td>Background comparison of replicas using <a href="../../../datastructure-algorithm/merkle-tree/merkle-tree.html">Merkle trees</a>, so only differing ranges are copied.</td></tr>
+    </tbody>
+  </table></div>
+  <ul class="tight">
+    <li><b>Examples:</b> Apache Cassandra, ScyllaDB, Riak, CouchDB, DynamoDB with default (eventually consistent) reads, DNS.</li>
+    <li><b>Good for:</b> shopping carts, likes and view counts, feeds, presence, sensor data. Anything where a slightly old answer beats an error.</li>
+  </ul>
+</section>
+
+<section id="quorum">
+  <h2>6. Quorums: R + W &gt; N</h2>
+  <p>Dynamo-style systems make the trade tunable. With $N$ replicas, a write waits for $W$ acknowledgements and a read asks $R$ replicas and keeps the newest answer. If the two sets must overlap, every read meets at least one replica that has the latest acknowledged write:</p>
+  <div class="formula">$$R + W > N \quad\Longrightarrow\quad \text{every read quorum intersects every write quorum}$$</div>
+  <p>Writes keep working with up to $N - W$ replicas down, reads with up to $N - R$ down. Raising $W$ and $R$ buys consistency with availability and latency.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 3</span><span class="card-title">Quorum calculator</span></div>
+    <div class="controls" style="margin:0;padding:0 16px 16px">
+      <div>
+        <div class="qrow"><label for="qN">N</label><input type="range" id="qN" min="1" max="7" value="3"><output id="oN" for="qN"></output></div>
+        <div class="qrow"><label for="qW">W</label><input type="range" id="qW" min="1" max="3" value="2"><output id="oW" for="qW"></output></div>
+        <div class="qrow"><label for="qR">R</label><input type="range" id="qR" min="1" max="3" value="2"><output id="oR" for="qR"></output></div>
+        <pre class="readout" id="qOut" aria-live="polite" style="min-height:7em"></pre>
+      </div>
+      <div class="scroll" style="padding:0">
+        <svg id="qSvg" width="420" height="150" viewBox="0 0 420 150" style="width:100%" role="img" aria-labelledby="q-title q-desc">
+          <title id="q-title">Write set and read set among N replicas</title>
+          <desc id="q-desc">N circles stand for the replicas. The write quorum is the leftmost W replicas, outlined in blue. The read quorum is the rightmost R replicas, outlined in orange. Replicas in both sets are filled, showing the overlap. With no filled replica, a read can miss the latest write.</desc>
+        </svg>
+      </div>
+    </div>
+  </figure>
+
+  <div class="tw"><table class="ops">
+    <thead><tr><th>N = 3</th><th>Behaviour</th></tr></thead>
+    <tbody>
+      <tr><td>W = 2, R = 2</td><td>The usual "quorum" setting. Overlaps, tolerates one node down for both reads and writes.</td></tr>
+      <tr><td>W = 3, R = 1</td><td>Fast reads, but one node down blocks every write.</td></tr>
+      <tr><td>W = 1, R = 3</td><td>Fast writes, but one node down blocks every read.</td></tr>
+      <tr><td>W = 1, R = 1</td><td>Fastest and most available. No overlap, so reads can be stale: eventual consistency.</td></tr>
+    </tbody>
+  </table></div>
+  <p>Overlap is necessary but not quite sufficient for linearizability. <b>Sloppy quorums</b> (writing to stand-in nodes during failures), concurrent writes resolved by clock timestamps, and reads that race an in-flight write can still return old data. Systems that promise strict linearizability use consensus on top.</p>
+</section>
+
+<section id="pacelc">
+  <h2>7. PACELC: the trade without a partition</h2>
+  <p>Partitions are rare; latency is constant. Daniel Abadi's PACELC extends CAP: if there is a <b>P</b>artition, choose <b>A</b> or <b>C</b>; <b>E</b>lse, choose <b>L</b>atency or <b>C</b>onsistency.</p>
+  <p>Fig 1 shows the "else" half. In CP mode with a healthy network, a write via A waits 2 ms for B, but a write via C waits 70 ms for the nearest other replica. In AP mode every write returns after about 1 ms locally and replicates afterwards. Consistency costs a round trip to a majority on every request, partition or not.</p>
+  <div class="tw"><table class="ops">
+    <thead><tr><th>System</th><th>PACELC</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td>Cassandra, ScyllaDB, Riak</td><td>PA / EL</td><td>Available under partition, low latency otherwise (at default consistency levels).</td></tr>
+      <tr><td>DynamoDB (default reads)</td><td>PA / EL</td><td>Eventually consistent reads; strongly consistent reads on request.</td></tr>
+      <tr><td>MongoDB (typical)</td><td>PA / EC</td><td>Abadi's classification: consistent normally, but a partitioned primary may accept writes that are later rolled back.</td></tr>
+      <tr><td>Spanner, CockroachDB</td><td>PC / EC</td><td>Consensus on every write, always.</td></tr>
+      <tr><td>etcd, ZooKeeper</td><td>PC / EC</td><td>Small, strongly consistent coordination stores.</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="models">
+  <h2>8. Consistency models</h2>
+  <p>"Consistent" and "eventually consistent" are the ends of a ladder. Each rung down is cheaper and more available, and promises less.</p>
+  <div class="tw"><table class="ops">
+    <thead><tr><th>Model</th><th>Guarantee</th></tr></thead>
+    <tbody>
+      <tr><td>Linearizable</td><td>Behaves like one copy; once a write completes, every later read sees it. CAP's C.</td></tr>
+      <tr><td>Sequential</td><td>All clients see operations in the same order, but not necessarily in real-time order.</td></tr>
+      <tr><td>Causal</td><td>If one write could have caused another (reply after comment), everyone sees them in that order. Available under partition.</td></tr>
+      <tr><td>Read-your-writes</td><td>A client always sees its own writes. Often done by pinning a session to one replica.</td></tr>
+      <tr><td>Monotonic reads</td><td>A client never sees time go backwards: no older value after a newer one.</td></tr>
+      <tr><td>Eventual</td><td>If writes stop, all replicas eventually agree. No promise about when or in between.</td></tr>
+    </tbody>
+  </table></div>
+  <p>Causal consistency is the strongest model that can stay available during a partition, which is why many geo-replicated systems aim for it plus session guarantees.</p>
+</section>
+
+<section id="design">
+  <h2>9. Designing with CAP</h2>
+  <p>Decide per operation, by asking what a wrong answer costs versus what an error costs:</p>
+  <div class="tw"><table class="ops">
+    <thead><tr><th>Operation</th><th>Choose</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td>Debit an account</td><td>CP</td><td>Two sides spending the same balance is worse than a retry.</td></tr>
+      <tr><td>Reserve the last seat</td><td>CP</td><td>Overselling costs real money and trust.</td></tr>
+      <tr><td>Register a unique username</td><td>CP</td><td>Uniqueness needs one authority.</td></tr>
+      <tr><td>Add to cart</td><td>AP</td><td>Merge carts after the partition; never lose a sale to an error page.</td></tr>
+      <tr><td>Like, view count</td><td>AP</td><td>A CRDT counter converges; being off by a few for a minute is fine.</td></tr>
+      <tr><td>Show a feed or profile</td><td>AP</td><td>Slightly stale content beats no content.</td></tr>
+    </tbody>
+  </table></div>
+  <p>Common patterns mix both: accept an order optimistically (AP) and confirm it asynchronously against a CP inventory service, compensating if it fails. That is the saga pattern.</p>
+  <h3>A quorum read in code</h3>
+  <pre><span class="c2">// Ask all N replicas, wait for R answers, return the newest.</span>
+<span class="k">async function</span> quorumRead(replicas, key, R) {
+  <span class="k">const</span> answers = [];
+  <span class="k">await new</span> Promise((done, fail) =&gt; {
+    <span class="k">let</span> failed = <span class="t">0</span>;
+    replicas.forEach(r =&gt; r.get(key)
+      .then(a =&gt; { answers.push(a); <span class="k">if</span> (answers.length === R) done(); })
+      .catch(() =&gt; { <span class="k">if</span> (++failed &gt; replicas.length - R) fail(<span class="k">new</span> Error(<span class="t">'no quorum'</span>)); }));
+  });
+  <span class="k">const</span> newest = answers.reduce((a, b) =&gt; (b.version &gt; a.version ? b : a));
+  <span class="c2">// read repair: push the newest value to replicas that answered with an older one</span>
+  answers.filter(a =&gt; a.version &lt; newest.version).forEach(a =&gt; a.replica.put(key, newest));
+  <span class="k">return</span> newest.value;
+}</pre>
+  <p>The <code>fail</code> branch is CAP in one line: with too many replicas unreachable, the read refuses instead of guessing.</p>
+</section>
+
+<section id="myths">
+  <h2>10. Misconceptions</h2>
+  <ul class="tight">
+    <li><b>"NoSQL is AP, SQL is CP."</b> It depends on configuration. A single PostgreSQL with async replicas and failover can lose acknowledged writes; Cassandra at <code>QUORUM</code> behaves much more like CP.</li>
+    <li><b>"We chose CA."</b> Only possible on one machine. With replicas, a partition will happen, and the system will do something: find out what.</li>
+    <li><b>"AP means no consistency."</b> It means no linearizability during a partition. Causal and session guarantees are still possible.</li>
+    <li><b>"CAP availability means high uptime."</b> CAP's A is a strict per-request property. A CP system with a healthy majority can still have 99.99% uptime.</li>
+    <li><b>"Partitions are rare, so CAP does not matter."</b> The latency side (PACELC) matters on every request, and partitions include GC pauses and overloaded links, not just cut cables.</li>
+  </ul>
+  <p>Back to the families: the <a href="../database-types/database-types.html">database types and use cases</a> guide shows which stores sit where.</p>
+</section>
+
+</main>
+
+<script>
+(function () {
+  var NSV = 'http://www.w3.org/2000/svg';
+  var $ = function (id) { return document.getElementById(id); };
+  function el(n, a, p) { var e = document.createElementNS(NSV, n); for (var k in a) e.setAttribute(k, a[k]); if (p) p.appendChild(e); return e; }
+  function txt(p, x, y, s, a) { var t = el('text', Object.assign({ x: x, y: y, 'font-family': 'Geist Mono, monospace', 'font-size': 11, fill: '#2d3142' }, a || {}), p); t.textContent = s; return t; }
+
+  var POS = { A: { x: 150, y: 40, region: 'region 1' }, B: { x: 150, y: 190, region: 'region 1' }, C: { x: 380, y: 115, region: 'region 2' } };
+  var NW = 130, NH = 72;
+  var LAT = { AB: 2, AC: 70, BC: 70 };
+  var SIDE = { A: 0, B: 0, C: 1 };
+  var mode = 'CP', parted = false, nodes, seq, clock, writes, stats, log, last, partWrites;
+
+  var DESC = {
+    CP: 'Writes and reads need a majority (2 of 3). A node that cannot reach a majority refuses rather than risk a stale answer.',
+    AP: 'Any node accepts writes and serves reads from its own copy, and replicates in the background. Conflicts are settled by last-write-wins.'
+  };
+
+  function reset() {
+    nodes = { A: { v: 'v0', ver: 0, ts: 0 }, B: { v: 'v0', ver: 0, ts: 0 }, C: { v: 'v0', ver: 0, ts: 0 } };
+    seq = 0; clock = 0; writes = [{ id: 'v0', ts: 0 }];
+    stats = { w: 0, r: 0, err: 0, stale: 0, lost: 0, lat: 0 };
+    log = []; last = null; partWrites = { 0: null, 1: null };
+    parted = false;
+  }
+  function key(a, b) { return [a, b].sort().join(''); }
+  function reach(a, b) { return a === b || !parted || SIDE[a] === SIDE[b]; }
+  function reachable(n) { return ['A', 'B', 'C'].filter(function (m) { return reach(n, m); }); }
+  function latest() { return writes[writes.length - 1]; } // the newest write that any client was told succeeded
+  function addLog(s) { log.push(s); if (log.length > 9) log.shift(); }
+  function nearest(n, set) {
+    var best = Infinity;
+    set.forEach(function (m) { if (m !== n) best = Math.min(best, LAT[key(n, m)]); });
+    return best;
+  }
+
+  function write(n) {
+    clock++;
+    var R = reachable(n), id = 'v' + (seq + 1);
+    if (mode === 'CP') {
+      if (R.length < 2) {
+        stats.err++; stats.lat = 0;
+        last = { n: n, links: ['A', 'B', 'C'].filter(function (m) { return m !== n; }).map(function (m) { return key(n, m); }), ok: false };
+        addLog('write via ' + n + ': REFUSED, only 1 of 3 replicas reachable, no majority');
+        return;
+      }
+      seq++;
+      R.forEach(function (m) { nodes[m] = { v: id, ver: seq, ts: clock }; });
+      writes.push({ id: id, ts: clock, side: SIDE[n] });
+      stats.w++; stats.lat = nearest(n, R);
+      last = { n: n, links: R.filter(function (m) { return m !== n; }).map(function (m) { return key(n, m); }), ok: true };
+      addLog('write ' + id + ' via ' + n + ': committed on ' + R.join(', ') + ' (waited ' + stats.lat + ' ms for a majority ack)');
+    } else {
+      seq++;
+      var rec = { v: id, ver: seq, ts: clock };
+      R.forEach(function (m) { nodes[m] = rec; });
+      writes.push({ id: id, ts: clock, side: SIDE[n] });
+      if (parted) partWrites[SIDE[n]] = { id: id, ts: clock, node: n };
+      stats.w++; stats.lat = 1;
+      last = { n: n, links: R.filter(function (m) { return m !== n; }).map(function (m) { return key(n, m); }), ok: true };
+      addLog('write ' + id + ' via ' + n + ': accepted locally in 1 ms' + (R.length < 3 ? ', ' + ['A', 'B', 'C'].filter(function (m) { return R.indexOf(m) < 0; }).join(', ') + ' unreachable, will diverge' : ', replicated async'));
+    }
+  }
+
+  function read(n) {
+    clock++;
+    var R = reachable(n);
+    if (mode === 'CP') {
+      if (R.length < 2) {
+        stats.err++; stats.lat = 0;
+        last = { n: n, links: ['A', 'B', 'C'].filter(function (m) { return m !== n; }).map(function (m) { return key(n, m); }), ok: false };
+        addLog('read via ' + n + ': REFUSED, cannot reach a majority to confirm the latest value');
+        return;
+      }
+      var best = R.reduce(function (a, m) { return nodes[m].ver > nodes[a].ver ? m : a; }, R[0]);
+      stats.r++; stats.lat = nearest(n, R);
+      last = { n: n, links: R.filter(function (m) { return m !== n; }).map(function (m) { return key(n, m); }), ok: true };
+      addLog('read via ' + n + ': x = ' + nodes[best].v + ' (quorum read, ' + stats.lat + ' ms)');
+    } else {
+      var v = nodes[n].v, isStale = v !== latest().id;
+      stats.r++; stats.lat = 1;
+      if (isStale) stats.stale++;
+      last = { n: n, links: [], ok: true };
+      addLog('read via ' + n + ': x = ' + v + ' (local, 1 ms)' + (isStale ? '  STALE: newest acknowledged write is ' + latest().id : ''));
+    }
+  }
+
+  function togglePartition() {
+    if (!parted) {
+      parted = true; partWrites = { 0: null, 1: null };
+      addLog('-- network partition: {A, B} | {C} --');
+    } else {
+      parted = false;
+      if (mode === 'CP') {
+        var src = ['A', 'B', 'C'].reduce(function (a, m) { return nodes[m].ver > nodes[a].ver ? m : a; }, 'A');
+        var behind = ['A', 'B', 'C'].filter(function (m) { return nodes[m].ver < nodes[src].ver; });
+        behind.forEach(function (m) { nodes[m] = nodes[src]; });
+        addLog('-- healed: ' + (behind.length ? behind.join(', ') + ' caught up to ' + nodes[src].v + ' from the majority' : 'all replicas already agree') + ' --');
+      } else {
+        var L = partWrites[0], Rr = partWrites[1];
+        var win = ['A', 'B', 'C'].reduce(function (a, m) { return nodes[m].ts > nodes[a].ts ? m : a; }, 'A');
+        var w = nodes[win];
+        if (L && Rr) {
+          var loser = L.ts > Rr.ts ? Rr : L;
+          stats.lost++;
+          addLog('-- healed: conflict ' + L.id + ' (A side) vs ' + Rr.id + ' (C side). LWW keeps ' + w.v + ', ' + loser.id + ' is silently dropped --');
+          // the dropped write is no longer the truth; record the winner as latest
+          writes.push({ id: w.v, ts: w.ts });
+        } else {
+          addLog('-- healed: anti-entropy copies ' + w.v + ' to every replica --');
+        }
+        ['A', 'B', 'C'].forEach(function (m) { nodes[m] = w; });
+      }
+      partWrites = { 0: null, 1: null };
+    }
+    last = null;
+  }
+
+  function render() {
+    var svg = $('sim');
+    Array.prototype.slice.call(svg.querySelectorAll('.dyn')).forEach(function (n) { n.remove(); });
+    var g = el('g', { 'class': 'dyn' }, svg);
+    var C = function (n) { return { x: POS[n].x + NW / 2, y: POS[n].y + NH / 2 }; };
+    // links
+    [['A', 'B'], ['A', 'C'], ['B', 'C']].forEach(function (p) {
+      var a = C(p[0]), b = C(p[1]), k = key(p[0], p[1]), cut = parted && SIDE[p[0]] !== SIDE[p[1]];
+      var used = last && last.links.indexOf(k) >= 0;
+      var col = cut ? '#bfc0c0' : used ? (last.ok ? '#2e5aa8' : '#bf4520') : '#4f5d75';
+      if (used && !last.ok) col = '#bf4520';
+      el('line', { x1: a.x, y1: a.y, x2: b.x, y2: b.y, stroke: col, 'stroke-width': used ? 3 : 1.5, 'stroke-dasharray': cut ? '5 5' : '' }, g);
+      // label cross-region links between the partition line and C, clear of the boxes
+      var t = p[1] === 'C' ? 0.62 : 0.5, mx = a.x + (b.x - a.x) * t, my = a.y + (b.y - a.y) * t;
+      txt(g, mx + (p[1] === 'C' ? 0 : -24), my + (p[1] === 'C' ? (p[0] === 'A' ? -8 : 16) : 4), LAT[k] + ' ms', { 'font-size': 10, fill: '#5a6580', 'text-anchor': 'middle' });
+    });
+    // clients
+    var lastN = last ? last.n : null;
+    [['Client 1', 14, 'A'], ['Client 2', 540, 'C']].forEach(function (c) {
+      var y = c[2] === 'A' ? 52 : 127;
+      el('rect', { x: c[1], y: y, width: 86, height: 46, rx: 23, fill: '#ececec', stroke: '#2d3142' }, g);
+      txt(g, c[1] + 43, y + 27, c[0], { 'text-anchor': 'middle', 'font-weight': 600 });
+      var nx = c[2] === 'A' ? POS.A.x : POS.C.x + NW, x1 = c[2] === 'A' ? c[1] + 86 : c[1];
+      var used = lastN === c[2];
+      el('line', { x1: x1, y1: y + 23, x2: nx, y2: y + 23, stroke: used ? (last.ok ? '#2e5aa8' : '#bf4520') : '#4f5d75', 'stroke-width': used ? 3 : 1.5 }, g);
+    });
+    // partition line
+    if (parted) {
+      el('line', { x1: 330, y1: 10, x2: 330, y2: 290, stroke: '#bf4520', 'stroke-width': 2, 'stroke-dasharray': '8 6' }, g);
+      txt(g, 336, 22, 'partition', { fill: '#bf4520', 'font-size': 11, 'font-weight': 600 });
+    }
+    // nodes
+    var lt = latest();
+    ['A', 'B', 'C'].forEach(function (n) {
+      var p = POS[n], s = nodes[n], behind = s.v !== lt.id;
+      var cutoff = mode === 'CP' && parted && reachable(n).length < 2;
+      el('rect', { x: p.x, y: p.y, width: NW, height: NH, rx: 8, fill: cutoff ? '#f5f5f5' : '#fff', stroke: behind ? '#bf4520' : '#2d3142', 'stroke-width': behind ? 2 : 1.5 }, g);
+      txt(g, p.x + 12, p.y + 20, n + ' · ' + p.region, { 'font-weight': 600 });
+      txt(g, p.x + 12, p.y + 42, 'x = ' + s.v, { 'font-size': 14, fill: behind ? '#bf4520' : '#2e5aa8', 'font-weight': 600 });
+      txt(g, p.x + 12, p.y + 60, cutoff ? 'no majority: refusing' : behind ? 'behind: missed ' + lt.id : 'up to date', { 'font-size': 10, fill: cutoff || behind ? '#bf4520' : '#5a6580' });
+    });
+
+    $('simTitle').textContent = mode === 'CP' ? 'CP: majority quorum' : 'AP: accept locally, reconcile later';
+    $('modeDesc').textContent = DESC[mode];
+    $('simLive').textContent = parted ? 'partitioned' : 'network healthy';
+    $('part').textContent = parted ? 'Heal' : 'Partition';
+    $('part').setAttribute('aria-pressed', parted ? 'true' : 'false');
+    $('sW').textContent = stats.w; $('sR').textContent = stats.r; $('sErr').textContent = stats.err;
+    $('sStale').textContent = stats.stale; $('sLost').textContent = stats.lost; $('sLat').textContent = stats.lat;
+    $('log').textContent = log.length ? log.join('\n') : 'All replicas hold x = v0. Write or read to begin.';
+  }
+
+  var modeBtns = document.querySelectorAll('[data-mode]');
+  Array.prototype.forEach.call(modeBtns, function (b) {
+    b.addEventListener('click', function () {
+      if (mode === b.dataset.mode) return;
+      mode = b.dataset.mode;
+      Array.prototype.forEach.call(modeBtns, function (o) { o.setAttribute('aria-pressed', o === b ? 'true' : 'false'); });
+      reset(); addLog('mode ' + mode + ', state reset'); render();
+    });
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('[data-act]'), function (b) {
+    b.addEventListener('click', function () { (b.dataset.act === 'w' ? write : read)(b.dataset.node); render(); });
+  });
+  $('part').addEventListener('click', function () { togglePartition(); render(); });
+  $('reset').addEventListener('click', function () { reset(); render(); });
+  reset(); render();
+
+  // Quorum calculator
+  var qN = $('qN'), qW = $('qW'), qR = $('qR');
+  function q() {
+    var N = +qN.value;
+    qW.max = N; qR.max = N;
+    if (+qW.value > N) qW.value = N;
+    if (+qR.value > N) qR.value = N;
+    var W = +qW.value, R = +qR.value, overlap = R + W - N;
+    $('oN').textContent = N; $('oW').textContent = W; $('oR').textContent = R;
+    var svg = $('qSvg');
+    Array.prototype.slice.call(svg.querySelectorAll('.dyn')).forEach(function (n) { n.remove(); });
+    var g = el('g', { 'class': 'dyn' }, svg);
+    var step = Math.min(56, 380 / N), x0 = 210 - step * (N - 1) / 2;
+    for (var i = 0; i < N; i++) {
+      var inW = i < W, inR = i >= N - R, cx = x0 + i * step;
+      if (inW) el('circle', { cx: cx, cy: 70, r: 22, fill: 'none', stroke: '#2e5aa8', 'stroke-width': 3 }, g);
+      if (inR) el('circle', { cx: cx, cy: 70, r: 17, fill: 'none', stroke: '#bf4520', 'stroke-width': 3 }, g);
+      el('circle', { cx: cx, cy: 70, r: 12, fill: inW && inR ? '#2d3142' : '#fff', stroke: '#2d3142', 'stroke-width': 1.4 }, g);
+      txt(g, cx, 112, 'r' + (i + 1), { 'text-anchor': 'middle', 'font-size': 10, fill: '#5a6580' });
+    }
+    txt(g, 12, 18, 'blue: write set (W)   orange: read set (R)   filled: both', { 'font-size': 10, fill: '#4f5d75' });
+    $('qOut').textContent =
+      'R + W = ' + (R + W) + (R + W > N ? ' > ' : ' ≤ ') + 'N = ' + N + '\n' +
+      (overlap > 0 ? 'overlap: ' + overlap + ' replica' + (overlap > 1 ? 's' : '') + ', reads see the latest write'
+                   : 'no overlap: a read can miss the latest write') + '\n' +
+      'writes survive ' + (N - W) + ' node' + (N - W === 1 ? '' : 's') + ' down\n' +
+      'reads survive  ' + (N - R) + ' node' + (N - R === 1 ? '' : 's') + ' down';
+  }
+  [qN, qW, qR].forEach(function (s) { s.addEventListener('input', q); });
+  q();
+})();
+
+(function () {
+  var key = 'cap-check:' + location.pathname, saved = {};
+  try { saved = JSON.parse(localStorage.getItem(key) || '{}'); } catch (e) {}
+  var boxes = document.querySelectorAll('.check input'), out = document.getElementById('prog');
+  function upd() {
+    var n = 0, o = {};
+    boxes.forEach(function (b) { if (b.checked) { n++; o[b.id] = 1; } b.closest('li').classList.toggle('done', b.checked); });
+    out.textContent = n + '/' + boxes.length + ' completed';
+    try { localStorage.setItem(key, JSON.stringify(o)); } catch (e) {}
+  }
+  boxes.forEach(function (b) { b.checked = !!saved[b.id]; b.addEventListener('change', upd); });
+  upd();
+})();
+
+document.addEventListener('DOMContentLoaded', function () {
+  if (!window.renderMathInElement) return;
+  renderMathInElement(document.body, {
+    delimiters: [{ left: '$$', right: '$$', display: true }, { left: '$', right: '$', display: false }],
+    ignoredTags: ['script', 'style', 'textarea', 'pre', 'code'],
+    throwOnError: false
+  });
+});
+</script>
+</body>
+</html>
