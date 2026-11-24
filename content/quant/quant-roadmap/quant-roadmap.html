@@ -92,7 +92,7 @@ a.topic:hover{background:var(--link);color:#fff}
 <header>
   <div class="eyebrow">Quant · Roadmap</div>
   <h1>Quant Roadmap</h1>
-  <p class="lede">A study path into quantitative finance that mixes math, programming, markets and machine learning. Seven phases, each with what to learn, the docs in this site that cover it, and one project that proves you learned it.</p>
+  <p class="lede">A study path into quantitative finance that mixes math, programming, markets and machine learning. Eight phases, each with what to learn, the docs in this site that cover it, and one project that proves you learned it.</p>
   <nav class="doc-tags" aria-label="Main tags"><a href="../../../index.html#tag=quant">#quant</a><a href="../../../index.html#tag=roadmap">#roadmap</a><a href="../../../index.html#tag=finance">#finance</a><a href="../../../index.html#tag=machine%20learning">#machine learning</a></nav>
 </header>
 
@@ -285,6 +285,31 @@ a.topic:hover{background:var(--link);color:#fff}
           <span class="topic" data-track="math">Mental arithmetic and estimation</span>
         </div>
         <p class="proj"><b>Project</b>Write a limit order book that matches buy and sell orders by price and time. Use heaps or ordered maps, add tests, and measure its throughput.</p>
+      </div>
+    </li>
+
+    <li class="phase">
+      <div class="num">7</div>
+      <div>
+        <div class="when">Months 18 to 24</div>
+        <h3>Research engineering: pipelines, MLOps and AI tools</h3>
+        <p>The core of the quant research engineer role. A model only matters once it runs every day on fresh data, gives the same answer twice, and warns you when it drifts. This phase covers the path from notebook to production, plus the LLM tooling that now sits next to research.</p>
+        <div class="topics">
+          <span class="topic" data-track="code">Data and feature pipelines</span>
+          <span class="topic" data-track="code">Tick and OHLCV data handling</span>
+          <a class="topic" data-track="code" href="../backtesting/backtesting.html">Event-driven backtesting</a>
+          <span class="topic" data-track="code">Order and fill simulation</span>
+          <span class="topic" data-track="code">Experiment tracking, MLflow</span>
+          <span class="topic" data-track="code">Model registry and versioning</span>
+          <span class="topic" data-track="code">Batch and online inference</span>
+          <span class="topic" data-track="ml">Data drift and concept drift</span>
+          <span class="topic" data-track="code">Paper trading, live risk controls</span>
+          <span class="topic" data-track="ml">LLMs, embeddings, RAG</span>
+          <span class="topic" data-track="ml">Agentic workflows, MCP</span>
+          <a class="topic" data-track="code" href="../../engineering/kafka/kafka-use-cases/kafka-use-cases.html">Kafka Use Cases</a>
+          <a class="topic" data-track="code" href="../../engineering/k8s/k8s-fundamentals/k8s-fundamentals.html">Kubernetes Fundamentals</a>
+        </div>
+        <p class="proj"><b>Project</b>Take the phase 4 model and ship it: a daily pipeline that rebuilds features, retrains on a schedule, logs every run, serves predictions to a paper-trading loop, and alerts when live inputs drift away from the training data.</p>
       </div>
     </li>
   </ol>

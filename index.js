@@ -1157,7 +1157,7 @@ const DOCS = [
     order: 1,
     level: 'Beginner',
     tags: ['quant', 'roadmap', 'finance', 'machine learning', 'probability', 'derivatives', 'backtesting', 'career'],
-    summary: 'A seven-phase study path into quantitative finance: calculus and linear algebra, probability, derivatives pricing, time series, machine learning, and engineering, with a project for each phase.',
+    summary: 'An eight-phase study path into quantitative finance: calculus and linear algebra, probability, derivatives pricing, time series, machine learning, engineering, and research engineering with MLOps, with a project for each phase.',
     related: ['Bayes\' Theorem', 'Gaussian Distribution', 'Linear Regression', 'Overfitting and Regularization', 'Machine Learning Algorithm Groups'],
   },
   {
