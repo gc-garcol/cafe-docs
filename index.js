@@ -1337,6 +1337,17 @@ const DOCS = [
     related: ['Rust Generics, Traits and Lifetimes', 'Rust Smart Pointers', 'Rust Advanced Features'],
   },
   {
+    title: 'Rust Patterns and Matching',
+    path: 'content/engineering/rust/rust-patterns/rust-patterns.html',
+    category: 'Engineering',
+    topic: 'Rust',
+    order: 50,
+    level: 'Intermediate',
+    tags: ['rust', 'patterns', 'match', 'destructuring', 'refutability', 'match guards', 'bindings', 'if let', 'while let'],
+    summary: 'Every place patterns appear (match, if let, while let, for, let, parameters), refutable versus irrefutable patterns, and the full syntax: literals, named variables, | and ranges, destructuring structs, enums, tuples and references, ignoring with _ and .., match guards, and @ bindings.',
+    related: ['Rust Enums and Pattern Matching', 'Rust Structs', 'Rust Advanced Features'],
+  },
+  {
     title: 'Quant Roadmap',
     path: 'content/quant/quant-roadmap/quant-roadmap.html',
     category: 'Quant',
