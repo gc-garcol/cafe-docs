@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Java Memory Model: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible,a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+h3{font-family:var(--serif);font-weight:400;font-size:24px;line-height:1.2;margin:32px 0 10px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+a{color:var(--link)}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+
+.card{margin:24px 0 0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.scroll{overflow-x:auto;padding:0 8px}
+.scroll svg{display:block;margin:0 auto;height:auto}
+.cap{font-family:var(--mono);font-size:11px;color:var(--soft);margin:8px 16px 12px}
+
+.controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;margin-top:16px;align-items:start}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:0 0 12px}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.btn:disabled{opacity:.4;cursor:not-allowed;background:transparent;color:var(--ink)}
+.group-label{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);margin:16px 0 6px}
+.group-label:first-child{margin-top:0}
+.seg{display:flex;flex-wrap:wrap;border:1px solid var(--rule-solid);border-radius:6px;overflow:hidden}
+.seg button{flex:1 1 auto;min-height:40px;border:0;background:transparent;font:500 13px var(--sans);color:var(--muted);cursor:pointer;padding:0 10px;box-shadow:inset 1px 0 0 var(--rule-solid),inset 0 1px 0 var(--rule-solid)}
+.seg button:hover{background:var(--paper-2)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.desc{font-size:14px;color:var(--muted);margin:10px 0 0}
+.readout{margin:0;padding:0;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink);border:0;background:none}
+.outs{list-style:none;padding:0;margin:6px 0 12px;font-family:var(--mono);font-size:13px}
+.outs li{display:grid;grid-template-columns:minmax(0,1.3fr) 88px minmax(0,1fr);gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid var(--rule)}
+.outs .tag{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.outs .ok{color:#2e5aa8}.outs .no{color:var(--soft)}
+.outs li.bad .tag.ok{color:var(--accent)}
+.outs .barw{display:block;margin-bottom:4px;height:10px;background:var(--paper-2);border-radius:3px;overflow:hidden;position:relative}
+.outs .barw i{position:absolute;left:0;top:0;bottom:0;background:#2e5aa8}
+.outs li.bad .barw i{background:var(--accent)}
+.outs .pct{font-size:11px;color:var(--soft)}
+
+pre{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+pre.src{margin:0;border:0;padding:0;background:none;font-size:12.5px}
+.k{color:var(--accent)} .c2{color:var(--soft);font-style:italic} .t{color:var(--link)}
+
+.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:26px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+
+table.ops{border-collapse:collapse;width:100%;max-width:900px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+table.ops td:first-child{font-weight:600}
+.tw{overflow-x:auto}
+ul.tight,ol.tight{padding-left:22px;max-width:68ch}ul.tight li,ol.tight li{margin:6px 0}
+
+.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;text-align:center;overflow-x:auto}
+.formula .katex{font-size:1.25em}
+.katex{color:var(--ink)}
+p .katex,td .katex,li .katex{font-size:1.05em}
+
+.check{list-style:none;padding:0;margin:12px 0 0;max-width:640px}
+.check li{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--rule)}
+.check input{width:18px;height:18px;accent-color:var(--accent)}
+.check li.done a{color:var(--soft);text-decoration:line-through}
+.prog{font-family:var(--mono);font-size:12px;color:var(--soft)}
+
+.doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}.doc-tags a{font:500 12px "Geist Mono",ui-monospace,monospace;padding:4px 10px;border:1px solid var(--rule-solid,#bfc0c0);border-radius:4px;background:#fff;color:var(--muted,#4f5d75);text-decoration:none}.doc-tags a:hover{border-color:var(--ink,#2d3142);color:var(--ink,#2d3142)}.doc-tags a:focus-visible{outline:2px solid var(--accent,#bf4520);outline-offset:2px}
+
+@media (max-width:860px){.controls,.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" style="margin-right:8px" href="../../../../index.html">&larr; Back to home</a>
+<a class="back back-cat" href="../../../../index.html#cat=Engineering">&larr; Back to Engineering</a>
+
+<header>
+  <div class="eyebrow">Engineering · Concurrency</div>
+  <h1>Java Memory Model</h1>
+  <p class="lede">When one thread writes a field and another reads it, what is the reader allowed to see? The Java Memory Model answers that question for every JVM on every CPU. Its core is one relation, happens-before, and a promise: write a program without data races and it behaves as if threads simply took turns.</p>
+  <nav class="doc-tags" aria-label="Main tags"><a href="../../../../index.html#tag=java%20memory%20model">#java memory model</a><a href="../../../../index.html#tag=happens-before">#happens-before</a><a href="../../../../index.html#tag=volatile">#volatile</a><a href="../../../../index.html#tag=synchronized">#synchronized</a></nav>
+</header>
+
+<section>
+  <h2>Run a litmus test</h2>
+  <p>A litmus test is two tiny threads and the question "which results are possible?". Pick a test, then pick how the shared fields are declared. The graph shows the happens-before edges the JMM gives you, and marks where the JIT or the CPU may swap two operations. The list shows every result, whether the JMM allows it, and how often it came up when the model ran 10,000 random schedules. The orange result is the bug.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title" id="simTitle">Message passing</span></div>
+    <div class="scroll">
+      <svg id="hb" width="640" height="260" viewBox="0 0 640 260" style="width:100%;max-width:720px;min-width:560px" role="img" aria-labelledby="hb-title hb-desc">
+        <title id="hb-title">Happens-before graph of the selected litmus test</title>
+        <desc id="hb-desc">Thread 1 on the left and thread 2 on the right, each with its operations from top to bottom in program order. A solid grey arrow between two operations of one thread means their order is kept. A dashed red arrow labelled may swap means the compiler or CPU is allowed to reorder them. A blue arrow across the threads is a synchronizes-with edge, which creates happens-before from one thread to the other. The list of outcomes below the figure says which results are allowed.</desc>
+      </svg>
+    </div>
+    <div class="card-bottom"><span class="hint">Grey: order kept · Red dashed: may swap · Blue: synchronizes-with</span><span class="live" id="simLive"></span></div>
+  </figure>
+
+  <div class="controls">
+    <div class="panel">
+      <div class="group-label" id="tl">Test</div>
+      <div class="seg" role="group" aria-labelledby="tl" id="tests"></div>
+      <div class="group-label" id="ol">Declared as</div>
+      <div class="seg" role="group" aria-labelledby="ol" id="opts"></div>
+      <p class="desc" id="optDesc"></p>
+      <div class="group-label">Java</div>
+      <pre class="src" id="src"></pre>
+    </div>
+    <div class="panel">
+      <div class="group-label">Outcomes</div>
+      <ul class="outs" id="outs" aria-live="polite"></ul>
+      <div class="row">
+        <button type="button" class="btn" id="run">Run 10,000 schedules</button>
+        <button type="button" class="btn" id="clr">Clear</button>
+      </div>
+      <pre class="readout" id="verdict"></pre>
+    </div>
+  </div>
+  <p style="margin-top:16px">The schedules come from a model of the JMM: within a thread, operations that the rules do not order may swap, and the two threads then interleave at random. Real hardware is pickier. An x86 CPU keeps stores in order, so on x86 the message-passing bug appears only when the JIT reorders. That is why such bugs show up after a deploy to ARM servers, or after the code gets hot and is recompiled.</p>
+</section>
+
+<section>
+  <h2>Contents</h2>
+  <div class="prog" id="prog" aria-live="polite"></div>
+  <ol class="check">
+    <li><input type="checkbox" id="c-what" aria-label="Mark What the JMM is as done"><a href="#what">What the JMM is, and what it is not</a></li>
+    <li><input type="checkbox" id="c-why" aria-label="Mark Why Java needs one as done"><a href="#why">Why Java needs one</a></li>
+    <li><input type="checkbox" id="c-drf" aria-label="Mark Data races as done"><a href="#drf">Data races and the DRF guarantee</a></li>
+    <li><input type="checkbox" id="c-hb" aria-label="Mark Happens-before rules as done"><a href="#hb-rules">Happens-before rules</a></li>
+    <li><input type="checkbox" id="c-vol" aria-label="Mark volatile as done"><a href="#volatile">volatile</a></li>
+    <li><input type="checkbox" id="c-sync" aria-label="Mark synchronized and locks as done"><a href="#sync">synchronized and locks</a></li>
+    <li><input type="checkbox" id="c-final" aria-label="Mark final fields as done"><a href="#final">final fields and safe publication</a></li>
+    <li><input type="checkbox" id="c-dcl" aria-label="Mark Double-checked locking as done"><a href="#dcl">Double-checked locking</a></li>
+    <li><input type="checkbox" id="c-vh" aria-label="Mark Atomics and VarHandle as done"><a href="#varhandle">Atomics and VarHandle access modes</a></li>
+    <li><input type="checkbox" id="c-juc" aria-label="Mark java.util.concurrent as done"><a href="#juc">What java.util.concurrent promises</a></li>
+    <li><input type="checkbox" id="c-corner" aria-label="Mark Corner cases as done"><a href="#corners">Corner cases</a></li>
+    <li><input type="checkbox" id="c-test" aria-label="Mark Testing as done"><a href="#testing">Testing with jcstress</a></li>
+    <li><input type="checkbox" id="c-mist" aria-label="Mark Common mistakes as done"><a href="#mistakes">Common mistakes</a></li>
+  </ol>
+</section>
+
+<section id="what">
+  <h2>1. What the JMM is, and what it is not</h2>
+  <p>The Java Memory Model is chapter 17.4 of the Java Language Specification. It was rewritten by JSR-133 for Java 5 (2004), because the original model was both too weak to make common idioms safe and too strict to allow normal compiler optimizations. It defines, for any program, which values each read of a shared variable may return.</p>
+  <p>The name is often confused with the <b>memory layout of the JVM</b>, which is a different topic. That layout says where data lives; the JMM says when a write by one thread becomes visible to another.</p>
+  <div class="tw"><table class="ops">
+    <thead><tr><th>JVM runtime area</th><th>Holds</th><th>Shared between threads?</th></tr></thead>
+    <tbody>
+      <tr><td>Heap</td><td>All objects and arrays, including their fields. Managed by the garbage collector.</td><td>Yes. This is what the JMM is about.</td></tr>
+      <tr><td>Java stack</td><td>One frame per method call: local variables, operand stack, return address.</td><td>No, one per thread.</td></tr>
+      <tr><td>Metaspace</td><td>Class metadata (replaced PermGen in Java 8). Static fields live with the class object on the heap.</td><td>Yes</td></tr>
+      <tr><td>PC register, native stack</td><td>The current instruction of each thread; frames of native (JNI) calls.</td><td>No</td></tr>
+      <tr><td>Code cache</td><td>Machine code produced by the JIT compiler.</td><td>Yes</td></tr>
+    </tbody>
+  </table></div>
+  <p>Local variables and parameters are never shared, so they never race. Instance fields, static fields and array elements can be, and the JMM calls them <b>shared variables</b>.</p>
+</section>
+
+<section id="why">
+  <h2>2. Why Java needs one</h2>
+  <p>Three layers may reorder or delay your memory operations, each for speed, each invisible to a single thread:</p>
+  <div class="cards">
+    <div class="stat"><div class="eyebrow">javac and the JIT</div><div class="big">reorder, hoist</div><p>C2 and Graal move loads and stores, keep fields in registers and lift reads out of loops when no rule forbids it.</p></div>
+    <div class="stat"><div class="eyebrow">The CPU</div><div class="big">store buffers</div><p>Stores wait in a per-core buffer; loads can run ahead. ARM and POWER reorder far more than x86. See <a href="../memory-fence/memory-fence.html">Memory Fence</a>.</p></div>
+    <div class="stat"><div class="eyebrow">Caches</div><div class="big">delay</div><p>A write reaches other cores through the coherence protocol, not instantly. See <a href="../false-sharing/false-sharing.html">False Sharing</a>.</p></div>
+  </div>
+  <p style="margin-top:20px">A classic example is a stop flag. The JIT sees that the loop body never writes <code>running</code>, so it may read the field once:</p>
+  <pre><span class="k">boolean</span> running = <span class="k">true</span>;          <span class="c2">// not volatile</span>
+
+<span class="c2">// worker thread                      // what the JIT may compile it to</span>
+<span class="k">while</span> (running) { work(); }          <span class="k">if</span> (running) { <span class="k">while</span> (<span class="k">true</span>) { work(); } }
+
+<span class="c2">// main thread, later</span>
+running = <span class="k">false</span>;                    <span class="c2">// the worker may never see this</span></pre>
+  <p>The transformation is legal because, without synchronization, the JMM never promises that the worker sees the main thread's write. Declaring the field <code>volatile</code> forbids it. The "Stop flag" test in Fig 1 shows the same thing.</p>
+  <p>The JMM is the contract that lets all three layers optimize while giving programmers a small set of rules that work on every platform. The JVM implements it by emitting the right barriers per CPU and by telling the JIT which moves are off limits.</p>
+</section>
+
+<section id="drf">
+  <h2>3. Data races and the DRF guarantee</h2>
+  <p>Two accesses <b>conflict</b> if they touch the same shared variable and at least one is a write. A <b>data race</b> is a pair of conflicting accesses that are not ordered by happens-before. The JMM's main promise is short:</p>
+  <div class="callout">If a program has no data races, every execution behaves as if it were sequentially consistent: one global order of all operations that respects each thread's program order.</div>
+  <p>This is called <b>DRF-SC</b> (data-race-free implies sequential consistency). You do not need to think about reordering, store buffers or caches at all, as long as every conflicting pair is ordered by happens-before. That is the whole practical method: find the shared variables, and make sure each read and write of them is connected by one of the rules in the next section.</p>
+  <p>Programs with races are not undefined behaviour as in C++: Java still guarantees memory safety, no out-of-thin-air values, and atomic access to references and to all primitives except non-volatile <code>long</code> and <code>double</code>. But a racy read may return any value the field has held or will hold, in ways that differ from one run, JIT tier or CPU to the next.</p>
+</section>
+
+<section id="hb-rules">
+  <h2>4. Happens-before rules</h2>
+  <p>Happens-before is a partial order on actions. If action $a$ happens-before action $b$, written $a \xrightarrow{hb} b$, then $a$'s effects are visible to $b$ and $a$ is ordered before $b$. It is built from program order and synchronizes-with edges, closed under transitivity:</p>
+  <div class="formula">$$a \xrightarrow{hb} b \;\text{ and }\; b \xrightarrow{hb} c \quad\Longrightarrow\quad a \xrightarrow{hb} c$$</div>
+  <div class="tw"><table class="ops">
+    <thead><tr><th>Rule</th><th>Edge</th></tr></thead>
+    <tbody>
+      <tr><td>Program order</td><td>Each action in a thread happens-before every later action of that thread.</td></tr>
+      <tr><td>Monitor lock</td><td>An unlock of a monitor happens-before every later lock of the same monitor.</td></tr>
+      <tr><td>Volatile</td><td>A write to a volatile field happens-before every later read of that field.</td></tr>
+      <tr><td>Thread start</td><td><code>t.start()</code> happens-before every action in thread <code>t</code>.</td></tr>
+      <tr><td>Thread end</td><td>Every action in <code>t</code> happens-before another thread returns from <code>t.join()</code> or sees <code>t.isAlive()</code> return false.</td></tr>
+      <tr><td>Interrupt</td><td><code>t.interrupt()</code> happens-before <code>t</code> detects it (<code>InterruptedException</code> or <code>isInterrupted()</code>).</td></tr>
+      <tr><td>Default values</td><td>Writing the default value (0, false, null) of every field happens-before the first action of any thread.</td></tr>
+      <tr><td>Constructor to finalizer</td><td>The end of a constructor happens-before the start of that object's finalizer.</td></tr>
+      <tr><td>Transitivity</td><td>Chains combine, which is what lets a single volatile flag publish many plain writes.</td></tr>
+    </tbody>
+  </table></div>
+  <p>"Later" means later in the synchronization order, the single total order the JMM puts on all lock, unlock and volatile actions. In the message-passing test with a volatile <code>ready</code>, the chain is <code>data = 42</code> $\xrightarrow{po}$ <code>ready = true</code> $\xrightarrow{sw}$ <code>r1 = ready</code> $\xrightarrow{po}$ <code>r2 = data</code>, so a thread that sees <code>ready == true</code> must see <code>data == 42</code>.</p>
+  <p>Happens-before is not about time. Two actions can run at the same instant with an edge between them, or minutes apart with none. What matters is the edge.</p>
+</section>
+
+<section id="volatile">
+  <h2>5. volatile</h2>
+  <p>A volatile field gives three things: every read sees the latest write in the synchronization order (<b>visibility</b>), writes before a volatile write cannot move after it and reads after a volatile read cannot move before it (<b>ordering</b>), and all volatile accesses together are sequentially consistent, which also fixes the store-buffering test. Reads and writes of volatile <code>long</code> and <code>double</code> are also atomic.</p>
+  <p>It does <b>not</b> make compound actions atomic. <code>count++</code> is a read, an add and a write; two threads can both read 5 and both write 6:</p>
+  <pre><span class="k">volatile int</span> count;
+count++;                              <span class="c2">// still a race: lost updates</span>
+
+AtomicInteger count = <span class="k">new</span> AtomicInteger();
+count.incrementAndGet();              <span class="c2">// one atomic read-modify-write (lock xadd on x86)</span>
+
+LongAdder hits = <span class="k">new</span> LongAdder();      <span class="c2">// better under heavy contention: per-thread cells</span>
+hits.increment();</pre>
+  <h3>What it costs</h3>
+  <p>On x86 a volatile read compiles to a plain load, and a volatile write to a store followed by a full barrier (HotSpot uses a locked instruction such as <code>lock addl</code>), typically tens of cycles. On ARMv8 HotSpot uses <code>ldar</code> and <code>stlr</code>. Volatile is cheap enough for flags and published references, and too expensive for a field written in a tight loop.</p>
+  <h3>Use it for</h3>
+  <ul class="tight">
+    <li>Status flags written by one thread and read by others: <code>volatile boolean running</code>.</li>
+    <li>Publishing an immutable or effectively immutable object: <code>volatile Config current</code>, swapped as a whole.</li>
+    <li>The instance field in double-checked locking (section 8).</li>
+  </ul>
+</section>
+
+<section id="sync">
+  <h2>6. synchronized and locks</h2>
+  <p><code>synchronized</code> gives mutual exclusion <b>and</b> happens-before: everything a thread did before leaving a block on monitor <code>m</code> is visible to the next thread that enters a block on <code>m</code>. Both halves need the <b>same</b> monitor. A reader without the lock, or with a different lock, gets nothing.</p>
+  <pre><span class="k">class</span> Account {
+  <span class="k">private long</span> balance;                    <span class="c2">// guarded by this</span>
+  <span class="k">synchronized void</span> deposit(<span class="k">long</span> v) { balance += v; }
+  <span class="k">synchronized long</span> balance()        { <span class="k">return</span> balance; }  <span class="c2">// the getter must lock too</span>
+}</pre>
+  <p><code>ReentrantLock</code>, <code>ReadWriteLock</code> and <code>StampedLock</code> give the same memory effects as entering and leaving a monitor: <code>unlock()</code> happens-before a later successful <code>lock()</code> of the same lock. Since Java 21, virtual threads make blocking cheap, and since JDK 24 (JEP 491) they no longer pin their carrier thread inside <code>synchronized</code>, so the old advice to prefer <code>ReentrantLock</code> for virtual threads no longer applies.</p>
+</section>
+
+<section id="final">
+  <h2>7. final fields and safe publication</h2>
+  <p>Creating an object and storing a reference to it are separate writes. Without a happens-before edge, another thread can see the reference before it sees the fields: the "Safe publication" test in Fig 1 shows a non-null <code>p</code> whose <code>x</code> is still 0.</p>
+  <p><b>final fields</b> close that gap. At the end of the constructor the JMM places a <b>freeze</b> on every final field. Any thread that obtains a reference to the object after the constructor finished, even through a data race, sees the final fields as the constructor set them, and also everything reachable through them as of the freeze, such as the contents of a final array. That is why <code>String</code>, <code>Integer</code> and records are safe to share however they are passed.</p>
+  <p>The guarantee breaks if <code>this</code> escapes during construction, for example by registering a listener or starting a thread inside the constructor. The other thread can then see the object before the freeze.</p>
+  <h3>Safe publication idioms</h3>
+  <p>An object is <b>safely published</b> if both the reference and the object's state become visible together. Any of these works:</p>
+  <ol class="tight">
+    <li>Initialize it from a static initializer: <code>static final Foo FOO = new Foo();</code> Class initialization is done under a lock by the JVM.</li>
+    <li>Store the reference in a <code>volatile</code> field or an <code>AtomicReference</code>.</li>
+    <li>Store it in a <code>final</code> field of an object that is itself properly constructed.</li>
+    <li>Store it in a field guarded by a lock that readers also take.</li>
+    <li>Put it in a thread-safe collection or hand-off: <code>ConcurrentHashMap</code>, <code>BlockingQueue</code>, <code>CompletableFuture</code>, an <code>ExecutorService</code>.</li>
+  </ol>
+  <p>Immutable objects (all fields final, no escaping <code>this</code>) can be published by any means, even a racy one. Mutable objects need safe publication <b>and</b> synchronization for every later change.</p>
+</section>
+
+<section id="dcl">
+  <h2>8. Double-checked locking</h2>
+  <p>The famous broken idiom tries to avoid locking on every call to a lazy singleton:</p>
+  <pre><span class="k">class</span> Lazy {
+  <span class="k">private static</span> Helper helper;          <span class="c2">// BROKEN: not volatile</span>
+  <span class="k">static</span> Helper get() {
+    <span class="k">if</span> (helper == <span class="k">null</span>) {                <span class="c2">// 1st check, no lock: a racy read</span>
+      <span class="k">synchronized</span> (Lazy.<span class="k">class</span>) {
+        <span class="k">if</span> (helper == <span class="k">null</span>) helper = <span class="k">new</span> Helper();
+      }
+    }
+    <span class="k">return</span> helper;                         <span class="c2">// may be non-null but half-built</span>
+  }
+}</pre>
+  <p>The first check reads <code>helper</code> without the lock, so it is the safe publication problem again: a thread can see the reference before the constructor's writes. Three correct versions:</p>
+  <pre><span class="c2">// 1. volatile field (correct since Java 5)</span>
+<span class="k">private static volatile</span> Helper helper;
+<span class="k">static</span> Helper get() {
+  Helper h = helper;                       <span class="c2">// one volatile read on the fast path</span>
+  <span class="k">if</span> (h == <span class="k">null</span>) {
+    <span class="k">synchronized</span> (Lazy.<span class="k">class</span>) {
+      h = helper;
+      <span class="k">if</span> (h == <span class="k">null</span>) helper = h = <span class="k">new</span> Helper();
+    }
+  }
+  <span class="k">return</span> h;
+}
+
+<span class="c2">// 2. holder class: the JVM's class initialization lock does the work, lazily</span>
+<span class="k">static</span> Helper get() { <span class="k">return</span> Holder.INSTANCE; }
+<span class="k">private static class</span> Holder { <span class="k">static final</span> Helper INSTANCE = <span class="k">new</span> Helper(); }
+
+<span class="c2">// 3. enum singleton</span>
+<span class="k">enum</span> Singleton { INSTANCE; }</pre>
+  <p>The holder idiom is the usual choice for static singletons. Use the volatile version for lazily initialized instance fields.</p>
+</section>
+
+<section id="varhandle">
+  <h2>9. Atomics and VarHandle access modes</h2>
+  <p>Java 9 added <code>VarHandle</code>, which exposes four strengths of memory access on any field or array element. The atomic classes use the same modes underneath (<code>AtomicInteger.lazySet</code> is a release store).</p>
+  <div class="tw"><table class="ops">
+    <thead><tr><th>Mode</th><th>Methods</th><th>Guarantee</th></tr></thead>
+    <tbody>
+      <tr><td>Plain</td><td><code>get</code>, <code>set</code></td><td>Like a normal field. Racy accesses get no ordering; no atomicity for <code>long</code>/<code>double</code>.</td></tr>
+      <tr><td>Opaque</td><td><code>getOpaque</code>, <code>setOpaque</code></td><td>Atomic, and each variable is coherent: a thread never sees its values go backwards, and the access is not optimized away. No ordering with other variables.</td></tr>
+      <tr><td>Release / acquire</td><td><code>setRelease</code>, <code>getAcquire</code></td><td>Earlier accesses stay before a release store; later accesses stay after an acquire load. Enough for message passing, not for store buffering.</td></tr>
+      <tr><td>Volatile</td><td><code>getVolatile</code>, <code>setVolatile</code>, <code>compareAndSet</code></td><td>Same as a volatile field: release/acquire plus a single total order over all volatile accesses.</td></tr>
+    </tbody>
+  </table></div>
+  <pre><span class="k">class</span> Mailbox {
+  <span class="k">private int</span> data;
+  <span class="k">private boolean</span> ready;
+  <span class="k">private static final</span> VarHandle READY;
+  <span class="k">static</span> {
+    <span class="k">try</span> { READY = MethodHandles.lookup().findVarHandle(Mailbox.<span class="k">class</span>, <span class="t">"ready"</span>, <span class="k">boolean</span>.<span class="k">class</span>); }
+    <span class="k">catch</span> (ReflectiveOperationException e) { <span class="k">throw new</span> ExceptionInInitializerError(e); }
+  }
+  <span class="k">void</span> send(<span class="k">int</span> v) { data = v; READY.setRelease(<span class="k">this</span>, <span class="k">true</span>); }
+  Integer poll() { <span class="k">return</span> (<span class="k">boolean</span>) READY.getAcquire(<span class="k">this</span>) ? data : <span class="k">null</span>; }
+}</pre>
+  <p>In Fig 1, switch message passing to "release / acquire" and the bug disappears; switch store buffering to the same option and the $0, 0$ result is still allowed. Weaker modes are for library authors chasing nanoseconds. Application code should use volatile, locks or the <code>java.util.concurrent</code> classes.</p>
+  <p><code>VarHandle</code> also has static fences: <code>acquireFence()</code>, <code>releaseFence()</code>, <code>fullFence()</code>, <code>loadLoadFence()</code> and <code>storeStoreFence()</code>, the Java counterparts of the fences on the <a href="../memory-fence/memory-fence.html">Memory Fence</a> page.</p>
+</section>
+
+<section id="juc">
+  <h2>10. What java.util.concurrent promises</h2>
+  <p>The package documentation of <code>java.util.concurrent</code> extends happens-before to its classes. You rarely need volatile yourself, because these hand-offs already create the edge:</p>
+  <div class="tw"><table class="ops">
+    <thead><tr><th>Action in thread A</th><th>happens-before, in thread B</th></tr></thead>
+    <tbody>
+      <tr><td>Putting an object into any concurrent collection</td><td>Accessing or removing it from that collection</td></tr>
+      <tr><td>Submitting a <code>Runnable</code> or <code>Callable</code> to an <code>Executor</code></td><td>Its execution begins</td></tr>
+      <tr><td>The task's actions</td><td>Returning from <code>Future.get()</code></td></tr>
+      <tr><td>Completing a <code>CompletableFuture</code></td><td>Dependent stages and <code>join()</code></td></tr>
+      <tr><td>Releasing: <code>Semaphore.release</code>, <code>CountDownLatch.countDown</code></td><td>A successful acquire, or <code>await()</code> returning</td></tr>
+      <tr><td>Arriving at a <code>CyclicBarrier</code> or <code>Phaser</code></td><td>Actions after the barrier in other threads</td></tr>
+      <tr><td>Before <code>Exchanger.exchange</code></td><td>After the matching exchange in the other thread</td></tr>
+    </tbody>
+  </table></div>
+  <p>So the pattern "build an object in one thread, <code>queue.put(obj)</code>, <code>queue.take()</code> in another" is correct with plain fields, as long as the producer stops touching the object after the hand-off.</p>
+</section>
+
+<section id="corners">
+  <h2>11. Corner cases</h2>
+  <ul class="tight">
+    <li><b>Non-atomic long and double.</b> JLS 17.7 allows a non-volatile 64-bit write to be split into two 32-bit halves, so a racing reader can see half of each value. 64-bit JVMs do not split in practice, but the spec permits it. Declaring the field volatile makes it atomic.</li>
+    <li><b>No word tearing.</b> Writing one <code>byte</code> array element or <code>boolean</code> field never disturbs its neighbours, even though CPUs write whole words.</li>
+    <li><b>No out-of-thin-air values.</b> Even with races, a read cannot return a value that no write produced through a circular "I read 42 because you wrote 42 because I wrote 42" justification. Formalizing this is the hardest part of the JMM and is still studied.</li>
+    <li><b>Benign races.</b> <code>String.hashCode()</code> caches its hash in a plain field. A race can only make two threads compute the same value twice, because the value is a deterministic function of immutable data and an <code>int</code> write is atomic. Copy this trick only with that much care.</li>
+    <li><b><code>Thread.sleep</code> and <code>Thread.yield</code></b> have no synchronization effect. A loop that sleeps while reading a plain flag can still spin forever.</li>
+    <li><b><code>Thread.onSpinWait()</code></b> is a CPU hint for busy-wait loops (<code>pause</code> on x86). It does not create happens-before either; the flag still needs to be volatile.</li>
+  </ul>
+</section>
+
+<section id="testing">
+  <h2>12. Testing with jcstress</h2>
+  <p>Memory model bugs depend on the JIT tier, the CPU and timing, so unit tests almost never catch them. The OpenJDK <b>jcstress</b> harness runs litmus tests like the ones in Fig 1 millions of times across JIT modes and reports every outcome it saw:</p>
+  <pre><span class="k">@JCStressTest</span>
+<span class="k">@Outcome</span>(id = <span class="t">"0, 0"</span>, expect = ACCEPTABLE_INTERESTING, desc = <span class="t">"Both reads saw the old value"</span>)
+<span class="k">@Outcome</span>(expect = ACCEPTABLE, desc = <span class="t">"Some interleaving"</span>)
+<span class="k">@State</span>
+<span class="k">public class</span> StoreBuffering {
+  <span class="k">int</span> x, y;
+  <span class="k">@Actor public void</span> actor1(II_Result r) { x = <span class="t">1</span>; r.r1 = y; }
+  <span class="k">@Actor public void</span> actor2(II_Result r) { y = <span class="t">1</span>; r.r2 = x; }
+}</pre>
+  <p>On x86 this test reports $0, 0$ regularly, the store buffer at work. Make both fields volatile and the outcome disappears. Other tools: static analysis (Error Prone, SpotBugs inconsistent-synchronization checks), and plain code review against one question: what is the happens-before edge for this shared field?</p>
+</section>
+
+<section id="mistakes">
+  <h2>13. Common mistakes</h2>
+  <ul class="tight">
+    <li>Using <code>volatile</code> for <code>count++</code> or check-then-act. Use an atomic class or a lock.</li>
+    <li>Locking the writer but not the reader, or using two different locks for one field.</li>
+    <li>Making only the data volatile instead of the flag: try "volatile data only" in Fig 1, the bug stays.</li>
+    <li>Double-checked locking without volatile.</li>
+    <li>Letting <code>this</code> escape from a constructor, which voids the final-field guarantee.</li>
+    <li>Sharing a <code>HashMap</code>, <code>ArrayList</code> or <code>SimpleDateFormat</code> between threads after "it worked in testing". Use the concurrent versions or confine them to one thread.</li>
+    <li>Assuming a bug cannot happen because "x86 doesn't reorder that". The JIT can, and ARM servers do.</li>
+    <li>Relying on <code>Thread.sleep</code>, timing or log statements to "make it visible". A <code>println</code> takes a lock internally and may hide the bug in debugging, then it returns in production.</li>
+  </ul>
+  <p>Related: <a href="../memory-fence/memory-fence.html">Memory Fence</a> for the hardware view, <a href="../false-sharing/false-sharing.html">False Sharing</a> for the cache-line cost of shared writes.</p>
+</section>
+
+</main>
+
+<script>
+(function () {
+  var NSV = 'http://www.w3.org/2000/svg';
+  var $ = function (id) { return document.getElementById(id); };
+  function el(n, a, p) { var e = document.createElementNS(NSV, n); for (var k in a) e.setAttribute(k, a[k]); if (p) p.appendChild(e); return e; }
+  function txt(p, x, y, s, a) { var t = el('text', Object.assign({ x: x, y: y, 'font-family': 'Geist Mono, monospace', 'font-size': 12, fill: '#2d3142' }, a || {}), p); t.textContent = s; return t; }
+  function esc(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
+
+  // Op: { t: 'w'|'r', v: var, val, reg, m: 'plain'|'ra'|'vol', fin: bool, dep: bool }
+  // Within a thread, op a (earlier) must stay before op b if:
+  function keep(a, b) {
+    if (a.v === b.v) return true;                                  // same variable
+    if (b.dep) return true;                                        // dependent load (p.x after p = ref)
+    if (a.t === 'r' && (a.m === 'ra' || a.m === 'vol')) return true; // acquire: later ops stay after
+    if (b.t === 'w' && (b.m === 'ra' || b.m === 'vol')) return true; // release: earlier ops stay before
+    if (a.m === 'vol' && b.m === 'vol') return true;               // volatiles are sequentially consistent
+    if (a.fin && b.t === 'w') return true;                         // final field freeze before publication
+    return false;
+  }
+  function orders(ops) { // all program-order permutations allowed by keep()
+    var out = [];
+    (function go(placed, rest) {
+      if (!rest.length) { out.push(placed.map(function (i) { return ops[i]; })); return; }
+      rest.forEach(function (j) {
+        var ok = rest.every(function (i) { return i >= j || !keep(ops[i], ops[j]); });
+        if (ok) go(placed.concat([j]), rest.filter(function (k) { return k !== j; }));
+      });
+    })([], ops.map(function (_, i) { return i; }));
+    return out;
+  }
+  function merges(a, b) {
+    if (!a.length) return [b]; if (!b.length) return [a];
+    return merges(a.slice(1), b).map(function (m) { return [a[0]].concat(m); })
+      .concat(merges(a, b.slice(1)).map(function (m) { return [b[0]].concat(m); }));
+  }
+  function exec(seq) {
+    var mem = {}, reg = {};
+    seq.forEach(function (o) { if (o.t === 'w') mem[o.v] = o.val; else reg[o.reg] = mem[o.v] || 0; });
+    return reg;
+  }
+
+  var B = function (v) { return v ? 'true' : 'false'; };
+  var TESTS = [
+    { id: 'mp', name: 'Message passing', vars: { data: 'int', ready: 'boolean' },
+      t1: [{ t: 'w', v: 'data', val: 42 }, { t: 'w', v: 'ready', val: 1 }],
+      t2: [{ t: 'r', v: 'ready', reg: 'r1' }, { t: 'r', v: 'data', reg: 'r2' }],
+      key: function (r) { return 'r1 = ' + B(r.r1) + ', r2 = ' + r.r2; },
+      universe: [['r1 = false, r2 = 0', 'reader came too early'], ['r1 = false, r2 = 42', 'early flag read, data already there'], ['r1 = true, r2 = 42', 'the intended result'], ['r1 = true, r2 = 0', 'BUG: saw the flag but not the data']],
+      bad: 'r1 = true, r2 = 0',
+      opts: [
+        { id: 'plain', name: 'plain', d: 'Two plain fields. Nothing orders the writes or the reads, so the flag can be seen before the data.', mode: {} },
+        { id: 'vol', name: 'volatile ready', d: 'The volatile write publishes everything before it, and the volatile read orders everything after it.', mode: { ready: 'vol' } },
+        { id: 'volData', name: 'volatile data only', d: 'A common wrong fix. The volatile is on the wrong field: the plain flag write can still move before the data write.', mode: { data: 'vol' } },
+        { id: 'ra', name: 'release / acquire', d: 'VarHandle setRelease on the flag and getAcquire to read it. Exactly enough ordering for message passing.', mode: { ready: 'ra' } },
+        { id: 'sync', name: 'synchronized', d: 'Both threads run their two lines inside synchronized (lock). The blocks exclude each other, and unlock happens-before the next lock.', sync: true }
+      ],
+      code: function (o) {
+        var ty = function (v) { var m = (o.mode || {})[v]; return (m === 'vol' ? 'volatile ' : '') + this.vars[v] + ' ' + v + ';'; }.bind(this);
+        if (o.sync) return 'int data;\nboolean ready;\nfinal Object lock = new Object();\n\n// Thread 1\nsynchronized (lock) {\n  data = 42;\n  ready = true;\n}\n\n// Thread 2\nsynchronized (lock) {\n  r1 = ready;\n  r2 = data;\n}';
+        if (o.id === 'ra') return 'int data;\nboolean ready;   // accessed through VarHandle READY\n\n// Thread 1\ndata = 42;\nREADY.setRelease(this, true);\n\n// Thread 2\nr1 = (boolean) READY.getAcquire(this);\nr2 = data;';
+        return ty('data') + '\n' + ty('ready') + '\n\n// Thread 1\ndata = 42;\nready = true;\n\n// Thread 2\nr1 = ready;\nr2 = data;';
+      } },
+    { id: 'sb', name: 'Store buffering', vars: { x: 'int', y: 'int' },
+      t1: [{ t: 'w', v: 'x', val: 1 }, { t: 'r', v: 'y', reg: 'r1' }],
+      t2: [{ t: 'w', v: 'y', val: 1 }, { t: 'r', v: 'x', reg: 'r2' }],
+      key: function (r) { return 'r1 = ' + r.r1 + ', r2 = ' + r.r2; },
+      universe: [['r1 = 0, r2 = 1', 'thread 1 ran first'], ['r1 = 1, r2 = 0', 'thread 2 ran first'], ['r1 = 1, r2 = 1', 'the writes overlapped'], ['r1 = 0, r2 = 0', 'BUG for Dekker-style locks: each missed the other']],
+      bad: 'r1 = 0, r2 = 0',
+      opts: [
+        { id: 'plain', name: 'plain', d: 'Each store can sit in a store buffer while the following load reads the old value. Both threads read 0.', mode: {} },
+        { id: 'vol', name: 'volatile x and y', d: 'All volatile accesses share one total order, so the store-then-load cannot be reordered. 0, 0 is impossible.', mode: { x: 'vol', y: 'vol' } },
+        { id: 'volx', name: 'volatile x only', d: 'Half a fix is no fix. Thread 1 still loads y with no ordering against its earlier store, and thread 2 the same with x.', mode: { x: 'vol' } },
+        { id: 'ra', name: 'release / acquire', d: 'Release stores and acquire loads do not order a store before a later load. 0, 0 stays allowed: this test needs full volatile.', mode: { x: 'ra', y: 'ra' } },
+        { id: 'sync', name: 'synchronized', d: 'Both threads lock the same monitor, so one runs entirely before the other.', sync: true }
+      ],
+      code: function (o) {
+        if (o.sync) return 'int x, y;\nfinal Object lock = new Object();\n\n// Thread 1\nsynchronized (lock) { x = 1; r1 = y; }\n\n// Thread 2\nsynchronized (lock) { y = 1; r2 = x; }';
+        if (o.id === 'ra') return 'int x, y;   // accessed through VarHandles X and Y\n\n// Thread 1\nX.setRelease(this, 1);\nr1 = (int) Y.getAcquire(this);\n\n// Thread 2\nY.setRelease(this, 1);\nr2 = (int) X.getAcquire(this);';
+        var m = o.mode || {};
+        return (m.x === 'vol' ? 'volatile ' : '') + 'int x;\n' + (m.y === 'vol' ? 'volatile ' : '') + 'int y;\n\n// Thread 1\nx = 1;\nr1 = y;\n\n// Thread 2\ny = 1;\nr2 = x;';
+      } },
+    { id: 'pub', name: 'Safe publication', vars: { x: 'int', ref: 'Point' },
+      t1: [{ t: 'w', v: 'x', val: 1, lbl: 'p.x = 1  (constructor)' }, { t: 'w', v: 'ref', val: 1, lbl: 'ref = p' }],
+      t2: [{ t: 'r', v: 'ref', reg: 'r1', lbl: 'p = ref' }, { t: 'r', v: 'x', reg: 'r2', dep: true, lbl: 'if (p != null) r2 = p.x' }],
+      key: function (r) { return r.r1 ? 'p = Point, r2 = ' + r.r2 : 'p = null'; },
+      universe: [['p = null', 'not published yet'], ['p = Point, r2 = 1', 'fully built object'], ['p = Point, r2 = 0', 'BUG: reference visible before the field']],
+      bad: 'p = Point, r2 = 0',
+      opts: [
+        { id: 'plain', name: 'plain', d: 'The constructor\'s field write and the reference write are both plain, so they may be reordered. A reader can see a half-built Point.', mode: {} },
+        { id: 'final', name: 'final x', d: 'A final field is frozen at the end of the constructor. Any thread that sees the reference sees x = 1, even through a data race.', fin: true },
+        { id: 'vol', name: 'volatile ref', d: 'Publishing through a volatile field: the volatile write releases the constructor\'s writes, the volatile read acquires them.', mode: { ref: 'vol' } },
+        { id: 'sync', name: 'synchronized', d: 'Writer and reader both lock the same monitor around the reference.', sync: true }
+      ],
+      code: function (o) {
+        var cls = 'class Point {\n  ' + (o.fin ? 'final ' : '') + 'int x;\n  Point() { x = 1; }\n}\n' + (o.id === 'vol' ? 'static volatile Point ref;' : 'static Point ref;');
+        if (o.sync) return cls + '\n\n// Thread 1\nPoint q = new Point();\nsynchronized (lock) { ref = q; }\n\n// Thread 2\nPoint p;\nsynchronized (lock) { p = ref; }\nif (p != null) r2 = p.x;';
+        return cls + '\n\n// Thread 1\nref = new Point();\n\n// Thread 2\nPoint p = ref;\nif (p != null) r2 = p.x;';
+      } },
+    { id: 'stop', name: 'Stop flag', special: true,
+      universe: [['loop ends', 'the worker sees stop = true'], ['spins forever', 'BUG: the JIT hoisted the read out of the loop']],
+      bad: 'spins forever',
+      opts: [
+        { id: 'plain', name: 'plain', d: 'Nothing forces the worker to re-read the field. Once the loop is compiled, the JIT may read stop once and loop forever.', allowed: ['loop ends', 'spins forever'] },
+        { id: 'vol', name: 'volatile stop', d: 'Every iteration performs a volatile read, which must eventually see the volatile write.', allowed: ['loop ends'] },
+        { id: 'atomic', name: 'AtomicBoolean', d: 'AtomicBoolean.get() is a volatile read; same guarantee as a volatile field.', allowed: ['loop ends'] },
+        { id: 'sleep', name: 'plain + sleep()', d: 'Thread.sleep has no memory effect. It often hides the bug because the loop is no longer hot, but the JMM still allows it.', allowed: ['loop ends', 'spins forever'] }
+      ],
+      code: function (o) {
+        var decl = o.id === 'vol' ? 'volatile boolean stop;' : o.id === 'atomic' ? 'final AtomicBoolean stop = new AtomicBoolean();' : 'boolean stop;';
+        var rd = o.id === 'atomic' ? '!stop.get()' : '!stop', wr = o.id === 'atomic' ? 'stop.set(true);' : 'stop = true;';
+        return decl + '\n\n// Thread 1: worker\nwhile (' + rd + ') {\n  ' + (o.id === 'sleep' ? 'Thread.sleep(1);' : 'work();') + '\n}\n\n// Thread 2, a second later\n' + wr + (o.id === 'plain' || o.id === 'sleep' ? '\n\n// what the JIT may compile thread 1 to:\n// if (!stop) while (true) { work(); }' : '');
+      } }
+  ];
+
+  var ti = 0, oi = 0, counts = null;
+  function cur() { return { T: TESTS[ti], O: TESTS[ti].opts[oi] }; }
+  function threads(T, O) {
+    var md = O.mode || {};
+    var dress = function (o) { var c = Object.assign({}, o); c.m = md[o.v] || 'plain'; if (O.fin && T.id === 'pub' && o.v === 'x' && o.t === 'w') c.fin = true; return c; };
+    return [T.t1.map(dress), T.t2.map(dress)];
+  }
+  function allowed(T, O) {
+    if (T.special) return O.allowed.slice();
+    var th = threads(T, O), set = {};
+    if (O.sync) { [th[0].concat(th[1]), th[1].concat(th[0])].forEach(function (s) { set[T.key(exec(s))] = 1; }); return Object.keys(set); }
+    orders(th[0]).forEach(function (a) { orders(th[1]).forEach(function (b) { merges(a, b).forEach(function (s) { set[T.key(exec(s))] = 1; }); }); });
+    return Object.keys(set);
+  }
+  function sample(T, O) {
+    if (T.special) { // the hoist happens only once the loop is compiled: rare in the model
+      var ok = O.allowed.indexOf('spins forever') >= 0;
+      return ok && Math.random() < (O.id === 'sleep' ? 0.02 : 0.3) ? 'spins forever' : 'loop ends';
+    }
+    var th = threads(T, O);
+    if (O.sync) return T.key(exec(Math.random() < 0.5 ? th[0].concat(th[1]) : th[1].concat(th[0])));
+    var oa = orders(th[0]), ob = orders(th[1]);
+    var a = oa[Math.floor(Math.random() * oa.length)].slice(), b = ob[Math.floor(Math.random() * ob.length)].slice(), s = [];
+    while (a.length || b.length) s.push((!b.length || (a.length && Math.random() < 0.5)) ? a.shift() : b.shift());
+    return T.key(exec(s));
+  }
+
+  function label(o) {
+    if (o.lbl) return o.lbl + (o.m === 'vol' ? '  [volatile]' : o.m === 'ra' ? (o.t === 'w' ? '  [release]' : '  [acquire]') : '') + (o.fin ? '  [final]' : '');
+    var base = o.t === 'w' ? o.v + ' = ' + (o.v === 'ready' ? 'true' : o.val) : o.reg + ' = ' + o.v;
+    return base + (o.m === 'vol' ? '  [volatile]' : o.m === 'ra' ? (o.t === 'w' ? '  [release]' : '  [acquire]') : '');
+  }
+
+  function drawGraph(T, O) {
+    var svg = $('hb');
+    Array.prototype.slice.call(svg.querySelectorAll('.dyn')).forEach(function (n) { n.remove(); });
+    var g = el('g', { 'class': 'dyn' }, svg);
+    var defs = el('defs', {}, g);
+    [['ag', '#4f5d75'], ['ab', '#2e5aa8'], ['ar', '#bf4520']].forEach(function (m) {
+      var mk = el('marker', { id: m[0], viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: 'auto' }, defs);
+      el('path', { d: 'M0 0 L10 5 L0 10z', fill: m[1] }, mk);
+    });
+    var X = [T.special ? 70 : 40, 360], BW = T.special ? 220 : 240, BH = 38;
+    txt(g, X[0], 26, 'Thread 1', { 'font-weight': 600 }); txt(g, X[1], 26, 'Thread 2', { 'font-weight': 600 });
+    if (T.special) {
+      svg.setAttribute('viewBox', '0 0 640 260'); svg.setAttribute('height', 260);
+      var w = [{ l: 'while (!stop)  [read stop]' }, { l: O.id === 'sleep' ? 'Thread.sleep(1)' : 'work()' }];
+      var vol = O.id === 'vol' || O.id === 'atomic';
+      w.forEach(function (o, i) { var y = 50 + i * 80; el('rect', { x: X[0], y: y, width: BW, height: BH, rx: 6, fill: '#fff', stroke: '#2d3142' }, g); txt(g, X[0] + 12, y + 24, o.l + (i === 0 && vol ? '  [volatile]' : '')); });
+      el('path', { d: 'M' + X[0] + ' 149 C ' + (X[0] - 30) + ' 149, ' + (X[0] - 30) + ' 69, ' + X[0] + ' 69', fill: 'none', stroke: '#4f5d75', 'stroke-width': 1.4, 'marker-end': 'url(#ag)' }, g);
+      txt(g, X[0] - 26, 113, 'loop', { 'font-size': 10, fill: '#5a6580', 'text-anchor': 'end' });
+      el('rect', { x: X[1], y: 130, width: BW, height: BH, rx: 6, fill: '#fff', stroke: '#2d3142' }, g);
+      txt(g, X[1] + 12, 154, 'stop = true' + (vol ? '  [volatile]' : ''));
+      if (vol) {
+        el('line', { x1: X[1], y1: 149, x2: X[0] + BW + 2, y2: 72, stroke: '#2e5aa8', 'stroke-width': 2, 'marker-end': 'url(#ab)' }, g);
+        txt(g, 320, 205, 'sw: a later read sees it', { 'font-size': 10, fill: '#2e5aa8', 'text-anchor': 'middle' });
+      } else {
+        el('line', { x1: X[1], y1: 149, x2: X[0] + BW + 2, y2: 72, stroke: '#bfc0c0', 'stroke-width': 1.5, 'stroke-dasharray': '5 5' }, g);
+        txt(g, 320, 205, 'no edge: the read may be hoisted', { 'font-size': 10, fill: '#bf4520', 'text-anchor': 'middle' });
+      }
+      return;
+    }
+    var SH = O.sync ? 300 : 260; svg.setAttribute('viewBox', '0 0 640 ' + SH); svg.setAttribute('height', SH);
+    var th = threads(T, O), Y0 = O.sync ? 90 : 56, STEP = 84, pos = [[], []];
+    th.forEach(function (ops, c) {
+      if (O.sync) { el('rect', { x: X[c], y: 38, width: BW, height: 30, rx: 6, fill: '#ececec', stroke: '#2d3142' }, g); txt(g, X[c] + 12, 58, 'lock(m)'); }
+      ops.forEach(function (o, i) {
+        var y = Y0 + i * STEP; pos[c].push(y);
+        var strong = o.m !== 'plain' || o.fin;
+        el('rect', { x: X[c], y: y, width: BW, height: BH, rx: 6, fill: strong ? 'rgba(46,90,168,.07)' : '#fff', stroke: strong ? '#2e5aa8' : '#2d3142', 'stroke-width': strong ? 1.6 : 1.2 }, g);
+        txt(g, X[c] + 12, y + 24, label(o), { 'font-size': 11.5 });
+      });
+      if (O.sync) { var yu = Y0 + ops.length * STEP - 30; el('rect', { x: X[c], y: yu, width: BW, height: 30, rx: 6, fill: '#ececec', stroke: '#2d3142' }, g); txt(g, X[c] + 12, yu + 20, 'unlock(m)'); }
+      // program-order edge between the two ops
+      var a = ops[0], b = ops[1], kept = O.sync || keep(a, b), xm = X[c] + 30, y1 = Y0 + BH, y2 = Y0 + STEP;
+      el('line', { x1: xm, y1: y1 + 2, x2: xm, y2: y2 - 4, stroke: kept ? '#4f5d75' : '#bf4520', 'stroke-width': kept ? 1.4 : 2, 'stroke-dasharray': kept ? '' : '5 4', 'marker-end': kept ? 'url(#ag)' : 'url(#ar)' }, g);
+      txt(g, xm + 10, (y1 + y2) / 2 + 4, kept ? (O.sync ? 'po, inside the lock' : 'po: order kept') : 'may swap', { 'font-size': 10.5, fill: kept ? '#5a6580' : '#bf4520', 'font-weight': kept ? 400 : 600 });
+    });
+    // synchronizes-with edges
+    var sw = [];
+    if (O.sync) sw.push({ from: [0, Y0 + 2 * STEP - 15], to: [1, 53], lab: 'sw: unlock → lock (if T1 locks first)' });
+    else th[0].forEach(function (w, i) {
+      if (w.t !== 'w') return;
+      th[1].forEach(function (r, j) {
+        if (r.t === 'r' && r.v === w.v && w.m !== 'plain' && r.m !== 'plain') sw.push({ from: [0, pos[0][i] + BH / 2], to: [1, pos[1][j] + BH / 2], lab: 'sw: ' + w.v + ' write → read' });
+      });
+      if (w.fin) sw.push({ from: [0, pos[0][i] + BH / 2], to: [1, pos[1][1] + BH / 2], lab: 'hb via final freeze', fin: true });
+    });
+    sw.forEach(function (e, k) {
+      var x1 = X[0] + BW, x2 = X[1];
+      el('line', { x1: x1, y1: e.from[1], x2: x2 - 2, y2: e.to[1], stroke: '#2e5aa8', 'stroke-width': 2, 'marker-end': 'url(#ab)' }, g);
+      var mx = (x1 + x2) / 2, my = O.sync ? SH - 8 : Math.max(e.from[1], e.to[1]) + 34 + k * 16;   // below the arrow, clear of the boxes
+      txt(g, mx, my, e.lab, { 'font-size': 10, fill: '#2e5aa8', 'text-anchor': 'middle' });
+    });
+    if (!sw.length && !O.sync) txt(g, 320, 244, 'no edge between the threads: the reads race with the writes', { 'font-size': 11, fill: '#bf4520', 'text-anchor': 'middle' });
+  }
+
+  function render() {
+    var c = cur(), T = c.T, O = c.O, ok = allowed(T, O);
+    $('simTitle').textContent = T.name;
+    $('optDesc').textContent = O.d;
+    $('src').innerHTML = esc(T.code(O)).split('\n').map(function (line) {   // keywords in code, grey comments
+      var i = line.indexOf('//'), code = i < 0 ? line : line.slice(0, i), com = i < 0 ? '' : line.slice(i);
+      return code.replace(/\b(volatile|final|synchronized|class|static|int|boolean|new|while|if)\b/g, '<span class="k">$1</span>') + (com ? '<span class="c2">' + com + '</span>' : '');
+    }).join('\n');
+    drawGraph(T, O);
+    var total = counts ? Object.keys(counts).reduce(function (s, k) { return s + counts[k]; }, 0) : 0;
+    $('outs').innerHTML = T.universe.map(function (u) {
+      var isOk = ok.indexOf(u[0]) >= 0, bad = u[0] === T.bad, n = counts && counts[u[0]] || 0, pct = total ? n / total * 100 : 0;
+      return '<li class="' + (bad && isOk ? 'bad' : '') + '"><span>' + u[0] + '<br><span class="pct">' + u[1] + '</span></span>' +
+        '<span class="tag ' + (isOk ? 'ok' : 'no') + '">' + (isOk ? 'allowed' : 'forbidden') + '</span>' +
+        '<span><span class="barw" aria-hidden="true"><i style="width:' + pct.toFixed(1) + '%"></i></span><span class="pct">' + (counts ? n.toLocaleString('en-US') + ' · ' + pct.toFixed(1) + '%' : 'not run') + '</span></span></li>';
+    }).join('');
+    var badOk = ok.indexOf(T.bad) >= 0;
+    $('verdict').textContent = badOk
+      ? 'The JMM allows the bug: no happens-before edge orders the accesses it depends on.'
+      : 'The bug is forbidden: happens-before orders the write before any read that could observe it.';
+    $('simLive').textContent = O.name + ' · bug ' + (badOk ? 'allowed' : 'forbidden');
+  }
+
+  var tb = $('tests'), ob = $('opts');
+  function buildOpts() {
+    ob.innerHTML = '';
+    TESTS[ti].opts.forEach(function (o, i) {
+      var b = document.createElement('button'); b.type = 'button'; b.textContent = o.name; b.setAttribute('aria-pressed', String(i === oi));
+      b.addEventListener('click', function () { oi = i; counts = null; Array.prototype.forEach.call(ob.children, function (x, k) { x.setAttribute('aria-pressed', String(k === i)); }); render(); });
+      ob.appendChild(b);
+    });
+  }
+  TESTS.forEach(function (T, i) {
+    var b = document.createElement('button'); b.type = 'button'; b.textContent = T.name; b.setAttribute('aria-pressed', String(i === 0));
+    b.addEventListener('click', function () { ti = i; oi = 0; counts = null; Array.prototype.forEach.call(tb.children, function (x, k) { x.setAttribute('aria-pressed', String(k === i)); }); buildOpts(); render(); });
+    tb.appendChild(b);
+  });
+  $('run').addEventListener('click', function () {
+    var c = cur(); counts = {};
+    for (var i = 0; i < 10000; i++) { var k = sample(c.T, c.O); counts[k] = (counts[k] || 0) + 1; }
+    render();
+  });
+  $('clr').addEventListener('click', function () { counts = null; render(); });
+  buildOpts(); render();
+})();
+
+(function () {
+  var key = 'jmm-check:' + location.pathname, saved = {};
+  try { saved = JSON.parse(localStorage.getItem(key) || '{}'); } catch (e) {}
+  var boxes = document.querySelectorAll('.check input'), out = document.getElementById('prog');
+  function upd() {
+    var n = 0, o = {};
+    boxes.forEach(function (b) { if (b.checked) { n++; o[b.id] = 1; } b.closest('li').classList.toggle('done', b.checked); });
+    out.textContent = n + '/' + boxes.length + ' completed';
+    try { localStorage.setItem(key, JSON.stringify(o)); } catch (e) {}
+  }
+  boxes.forEach(function (b) { b.checked = !!saved[b.id]; b.addEventListener('change', upd); });
+  upd();
+})();
+
+document.addEventListener('DOMContentLoaded', function () {
+  if (!window.renderMathInElement) return;
+  renderMathInElement(document.body, {
+    delimiters: [{ left: '$$', right: '$$', display: true }, { left: '$', right: '$', display: false }],
+    ignoredTags: ['script', 'style', 'textarea', 'pre', 'code'],
+    throwOnError: false
+  });
+});
+</script>
+</body>
+</html>
