@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rust Smart Pointers: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8; --ok:#2f7a4a;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible,a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+h3{font-family:var(--serif);font-weight:400;font-size:24px;line-height:1.2;margin:32px 0 10px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+a{color:var(--link)}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code,.quiz-q code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+ul.tight{padding-left:22px;max-width:68ch}ul.tight li{margin:6px 0}
+
+.pre-wrap{position:relative;margin:16px 0}
+.pre-tag{position:absolute;top:0;right:0;font:600 10px var(--mono);letter-spacing:.1em;text-transform:uppercase;padding:4px 10px;border-radius:0 8px 0 6px;background:var(--paper-2);color:var(--soft)}
+.pre-tag.bad{background:var(--accent);color:#fff}
+pre{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:0}
+pre code{font-size:inherit;background:none;padding:0}
+pre.shell{background:#2d3142;color:#f5f5f5;border-color:#2d3142}
+.k{color:var(--accent)} .c2{color:var(--soft);font-style:italic} .t{color:var(--link)}
+.s{color:var(--ok)} .m{color:#7a3d8a} .n{color:var(--link)} .lt{color:var(--accent);font-style:italic} .at{color:var(--soft)}
+
+.card{margin:24px 0 0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:center;flex-wrap:wrap}
+.card-title{font-family:var(--serif);font-size:20px}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.scroll{overflow-x:auto}
+.scroll svg{display:block;width:100%;min-width:560px;height:auto}
+.trace{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:0;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule)}
+.trace-code{border:0;border-right:1px solid var(--rule);border-radius:0;padding:12px 0;font-size:12.5px}
+.trace-code .ln{display:block;padding:0 14px 0 0;white-space:pre;border-left:3px solid transparent}
+.trace-code .lno{display:inline-block;width:34px;text-align:right;padding-right:12px;color:var(--rule-solid);user-select:none}
+.trace-code .ln.on{background:var(--accent-tint);border-left-color:var(--accent)}
+.trace-code .ln.on .lno{color:var(--accent)}
+.trace-note{margin:0;padding:12px 16px;font-size:14px;color:var(--ink);min-height:3.4em;max-width:none}
+
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:0 0 12px}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.btn:disabled{opacity:.4;cursor:not-allowed;background:transparent;color:var(--ink)}
+.btn.right{border-color:var(--ok);background:var(--ok);color:#fff}
+.btn.wrong{border-color:var(--accent);background:var(--accent);color:#fff}
+
+table.ops{border-collapse:collapse;width:100%;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+table.ops td:first-child{font-weight:600}
+.tw{overflow-x:auto}
+
+.quiz{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0}
+.quiz .pre-wrap{margin:10px 0 12px}
+.quiz pre{background:var(--paper)}
+.quiz-q{font-weight:500}
+.quiz-why{font-size:14px;color:var(--muted);margin:0}
+
+.check{list-style:none;padding:0;margin:12px 0 0;max-width:640px}
+.check li{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--rule)}
+.check input{width:18px;height:18px;accent-color:var(--accent)}
+.check li.done a{color:var(--soft);text-decoration:line-through}
+.prog{font-family:var(--mono);font-size:12px;color:var(--soft)}
+
+.chapters{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:72px}
+.chap{display:block;padding:16px 20px;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;text-decoration:none;color:var(--ink)}
+.chap:hover{border-color:var(--ink)}
+.chap b{display:block;font:400 22px var(--serif);margin-top:4px}
+.chap.next{text-align:right}
+.source{font-size:13px;color:var(--soft);margin-top:24px}
+
+.doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}.doc-tags a{font:500 12px "Geist Mono",ui-monospace,monospace;padding:4px 10px;border:1px solid var(--rule-solid,#bfc0c0);border-radius:4px;background:#fff;color:var(--muted,#4f5d75);text-decoration:none}.doc-tags a:hover{border-color:var(--ink,#2d3142);color:var(--ink,#2d3142)}.doc-tags a:focus-visible{outline:2px solid var(--accent,#bf4520);outline-offset:2px}
+
+@media (max-width:860px){.trace{grid-template-columns:1fr}.trace-code{border-right:0;border-bottom:1px solid var(--rule)}.page{padding:32px 16px 72px}.chapters{grid-template-columns:1fr}.chap.next{text-align:left}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" style="margin-right:8px" href="../../../../index.html">&larr; Back to home</a>
+<a class="back back-cat" href="../../../../index.html#cat=Engineering">&larr; Back to Engineering</a>
+
+<header>
+  <div class="eyebrow">Engineering · Rust · Chapter 15</div>
+  <h1>Rust Smart Pointers</h1>
+  <p class="lede">A reference only borrows. A <b>smart pointer</b> is a struct that acts like a pointer and also owns the data, adding a capability on top: heap allocation (<code>Box</code>), shared ownership (<code>Rc</code>), or borrow checks at run time (<code>RefCell</code>). They are built on two traits, <code>Deref</code> and <code>Drop</code>.</p>
+  <nav class="doc-tags" aria-label="Main tags"><a href="../../../../index.html#tag=rust">#rust</a><a href="../../../../index.html#tag=smart%20pointers">#smart pointers</a><a href="../../../../index.html#tag=box">#box</a><a href="../../../../index.html#tag=rc">#rc</a></nav>
+</header>
+
+<section>
+  <h2>Step through it</h2>
+  <p>Each <code>Rc::clone</code> adds an owner; each drop removes one. A <code>Weak</code> points at the same allocation without keeping the value alive. Watch the counts in the heap box.</p>
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">Rc counts owners, Weak does not</span></div>
+    <div class="trace">
+      <pre class="trace-code"><code><span class="ln" data-l="1"><span class="lno">1</span><span class="k">use</span> std::rc::{<span class="t">Rc</span>, <span class="t">Weak</span>};</span><span class="ln" data-l="2"><span class="lno">2</span><span class="k">fn</span> main() {</span><span class="ln" data-l="3"><span class="lno">3</span>    <span class="k">let</span> a = <span class="t">Rc</span>::new(<span class="t">String</span>::from(<span class="s">"shared"</span>));</span><span class="ln" data-l="4"><span class="lno">4</span>    <span class="k">let</span> b = <span class="t">Rc</span>::clone(&amp;a);</span><span class="ln" data-l="5"><span class="lno">5</span>    <span class="k">let</span> w: <span class="t">Weak</span>&lt;<span class="t">String</span>&gt; = <span class="t">Rc</span>::downgrade(&amp;a);</span><span class="ln" data-l="6"><span class="lno">6</span>    {</span><span class="ln" data-l="7"><span class="lno">7</span>        <span class="k">let</span> c = <span class="t">Rc</span>::clone(&amp;a);</span><span class="ln" data-l="8"><span class="lno">8</span>        <span class="m">println!</span>(<span class="s">"strong = {}"</span>, <span class="t">Rc</span>::strong_count(&amp;c));</span><span class="ln" data-l="9"><span class="lno">9</span>    }</span><span class="ln" data-l="10"><span class="lno">10</span>    drop(a);</span><span class="ln" data-l="11"><span class="lno">11</span>    drop(b);</span><span class="ln" data-l="12"><span class="lno">12</span>    <span class="m">println!</span>(<span class="s">"{:?}"</span>, w.upgrade());</span><span class="ln" data-l="13"><span class="lno">13</span>}</span></code></pre>
+      <div class="scroll"><svg id="mem" viewBox="0 0 640 300" role="img" aria-labelledby="mem-title mem-desc">
+        <title id="mem-title">Rc counts owners, Weak does not</title>
+        <desc id="mem-desc">An Rc allocation holds a strong count, a weak count and the value. Clones raise the strong count; the value is freed when it reaches zero, even if weak pointers remain.</desc>
+      </svg></div>
+    </div>
+    <p class="trace-note" id="traceNote" aria-live="polite"></p>
+    <div class="card-bottom">
+      <div class="row" style="margin:0">
+        <button type="button" class="btn" id="tPrev">&larr; Prev</button>
+        <button type="button" class="btn" id="tNext">Next &rarr;</button>
+        <button type="button" class="btn" id="tReset">Reset</button>
+      </div>
+      <span class="live" id="traceLive"></span>
+    </div>
+  </figure>
+  <script type="application/json" id="traceData">[{"l":3,"note":"\u003ccode>Rc::new\u003c/code> allocates the value together with two counters. One strong owner.","stack":[{"f":"main","n":"a","v":"Rc\u003cString>","to":"rc"}],"heap":[{"id":"rc","v":"strong=1 weak=0 \"shared\""}]},{"l":4,"note":"\u003ccode>Rc::clone\u003c/code> copies the pointer and increments the count. No deep copy of the string.","stack":[{"f":"main","n":"a","v":"Rc\u003cString>","to":"rc"},{"f":"main","n":"b","v":"Rc\u003cString>","to":"rc"}],"heap":[{"id":"rc","v":"strong=2 weak=0 \"shared\""}]},{"l":5,"note":"\u003ccode>downgrade\u003c/code> makes a \u003ccode>Weak\u003c/code>: it raises the weak count, not the strong count.","stack":[{"f":"main","n":"a","v":"Rc\u003cString>","to":"rc"},{"f":"main","n":"b","v":"Rc\u003cString>","to":"rc"},{"f":"main","n":"w","v":"Weak\u003cString>","s":"ref","to":"rc"}],"heap":[{"id":"rc","v":"strong=2 weak=1 \"shared\""}]},{"l":8,"note":"A third owner inside the block: prints \u003ccode>strong = 3\u003c/code>.","stack":[{"f":"main","n":"a","v":"Rc\u003cString>","to":"rc"},{"f":"main","n":"b","v":"Rc\u003cString>","to":"rc"},{"f":"main","n":"w","v":"Weak\u003cString>","s":"ref","to":"rc"},{"f":"block","n":"c","v":"Rc\u003cString>","to":"rc"}],"heap":[{"id":"rc","v":"strong=3 weak=1 \"shared\""}]},{"l":9,"note":"The block ends; \u003ccode>c\u003c/code> is dropped and the count goes back to 2.","stack":[{"f":"main","n":"a","v":"Rc\u003cString>","to":"rc"},{"f":"main","n":"b","v":"Rc\u003cString>","to":"rc"},{"f":"main","n":"w","v":"Weak\u003cString>","s":"ref","to":"rc"},{"f":"block","n":"c","s":"dropped"}],"heap":[{"id":"rc","v":"strong=2 weak=1 \"shared\""}]},{"l":10,"note":"\u003ccode>drop(a)\u003c/code>: strong = 1. The value is still alive because \u003ccode>b\u003c/code> owns it.","stack":[{"f":"main","n":"a","s":"moved"},{"f":"main","n":"b","v":"Rc\u003cString>","to":"rc"},{"f":"main","n":"w","v":"Weak\u003cString>","s":"ref","to":"rc"}],"heap":[{"id":"rc","v":"strong=1 weak=1 \"shared\""}]},{"l":11,"note":"\u003ccode>drop(b)\u003c/code>: strong = 0. The \u003ccode>String\u003c/code> is dropped now. The counters stay allocated while a \u003ccode>Weak\u003c/code> exists, so it can tell the value is gone.","stack":[{"f":"main","n":"a","s":"moved"},{"f":"main","n":"b","s":"moved"},{"f":"main","n":"w","v":"Weak\u003cString>","s":"ref","to":"rc"}],"heap":[{"id":"rc","v":"strong=0 weak=1 (value dropped)"}]},{"l":12,"note":"\u003ccode>upgrade\u003c/code> returns \u003ccode>None\u003c/code>. When \u003ccode>w\u003c/code> is dropped at the end of \u003ccode>main\u003c/code>, the counters are freed too.","stack":[{"f":"main","n":"w","v":"upgrade() = None","s":"ref","to":"rc"}],"heap":[{"id":"rc","v":"strong=0 weak=1 (value dropped)"}]}]</script>
+</section>
+
+<section>
+  <h2>Contents</h2>
+  <div class="prog" id="prog" aria-live="polite"></div>
+  <ol class="check">
+    <li><input type="checkbox" id="c-box" aria-label="Mark Box&lt;T&gt;: data on the heap as done"><a href="#box">1. Box&lt;T&gt;: data on the heap</a></li>
+    <li><input type="checkbox" id="c-deref" aria-label="Mark Deref: treating a pointer like a reference as done"><a href="#deref">2. Deref: treating a pointer like a reference</a></li>
+    <li><input type="checkbox" id="c-drop" aria-label="Mark Drop: running code on cleanup as done"><a href="#drop">3. Drop: running code on cleanup</a></li>
+    <li><input type="checkbox" id="c-rc" aria-label="Mark Rc&lt;T&gt;: shared ownership as done"><a href="#rc">4. Rc&lt;T&gt;: shared ownership</a></li>
+    <li><input type="checkbox" id="c-refcell" aria-label="Mark RefCell&lt;T&gt; and interior mutability as done"><a href="#refcell">5. RefCell&lt;T&gt; and interior mutability</a></li>
+    <li><input type="checkbox" id="c-cycles" aria-label="Mark Reference cycles and Weak&lt;T&gt; as done"><a href="#cycles">6. Reference cycles and Weak&lt;T&gt;</a></li>
+    <li><input type="checkbox" id="c-quiz" aria-label="Mark Check yourself as done"><a href="#quiz">7. Check yourself</a></li>
+  </ol>
+</section>
+
+<section id="box">
+  <h2>1. Box&lt;T&gt;: data on the heap</h2>
+
+  <p><code>Box&lt;T&gt;</code> puts a value on the heap and keeps a pointer on the stack. It has no overhead besides the allocation and no extra capability. Use it when:</p>
+  <ul class="tight">
+    <li>a type's size cannot be known at compile time, but you need it in a context that requires a size (recursive types);</li>
+    <li>you have a large value and want to move ownership without copying the bytes;</li>
+    <li>you want a value of "some type implementing a trait" (<code>Box&lt;dyn Trait&gt;</code>, chapter 18).</li>
+  </ul>
+  <div class="pre-wrap"><span class="pre-tag bad">does not compile</span><pre><code><span class="k">enum</span> <span class="t">List</span> {
+    <span class="t">Cons</span>(<span class="t">i32</span>, <span class="t">List</span>), <span class="c2">// error[E0072]: recursive type `List` has infinite size</span>
+    <span class="t">Nil</span>,
+}</code></pre></div>
+  <p>To size <code>List</code>, the compiler needs the size of <code>List</code>, forever. A <code>Box</code> has a fixed size, one pointer, which breaks the recursion:</p>
+  <div class="pre-wrap"><pre><code><span class="at">#[derive(Debug)]</span>
+<span class="k">enum</span> <span class="t">List</span> {
+    <span class="t">Cons</span>(<span class="t">i32</span>, <span class="t">Box</span>&lt;<span class="t">List</span>&gt;),
+    <span class="t">Nil</span>,
+}
+<span class="k">use</span> <span class="t">List</span>::{<span class="t">Cons</span>, <span class="t">Nil</span>};
+
+<span class="k">fn</span> main() {
+    <span class="k">let</span> list = <span class="t">Cons</span>(<span class="n">1</span>, <span class="t">Box</span>::new(<span class="t">Cons</span>(<span class="n">2</span>, <span class="t">Box</span>::new(<span class="t">Cons</span>(<span class="n">3</span>, <span class="t">Box</span>::new(<span class="t">Nil</span>))))));
+    <span class="m">println!</span>(<span class="s">"{list:?}"</span>);
+    <span class="k">let</span> b = <span class="t">Box</span>::new(<span class="n">5</span>);
+    <span class="m">println!</span>(<span class="s">"b = {b}"</span>); <span class="c2">// used like the value itself</span>
+}</code></pre></div>
+</section>
+
+<section id="deref">
+  <h2>2. Deref: treating a pointer like a reference</h2>
+
+  <p><code>*x</code> follows a reference. Implementing <code>Deref</code> lets your type support <code>*</code> too: <code>*y</code> becomes <code>*(y.deref())</code>. <code>deref</code> returns a reference, so the value is not moved out.</p>
+  <div class="pre-wrap"><pre><code><span class="k">use</span> std::ops::<span class="t">Deref</span>;
+
+<span class="k">struct</span> <span class="t">MyBox</span>&lt;<span class="t">T</span>&gt;(<span class="t">T</span>);
+
+<span class="k">impl</span>&lt;<span class="t">T</span>&gt; <span class="t">MyBox</span>&lt;<span class="t">T</span>&gt; {
+    <span class="k">fn</span> new(x: <span class="t">T</span>) -&gt; <span class="t">MyBox</span>&lt;<span class="t">T</span>&gt; { <span class="t">MyBox</span>(x) }
+}
+
+<span class="k">impl</span>&lt;<span class="t">T</span>&gt; <span class="t">Deref</span> <span class="k">for</span> <span class="t">MyBox</span>&lt;<span class="t">T</span>&gt; {
+    <span class="k">type</span> <span class="t">Target</span> = <span class="t">T</span>;
+    <span class="k">fn</span> deref(&amp;<span class="k">self</span>) -&gt; &amp;<span class="t">T</span> { &amp;<span class="k">self</span>.<span class="n">0</span> }
+}
+
+<span class="k">fn</span> hello(name: &amp;<span class="t">str</span>) { <span class="m">println!</span>(<span class="s">"Hello, {name}!"</span>); }
+
+<span class="k">fn</span> main() {
+    <span class="k">let</span> x = <span class="n">5</span>;
+    <span class="k">let</span> y = <span class="t">MyBox</span>::new(x);
+    <span class="m">assert_eq!</span>(<span class="n">5</span>, *y);
+
+    <span class="k">let</span> m = <span class="t">MyBox</span>::new(<span class="t">String</span>::from(<span class="s">"Rust"</span>));
+    hello(&amp;m);              <span class="c2">// &amp;MyBox&lt;String&gt; -&gt; &amp;String -&gt; &amp;str</span>
+    hello(&amp;(*m)[..]);       <span class="c2">// what we would write without coercion</span>
+}</code></pre></div>
+  <h3>Deref coercion</h3>
+  <p>When a reference's type does not match a parameter, the compiler inserts as many <code>deref</code> calls as needed. It is resolved at compile time and costs nothing. The rules:</p>
+  <div class="tw"><table class="ops"><thead><tr><th>From</th><th>To</th><th>When</th></tr></thead><tbody><tr><td><code>&amp;T</code></td><td><code>&amp;U</code></td><td><code>T: Deref&lt;Target = U&gt;</code></td></tr><tr><td><code>&amp;mut T</code></td><td><code>&amp;mut U</code></td><td><code>T: DerefMut&lt;Target = U&gt;</code></td></tr><tr><td><code>&amp;mut T</code></td><td><code>&amp;U</code></td><td><code>T: Deref&lt;Target = U&gt;</code></td></tr></tbody></table></div>
+  <p>An immutable reference never coerces to a mutable one: that would break the rule that a <code>&amp;mut</code> is the only reference.</p>
+</section>
+
+<section id="drop">
+  <h2>3. Drop: running code on cleanup</h2>
+
+  <div class="pre-wrap"><pre><code><span class="k">struct</span> <span class="t">CustomSmartPointer</span> { data: <span class="t">String</span> }
+
+<span class="k">impl</span> <span class="t">Drop</span> <span class="k">for</span> <span class="t">CustomSmartPointer</span> {
+    <span class="k">fn</span> drop(&amp;<span class="k">mut</span> <span class="k">self</span>) {
+        <span class="m">println!</span>(<span class="s">"Dropping CustomSmartPointer with data `{}`!"</span>, <span class="k">self</span>.data);
+    }
+}
+
+<span class="k">fn</span> main() {
+    <span class="k">let</span> _c = <span class="t">CustomSmartPointer</span> { data: <span class="t">String</span>::from(<span class="s">"my stuff"</span>) };
+    <span class="k">let</span> d = <span class="t">CustomSmartPointer</span> { data: <span class="t">String</span>::from(<span class="s">"other stuff"</span>) };
+    <span class="m">println!</span>(<span class="s">"CustomSmartPointers created"</span>);
+    drop(d);                       <span class="c2">// std::mem::drop: drop it early</span>
+    <span class="m">println!</span>(<span class="s">"d dropped before the end of main"</span>);
+}                                  <span class="c2">// _c dropped here</span></code></pre></div>
+  <p>Variables are dropped in reverse order of creation. You cannot call <code>d.drop()</code> yourself (error E0040), because Rust would call it again at the end of the scope: a double free. <code>std::mem::drop(d)</code>, in the prelude as <code>drop</code>, takes ownership instead, so the automatic drop never happens. Typical uses: releasing a lock early, closing a file, flushing a buffer.</p>
+</section>
+
+<section id="rc">
+  <h2>4. Rc&lt;T&gt;: shared ownership</h2>
+
+  <p>Sometimes a value has several owners, such as a node in a graph that many edges point to, and none of them is clearly the last to use it. <code>Rc&lt;T&gt;</code>, reference counted, keeps a count of owners and frees the value when it reaches zero. Fig 1 steps through the counts.</p>
+  <div class="pre-wrap"><pre><code><span class="k">use</span> std::rc::<span class="t">Rc</span>;
+
+<span class="at">#[derive(Debug)]</span>
+<span class="k">enum</span> <span class="t">List</span> { <span class="t">Cons</span>(<span class="t">i32</span>, <span class="t">Rc</span>&lt;<span class="t">List</span>&gt;), <span class="t">Nil</span> }
+<span class="k">use</span> <span class="t">List</span>::{<span class="t">Cons</span>, <span class="t">Nil</span>};
+
+<span class="k">fn</span> main() {
+    <span class="k">let</span> a = <span class="t">Rc</span>::new(<span class="t">Cons</span>(<span class="n">5</span>, <span class="t">Rc</span>::new(<span class="t">Cons</span>(<span class="n">10</span>, <span class="t">Rc</span>::new(<span class="t">Nil</span>)))));
+    <span class="m">println!</span>(<span class="s">"count after creating a = {}"</span>, <span class="t">Rc</span>::strong_count(&amp;a));
+    <span class="k">let</span> _b = <span class="t">Cons</span>(<span class="n">3</span>, <span class="t">Rc</span>::clone(&amp;a));     <span class="c2">// b and c share a</span>
+    <span class="m">println!</span>(<span class="s">"count after creating b = {}"</span>, <span class="t">Rc</span>::strong_count(&amp;a));
+    {
+        <span class="k">let</span> _c = <span class="t">Cons</span>(<span class="n">4</span>, <span class="t">Rc</span>::clone(&amp;a));
+        <span class="m">println!</span>(<span class="s">"count after creating c = {}"</span>, <span class="t">Rc</span>::strong_count(&amp;a));
+    }
+    <span class="m">println!</span>(<span class="s">"count after c goes out of scope = {}"</span>, <span class="t">Rc</span>::strong_count(&amp;a));
+}</code></pre></div>
+  <p>Write <code>Rc::clone(&amp;a)</code>, not <code>a.clone()</code>: same effect, but it signals a cheap count increment, not a deep copy. <code>Rc</code> gives only shared, read-only access, since many owners with mutable access would be aliasing plus mutation. It is single-threaded; across threads use <code>Arc</code> (chapter 16).</p>
+</section>
+
+<section id="refcell">
+  <h2>5. RefCell&lt;T&gt; and interior mutability</h2>
+
+  <p><b>Interior mutability</b> lets you mutate data through a shared reference. The borrowing rules still hold, but <code>RefCell&lt;T&gt;</code> checks them at <b>run time</b>: <code>borrow()</code> returns a <code>Ref&lt;T&gt;</code>, <code>borrow_mut()</code> a <code>RefMut&lt;T&gt;</code>, and the cell counts them. Breaking the rules panics instead of failing to compile.</p>
+  <div class="tw"><table class="ops"><thead><tr><th></th><th>Box&lt;T&gt;</th><th>Rc&lt;T&gt;</th><th>RefCell&lt;T&gt;</th></tr></thead><tbody><tr><td>Owners</td><td>one</td><td>many</td><td>one</td></tr><tr><td>Borrows checked</td><td>compile time</td><td>compile time (shared only)</td><td>run time</td></tr><tr><td>Mutate through <code>&amp;self</code></td><td>no</td><td>no</td><td>yes</td></tr></tbody></table></div>
+  <p>A typical case is a test double. A <code>Messenger</code> trait takes <code>&amp;self</code>, but the mock wants to record each message:</p>
+  <div class="pre-wrap"><pre><code><span class="k">use</span> std::cell::<span class="t">RefCell</span>;
+
+<span class="k">pub</span> <span class="k">trait</span> <span class="t">Messenger</span> { <span class="k">fn</span> send(&amp;<span class="k">self</span>, msg: &amp;<span class="t">str</span>); }
+
+<span class="k">struct</span> <span class="t">MockMessenger</span> { sent: <span class="t">RefCell</span>&lt;<span class="t">Vec</span>&lt;<span class="t">String</span>&gt;&gt; }
+
+<span class="k">impl</span> <span class="t">Messenger</span> <span class="k">for</span> <span class="t">MockMessenger</span> {
+    <span class="k">fn</span> send(&amp;<span class="k">self</span>, message: &amp;<span class="t">str</span>) {
+        <span class="k">self</span>.sent.borrow_mut().push(<span class="t">String</span>::from(message)); <span class="c2">// mutate via &amp;self</span>
+    }
+}
+
+<span class="k">fn</span> main() {
+    <span class="k">let</span> m = <span class="t">MockMessenger</span> { sent: <span class="t">RefCell</span>::new(<span class="m">vec!</span>[]) };
+    m.send(<span class="s">"over 75% of quota"</span>);
+    <span class="m">assert_eq!</span>(m.sent.borrow().len(), <span class="n">1</span>);
+
+    <span class="k">let</span> cell = <span class="t">RefCell</span>::new(<span class="n">1</span>);
+    <span class="k">let</span> _first = cell.borrow_mut();
+    <span class="m">println!</span>(<span class="s">"second borrow_mut is ok? {}"</span>, cell.try_borrow_mut().is_ok()); <span class="c2">// false</span>
+}</code></pre></div>
+  <p>Two live <code>borrow_mut()</code> calls panic with "already borrowed: BorrowMutError". <code>try_borrow_mut</code> returns a <code>Result</code> instead. For <code>Copy</code> types, <code>Cell&lt;T&gt;</code> offers <code>get</code> and <code>set</code> with no run-time borrow tracking.</p>
+  <h3>Rc&lt;RefCell&lt;T&gt;&gt;: many owners that can mutate</h3>
+  <div class="pre-wrap"><pre><code><span class="k">use</span> std::cell::<span class="t">RefCell</span>;
+<span class="k">use</span> std::rc::<span class="t">Rc</span>;
+
+<span class="at">#[derive(Debug)]</span>
+<span class="k">enum</span> <span class="t">List</span> { <span class="t">Cons</span>(<span class="t">Rc</span>&lt;<span class="t">RefCell</span>&lt;<span class="t">i32</span>&gt;&gt;, <span class="t">Rc</span>&lt;<span class="t">List</span>&gt;), <span class="t">Nil</span> }
+<span class="k">use</span> <span class="t">List</span>::{<span class="t">Cons</span>, <span class="t">Nil</span>};
+
+<span class="k">fn</span> main() {
+    <span class="k">let</span> value = <span class="t">Rc</span>::new(<span class="t">RefCell</span>::new(<span class="n">5</span>));
+    <span class="k">let</span> a = <span class="t">Rc</span>::new(<span class="t">Cons</span>(<span class="t">Rc</span>::clone(&amp;value), <span class="t">Rc</span>::new(<span class="t">Nil</span>)));
+    <span class="k">let</span> b = <span class="t">Cons</span>(<span class="t">Rc</span>::new(<span class="t">RefCell</span>::new(<span class="n">3</span>)), <span class="t">Rc</span>::clone(&amp;a));
+    <span class="k">let</span> c = <span class="t">Cons</span>(<span class="t">Rc</span>::new(<span class="t">RefCell</span>::new(<span class="n">4</span>)), <span class="t">Rc</span>::clone(&amp;a));
+
+    *value.borrow_mut() += <span class="n">10</span>;   <span class="c2">// seen through a, b and c</span>
+
+    <span class="m">println!</span>(<span class="s">"a = {a:?}\nb = {b:?}\nc = {c:?}"</span>);
+}</code></pre></div>
+</section>
+
+<section id="cycles">
+  <h2>6. Reference cycles and Weak&lt;T&gt;</h2>
+
+  <p>Rust guarantees memory safety, not freedom from leaks. With <code>Rc</code> and <code>RefCell</code> you can build a cycle: <code>a</code> points to <code>b</code>, <code>b</code> points back to <code>a</code>. When both variables go out of scope, each count drops to 1, never 0, and the memory is never freed.</p>
+  <p>The fix is to decide which links own and which only observe. <code>Rc::downgrade</code> creates a <code>Weak&lt;T&gt;</code> that does not count as an owner. <code>upgrade()</code> returns <code>Option&lt;Rc&lt;T&gt;&gt;</code>, <code>None</code> if the value is gone. In a tree, parents own their children and children point weakly to their parent:</p>
+  <div class="pre-wrap"><pre><code><span class="k">use</span> std::cell::<span class="t">RefCell</span>;
+<span class="k">use</span> std::rc::{<span class="t">Rc</span>, <span class="t">Weak</span>};
+
+<span class="at">#[derive(Debug)]</span>
+<span class="k">struct</span> <span class="t">Node</span> {
+    value: <span class="t">i32</span>,
+    parent: <span class="t">RefCell</span>&lt;<span class="t">Weak</span>&lt;<span class="t">Node</span>&gt;&gt;,       <span class="c2">// does not own</span>
+    children: <span class="t">RefCell</span>&lt;<span class="t">Vec</span>&lt;<span class="t">Rc</span>&lt;<span class="t">Node</span>&gt;&gt;&gt;,  <span class="c2">// owns</span>
+}
+
+<span class="k">fn</span> main() {
+    <span class="k">let</span> leaf = <span class="t">Rc</span>::new(<span class="t">Node</span> { value: <span class="n">3</span>, parent: <span class="t">RefCell</span>::new(<span class="t">Weak</span>::new()), children: <span class="t">RefCell</span>::new(<span class="m">vec!</span>[]) });
+    <span class="m">println!</span>(<span class="s">"leaf parent = {:?}"</span>, leaf.parent.borrow().upgrade().map(|p| p.value));
+
+    {
+        <span class="k">let</span> branch = <span class="t">Rc</span>::new(<span class="t">Node</span> { value: <span class="n">5</span>, parent: <span class="t">RefCell</span>::new(<span class="t">Weak</span>::new()), children: <span class="t">RefCell</span>::new(<span class="m">vec!</span>[<span class="t">Rc</span>::clone(&amp;leaf)]) });
+        *leaf.parent.borrow_mut() = <span class="t">Rc</span>::downgrade(&amp;branch);
+        <span class="m">println!</span>(<span class="s">"leaf parent = {:?}"</span>, leaf.parent.borrow().upgrade().map(|p| p.value));
+        <span class="m">println!</span>(<span class="s">"branch strong = {}, weak = {}"</span>, <span class="t">Rc</span>::strong_count(&amp;branch), <span class="t">Rc</span>::weak_count(&amp;branch));
+        <span class="m">println!</span>(<span class="s">"leaf strong = {}, weak = {}"</span>, <span class="t">Rc</span>::strong_count(&amp;leaf), <span class="t">Rc</span>::weak_count(&amp;leaf));
+    }
+
+    <span class="m">println!</span>(<span class="s">"leaf parent = {:?}"</span>, leaf.parent.borrow().upgrade().map(|p| p.value)); <span class="c2">// None</span>
+    <span class="m">println!</span>(<span class="s">"leaf strong = {}"</span>, <span class="t">Rc</span>::strong_count(&amp;leaf));                          <span class="c2">// 1</span>
+}</code></pre></div>
+  <div class="tw"><table class="ops"><thead><tr><th>Pointer</th><th>Use it for</th></tr></thead><tbody><tr><td><code>Box&lt;T&gt;</code></td><td>Single owner on the heap; recursive types; trait objects.</td></tr><tr><td><code>Rc&lt;T&gt;</code></td><td>Several owners, read-only, one thread.</td></tr><tr><td><code>RefCell&lt;T&gt;</code> / <code>Cell&lt;T&gt;</code></td><td>Mutation through a shared reference, checked at run time.</td></tr><tr><td><code>Weak&lt;T&gt;</code></td><td>Back-pointers and caches that must not keep a value alive.</td></tr><tr><td><code>Arc&lt;T&gt;</code> / <code>Mutex&lt;T&gt;</code></td><td>The thread-safe versions of <code>Rc</code> and <code>RefCell</code>.</td></tr></tbody></table></div>
+</section>
+
+<section id="quiz">
+  <h2>7. Check yourself</h2>
+  <p>Read each snippet and decide whether the compiler accepts it. Every answer was checked with <code>rustc</code> (edition 2024).</p>
+<div class="quiz" data-a="1">
+    <div class="quiz-q"><span class="eyebrow">Q1</span> Does this compile?</div>
+    <div class="pre-wrap"><pre><code><span class="k">use</span> std::rc::<span class="t">Rc</span>;
+<span class="k">fn</span> main() {
+    <span class="k">let</span> a = <span class="t">Rc</span>::new(<span class="m">vec!</span>[<span class="n">1</span>]);
+    a.push(<span class="n">2</span>);
+}</code></pre></div>
+    <div class="row" role="group" aria-label="Answer for question 1">
+      <button type="button" class="btn" data-i="0">Compiles</button>
+      <button type="button" class="btn" data-i="1">Compile error</button>
+    </div>
+    <p class="quiz-why" aria-live="polite" hidden><code>Rc</code> only hands out shared references. To mutate shared data, wrap it: <code>Rc&lt;RefCell&lt;Vec&lt;i32&gt;&gt;&gt;</code>.</p>
+  </div>
+<div class="quiz" data-a="0">
+    <div class="quiz-q"><span class="eyebrow">Q2</span> Does this compile?</div>
+    <div class="pre-wrap"><pre><code><span class="k">use</span> std::cell::<span class="t">RefCell</span>;
+<span class="k">fn</span> main() {
+    <span class="k">let</span> v = <span class="t">RefCell</span>::new(<span class="m">vec!</span>[<span class="n">1</span>]);
+    <span class="k">let</span> r1 = v.borrow_mut();
+    <span class="k">let</span> r2 = v.borrow_mut();
+}</code></pre></div>
+    <div class="row" role="group" aria-label="Answer for question 2">
+      <button type="button" class="btn" data-i="0">Compiles</button>
+      <button type="button" class="btn" data-i="1">Compile error</button>
+    </div>
+    <p class="quiz-why" aria-live="polite" hidden>It compiles: <code>RefCell</code> checks borrows at run time. Running it panics with <code>BorrowMutError</code>, because two mutable borrows are alive.</p>
+  </div>
+<div class="quiz" data-a="1">
+    <div class="quiz-q"><span class="eyebrow">Q3</span> Does this compile?</div>
+    <div class="pre-wrap"><pre><code><span class="k">struct</span> <span class="t">D</span>;
+<span class="k">impl</span> <span class="t">Drop</span> <span class="k">for</span> <span class="t">D</span> { <span class="k">fn</span> drop(&amp;<span class="k">mut</span> <span class="k">self</span>) {} }
+<span class="k">fn</span> main() {
+    <span class="k">let</span> d = <span class="t">D</span>;
+    d.drop();
+}</code></pre></div>
+    <div class="row" role="group" aria-label="Answer for question 3">
+      <button type="button" class="btn" data-i="0">Compiles</button>
+      <button type="button" class="btn" data-i="1">Compile error</button>
+    </div>
+    <p class="quiz-why" aria-live="polite" hidden>Explicit destructor calls are not allowed (E0040). Use <code>drop(d)</code>, which takes ownership.</p>
+  </div>
+<div class="quiz" data-a="0">
+    <div class="quiz-q"><span class="eyebrow">Q4</span> Does this compile?</div>
+    <div class="pre-wrap"><pre><code><span class="k">fn</span> len(s: &amp;<span class="t">str</span>) -&gt; <span class="t">usize</span> { s.len() }
+<span class="k">fn</span> main() {
+    <span class="k">let</span> b = <span class="t">Box</span>::new(<span class="t">String</span>::from(<span class="s">"hey"</span>));
+    <span class="m">println!</span>(<span class="s">"{}"</span>, len(&amp;b));
+}</code></pre></div>
+    <div class="row" role="group" aria-label="Answer for question 4">
+      <button type="button" class="btn" data-i="0">Compiles</button>
+      <button type="button" class="btn" data-i="1">Compile error</button>
+    </div>
+    <p class="quiz-why" aria-live="polite" hidden>Deref coercion: <code>&amp;Box&lt;String&gt;</code> → <code>&amp;String</code> → <code>&amp;str</code>, all at compile time.</p>
+  </div>
+  <p class="prog" id="quizScore" aria-live="polite"></p>
+</section>
+
+<nav class="chapters" aria-label="Rust chapters">
+  <a class="chap prev" href="../rust-cargo-crates/rust-cargo-crates.html"><span class="eyebrow">&larr; Chapter 14</span><b>Rust Cargo and Crates.io</b></a>
+  <a class="chap next" href="../rust-concurrency/rust-concurrency.html"><span class="eyebrow">Chapter 16 &rarr;</span><b>Rust Fearless Concurrency</b></a>
+</nav>
+<p class="source">Based on chapter 15 of <a href="https://doc.rust-lang.org/book/ch15-00-smart-pointers.html">The Rust Programming Language</a>. Content was rewritten and condensed for this page.</p>
+
+</main>
+<script>
+var CHECK_KEY = 'rust-rust-smart-pointers-check:' + location.pathname;
+(function () {
+  var NS = 'http://www.w3.org/2000/svg';
+  var INK = '#2d3142', SOFT = '#5a6580', RULE = '#bfc0c0', ACCENT = '#bf4520', LINK = '#2e5aa8', OK = '#2f7a4a', PAPER = '#f5f5f5';
+  var $ = function (id) { return document.getElementById(id); };
+
+  // ---------- memory trace ----------
+  var dataEl = $('traceData');
+  if (dataEl) {
+    var steps = JSON.parse(dataEl.textContent), cur = 0, svg = $('mem');
+    var el = function (name, attrs, parent) {
+      var e = document.createElementNS(NS, name);
+      for (var k in attrs) e.setAttribute(k, attrs[k]);
+      (parent || svg).appendChild(e);
+      return e;
+    };
+    var txt = function (x, y, s, a) {
+      var o = { x: x, y: y, 'font-size': 12, fill: INK, 'font-family': 'Geist Mono, monospace' };
+      for (var k in a) o[k] = a[k];
+      var t = el('text', o); t.textContent = s; return t;
+    };
+    var clear = function () {
+      Array.prototype.slice.call(svg.childNodes).forEach(function (n) {
+        var nm = (n.localName || '').toLowerCase();
+        if (nm !== 'title' && nm !== 'desc') svg.removeChild(n);
+      });
+    };
+    var fit = function (s, n) { s = String(s); return s.length > n ? s.slice(0, n - 1) + '…' : s; };
+    var draw = function () {
+      var st = steps[cur], stack = st.stack || [], heap = st.heap || [];
+      clear();
+      var defs = el('defs', {});
+      [['ah', INK], ['ahr', LINK]].forEach(function (m) {
+        var mk = el('marker', { id: m[0], viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: 'auto-start-reverse' }, defs);
+        el('path', { d: 'M0 0 L10 5 L0 10 z', fill: m[1] }, mk);
+      });
+      txt(56, 24, 'STACK', { 'font-size': 11, fill: SOFT, 'letter-spacing': '2' });
+      txt(380, 24, 'HEAP', { 'font-size': 11, fill: SOFT, 'letter-spacing': '2' });
+      var pos = {}, y = 40, lastF = null;
+      stack.forEach(function (c) {
+        if (c.f && c.f !== lastF) { txt(56, y + 12, c.f, { 'font-size': 10.5, fill: SOFT, 'font-style': 'italic' }); y += 18; lastF = c.f; }
+        var moved = c.s === 'moved', dropped = c.s === 'dropped', isRef = c.s === 'ref' || c.s === 'mut';
+        var g = el('g', { opacity: dropped ? 0.35 : 1 });
+        el('rect', { x: 56, y: y, width: 240, height: 40, rx: 6, fill: moved || dropped ? PAPER : '#fff', stroke: isRef ? LINK : (moved ? RULE : INK), 'stroke-width': 1.4, 'stroke-dasharray': moved || dropped ? '5 4' : '' }, g);
+        var t1 = document.createElementNS(NS, 'text');
+        t1.setAttribute('x', 68); t1.setAttribute('y', y + 25); t1.setAttribute('font-size', 13); t1.setAttribute('font-weight', 600);
+        t1.setAttribute('font-family', 'Geist Mono, monospace'); t1.setAttribute('fill', moved ? SOFT : INK); t1.textContent = fit(c.n, 14); g.appendChild(t1);
+        var t2 = document.createElementNS(NS, 'text');
+        t2.setAttribute('x', 284); t2.setAttribute('y', y + 25); t2.setAttribute('font-size', 12); t2.setAttribute('text-anchor', 'end');
+        t2.setAttribute('font-family', 'Geist Mono, monospace'); t2.setAttribute('fill', moved ? SOFT : (isRef ? LINK : INK));
+        t2.textContent = fit(moved ? 'moved' : (dropped ? 'dropped' : (c.v == null ? '' : c.v)), 20); g.appendChild(t2);
+        if (c.s === 'mut' || c.s === 'ref') {
+          el('rect', { x: 248 - 4, y: y - 8, width: c.s === 'mut' ? 52 : 36, height: 15, rx: 3, fill: LINK }, g);
+          var t3 = document.createElementNS(NS, 'text');
+          t3.setAttribute('x', 248); t3.setAttribute('y', y + 3); t3.setAttribute('font-size', 9.5); t3.setAttribute('fill', '#fff'); t3.setAttribute('font-weight', 600);
+          t3.setAttribute('font-family', 'Geist Mono, monospace'); t3.textContent = c.s === 'mut' ? '&mut' : '&'; g.appendChild(t3);
+        }
+        svg.appendChild(g);
+        pos[c.n] = { y: y + 20, c: c };
+        y += 50;
+      });
+      var hy = 40, hpos = {};
+      heap.forEach(function (h) {
+        var freed = h.s === 'freed';
+        el('rect', { x: 380, y: hy, width: 236, height: 40, rx: 6, fill: freed ? PAPER : '#fff', stroke: freed ? RULE : INK, 'stroke-width': 1.4, 'stroke-dasharray': freed ? '5 4' : '', opacity: freed ? 0.5 : 1 });
+        txt(392, hy + 25, fit(freed ? 'freed' : h.v, 28), { fill: freed ? SOFT : INK });
+        hpos[h.id] = { y: hy + 20, freed: freed };
+        hy += 50;
+      });
+      // pointers
+      stack.forEach(function (c) {
+        if (!c.to || c.s === 'moved' || c.s === 'dropped') return;
+        var a = pos[c.n];
+        if (c.to.charAt(0) === '@') {
+          var b = pos[c.to.slice(1)]; if (!b) return;
+          var dx = 18 + Math.min(30, Math.abs(a.y - b.y) / 6);
+          el('path', { d: 'M56 ' + a.y + ' C' + (56 - dx) + ' ' + a.y + ' ' + (56 - dx) + ' ' + b.y + ' 54 ' + b.y, fill: 'none', stroke: LINK, 'stroke-width': 1.6, 'marker-end': 'url(#ahr)' });
+        } else {
+          var h = hpos[c.to]; if (!h) return;
+          el('path', { d: 'M296 ' + a.y + ' C338 ' + a.y + ' 338 ' + h.y + ' 378 ' + h.y, fill: 'none', stroke: h.freed ? ACCENT : INK, 'stroke-width': 1.6, 'stroke-dasharray': h.freed ? '4 3' : '', 'marker-end': 'url(#ah)' });
+        }
+      });
+      if (!stack.length) txt(56, 64, '(empty)', { fill: SOFT });
+      if (!heap.length) txt(380, 64, '(nothing allocated)', { fill: SOFT });
+      var H = Math.max(y, hy, 90) + 10;
+      svg.setAttribute('viewBox', '0 0 640 ' + H);
+      Array.prototype.forEach.call(document.querySelectorAll('.trace-code .ln'), function (ln) {
+        ln.classList.toggle('on', +ln.getAttribute('data-l') === st.l);
+      });
+      $('traceNote').innerHTML = st.note;
+      $('traceLive').textContent = 'step ' + (cur + 1) + ' / ' + steps.length;
+      $('tPrev').disabled = cur === 0;
+      $('tNext').disabled = cur === steps.length - 1;
+    };
+    $('tPrev').addEventListener('click', function () { if (cur > 0) { cur--; draw(); } });
+    $('tNext').addEventListener('click', function () { if (cur < steps.length - 1) { cur++; draw(); } });
+    $('tReset').addEventListener('click', function () { cur = 0; draw(); });
+    draw();
+  }
+
+  // ---------- quiz ----------
+  var quizzes = document.querySelectorAll('.quiz'), score = $('quizScore');
+  var upScore = function () {
+    var done = 0, right = 0;
+    quizzes.forEach(function (q) { if (q.dataset.picked != null) { done++; if (q.dataset.picked === q.dataset.a) right++; } });
+    score.textContent = done ? right + ' / ' + quizzes.length + ' correct' + (done < quizzes.length ? ' so far' : '') : quizzes.length + ' questions';
+  };
+  quizzes.forEach(function (q) {
+    var btns = q.querySelectorAll('button'), why = q.querySelector('.quiz-why');
+    btns.forEach(function (b) {
+      b.addEventListener('click', function () {
+        q.dataset.picked = b.dataset.i;
+        btns.forEach(function (o) {
+          o.classList.remove('right', 'wrong');
+          o.setAttribute('aria-pressed', o === b ? 'true' : 'false');
+          if (o.dataset.i === q.dataset.a) o.classList.add('right');
+          else if (o === b) o.classList.add('wrong');
+        });
+        why.hidden = false;
+        why.textContent = '';
+        why.insertAdjacentHTML('afterbegin', (b.dataset.i === q.dataset.a ? '<b>Correct.</b> ' : '<b>Not quite.</b> ') + why.dataset.html);
+        upScore();
+      });
+    });
+    why.dataset.html = why.innerHTML;
+  });
+  if (score) upScore();
+
+  // ---------- contents checklist ----------
+  var saved = {};
+  try { saved = JSON.parse(localStorage.getItem(CHECK_KEY) || '{}'); } catch (e) {}
+  var boxes = document.querySelectorAll('.check input'), out = $('prog');
+  var upd = function () {
+    var n = 0, o = {};
+    boxes.forEach(function (b) { if (b.checked) { n++; o[b.id] = 1; } b.closest('li').classList.toggle('done', b.checked); });
+    out.textContent = n + '/' + boxes.length + ' completed';
+    try { localStorage.setItem(CHECK_KEY, JSON.stringify(o)); } catch (e) {}
+  };
+  boxes.forEach(function (b) { b.checked = !!saved[b.id]; b.addEventListener('change', upd); });
+  upd();
+})();
+
+</script>
+</body>
+</html>

@@ -1293,6 +1293,17 @@ const DOCS = [
     related: ['Rust Packages, Crates and Modules', 'Rust Testing'],
   },
   {
+    title: 'Rust Smart Pointers',
+    path: 'content/engineering/rust/rust-smart-pointers/rust-smart-pointers.html',
+    category: 'Engineering',
+    topic: 'Rust',
+    order: 46,
+    level: 'Intermediate',
+    tags: ['rust', 'smart pointers', 'box', 'rc', 'refcell', 'weak', 'deref', 'drop', 'interior mutability', 'reference cycles'],
+    summary: 'Box<T> for heap data and recursive types, the Deref trait and deref coercion, Drop and std::mem::drop, Rc<T> for shared ownership, RefCell<T> and interior mutability, Rc<RefCell<T>>, reference cycles and leaks, and Weak<T> for trees. Step through Rc and Weak counts.',
+    related: ['Rust Ownership', 'Rust Fearless Concurrency', 'Rust Advanced Features'],
+  },
+  {
     title: 'Quant Roadmap',
     path: 'content/quant/quant-roadmap/quant-roadmap.html',
     category: 'Quant',
