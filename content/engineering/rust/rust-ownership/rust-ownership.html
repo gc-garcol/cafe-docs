@@ -114,7 +114,7 @@ table.ops td:first-child{font-weight:600}
 
 <section>
   <h2>Step through it</h2>
-  <p>A <code>String</code> owns a heap buffer. Assigning it moves ownership, <code>clone</code> copies the buffer, and <code>&amp;amp;</code> lends it without giving it away. Step through and watch the arrows.</p>
+  <p>A <code>String</code> owns a heap buffer. Assigning it moves ownership, <code>clone</code> copies the buffer, and <code>&amp;</code> lends it without giving it away. Step through and watch the arrows.</p>
   <figure class="card">
     <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">Move, clone and borrow a String</span></div>
     <div class="trace">
@@ -213,7 +213,7 @@ table.ops td:first-child{font-weight:600}
 <section id="refs">
   <h2>4. References and borrowing</h2>
 
-  <p><code>&amp;amp;s</code> creates a <b>reference</b>: a pointer to the value that does not own it. Creating one is called <b>borrowing</b>. When the reference goes away, nothing is dropped, because it never owned anything.</p>
+  <p><code>&amp;s</code> creates a <b>reference</b>: a pointer to the value that does not own it. Creating one is called <b>borrowing</b>. When the reference goes away, nothing is dropped, because it never owned anything.</p>
   <div class="pre-wrap"><pre><code><span class="k">fn</span> main() {
     <span class="k">let</span> s = <span class="t">String</span>::from(<span class="s">"hello"</span>);
     <span class="k">let</span> len = calculate_length(&amp;s);
@@ -274,7 +274,7 @@ table.ops td:first-child{font-weight:600}
 <section id="slices">
   <h2>7. The slice type</h2>
 
-  <p>A <b>slice</b> borrows a contiguous part of a collection. It is a "fat pointer": a pointer plus a length. <code>&amp;amp;s[0..5]</code> is a <code>&amp;amp;str</code> pointing at the first five bytes of <code>s</code>.</p>
+  <p>A <b>slice</b> borrows a contiguous part of a collection. It is a "fat pointer": a pointer plus a length. <code>&amp;s[0..5]</code> is a <code>&amp;str</code> pointing at the first five bytes of <code>s</code>.</p>
   <div class="pre-wrap"><pre><code><span class="k">fn</span> first_word(s: &amp;<span class="t">str</span>) -&gt; &amp;<span class="t">str</span> {
     <span class="k">for</span> (i, &amp;b) <span class="k">in</span> s.as_bytes().iter().enumerate() {
         <span class="k">if</span> b == b<span class="s">' '</span> {
@@ -294,7 +294,7 @@ table.ops td:first-child{font-weight:600}
     <span class="k">let</span> mid: &amp;[<span class="t">i32</span>] = &amp;a[<span class="n">1</span>..<span class="n">3</span>];      <span class="c2">// [2, 3]</span>
     <span class="m">println!</span>(<span class="s">"{mid:?}"</span>);
 }</code></pre></div>
-  <p>Returning a slice instead of an index ties the result to the data. If the caller tries to <code>clear()</code> the string while <code>word</code> is still in use, the borrow checker rejects it, because <code>clear</code> needs a <code>&amp;amp;mut</code> while a <code>&amp;amp;</code> is alive. An index would silently become stale.</p>
+  <p>Returning a slice instead of an index ties the result to the data. If the caller tries to <code>clear()</code> the string while <code>word</code> is still in use, the borrow checker rejects it, because <code>clear</code> needs a <code>&amp;mut</code> while a <code>&amp;</code> is alive. An index would silently become stale.</p>
   <div class="pre-wrap"><span class="pre-tag bad">does not compile</span><pre><code><span class="k">fn</span> first_word(s: &amp;<span class="t">str</span>) -&gt; &amp;<span class="t">str</span> { s.split(<span class="s">' '</span>).next().unwrap() }
 
 <span class="k">fn</span> main() {
@@ -303,7 +303,7 @@ table.ops td:first-child{font-weight:600}
     s.clear(); <span class="c2">// error[E0502]: cannot borrow `s` as mutable because it is also borrowed as immutable</span>
     <span class="m">println!</span>(<span class="s">"{word}"</span>);
 }</code></pre></div>
-  <p>Range syntax: <code>[..2]</code> from the start, <code>[3..]</code> to the end, <code>[..]</code> the whole thing. String slice indexes are byte offsets and must fall on UTF-8 character boundaries, otherwise the program panics. Prefer parameters of type <code>&amp;amp;str</code> and <code>&amp;amp;[T]</code> over <code>&amp;amp;String</code> and <code>&amp;amp;Vec&amp;lt;T&amp;gt;</code>: they accept more callers at no cost.</p>
+  <p>Range syntax: <code>[..2]</code> from the start, <code>[3..]</code> to the end, <code>[..]</code> the whole thing. String slice indexes are byte offsets and must fall on UTF-8 character boundaries, otherwise the program panics. Prefer parameters of type <code>&amp;str</code> and <code>&amp;[T]</code> over <code>&amp;String</code> and <code>&amp;Vec&lt;T&gt;</code>: they accept more callers at no cost.</p>
 </section>
 
 <section id="summary">
