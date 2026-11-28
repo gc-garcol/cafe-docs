@@ -1238,6 +1238,17 @@ const DOCS = [
     related: ['Rust Enums and Pattern Matching', 'Rust CLI Project: minigrep', 'Rust Generics, Traits and Lifetimes'],
   },
   {
+    title: 'Rust Generics, Traits and Lifetimes',
+    path: 'content/engineering/rust/rust-generics-traits-lifetimes/rust-generics-traits-lifetimes.html',
+    category: 'Engineering',
+    topic: 'Rust',
+    order: 41,
+    level: 'Intermediate',
+    tags: ['rust', 'generics', 'traits', 'lifetimes', 'trait bounds', 'monomorphization', 'impl trait', 'where clause', 'lifetime elision'],
+    summary: 'Generic functions, structs, enums and methods, monomorphization, defining and implementing traits, default methods, the orphan rule, trait bounds, impl Trait and where clauses, blanket impls, lifetime annotations, the elision rules and \'static.',
+    related: ['Rust Ownership', 'Rust Structs', 'Rust OOP Features', 'Rust Advanced Features'],
+  },
+  {
     title: 'Quant Roadmap',
     path: 'content/quant/quant-roadmap/quant-roadmap.html',
     category: 'Quant',
