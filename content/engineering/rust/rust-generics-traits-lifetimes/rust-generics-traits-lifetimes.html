@@ -198,6 +198,28 @@ table.ops td:first-child{font-weight:600}
   <p><code>Option&lt;T&gt;</code> and <code>Result&lt;T, E&gt;</code> are ordinary generic enums. Note the <code>impl&lt;T, U&gt;</code>: the parameters are declared after <code>impl</code> so the compiler knows <code>Point&lt;T, U&gt;</code> refers to generic, not concrete, types.</p>
   <h3>Zero cost: monomorphization</h3>
   <p>At compile time Rust generates one copy of a generic function for each concrete type it is used with, <code>largest_i32</code>, <code>largest_char</code> and so on. There is no boxing or dynamic dispatch, so generic code runs as fast as hand-written code. The cost is compile time and binary size.</p>
+<!-- sim:generics -->
+  <figure class="card sim" id="sim-generics" aria-label="Simulator: Monomorphization: one generic, several copies">
+    <div class="card-top"><span class="eyebrow">Simulator 1</span><span class="card-title">Monomorphization: one generic, several copies</span></div>
+    <div class="trace">
+      <pre class="trace-code"><code><span class="ln" data-l="1"><span class="lno">1</span><span class="k">fn</span> largest&lt;<span class="t">T</span>: <span class="t">PartialOrd</span> + <span class="t">Copy</span>&gt;(list: &amp;[<span class="t">T</span>]) -&gt; <span class="t">T</span> {</span><span class="ln" data-l="2"><span class="lno">2</span>    <span class="k">let</span> <span class="k">mut</span> big = list[<span class="n">0</span>];</span><span class="ln" data-l="3"><span class="lno">3</span>    <span class="k">for</span> &amp;x <span class="k">in</span> list { <span class="k">if</span> x &gt; big { big = x; } }</span><span class="ln" data-l="4"><span class="lno">4</span>    big</span><span class="ln" data-l="5"><span class="lno">5</span>}</span><span class="ln" data-l="6"><span class="lno">6</span><span class="k">struct</span> <span class="t">Point</span>&lt;<span class="t">T</span>&gt; { x: <span class="t">T</span>, y: <span class="t">T</span> }</span><span class="ln" data-l="7"><span class="lno">7</span><span class="k">fn</span> main() {</span><span class="ln" data-l="8"><span class="lno">8</span>    <span class="m">println!</span>(<span class="s">"{}"</span>, largest(&amp;[<span class="n">3</span>, <span class="n">9</span>, <span class="n">4</span>]));</span><span class="ln" data-l="9"><span class="lno">9</span>    <span class="m">println!</span>(<span class="s">"{}"</span>, largest(&amp;[<span class="s">'q'</span>, <span class="s">'z'</span>, <span class="s">'a'</span>]));</span><span class="ln" data-l="10"><span class="lno">10</span>    <span class="k">let</span> p = <span class="t">Point</span> { x: <span class="n">1.5</span>, y: <span class="n">2.0</span> };</span><span class="ln" data-l="11"><span class="lno">11</span>    <span class="m">println!</span>(<span class="s">"{}"</span>, p.x + p.y);</span><span class="ln" data-l="12"><span class="lno">12</span>}</span></code></pre>
+      <div class="scroll"><svg viewBox="0 0 640 200" role="img" aria-labelledby="sim-generics-title sim-generics-desc">
+        <title id="sim-generics-title">Monomorphization: one generic, several copies</title>
+        <desc id="sim-generics-desc">Step-by-step simulator for Monomorphization: one generic, several copies. Use Prev and Next, or the arrow keys, to move through the steps; the note under the figure explains each one.</desc>
+      </svg></div>
+    </div>
+    <p class="trace-note" aria-live="polite"></p>
+    <div class="card-bottom">
+      <div class="row" style="margin:0">
+        <button type="button" class="btn" data-act="prev">&larr; Prev</button>
+        <button type="button" class="btn" data-act="next">Next &rarr;</button>
+        <button type="button" class="btn" data-act="reset">Reset</button>
+      </div>
+      <span class="live"></span>
+    </div>
+    <script type="application/json" class="sim-data">{"heads":["SOURCE","COMPILED"],"steps":[{"l":1,"note":"One generic definition. \u003ccode>T\u003c/code> is a placeholder; the bound says what \u003ccode>T\u003c/code> must support (comparison and copying).","cols":[[{"v":"fn largest\u003cT>"}],[]]},{"l":[8,2,3],"note":"Called with \u003ccode>&amp;[i32]\u003c/code>: the compiler infers \u003ccode>T = i32\u003c/code> and generates a version just for \u003ccode>i32\u003c/code>.","o":"9","cols":[[{"v":"fn largest\u003cT>"}],[{"v":"largest::\u003ci32>","s":"hl"}]]},{"l":9,"note":"Called with \u003ccode>char\u003c/code>: a second, separate copy is generated.","o":"z","cols":[[{"v":"fn largest\u003cT>"}],[{"v":"largest::\u003ci32>"},{"v":"largest::\u003cchar>","s":"hl"}]]},{"l":[6,10],"note":"Generic structs work the same way. \u003ccode>x\u003c/code> and \u003ccode>y\u003c/code> share one \u003ccode>T\u003c/code>, so \u003ccode>Point { x: 1, y: 2.0 }\u003c/code> would be E0308.","cols":[[{"v":"fn largest\u003cT>"},{"v":"struct Point\u003cT>"}],[{"v":"largest::\u003ci32>"},{"v":"largest::\u003cchar>"},{"v":"Point\u003cf64>","s":"hl"}]]},{"l":11,"note":"Each copy is as fast as hand-written code: no boxing, no run-time type checks. The cost is compile time and binary size.","o":"3.5","cols":[[{"v":"fn largest\u003cT>"},{"v":"struct Point\u003cT>"}],[{"v":"largest::\u003ci32>","s":"ok"},{"v":"largest::\u003cchar>","s":"ok"},{"v":"Point\u003cf64>","s":"ok"}]]}]}</script>
+  </figure>
+  <!-- /sim:generics -->
 </section>
 
 <section id="traits">
@@ -234,6 +256,28 @@ table.ops td:first-child{font-weight:600}
   <p>Default methods may call other methods of the trait, even ones without a default. Implementors then only write the required pieces.</p>
   <h3>The orphan rule</h3>
   <p>You can implement a trait for a type only if the trait or the type is defined in your crate. You can implement <code>Display</code> for your <code>Tweet</code>, or your <code>Summary</code> for <code>Vec&lt;T&gt;</code>, but not <code>Display</code> for <code>Vec&lt;T&gt;</code>. This coherence rule guarantees that two crates can never provide conflicting implementations. The newtype pattern (chapter 20) is the usual workaround.</p>
+<!-- sim:traits -->
+  <figure class="card sim" id="sim-traits" aria-label="Simulator: Implementing a trait, with a default method">
+    <div class="card-top"><span class="eyebrow">Simulator 2</span><span class="card-title">Implementing a trait, with a default method</span></div>
+    <div class="trace">
+      <pre class="trace-code"><code><span class="ln" data-l="1"><span class="lno">1</span><span class="k">trait</span> <span class="t">Summary</span> {</span><span class="ln" data-l="2"><span class="lno">2</span>    <span class="k">fn</span> author(&amp;<span class="k">self</span>) -&gt; <span class="t">String</span>;</span><span class="ln" data-l="3"><span class="lno">3</span>    <span class="k">fn</span> summarize(&amp;<span class="k">self</span>) -&gt; <span class="t">String</span> {</span><span class="ln" data-l="4"><span class="lno">4</span>        <span class="m">format!</span>(<span class="s">"(Read more from {}...)"</span>, <span class="k">self</span>.author())</span><span class="ln" data-l="5"><span class="lno">5</span>    }</span><span class="ln" data-l="6"><span class="lno">6</span>}</span><span class="ln" data-l="7"><span class="lno">7</span><span class="k">struct</span> <span class="t">Tweet</span> { user: <span class="t">String</span> }</span><span class="ln" data-l="8"><span class="lno">8</span><span class="k">struct</span> <span class="t">Article</span> { title: <span class="t">String</span> }</span><span class="ln" data-l="9"><span class="lno">9</span><span class="k">impl</span> <span class="t">Summary</span> <span class="k">for</span> <span class="t">Tweet</span> {</span><span class="ln" data-l="10"><span class="lno">10</span>    <span class="k">fn</span> author(&amp;<span class="k">self</span>) -&gt; <span class="t">String</span> { <span class="m">format!</span>(<span class="s">"@{}"</span>, <span class="k">self</span>.user) }</span><span class="ln" data-l="11"><span class="lno">11</span>}</span><span class="ln" data-l="12"><span class="lno">12</span><span class="k">impl</span> <span class="t">Summary</span> <span class="k">for</span> <span class="t">Article</span> {</span><span class="ln" data-l="13"><span class="lno">13</span>    <span class="k">fn</span> author(&amp;<span class="k">self</span>) -&gt; <span class="t">String</span> { <span class="t">String</span>::from(<span class="s">"staff"</span>) }</span><span class="ln" data-l="14"><span class="lno">14</span>    <span class="k">fn</span> summarize(&amp;<span class="k">self</span>) -&gt; <span class="t">String</span> { <span class="k">self</span>.title.clone() }</span><span class="ln" data-l="15"><span class="lno">15</span>}</span><span class="ln" data-l="16"><span class="lno">16</span><span class="k">fn</span> main() {</span><span class="ln" data-l="17"><span class="lno">17</span>    <span class="k">let</span> t = <span class="t">Tweet</span> { user: <span class="t">String</span>::from(<span class="s">"rust"</span>) };</span><span class="ln" data-l="18"><span class="lno">18</span>    <span class="k">let</span> a = <span class="t">Article</span> { title: <span class="t">String</span>::from(<span class="s">"1.0 out"</span>) };</span><span class="ln" data-l="19"><span class="lno">19</span>    <span class="m">println!</span>(<span class="s">"{}\n{}"</span>, t.summarize(), a.summarize());</span><span class="ln" data-l="20"><span class="lno">20</span>}</span></code></pre>
+      <div class="scroll"><svg viewBox="0 0 640 200" role="img" aria-labelledby="sim-traits-title sim-traits-desc">
+        <title id="sim-traits-title">Implementing a trait, with a default method</title>
+        <desc id="sim-traits-desc">Step-by-step simulator for Implementing a trait, with a default method. Use Prev and Next, or the arrow keys, to move through the steps; the note under the figure explains each one.</desc>
+      </svg></div>
+    </div>
+    <p class="trace-note" aria-live="polite"></p>
+    <div class="card-bottom">
+      <div class="row" style="margin:0">
+        <button type="button" class="btn" data-act="prev">&larr; Prev</button>
+        <button type="button" class="btn" data-act="next">Next &rarr;</button>
+        <button type="button" class="btn" data-act="reset">Reset</button>
+      </div>
+      <span class="live"></span>
+    </div>
+    <script type="application/json" class="sim-data">{"heads":["TYPE","summarize()"],"steps":[{"l":[1,5],"note":"A trait lists methods a type must provide. \u003ccode>summarize\u003c/code> has a default body that calls the required \u003ccode>author\u003c/code>.","cols":[[{"v":"trait Summary"}],[{"v":"author: required"},{"v":"summarize: default"}]]},{"l":[9,11],"note":"\u003ccode>Tweet\u003c/code> implements only \u003ccode>author\u003c/code> and inherits the default \u003ccode>summarize\u003c/code>.","cols":[[{"v":"Tweet"}],[{"v":"default → uses author()","s":"hl"}]]},{"l":[12,15],"note":"\u003ccode>Article\u003c/code> overrides \u003ccode>summarize\u003c/code>.","cols":[[{"v":"Tweet"},{"v":"Article"}],[{"v":"default → uses author()"},{"v":"override → title","s":"hl"}]]},{"l":[19,4,10],"note":"\u003ccode>t.summarize()\u003c/code> runs the default, which calls \u003ccode>Tweet\u003c/code>'s \u003ccode>author\u003c/code>. \u003ccode>a.summarize()\u003c/code> runs the override.","o":["(Read more from @rust...)","1.0 out"],"cols":[[{"v":"Tweet"},{"v":"Article"}],[{"v":"\"(Read more from @rust...)\"","s":"ok"},{"v":"\"1.0 out\"","s":"ok"}]]},{"l":9,"note":"Orphan rule: you may implement a trait for a type only if the trait or the type is local to your crate. \u003ccode>impl Display for Vec&lt;T&gt;\u003c/code> is E0117 everywhere except std.","cols":[[{"v":"impl Summary for Tweet"},{"v":"impl Display for Vec\u003cT>"}],[{"v":"local trait: ok","s":"ok"},{"v":"both foreign","s":"err","t":"E0117"}]]}]}</script>
+  </figure>
+  <!-- /sim:traits -->
 </section>
 
 <section id="bounds">
@@ -303,6 +347,28 @@ table.ops td:first-child{font-weight:600}
     <span class="t">Pair</span>::new(<span class="n">3</span>, <span class="n">7</span>).cmp_display();
     <span class="m">println!</span>(<span class="s">"{}"</span>, <span class="s">"quiet"</span>.shout());
 }</code></pre></div>
+<!-- sim:bounds -->
+  <figure class="card sim" id="sim-bounds" aria-label="Simulator: Bounds decide what a generic can call">
+    <div class="card-top"><span class="eyebrow">Simulator 3</span><span class="card-title">Bounds decide what a generic can call</span></div>
+    <div class="trace">
+      <pre class="trace-code"><code><span class="ln" data-l="1"><span class="lno">1</span><span class="k">use</span> std::fmt::<span class="t">Display</span>;</span><span class="ln" data-l="2"><span class="lno">2</span><span class="k">fn</span> show&lt;<span class="t">T</span>: <span class="t">Display</span> + <span class="t">PartialOrd</span>&gt;(a: <span class="t">T</span>, b: <span class="t">T</span>) -&gt; <span class="t">String</span> {</span><span class="ln" data-l="3"><span class="lno">3</span>    <span class="k">if</span> a &gt; b { <span class="m">format!</span>(<span class="s">"{a} wins"</span>) } <span class="k">else</span> { <span class="m">format!</span>(<span class="s">"{b} wins"</span>) }</span><span class="ln" data-l="4"><span class="lno">4</span>}</span><span class="ln" data-l="5"><span class="lno">5</span><span class="k">fn</span> describe(item: &amp;<span class="k">impl</span> <span class="t">Display</span>) -&gt; <span class="t">String</span> { <span class="m">format!</span>(<span class="s">"[{item}]"</span>) }</span><span class="ln" data-l="6"><span class="lno">6</span><span class="k">trait</span> <span class="t">Shout</span> { <span class="k">fn</span> shout(&amp;<span class="k">self</span>) -&gt; <span class="t">String</span>; }</span><span class="ln" data-l="7"><span class="lno">7</span><span class="k">impl</span>&lt;<span class="t">T</span>: <span class="t">Display</span>&gt; <span class="t">Shout</span> <span class="k">for</span> <span class="t">T</span> {</span><span class="ln" data-l="8"><span class="lno">8</span>    <span class="k">fn</span> shout(&amp;<span class="k">self</span>) -&gt; <span class="t">String</span> { <span class="k">self</span>.to_string().to_uppercase() }</span><span class="ln" data-l="9"><span class="lno">9</span>}</span><span class="ln" data-l="10"><span class="lno">10</span><span class="k">fn</span> main() {</span><span class="ln" data-l="11"><span class="lno">11</span>    <span class="m">println!</span>(<span class="s">"{}"</span>, show(<span class="n">3</span>, <span class="n">7</span>));</span><span class="ln" data-l="12"><span class="lno">12</span>    <span class="c2">// show(vec![1], vec![2]);  // E0277: Vec is not Display</span></span><span class="ln" data-l="13"><span class="lno">13</span>    <span class="m">println!</span>(<span class="s">"{} {}"</span>, describe(&amp;<span class="n">2.5</span>), <span class="s">"hi"</span>.shout());</span><span class="ln" data-l="14"><span class="lno">14</span>}</span></code></pre>
+      <div class="scroll"><svg viewBox="0 0 640 200" role="img" aria-labelledby="sim-bounds-title sim-bounds-desc">
+        <title id="sim-bounds-title">Bounds decide what a generic can call</title>
+        <desc id="sim-bounds-desc">Step-by-step simulator for Bounds decide what a generic can call. Use Prev and Next, or the arrow keys, to move through the steps; the note under the figure explains each one.</desc>
+      </svg></div>
+    </div>
+    <p class="trace-note" aria-live="polite"></p>
+    <div class="card-bottom">
+      <div class="row" style="margin:0">
+        <button type="button" class="btn" data-act="prev">&larr; Prev</button>
+        <button type="button" class="btn" data-act="next">Next &rarr;</button>
+        <button type="button" class="btn" data-act="reset">Reset</button>
+      </div>
+      <span class="live"></span>
+    </div>
+    <script type="application/json" class="sim-data">{"heads":["CALL","BOUND CHECK"],"steps":[{"l":2,"note":"Inside \u003ccode>show\u003c/code>, only what the bounds promise is available: printing (\u003ccode>Display\u003c/code>) and comparing (\u003ccode>PartialOrd\u003c/code>).","cols":[[{"v":"show\u003cT>"}],[{"v":"T: Display + PartialOrd"}]]},{"l":[11,3],"note":"\u003ccode>i32\u003c/code> satisfies both bounds.","o":"7 wins","cols":[[{"v":"show(3, 7)"}],[{"v":"i32: Display ✓  PartialOrd ✓","s":"ok"}]]},{"l":12,"note":"\u003ccode>Vec&lt;i32&gt;\u003c/code> is comparable but not \u003ccode>Display\u003c/code>. The call is rejected at compile time with E0277, at the call site.","cols":[[{"v":"show(vec![1], vec![2])"}],[{"v":"Vec\u003ci32>: Display ✗","s":"err","t":"E0277"}]]},{"l":[13,5],"note":"\u003ccode>&amp;impl Display\u003c/code> is shorthand for a generic parameter with that bound.","cols":[[{"v":"describe(&2.5)"}],[{"v":"f64: Display ✓","s":"ok"}]]},{"l":[13,7,8],"note":"A blanket impl gives \u003ccode>Shout\u003c/code> to every \u003ccode>T: Display\u003c/code>, including \u003ccode>&amp;str\u003c/code>. This is how std gives \u003ccode>to_string\u003c/code> to every \u003ccode>Display\u003c/code> type.","o":"[2.5] HI","cols":[[{"v":"describe(&2.5)"},{"v":"\"hi\".shout()"}],[{"v":"f64: Display ✓","s":"ok"},{"v":"impl\u003cT: Display> Shout for T","s":"ok"}]]}]}</script>
+  </figure>
+  <!-- /sim:bounds -->
 </section>
 
 <section id="lifetimes">
@@ -338,6 +404,28 @@ table.ops td:first-child{font-weight:600}
   <p>If outputs still have no lifetime after the rules, the compiler asks you. That is exactly the <code>longest</code> case: two inputs, no <code>self</code>.</p>
   <h3>The 'static lifetime</h3>
   <p><code>'static</code> means "can live for the whole program". String literals are <code>&amp;'static str</code>, because they are stored in the binary. A bound <code>T: 'static</code> means <code>T</code> contains no short-lived borrows; owned types like <code>String</code> satisfy it. When the compiler suggests adding <code>'static</code> to fix an error, it is usually pointing at a dangling reference, not a missing annotation.</p>
+<!-- sim:lifetimes -->
+  <figure class="card sim" id="sim-lifetimes" aria-label="Simulator: longest: the result lives as long as the shorter input">
+    <div class="card-top"><span class="eyebrow">Simulator 4</span><span class="card-title">longest: the result lives as long as the shorter input</span></div>
+    <div class="trace">
+      <pre class="trace-code"><code><span class="ln" data-l="1"><span class="lno">1</span><span class="k">fn</span> longest&lt;<span class="lt">'a</span>&gt;(x: &amp;<span class="lt">'a</span> str, y: &amp;<span class="lt">'a</span> str) -&gt; &amp;<span class="lt">'a</span> str {</span><span class="ln" data-l="2"><span class="lno">2</span>    <span class="k">if</span> x.len() &gt; y.len() { x } <span class="k">else</span> { y }</span><span class="ln" data-l="3"><span class="lno">3</span>}</span><span class="ln" data-l="4"><span class="lno">4</span><span class="k">fn</span> main() {</span><span class="ln" data-l="5"><span class="lno">5</span>    <span class="k">let</span> s1 = <span class="t">String</span>::from(<span class="s">"long string"</span>);</span><span class="ln" data-l="6"><span class="lno">6</span>    <span class="k">let</span> result;</span><span class="ln" data-l="7"><span class="lno">7</span>    {</span><span class="ln" data-l="8"><span class="lno">8</span>        <span class="k">let</span> s2 = <span class="t">String</span>::from(<span class="s">"xyz"</span>);</span><span class="ln" data-l="9"><span class="lno">9</span>        result = longest(s1.as_str(), s2.as_str());</span><span class="ln" data-l="10"><span class="lno">10</span>        <span class="m">println!</span>(<span class="s">"{result}"</span>);</span><span class="ln" data-l="11"><span class="lno">11</span>    }</span><span class="ln" data-l="12"><span class="lno">12</span>    <span class="c2">// println!("{result}");  // E0597: s2 dropped</span></span><span class="ln" data-l="13"><span class="lno">13</span>}</span></code></pre>
+      <div class="scroll"><svg viewBox="0 0 640 200" role="img" aria-labelledby="sim-lifetimes-title sim-lifetimes-desc">
+        <title id="sim-lifetimes-title">longest: the result lives as long as the shorter input</title>
+        <desc id="sim-lifetimes-desc">Step-by-step simulator for longest: the result lives as long as the shorter input. Use Prev and Next, or the arrow keys, to move through the steps; the note under the figure explains each one.</desc>
+      </svg></div>
+    </div>
+    <p class="trace-note" aria-live="polite"></p>
+    <div class="card-bottom">
+      <div class="row" style="margin:0">
+        <button type="button" class="btn" data-act="prev">&larr; Prev</button>
+        <button type="button" class="btn" data-act="next">Next &rarr;</button>
+        <button type="button" class="btn" data-act="reset">Reset</button>
+      </div>
+      <span class="live"></span>
+    </div>
+    <script type="application/json" class="sim-data">{"heads":["SCOPES","BORROWS"],"steps":[{"l":1,"note":"\u003ccode>'a\u003c/code> does not change how long anything lives. It tells the compiler: the returned reference is valid only while \u003cb>both\u003c/b> inputs are.","cols":[[{"v":"'a = overlap of x and y"}],[]]},{"l":5,"note":"\u003ccode>s1\u003c/code> lives for all of \u003ccode>main\u003c/code>.","cols":[[{"n":"s1","v":"main scope"}],[]]},{"l":[8,9],"note":"\u003ccode>s2\u003c/code> lives only inside the block, so \u003ccode>'a\u003c/code> is at most the block. \u003ccode>result\u003c/code> gets that lifetime.","cols":[[{"n":"s1","v":"main scope"},{"n":"s2","v":"inner block","s":"hl"}],[{"n":"result","v":"&'a str (block)","s":"ref","to":"s1"}]]},{"l":10,"note":"Inside the block both strings are alive, so using \u003ccode>result\u003c/code> is fine.","o":"long string","cols":[[{"n":"s1","v":"main scope"},{"n":"s2","v":"inner block"}],[{"n":"result","v":"&'a str","s":"ref","to":"s1"}]]},{"l":11,"note":"\u003ccode>s2\u003c/code> is dropped here, which ends \u003ccode>'a\u003c/code>.","cols":[[{"n":"s1","v":"main scope"},{"n":"s2","s":"dropped"}],[{"n":"result","v":"'a has ended","s":"moved"}]]},{"l":12,"note":"Using \u003ccode>result\u003c/code> here is E0597, \"\u003ccode>s2\u003c/code> does not live long enough\", even though at run time it points at \u003ccode>s1\u003c/code>. The compiler checks the signature, not the branch taken.","cols":[[{"n":"s1","v":"main scope"},{"n":"s2","s":"dropped"}],[{"n":"result","v":"used after s2","s":"err","t":"E0597"}]]}]}</script>
+  </figure>
+  <!-- /sim:lifetimes -->
 </section>
 
 <section id="together">
@@ -357,6 +445,28 @@ table.ops td:first-child{font-weight:600}
     <span class="m">println!</span>(<span class="s">"{}"</span>, longest_with_an_announcement(<span class="s">"abcd"</span>, <span class="s">"xyz"</span>, <span class="n">2024</span>));
 }</code></pre></div>
   <p>Lifetime parameters and type parameters share the angle brackets, lifetimes first. All of this is checked at compile time and erased before code generation.</p>
+<!-- sim:together -->
+  <figure class="card sim" id="sim-together" aria-label="Simulator: A generic, a trait bound and a lifetime in one signature">
+    <div class="card-top"><span class="eyebrow">Simulator 5</span><span class="card-title">A generic, a trait bound and a lifetime in one signature</span></div>
+    <div class="trace">
+      <pre class="trace-code"><code><span class="ln" data-l="1"><span class="lno">1</span><span class="k">use</span> std::fmt::<span class="t">Display</span>;</span><span class="ln" data-l="2"><span class="lno">2</span><span class="k">fn</span> longest_with_note&lt;<span class="lt">'a</span>, <span class="t">T</span>&gt;(x: &amp;<span class="lt">'a</span> str, y: &amp;<span class="lt">'a</span> str, note: <span class="t">T</span>) -&gt; &amp;<span class="lt">'a</span> str</span><span class="ln" data-l="3"><span class="lno">3</span><span class="k">where</span></span><span class="ln" data-l="4"><span class="lno">4</span>    <span class="t">T</span>: <span class="t">Display</span>,</span><span class="ln" data-l="5"><span class="lno">5</span>{</span><span class="ln" data-l="6"><span class="lno">6</span>    <span class="m">println!</span>(<span class="s">"Note: {note}"</span>);</span><span class="ln" data-l="7"><span class="lno">7</span>    <span class="k">if</span> x.len() &gt; y.len() { x } <span class="k">else</span> { y }</span><span class="ln" data-l="8"><span class="lno">8</span>}</span><span class="ln" data-l="9"><span class="lno">9</span><span class="k">fn</span> main() {</span><span class="ln" data-l="10"><span class="lno">10</span>    <span class="k">let</span> r = longest_with_note(<span class="s">"apple"</span>, <span class="s">"fig"</span>, <span class="n">42</span>);</span><span class="ln" data-l="11"><span class="lno">11</span>    <span class="m">println!</span>(<span class="s">"{r}"</span>);</span><span class="ln" data-l="12"><span class="lno">12</span>}</span></code></pre>
+      <div class="scroll"><svg viewBox="0 0 640 200" role="img" aria-labelledby="sim-together-title sim-together-desc">
+        <title id="sim-together-title">A generic, a trait bound and a lifetime in one signature</title>
+        <desc id="sim-together-desc">Step-by-step simulator for A generic, a trait bound and a lifetime in one signature. Use Prev and Next, or the arrow keys, to move through the steps; the note under the figure explains each one.</desc>
+      </svg></div>
+    </div>
+    <p class="trace-note" aria-live="polite"></p>
+    <div class="card-bottom">
+      <div class="row" style="margin:0">
+        <button type="button" class="btn" data-act="prev">&larr; Prev</button>
+        <button type="button" class="btn" data-act="next">Next &rarr;</button>
+        <button type="button" class="btn" data-act="reset">Reset</button>
+      </div>
+      <span class="live"></span>
+    </div>
+    <script type="application/json" class="sim-data">{"heads":["PARAMETER","MEANING"],"steps":[{"l":2,"note":"Lifetime parameters and type parameters share the angle brackets; lifetimes come first.","cols":[[{"n":"'a","v":"lifetime"},{"n":"T","v":"type"}],[{"v":"declared in \u003c…>"}]]},{"l":[3,4],"note":"A \u003ccode>where\u003c/code> clause moves bounds out of the signature to keep it readable.","cols":[[{"n":"'a","v":"lifetime"},{"n":"T","v":"type"}],[{"v":"T: Display","s":"hl"}]]},{"l":[10,6],"note":"At the call, \u003ccode>T = i32\u003c/code> and \u003ccode>'a = 'static\u003c/code>, since both string literals live for the whole program.","o":"Note: 42","cols":[[{"n":"'a","v":"'static"},{"n":"T","v":"i32","s":"hl"}],[{"v":"i32: Display ✓","s":"ok"}]]},{"l":[7,11],"note":"The returned reference carries \u003ccode>'a\u003c/code>. All checks happened at compile time; at run time this is a plain function.","o":"apple","cols":[[{"n":"r","v":"&'static str","s":"ref"}],[{"v":"\"apple\"","s":"ok"}]]}]}</script>
+  </figure>
+  <!-- /sim:together -->
 </section>
 
 <section id="quiz">
@@ -528,7 +638,7 @@ var CHECK_KEY = 'rust-rust-generics-traits-lifetimes-check:' + location.pathname
       if (!heap.length) txt(380, 64, '(nothing allocated)', { fill: SOFT });
       var H = Math.max(y, hy, 90) + 10;
       svg.setAttribute('viewBox', '0 0 640 ' + H);
-      Array.prototype.forEach.call(document.querySelectorAll('.trace-code .ln'), function (ln) {
+      Array.prototype.forEach.call(document.querySelectorAll('figure:not(.sim) .trace-code .ln'), function (ln) {
         ln.classList.toggle('on', +ln.getAttribute('data-l') === st.l);
       });
       $('traceNote').innerHTML = st.note;
@@ -585,5 +695,147 @@ var CHECK_KEY = 'rust-rust-generics-traits-lifetimes-check:' + location.pathname
 })();
 
 </script>
+<!-- section-sims -->
+<script>
+(function () {
+  // Section simulators: each figure.sim carries its steps as JSON and is drawn into its own SVG.
+  var NS = 'http://www.w3.org/2000/svg';
+  var INK = '#2d3142', SOFT = '#5a6580', RULE = '#bfc0c0', ACCENT = '#bf4520', LINK = '#2e5aa8', OK = '#2f7a4a', PAPER = '#f5f5f5';
+  var W = 640, BOX_H = 40, GAP_Y = 10, TOP = 40;
+  var fit = function (s, n) { s = String(s); return s.length > n ? s.slice(0, Math.max(1, n - 1)) + '\u2026' : s; };
+
+  function initSim(fig) {
+    var data = JSON.parse(fig.querySelector('script.sim-data').textContent);
+    var svg = fig.querySelector('svg'), lines = fig.querySelectorAll('.trace-code .ln');
+    var note = fig.querySelector('.trace-note'), live = fig.querySelector('.live');
+    var prev = fig.querySelector('[data-act="prev"]'), next = fig.querySelector('[data-act="next"]'), reset = fig.querySelector('[data-act="reset"]');
+    var steps = data.steps, heads = data.heads || [], cur = 0, uid = fig.id;
+    var hasOut = steps.some(function (s) { return s.o != null; });
+    var el = function (name, attrs, parent) {
+      var e = document.createElementNS(NS, name);
+      for (var k in attrs) if (attrs[k] !== '' && attrs[k] != null) e.setAttribute(k, attrs[k]);
+      (parent || svg).appendChild(e);
+      return e;
+    };
+    var txt = function (x, y, s, a, parent) {
+      var o = { x: x, y: y, 'font-size': 12, fill: INK, 'font-family': 'Geist Mono, monospace' };
+      for (var k in a) o[k] = a[k];
+      var t = el('text', o, parent); t.textContent = s; return t;
+    };
+    var clear = function () {
+      Array.prototype.slice.call(svg.childNodes).forEach(function (n) {
+        var nm = (n.localName || '').toLowerCase();
+        if (nm !== 'title' && nm !== 'desc') svg.removeChild(n);
+      });
+    };
+
+    function draw() {
+      var st = steps[cur], cols = st.cols || [];
+      var k = Math.max(1, heads.length, cols.length);
+      var left = 40, right = 24, gap = k === 1 ? 0 : (k === 2 ? 70 : 46);
+      var colW = (W - left - right - gap * (k - 1)) / k;
+      var chars = Math.floor((colW - 24) / 7.4);
+      clear();
+      var defs = el('defs', {});
+      [['a', INK], ['b', LINK], ['c', ACCENT]].forEach(function (m) {
+        var mk = el('marker', { id: uid + '-' + m[0], viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: 'auto-start-reverse' }, defs);
+        el('path', { d: 'M0 0 L10 5 L0 10 z', fill: m[1] }, mk);
+      });
+      var pos = {}, bottom = TOP;
+      for (var ci = 0; ci < k; ci++) {
+        var x = left + ci * (colW + gap), y = TOP, lastG = null, items = cols[ci] || [];
+        if (heads[ci]) txt(x, 24, heads[ci], { 'font-size': 11, fill: SOFT, 'letter-spacing': '2' });
+        items.forEach(function (it) {
+          if (it.g && it.g !== lastG) { txt(x, y + 12, fit(it.g, chars + 4), { 'font-size': 10.5, fill: SOFT, 'font-style': 'italic' }); y += 18; lastG = it.g; }
+          var s = it.s || '', faded = /moved|dropped|freed/.test(s);
+          var isRef = /ref|mut|weak/.test(s), hl = /hl/.test(s), err = /err/.test(s), ok = /ok/.test(s);
+          var stroke = err || hl ? ACCENT : (ok ? OK : (isRef ? LINK : (faded ? RULE : INK)));
+          var g = el('g', { opacity: /dropped|freed/.test(s) ? 0.4 : 1 });
+          el('rect', { x: x, y: y, width: colW, height: BOX_H, rx: 6, fill: err ? 'rgba(191,69,32,.08)' : (ok ? 'rgba(47,122,74,.07)' : (faded ? PAPER : '#fff')), stroke: stroke, 'stroke-width': hl || err ? 2 : 1.4, 'stroke-dasharray': faded ? '5 4' : '' }, g);
+          var stateWord = /moved/.test(s) ? 'moved' : (/dropped/.test(s) ? 'dropped' : (/freed/.test(s) ? 'freed' : null));
+          var val = stateWord && it.v == null ? stateWord : (it.v == null ? '' : it.v);
+          if (it.n != null) {
+            var nChars = Math.max(4, Math.min(String(it.n).length, Math.floor(chars * 0.45)));
+            txt(x + 12, y + 25, fit(it.n, nChars), { 'font-size': 13, 'font-weight': 600, fill: faded ? SOFT : INK }, g);
+            txt(x + colW - 12, y + 25, fit(val, Math.max(4, chars - nChars - 1)), { 'text-anchor': 'end', fill: faded ? SOFT : (err ? ACCENT : (isRef ? LINK : INK)) }, g);
+          } else {
+            txt(x + 12, y + 25, fit(val, chars), { fill: faded ? SOFT : (err ? ACCENT : INK) }, g);
+          }
+          var tag = it.t || (/mut/.test(s) ? '&mut' : (/weak/.test(s) ? 'weak' : (/ref/.test(s) ? '&' : null)));
+          if (tag) {
+            var tw = 10 + tag.length * 6.2;
+            el('rect', { x: x + colW - tw - 8, y: y - 8, width: tw, height: 15, rx: 3, fill: err ? ACCENT : (ok ? OK : (hl ? ACCENT : LINK)) }, g);
+            txt(x + colW - tw - 3, y + 3, tag, { 'font-size': 9.5, fill: '#fff', 'font-weight': 600 }, g);
+          }
+          var id = it.id != null ? it.id : it.n;
+          if (id != null) pos[id] = { x: x, y: y + BOX_H / 2, col: ci, faded: faded, freed: /freed|dropped/.test(s) };
+          it._id = id;
+          y += BOX_H + GAP_Y;
+        });
+        if (!items.length && heads[ci]) txt(x, TOP + 24, data.empty && data.empty[ci] ? data.empty[ci] : '(empty)', { fill: SOFT });
+        bottom = Math.max(bottom, y);
+      }
+      // arrows
+      cols.forEach(function (items) {
+        (items || []).forEach(function (it) {
+          if (!it.to || /moved|dropped|freed/.test(it.s || '')) return;
+          var a = pos[it._id]; if (!a) return;
+          [].concat(it.to).forEach(function (t) {
+            var weak = t.charAt(0) === '~', bad = t.charAt(0) === '!';
+            if (weak || bad) t = t.slice(1);
+            var b = pos[t]; if (!b) return;
+            var color = bad || b.freed ? ACCENT : (weak || /ref|mut/.test(it.s || '') ? LINK : INK);
+            var mk = 'url(#' + uid + '-' + (color === ACCENT ? 'c' : (color === LINK ? 'b' : 'a')) + ')';
+            var dash = weak || bad || b.freed ? '4 3' : '', d;
+            if (b.col === a.col) {
+              var dx = 18 + Math.min(22, Math.abs(a.y - b.y) / 6), lx = a.x;
+              d = 'M' + lx + ' ' + a.y + ' C' + (lx - dx) + ' ' + a.y + ' ' + (lx - dx) + ' ' + b.y + ' ' + (lx - 2) + ' ' + b.y;
+            } else if (b.col > a.col) {
+              var x1 = a.x + colW, x2 = b.x - 2, mx = (x1 + x2) / 2;
+              d = 'M' + x1 + ' ' + a.y + ' C' + mx + ' ' + a.y + ' ' + mx + ' ' + b.y + ' ' + x2 + ' ' + b.y;
+            } else {
+              var x3 = a.x, x4 = b.x + colW + 2, mx2 = (x3 + x4) / 2;
+              d = 'M' + x3 + ' ' + a.y + ' C' + mx2 + ' ' + a.y + ' ' + mx2 + ' ' + b.y + ' ' + x4 + ' ' + b.y;
+            }
+            el('path', { d: d, fill: 'none', stroke: color, 'stroke-width': 1.6, 'stroke-dasharray': dash, 'marker-end': mk });
+          });
+        });
+      });
+      var H = Math.max(bottom, 90) + 6;
+      if (hasOut) {
+        var out = [];
+        for (var i = 0; i <= cur; i++) if (steps[i].o != null) out = out.concat(steps[i].o);
+        var shown = out.slice(-6), oh = 30 + Math.max(1, shown.length) * 18;
+        el('rect', { x: left, y: H, width: W - left - right, height: oh, rx: 6, fill: INK });
+        txt(left + 12, H + 18, 'OUTPUT', { 'font-size': 10, fill: RULE, 'letter-spacing': '2' });
+        if (!shown.length) txt(left + 12, H + 38, '(nothing printed yet)', { fill: RULE, 'font-style': 'italic' });
+        shown.forEach(function (ln, j) {
+          var bad = String(ln).charAt(0) === '!';
+          txt(left + 12, H + 38 + j * 18, fit(bad ? String(ln).slice(1) : ln, 76), { fill: bad ? '#ff9b7a' : PAPER });
+        });
+        H += oh + 10;
+      }
+      svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+      var on = [].concat(st.l || []);
+      Array.prototype.forEach.call(lines, function (ln) { ln.classList.toggle('on', on.indexOf(+ln.getAttribute('data-l')) !== -1); });
+      note.innerHTML = st.note;
+      live.textContent = 'step ' + (cur + 1) + ' / ' + steps.length;
+      prev.disabled = cur === 0;
+      next.disabled = cur === steps.length - 1;
+    }
+    prev.addEventListener('click', function () { if (cur > 0) { cur--; draw(); } });
+    next.addEventListener('click', function () { if (cur < steps.length - 1) { cur++; draw(); } });
+    reset.addEventListener('click', function () { cur = 0; draw(); });
+    fig.addEventListener('keydown', function (e) {
+      if (e.target.tagName === 'INPUT') return;
+      if (e.key === 'ArrowRight' && cur < steps.length - 1) { cur++; draw(); e.preventDefault(); }
+      if (e.key === 'ArrowLeft' && cur > 0) { cur--; draw(); e.preventDefault(); }
+    });
+    draw();
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('figure.sim'), initSim);
+})();
+</script>
+<!-- /section-sims -->
 </body>
 </html>

@@ -184,6 +184,28 @@ table.ops td:first-child{font-weight:600}
     <span class="m">println!</span>(<span class="s">"{} {} {} {}"</span>, add_one_v1(<span class="n">1</span>), add_one_v2(<span class="n">1</span>), add_one_v3(<span class="n">1</span>), add_one_v4(<span class="n">1</span>));
 }</code></pre></div>
   <p>Each closure gets one concrete type, inferred on first use. Calling the same closure with a <code>String</code> and then an <code>i32</code> is a type error.</p>
+<!-- sim:closures -->
+  <figure class="card sim" id="sim-closures" aria-label="Simulator: A closure captures its environment">
+    <div class="card-top"><span class="eyebrow">Simulator 1</span><span class="card-title">A closure captures its environment</span></div>
+    <div class="trace">
+      <pre class="trace-code"><code><span class="ln" data-l="1"><span class="lno">1</span><span class="k">fn</span> main() {</span><span class="ln" data-l="2"><span class="lno">2</span>    <span class="k">let</span> tax = <span class="n">0.2</span>;</span><span class="ln" data-l="3"><span class="lno">3</span>    <span class="k">let</span> price = |p: f64| p * (<span class="n">1.0</span> + tax);</span><span class="ln" data-l="4"><span class="lno">4</span>    <span class="k">let</span> add_one = |x| x + <span class="n">1</span>;</span><span class="ln" data-l="5"><span class="lno">5</span>    <span class="m">println!</span>(<span class="s">"{}"</span>, price(<span class="n">10.0</span>));</span><span class="ln" data-l="6"><span class="lno">6</span>    <span class="m">println!</span>(<span class="s">"{}"</span>, add_one(<span class="n">5</span>));</span><span class="ln" data-l="7"><span class="lno">7</span>    <span class="c2">// add_one(1.5);  // E0308: x was inferred as i32</span></span><span class="ln" data-l="8"><span class="lno">8</span>}</span></code></pre>
+      <div class="scroll"><svg viewBox="0 0 640 200" role="img" aria-labelledby="sim-closures-title sim-closures-desc">
+        <title id="sim-closures-title">A closure captures its environment</title>
+        <desc id="sim-closures-desc">Step-by-step simulator for A closure captures its environment. Use Prev and Next, or the arrow keys, to move through the steps; the note under the figure explains each one.</desc>
+      </svg></div>
+    </div>
+    <p class="trace-note" aria-live="polite"></p>
+    <div class="card-bottom">
+      <div class="row" style="margin:0">
+        <button type="button" class="btn" data-act="prev">&larr; Prev</button>
+        <button type="button" class="btn" data-act="next">Next &rarr;</button>
+        <button type="button" class="btn" data-act="reset">Reset</button>
+      </div>
+      <span class="live"></span>
+    </div>
+    <script type="application/json" class="sim-data">{"heads":["STACK","CLOSURE"],"steps":[{"l":2,"note":"A local value.","cols":[[{"g":"main","n":"tax","v":"0.2"}],[]]},{"l":3,"note":"Unlike a \u003ccode>fn\u003c/code>, a closure can use \u003ccode>tax\u003c/code> from the enclosing scope. It stores a reference to it.","cols":[[{"g":"main","n":"tax","v":"0.2"},{"g":"main","n":"price","v":"closure","to":"pc"}],[{"id":"pc","v":"captures &tax","s":"ref","to":"tax"}]]},{"l":4,"note":"Parameter and return types may be left out; they are inferred from the first use.","cols":[[{"g":"main","n":"tax","v":"0.2"},{"g":"main","n":"price","v":"closure","to":"pc"},{"g":"main","n":"add_one","v":"closure","to":"ac"}],[{"id":"pc","v":"captures &tax","s":"ref","to":"tax"},{"id":"ac","v":"captures nothing"}]]},{"l":5,"note":"Calling \u003ccode>price\u003c/code> reads \u003ccode>tax\u003c/code> through the captured reference.","o":"12","cols":[[{"g":"main","n":"tax","v":"0.2"},{"g":"main","n":"price","v":"closure","to":"pc"},{"g":"main","n":"add_one","v":"closure","to":"ac"}],[{"id":"pc","v":"10 * 1.2 = 12","s":"hl","to":"tax"},{"id":"ac","v":"captures nothing"}]]},{"l":6,"note":"This call fixes \u003ccode>x\u003c/code> as \u003ccode>i32\u003c/code>.","o":"6","cols":[[{"g":"main","n":"tax","v":"0.2"},{"g":"main","n":"price","v":"closure","to":"pc"},{"g":"main","n":"add_one","v":"closure","to":"ac"}],[{"id":"pc","v":"captures &tax","s":"ref","to":"tax"},{"id":"ac","v":"|x: i32| -> i32","s":"hl"}]]},{"l":7,"note":"Each closure has exactly one concrete type. Calling it with an \u003ccode>f64\u003c/code> now is E0308.","cols":[[{"g":"main","n":"tax","v":"0.2"},{"g":"main","n":"add_one","v":"closure","to":"ac"}],[{"id":"ac","v":"add_one(1.5) → E0308","s":"err"}]]}]}</script>
+  </figure>
+  <!-- /sim:closures -->
 </section>
 
 <section id="capture">
@@ -209,6 +231,28 @@ table.ops td:first-child{font-weight:600}
         .unwrap();
 }</code></pre></div>
   <p>Between the definition of <code>borrows_mut</code> and its last call, <code>list2</code> is mutably borrowed, so even a <code>println!</code> of it there is rejected. <code>move</code> forces ownership; a new thread needs it because the main thread might finish and drop <code>list</code> first.</p>
+<!-- sim:capture -->
+  <figure class="card sim" id="sim-capture" aria-label="Simulator: Borrow, borrow mutably, or move">
+    <div class="card-top"><span class="eyebrow">Simulator 2</span><span class="card-title">Borrow, borrow mutably, or move</span></div>
+    <div class="trace">
+      <pre class="trace-code"><code><span class="ln" data-l="1"><span class="lno">1</span><span class="k">use</span> std::thread;</span><span class="ln" data-l="2"><span class="lno">2</span><span class="k">fn</span> main() {</span><span class="ln" data-l="3"><span class="lno">3</span>    <span class="k">let</span> <span class="k">mut</span> list = <span class="m">vec!</span>[<span class="n">1</span>, <span class="n">2</span>];</span><span class="ln" data-l="4"><span class="lno">4</span>    <span class="k">let</span> peek = || <span class="m">println!</span>(<span class="s">"{list:?}"</span>);</span><span class="ln" data-l="5"><span class="lno">5</span>    peek();</span><span class="ln" data-l="6"><span class="lno">6</span>    <span class="k">let</span> <span class="k">mut</span> add = || list.push(<span class="n">3</span>);</span><span class="ln" data-l="7"><span class="lno">7</span>    add();</span><span class="ln" data-l="8"><span class="lno">8</span>    <span class="k">let</span> h = thread::spawn(<span class="k">move</span> || <span class="m">println!</span>(<span class="s">"{list:?}"</span>));</span><span class="ln" data-l="9"><span class="lno">9</span>    h.join().unwrap();</span><span class="ln" data-l="10"><span class="lno">10</span>}</span></code></pre>
+      <div class="scroll"><svg viewBox="0 0 640 200" role="img" aria-labelledby="sim-capture-title sim-capture-desc">
+        <title id="sim-capture-title">Borrow, borrow mutably, or move</title>
+        <desc id="sim-capture-desc">Step-by-step simulator for Borrow, borrow mutably, or move. Use Prev and Next, or the arrow keys, to move through the steps; the note under the figure explains each one.</desc>
+      </svg></div>
+    </div>
+    <p class="trace-note" aria-live="polite"></p>
+    <div class="card-bottom">
+      <div class="row" style="margin:0">
+        <button type="button" class="btn" data-act="prev">&larr; Prev</button>
+        <button type="button" class="btn" data-act="next">Next &rarr;</button>
+        <button type="button" class="btn" data-act="reset">Reset</button>
+      </div>
+      <span class="live"></span>
+    </div>
+    <script type="application/json" class="sim-data">{"heads":["STACK","HEAP"],"steps":[{"l":3,"note":"\u003ccode>list\u003c/code> owns a vector.","cols":[[{"g":"main","n":"list","v":"Vec","to":"v"}],[{"id":"v","v":"[1, 2]"}]]},{"l":[4,5],"note":"\u003ccode>peek\u003c/code> only reads, so it captures \u003ccode>&amp;list\u003c/code>. Other shared borrows are still allowed meanwhile.","o":"[1, 2]","cols":[[{"g":"main","n":"list","v":"Vec","to":"v"},{"g":"main","n":"peek","v":"captures &list","s":"ref","to":"list"}],[{"id":"v","v":"[1, 2]"}]]},{"l":[6,7],"note":"\u003ccode>add\u003c/code> mutates, so it captures \u003ccode>&amp;mut list\u003c/code> and must be declared \u003ccode>mut\u003c/code>. While it is alive, nothing else may touch \u003ccode>list\u003c/code>.","cols":[[{"g":"main","n":"list","v":"Vec","to":"v"},{"g":"main","n":"peek","s":"dropped"},{"g":"main","n":"add","v":"captures &mut list","s":"mut","to":"list"}],[{"id":"v","v":"[1, 2, 3]","s":"hl"}]]},{"l":8,"note":"A new thread may outlive \u003ccode>main\u003c/code>'s frame, so a borrow is not enough (E0373). \u003ccode>move\u003c/code> transfers ownership of \u003ccode>list\u003c/code> into the closure.","cols":[[{"g":"main","n":"list","s":"moved"},{"g":"main","n":"add","s":"dropped"},{"g":"thread","n":"closure","v":"owns list","to":"v","s":"hl"}],[{"id":"v","v":"[1, 2, 3]"}]]},{"l":9,"note":"The thread prints and drops the vector when its closure ends.","o":"[1, 2, 3]","cols":[[{"g":"main","n":"list","s":"moved"},{"g":"thread","n":"closure","s":"dropped"}],[{"id":"v","s":"freed"}]]}]}</script>
+  </figure>
+  <!-- /sim:capture -->
 </section>
 
 <section id="fn-traits">
@@ -242,6 +286,28 @@ table.ops td:first-child{font-weight:600}
         r.clone()
     });
 }</code></pre></div>
+<!-- sim:fn-traits -->
+  <figure class="card sim" id="sim-fn-traits" aria-label="Simulator: FnOnce, FnMut, Fn: what the body does with captures">
+    <div class="card-top"><span class="eyebrow">Simulator 3</span><span class="card-title">FnOnce, FnMut, Fn: what the body does with captures</span></div>
+    <div class="trace">
+      <pre class="trace-code"><code><span class="ln" data-l="1"><span class="lno">1</span><span class="k">fn</span> call_twice&lt;<span class="t">F</span>: <span class="t">FnMut</span>()&gt;(<span class="k">mut</span> f: <span class="t">F</span>) { f(); f(); }</span><span class="ln" data-l="2"><span class="lno">2</span><span class="k">fn</span> call_once&lt;<span class="t">F</span>: <span class="t">FnOnce</span>() -&gt; <span class="t">String</span>&gt;(f: <span class="t">F</span>) -&gt; <span class="t">String</span> { f() }</span><span class="ln" data-l="3"><span class="lno">3</span><span class="k">fn</span> main() {</span><span class="ln" data-l="4"><span class="lno">4</span>    <span class="k">let</span> name = <span class="t">String</span>::from(<span class="s">"ok"</span>);</span><span class="ln" data-l="5"><span class="lno">5</span>    <span class="k">let</span> read = || <span class="m">println!</span>(<span class="s">"{name}"</span>);</span><span class="ln" data-l="6"><span class="lno">6</span>    <span class="k">let</span> <span class="k">mut</span> n = <span class="n">0</span>;</span><span class="ln" data-l="7"><span class="lno">7</span>    <span class="k">let</span> count = || n += <span class="n">1</span>;</span><span class="ln" data-l="8"><span class="lno">8</span>    <span class="k">let</span> msg = <span class="t">String</span>::from(<span class="s">"bye"</span>);</span><span class="ln" data-l="9"><span class="lno">9</span>    <span class="k">let</span> give = <span class="k">move</span> || msg;      <span class="c2">// returns the captured String</span></span><span class="ln" data-l="10"><span class="lno">10</span>    call_twice(read);</span><span class="ln" data-l="11"><span class="lno">11</span>    call_twice(count);</span><span class="ln" data-l="12"><span class="lno">12</span>    <span class="c2">// call_twice(give);           // E0525: closure is FnOnce</span></span><span class="ln" data-l="13"><span class="lno">13</span>    <span class="m">println!</span>(<span class="s">"{n} {}"</span>, call_once(give));</span><span class="ln" data-l="14"><span class="lno">14</span>}</span></code></pre>
+      <div class="scroll"><svg viewBox="0 0 640 200" role="img" aria-labelledby="sim-fn-traits-title sim-fn-traits-desc">
+        <title id="sim-fn-traits-title">FnOnce, FnMut, Fn: what the body does with captures</title>
+        <desc id="sim-fn-traits-desc">Step-by-step simulator for FnOnce, FnMut, Fn: what the body does with captures. Use Prev and Next, or the arrow keys, to move through the steps; the note under the figure explains each one.</desc>
+      </svg></div>
+    </div>
+    <p class="trace-note" aria-live="polite"></p>
+    <div class="card-bottom">
+      <div class="row" style="margin:0">
+        <button type="button" class="btn" data-act="prev">&larr; Prev</button>
+        <button type="button" class="btn" data-act="next">Next &rarr;</button>
+        <button type="button" class="btn" data-act="reset">Reset</button>
+      </div>
+      <span class="live"></span>
+    </div>
+    <script type="application/json" class="sim-data">{"heads":["CLOSURE","TRAITS"],"steps":[{"l":5,"note":"\u003ccode>read\u003c/code> only reads its capture: it implements \u003ccode>Fn\u003c/code>, and therefore \u003ccode>FnMut\u003c/code> and \u003ccode>FnOnce\u003c/code> too.","cols":[[{"v":"read"}],[{"v":"Fn + FnMut + FnOnce","s":"ok"}]]},{"l":7,"note":"\u003ccode>count\u003c/code> mutates \u003ccode>n\u003c/code>: \u003ccode>FnMut\u003c/code> and \u003ccode>FnOnce\u003c/code>, not \u003ccode>Fn\u003c/code>.","cols":[[{"v":"read"},{"v":"count"}],[{"v":"Fn + FnMut + FnOnce"},{"v":"FnMut + FnOnce","s":"hl"}]]},{"l":9,"note":"\u003ccode>give\u003c/code> moves the captured \u003ccode>String\u003c/code> out when called. It can run only once: \u003ccode>FnOnce\u003c/code> only.","cols":[[{"v":"read"},{"v":"count"},{"v":"give"}],[{"v":"Fn + FnMut + FnOnce"},{"v":"FnMut + FnOnce"},{"v":"FnOnce","s":"hl"}]]},{"l":[10,1],"note":"\u003ccode>call_twice\u003c/code> asks for \u003ccode>FnMut\u003c/code>. \u003ccode>read\u003c/code> qualifies.","o":["ok","ok"],"cols":[[{"v":"call_twice(read)"}],[{"v":"Fn ⊂ FnMut ✓","s":"ok"}]]},{"l":11,"note":"\u003ccode>count\u003c/code> qualifies too; \u003ccode>n\u003c/code> becomes 2.","cols":[[{"v":"call_twice(count)"}],[{"v":"FnMut ✓  n = 2","s":"ok"}]]},{"l":12,"note":"Calling \u003ccode>give\u003c/code> twice would move \u003ccode>msg\u003c/code> out twice. E0525: \"expected a closure that implements \u003ccode>FnMut\u003c/code>, but this closure only implements \u003ccode>FnOnce\u003c/code>\".","cols":[[{"v":"call_twice(give)"}],[{"v":"only FnOnce","s":"err","t":"E0525"}]]},{"l":[13,2],"note":"\u003ccode>call_once\u003c/code> accepts any \u003ccode>FnOnce\u003c/code>.","o":"2 bye","cols":[[{"v":"call_once(give)"}],[{"v":"FnOnce ✓","s":"ok"}]]}]}</script>
+  </figure>
+  <!-- /sim:fn-traits -->
 </section>
 
 <section id="iter">
@@ -263,6 +329,28 @@ table.ops td:first-child{font-weight:600}
     <span class="m">assert_eq!</span>(it.next(), <span class="t">Some</span>(&amp;<span class="n">3</span>));
     <span class="m">assert_eq!</span>(it.next(), <span class="t">None</span>);
 }</code></pre></div>
+<!-- sim:iter -->
+  <figure class="card sim" id="sim-iter" aria-label="Simulator: Iterators are lazy; next() drives them">
+    <div class="card-top"><span class="eyebrow">Simulator 4</span><span class="card-title">Iterators are lazy; next() drives them</span></div>
+    <div class="trace">
+      <pre class="trace-code"><code><span class="ln" data-l="1"><span class="lno">1</span><span class="k">fn</span> main() {</span><span class="ln" data-l="2"><span class="lno">2</span>    <span class="k">let</span> v = <span class="m">vec!</span>[<span class="n">10</span>, <span class="n">20</span>, <span class="n">30</span>];</span><span class="ln" data-l="3"><span class="lno">3</span>    <span class="k">let</span> <span class="k">mut</span> it = v.iter();</span><span class="ln" data-l="4"><span class="lno">4</span>    <span class="m">println!</span>(<span class="s">"{:?}"</span>, it.next());</span><span class="ln" data-l="5"><span class="lno">5</span>    <span class="m">println!</span>(<span class="s">"{:?}"</span>, it.next());</span><span class="ln" data-l="6"><span class="lno">6</span>    <span class="m">println!</span>(<span class="s">"{:?}"</span>, it.next());</span><span class="ln" data-l="7"><span class="lno">7</span>    <span class="m">println!</span>(<span class="s">"{:?}"</span>, it.next());</span><span class="ln" data-l="8"><span class="lno">8</span>    <span class="k">let</span> owned: <span class="t">Vec</span>&lt;i32&gt; = v.into_iter().collect();</span><span class="ln" data-l="9"><span class="lno">9</span>    <span class="m">println!</span>(<span class="s">"{owned:?}"</span>);</span><span class="ln" data-l="10"><span class="lno">10</span>}</span></code></pre>
+      <div class="scroll"><svg viewBox="0 0 640 200" role="img" aria-labelledby="sim-iter-title sim-iter-desc">
+        <title id="sim-iter-title">Iterators are lazy; next() drives them</title>
+        <desc id="sim-iter-desc">Step-by-step simulator for Iterators are lazy; next() drives them. Use Prev and Next, or the arrow keys, to move through the steps; the note under the figure explains each one.</desc>
+      </svg></div>
+    </div>
+    <p class="trace-note" aria-live="polite"></p>
+    <div class="card-bottom">
+      <div class="row" style="margin:0">
+        <button type="button" class="btn" data-act="prev">&larr; Prev</button>
+        <button type="button" class="btn" data-act="next">Next &rarr;</button>
+        <button type="button" class="btn" data-act="reset">Reset</button>
+      </div>
+      <span class="live"></span>
+    </div>
+    <script type="application/json" class="sim-data">{"heads":["ITERATOR","YIELDED"],"steps":[{"l":3,"note":"\u003ccode>iter()\u003c/code> creates an iterator that borrows \u003ccode>v\u003c/code>. Nothing has been read yet. It must be \u003ccode>mut\u003c/code> because \u003ccode>next\u003c/code> advances its position.","cols":[[{"n":"it","v":"pos 0 of [10, 20, 30]","s":"ref"}],[]]},{"l":4,"note":"Each \u003ccode>next()\u003c/code> returns \u003ccode>Some(&amp;item)\u003c/code>.","o":"Some(10)","cols":[[{"n":"it","v":"pos 1","s":"ref"}],[{"v":"Some(&10)","s":"hl"}]]},{"l":5,"note":"Second item.","o":"Some(20)","cols":[[{"n":"it","v":"pos 2","s":"ref"}],[{"v":"Some(&10)"},{"v":"Some(&20)","s":"hl"}]]},{"l":6,"note":"Third item.","o":"Some(30)","cols":[[{"n":"it","v":"pos 3","s":"ref"}],[{"v":"Some(&10)"},{"v":"Some(&20)"},{"v":"Some(&30)","s":"hl"}]]},{"l":7,"note":"Exhausted: \u003ccode>None\u003c/code>. A \u003ccode>for\u003c/code> loop is exactly this, calling \u003ccode>next\u003c/code> until \u003ccode>None\u003c/code>.","o":"None","cols":[[{"n":"it","v":"done","s":"moved"}],[{"v":"Some(&10)"},{"v":"Some(&20)"},{"v":"Some(&30)"},{"v":"None","s":"err"}]]},{"l":[8,9],"note":"\u003ccode>iter()\u003c/code> yields \u003ccode>&amp;T\u003c/code>, \u003ccode>iter_mut()\u003c/code> yields \u003ccode>&amp;mut T\u003c/code>, \u003ccode>into_iter()\u003c/code> on a \u003ccode>Vec\u003c/code> yields owned \u003ccode>T\u003c/code> and consumes the vector.","o":"[10, 20, 30]","cols":[[{"n":"v","s":"moved"},{"n":"owned","v":"[10, 20, 30]","s":"hl"}],[{"v":"into_iter → owned i32"}]]}]}</script>
+  </figure>
+  <!-- /sim:iter -->
 </section>
 
 <section id="adapters">
@@ -317,6 +405,28 @@ table.ops td:first-child{font-weight:600}
         .sum();
     <span class="m">println!</span>(<span class="s">"{sum}"</span>); <span class="c2">// 2*3 + 3*4 = 18</span>
 }</code></pre></div>
+<!-- sim:adapters -->
+  <figure class="card sim" id="sim-adapters" aria-label="Simulator: An iterator chain pulls one item at a time">
+    <div class="card-top"><span class="eyebrow">Simulator 5</span><span class="card-title">An iterator chain pulls one item at a time</span></div>
+    <div class="trace">
+      <pre class="trace-code"><code><span class="ln" data-l="1"><span class="lno">1</span><span class="k">fn</span> main() {</span><span class="ln" data-l="2"><span class="lno">2</span>    <span class="k">let</span> v = <span class="m">vec!</span>[<span class="n">1</span>, <span class="n">2</span>, <span class="n">3</span>, <span class="n">4</span>];</span><span class="ln" data-l="3"><span class="lno">3</span>    <span class="k">let</span> chain = v.iter().map(|x| x * <span class="n">10</span>).filter(|x| x % <span class="n">20</span> == <span class="n">0</span>);</span><span class="ln" data-l="4"><span class="lno">4</span>    <span class="c2">// nothing has run yet</span></span><span class="ln" data-l="5"><span class="lno">5</span>    <span class="k">let</span> out: <span class="t">Vec</span>&lt;i32&gt; = chain.collect();</span><span class="ln" data-l="6"><span class="lno">6</span>    <span class="k">let</span> total: i32 = v.iter().sum();</span><span class="ln" data-l="7"><span class="lno">7</span>    <span class="m">println!</span>(<span class="s">"{out:?} {total}"</span>);</span><span class="ln" data-l="8"><span class="lno">8</span>}</span></code></pre>
+      <div class="scroll"><svg viewBox="0 0 640 200" role="img" aria-labelledby="sim-adapters-title sim-adapters-desc">
+        <title id="sim-adapters-title">An iterator chain pulls one item at a time</title>
+        <desc id="sim-adapters-desc">Step-by-step simulator for An iterator chain pulls one item at a time. Use Prev and Next, or the arrow keys, to move through the steps; the note under the figure explains each one.</desc>
+      </svg></div>
+    </div>
+    <p class="trace-note" aria-live="polite"></p>
+    <div class="card-bottom">
+      <div class="row" style="margin:0">
+        <button type="button" class="btn" data-act="prev">&larr; Prev</button>
+        <button type="button" class="btn" data-act="next">Next &rarr;</button>
+        <button type="button" class="btn" data-act="reset">Reset</button>
+      </div>
+      <span class="live"></span>
+    </div>
+    <script type="application/json" class="sim-data">{"heads":["PIPELINE","COLLECTED"],"steps":[{"l":3,"note":"\u003ccode>map\u003c/code> and \u003ccode>filter\u003c/code> are adapters: they wrap the iterator and return a new one. No closure has been called.","cols":[[{"v":"iter → map(×10) → filter(%20)"}],[]]},{"l":[5,3],"note":"\u003ccode>collect\u003c/code> is a consumer: it calls \u003ccode>next\u003c/code>. Item 1 → map gives 10 → filter rejects it.","cols":[[{"n":"1","v":"→ 10 → rejected","s":"moved"}],[]]},{"l":[5,3],"note":"Item 2 → 20 → kept.","cols":[[{"n":"1","v":"→ 10 → rejected","s":"moved"},{"n":"2","v":"→ 20 → kept","s":"ok"}],[{"v":"[20]"}]]},{"l":[5,3],"note":"Item 3 → 30 → rejected.","cols":[[{"n":"1","v":"→ 10 → rejected","s":"moved"},{"n":"2","v":"→ 20 → kept","s":"ok"},{"n":"3","v":"→ 30 → rejected","s":"moved"}],[{"v":"[20]"}]]},{"l":[5,3],"note":"Item 4 → 40 → kept. Each element flows through the whole chain before the next one starts; no intermediate vector is built.","cols":[[{"n":"1","v":"→ 10 → rejected","s":"moved"},{"n":"2","v":"→ 20 → kept","s":"ok"},{"n":"3","v":"→ 30 → rejected","s":"moved"},{"n":"4","v":"→ 40 → kept","s":"ok"}],[{"v":"[20, 40]","s":"hl"}]]},{"l":[6,7],"note":"\u003ccode>sum\u003c/code> is another consumer. \u003ccode>v\u003c/code> is still usable because \u003ccode>iter()\u003c/code> only borrowed it.","o":"[20, 40] 10","cols":[[{"v":"iter → sum"}],[{"v":"[20, 40]"},{"n":"total","v":"10"}]]}]}</script>
+  </figure>
+  <!-- /sim:adapters -->
 </section>
 
 <section id="minigrep">
@@ -343,6 +453,28 @@ table.ops td:first-child{font-weight:600}
     <span class="k">let</span> cfg = <span class="t">Config</span>::build(args).unwrap();
     <span class="m">println!</span>(<span class="s">"{:?}"</span>, search(&amp;cfg.query, <span class="s">"safe, fast, productive.\nPick three."</span>));
 }</code></pre></div>
+<!-- sim:minigrep -->
+  <figure class="card sim" id="sim-minigrep" aria-label="Simulator: search with filter and collect">
+    <div class="card-top"><span class="eyebrow">Simulator 6</span><span class="card-title">search with filter and collect</span></div>
+    <div class="trace">
+      <pre class="trace-code"><code><span class="ln" data-l="1"><span class="lno">1</span><span class="k">fn</span> search&lt;<span class="lt">'a</span>&gt;(query: &amp;str, text: &amp;<span class="lt">'a</span> str) -&gt; <span class="t">Vec</span>&lt;&amp;<span class="lt">'a</span> str&gt; {</span><span class="ln" data-l="2"><span class="lno">2</span>    text.lines().filter(|l| l.contains(query)).collect()</span><span class="ln" data-l="3"><span class="lno">3</span>}</span><span class="ln" data-l="4"><span class="lno">4</span><span class="k">fn</span> main() {</span><span class="ln" data-l="5"><span class="lno">5</span>    <span class="k">let</span> text = <span class="s">"Rust:\nsafe, fast, productive.\nPick three.\nTrust me."</span>;</span><span class="ln" data-l="6"><span class="lno">6</span>    <span class="k">for</span> line <span class="k">in</span> search(<span class="s">"rust"</span>, text) { <span class="m">println!</span>(<span class="s">"{line}"</span>); }</span><span class="ln" data-l="7"><span class="lno">7</span>    <span class="k">let</span> args = [<span class="s">"minigrep"</span>, <span class="s">"fast"</span>, <span class="s">"poem.txt"</span>];</span><span class="ln" data-l="8"><span class="lno">8</span>    <span class="k">let</span> <span class="k">mut</span> it = args.iter();</span><span class="ln" data-l="9"><span class="lno">9</span>    it.next();                    <span class="c2">// skip the program name</span></span><span class="ln" data-l="10"><span class="lno">10</span>    <span class="m">println!</span>(<span class="s">"{:?} {:?}"</span>, it.next(), it.next());</span><span class="ln" data-l="11"><span class="lno">11</span>}</span></code></pre>
+      <div class="scroll"><svg viewBox="0 0 640 200" role="img" aria-labelledby="sim-minigrep-title sim-minigrep-desc">
+        <title id="sim-minigrep-title">search with filter and collect</title>
+        <desc id="sim-minigrep-desc">Step-by-step simulator for search with filter and collect. Use Prev and Next, or the arrow keys, to move through the steps; the note under the figure explains each one.</desc>
+      </svg></div>
+    </div>
+    <p class="trace-note" aria-live="polite"></p>
+    <div class="card-bottom">
+      <div class="row" style="margin:0">
+        <button type="button" class="btn" data-act="prev">&larr; Prev</button>
+        <button type="button" class="btn" data-act="next">Next &rarr;</button>
+        <button type="button" class="btn" data-act="reset">Reset</button>
+      </div>
+      <span class="live"></span>
+    </div>
+    <script type="application/json" class="sim-data">{"heads":["LINES","RESULT"],"steps":[{"l":[5,1],"note":"\u003ccode>lines()\u003c/code> yields each line as a \u003ccode>&amp;str\u003c/code> slice into \u003ccode>text\u003c/code>.","cols":[[{"v":"\"Rust:\""},{"v":"\"safe, fast, productive.\""},{"v":"\"Pick three.\""},{"v":"\"Trust me.\""}],[]]},{"l":2,"note":"\u003ccode>filter\u003c/code> keeps lines containing \"rust\". The search is case-sensitive, so \"Rust:\" is dropped and \"Trust me.\" matches.","cols":[[{"v":"\"Rust:\"","s":"moved"},{"v":"\"safe, fast, productive.\"","s":"moved"},{"v":"\"Pick three.\"","s":"moved"},{"v":"\"Trust me.\"","s":"ok"}],[{"v":"[\"Trust me.\"]","s":"hl"}]]},{"l":6,"note":"The returned slices borrow from \u003ccode>text\u003c/code>, which the \u003ccode>'a\u003c/code> in the signature records. No line is copied, and there is no mutable results vector to manage.","o":"Trust me.","cols":[[{"v":"\"Trust me.\"","s":"ok"}],[{"v":"Vec\u003c&'a str>","s":"ref"}]]},{"l":[7,8,9],"note":"\u003ccode>Config::build\u003c/code> in the chapter takes \u003ccode>env::args()\u003c/code> as an iterator. The first item is the program name, so skip it.","cols":[[{"v":"\"minigrep\"","s":"moved"},{"v":"\"fast\""},{"v":"\"poem.txt\""}],[]]},{"l":10,"note":"Then each \u003ccode>next()\u003c/code> gives one argument, as an \u003ccode>Option\u003c/code>. A missing argument is \u003ccode>None\u003c/code>, which maps naturally to an error.","o":"Some(\"fast\") Some(\"poem.txt\")","cols":[[{"v":"\"minigrep\"","s":"moved"},{"v":"\"fast\"","s":"ok"},{"v":"\"poem.txt\"","s":"ok"}],[{"n":"query","v":"Some(\"fast\")"},{"n":"file","v":"Some(\"poem.txt\")"}]]}]}</script>
+  </figure>
+  <!-- /sim:minigrep -->
 </section>
 
 <section id="perf">
@@ -350,6 +482,28 @@ table.ops td:first-child{font-weight:600}
 
   <p>The book benchmarks <code>search</code> over the full text of a novel: the <code>for</code> loop version and the iterator version run in about the same time. Iterators are a <b>zero-cost abstraction</b>: what you do not use you do not pay for, and what you do use you could not hand-code any better.</p>
   <p>Adapter chains are generic structs and closures with known types, so the compiler inlines every <code>next</code> and closure call. Bounds checks often disappear, because the iterator knows it stays inside the slice, and fixed-length loops are unrolled. Choose whichever reads better; performance is not the deciding factor.</p>
+<!-- sim:perf -->
+  <figure class="card sim" id="sim-perf" aria-label="Simulator: A loop and an iterator chain compute the same thing">
+    <div class="card-top"><span class="eyebrow">Simulator 7</span><span class="card-title">A loop and an iterator chain compute the same thing</span></div>
+    <div class="trace">
+      <pre class="trace-code"><code><span class="ln" data-l="1"><span class="lno">1</span><span class="k">fn</span> by_loop(v: &amp;[i32]) -&gt; i32 {</span><span class="ln" data-l="2"><span class="lno">2</span>    <span class="k">let</span> <span class="k">mut</span> s = <span class="n">0</span>;</span><span class="ln" data-l="3"><span class="lno">3</span>    <span class="k">for</span> i <span class="k">in</span> <span class="n">0</span>..v.len() { <span class="k">if</span> v[i] % <span class="n">2</span> == <span class="n">0</span> { s += v[i] * v[i]; } }</span><span class="ln" data-l="4"><span class="lno">4</span>    s</span><span class="ln" data-l="5"><span class="lno">5</span>}</span><span class="ln" data-l="6"><span class="lno">6</span><span class="k">fn</span> by_iter(v: &amp;[i32]) -&gt; i32 {</span><span class="ln" data-l="7"><span class="lno">7</span>    v.iter().filter(|x| *x % <span class="n">2</span> == <span class="n">0</span>).map(|x| x * x).sum()</span><span class="ln" data-l="8"><span class="lno">8</span>}</span><span class="ln" data-l="9"><span class="lno">9</span><span class="k">fn</span> main() {</span><span class="ln" data-l="10"><span class="lno">10</span>    <span class="k">let</span> v: <span class="t">Vec</span>&lt;i32&gt; = (<span class="n">1</span>..=<span class="n">6</span>).collect();</span><span class="ln" data-l="11"><span class="lno">11</span>    <span class="m">println!</span>(<span class="s">"{} {}"</span>, by_loop(&amp;v), by_iter(&amp;v));</span><span class="ln" data-l="12"><span class="lno">12</span>}</span></code></pre>
+      <div class="scroll"><svg viewBox="0 0 640 200" role="img" aria-labelledby="sim-perf-title sim-perf-desc">
+        <title id="sim-perf-title">A loop and an iterator chain compute the same thing</title>
+        <desc id="sim-perf-desc">Step-by-step simulator for A loop and an iterator chain compute the same thing. Use Prev and Next, or the arrow keys, to move through the steps; the note under the figure explains each one.</desc>
+      </svg></div>
+    </div>
+    <p class="trace-note" aria-live="polite"></p>
+    <div class="card-bottom">
+      <div class="row" style="margin:0">
+        <button type="button" class="btn" data-act="prev">&larr; Prev</button>
+        <button type="button" class="btn" data-act="next">Next &rarr;</button>
+        <button type="button" class="btn" data-act="reset">Reset</button>
+      </div>
+      <span class="live"></span>
+    </div>
+    <script type="application/json" class="sim-data">{"heads":["LOOP","ITERATOR"],"steps":[{"l":3,"note":"The index loop does a bounds check on each \u003ccode>v[i]\u003c/code>, unless the optimizer can prove it safe.","cols":[[{"v":"i in 0..len, v[i] checked"}],[]]},{"l":7,"note":"The iterator walks the slice with a pointer, so there are no index bounds checks at all.","cols":[[{"v":"i in 0..len, v[i] checked"}],[{"v":"slice::Iter, no index"}]]},{"l":[10,11],"note":"Same result: 2² + 4² + 6² = 56.","o":"56 56","cols":[[{"v":"s = 56","s":"ok"}],[{"v":"sum = 56","s":"ok"}]]},{"l":[3,7],"note":"With optimizations (\u003ccode>cargo build --release\u003c/code>), the closures are inlined and both compile to a tight loop. Iterators are a zero-cost abstraction: pick the clearer one.","cols":[[{"v":"tight machine loop","s":"ok"}],[{"v":"tight machine loop","s":"ok"}]]}]}</script>
+  </figure>
+  <!-- /sim:perf -->
 </section>
 
 <section id="quiz">
@@ -519,7 +673,7 @@ var CHECK_KEY = 'rust-rust-closures-iterators-check:' + location.pathname;
       if (!heap.length) txt(380, 64, '(nothing allocated)', { fill: SOFT });
       var H = Math.max(y, hy, 90) + 10;
       svg.setAttribute('viewBox', '0 0 640 ' + H);
-      Array.prototype.forEach.call(document.querySelectorAll('.trace-code .ln'), function (ln) {
+      Array.prototype.forEach.call(document.querySelectorAll('figure:not(.sim) .trace-code .ln'), function (ln) {
         ln.classList.toggle('on', +ln.getAttribute('data-l') === st.l);
       });
       $('traceNote').innerHTML = st.note;
@@ -576,5 +730,147 @@ var CHECK_KEY = 'rust-rust-closures-iterators-check:' + location.pathname;
 })();
 
 </script>
+<!-- section-sims -->
+<script>
+(function () {
+  // Section simulators: each figure.sim carries its steps as JSON and is drawn into its own SVG.
+  var NS = 'http://www.w3.org/2000/svg';
+  var INK = '#2d3142', SOFT = '#5a6580', RULE = '#bfc0c0', ACCENT = '#bf4520', LINK = '#2e5aa8', OK = '#2f7a4a', PAPER = '#f5f5f5';
+  var W = 640, BOX_H = 40, GAP_Y = 10, TOP = 40;
+  var fit = function (s, n) { s = String(s); return s.length > n ? s.slice(0, Math.max(1, n - 1)) + '\u2026' : s; };
+
+  function initSim(fig) {
+    var data = JSON.parse(fig.querySelector('script.sim-data').textContent);
+    var svg = fig.querySelector('svg'), lines = fig.querySelectorAll('.trace-code .ln');
+    var note = fig.querySelector('.trace-note'), live = fig.querySelector('.live');
+    var prev = fig.querySelector('[data-act="prev"]'), next = fig.querySelector('[data-act="next"]'), reset = fig.querySelector('[data-act="reset"]');
+    var steps = data.steps, heads = data.heads || [], cur = 0, uid = fig.id;
+    var hasOut = steps.some(function (s) { return s.o != null; });
+    var el = function (name, attrs, parent) {
+      var e = document.createElementNS(NS, name);
+      for (var k in attrs) if (attrs[k] !== '' && attrs[k] != null) e.setAttribute(k, attrs[k]);
+      (parent || svg).appendChild(e);
+      return e;
+    };
+    var txt = function (x, y, s, a, parent) {
+      var o = { x: x, y: y, 'font-size': 12, fill: INK, 'font-family': 'Geist Mono, monospace' };
+      for (var k in a) o[k] = a[k];
+      var t = el('text', o, parent); t.textContent = s; return t;
+    };
+    var clear = function () {
+      Array.prototype.slice.call(svg.childNodes).forEach(function (n) {
+        var nm = (n.localName || '').toLowerCase();
+        if (nm !== 'title' && nm !== 'desc') svg.removeChild(n);
+      });
+    };
+
+    function draw() {
+      var st = steps[cur], cols = st.cols || [];
+      var k = Math.max(1, heads.length, cols.length);
+      var left = 40, right = 24, gap = k === 1 ? 0 : (k === 2 ? 70 : 46);
+      var colW = (W - left - right - gap * (k - 1)) / k;
+      var chars = Math.floor((colW - 24) / 7.4);
+      clear();
+      var defs = el('defs', {});
+      [['a', INK], ['b', LINK], ['c', ACCENT]].forEach(function (m) {
+        var mk = el('marker', { id: uid + '-' + m[0], viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: 'auto-start-reverse' }, defs);
+        el('path', { d: 'M0 0 L10 5 L0 10 z', fill: m[1] }, mk);
+      });
+      var pos = {}, bottom = TOP;
+      for (var ci = 0; ci < k; ci++) {
+        var x = left + ci * (colW + gap), y = TOP, lastG = null, items = cols[ci] || [];
+        if (heads[ci]) txt(x, 24, heads[ci], { 'font-size': 11, fill: SOFT, 'letter-spacing': '2' });
+        items.forEach(function (it) {
+          if (it.g && it.g !== lastG) { txt(x, y + 12, fit(it.g, chars + 4), { 'font-size': 10.5, fill: SOFT, 'font-style': 'italic' }); y += 18; lastG = it.g; }
+          var s = it.s || '', faded = /moved|dropped|freed/.test(s);
+          var isRef = /ref|mut|weak/.test(s), hl = /hl/.test(s), err = /err/.test(s), ok = /ok/.test(s);
+          var stroke = err || hl ? ACCENT : (ok ? OK : (isRef ? LINK : (faded ? RULE : INK)));
+          var g = el('g', { opacity: /dropped|freed/.test(s) ? 0.4 : 1 });
+          el('rect', { x: x, y: y, width: colW, height: BOX_H, rx: 6, fill: err ? 'rgba(191,69,32,.08)' : (ok ? 'rgba(47,122,74,.07)' : (faded ? PAPER : '#fff')), stroke: stroke, 'stroke-width': hl || err ? 2 : 1.4, 'stroke-dasharray': faded ? '5 4' : '' }, g);
+          var stateWord = /moved/.test(s) ? 'moved' : (/dropped/.test(s) ? 'dropped' : (/freed/.test(s) ? 'freed' : null));
+          var val = stateWord && it.v == null ? stateWord : (it.v == null ? '' : it.v);
+          if (it.n != null) {
+            var nChars = Math.max(4, Math.min(String(it.n).length, Math.floor(chars * 0.45)));
+            txt(x + 12, y + 25, fit(it.n, nChars), { 'font-size': 13, 'font-weight': 600, fill: faded ? SOFT : INK }, g);
+            txt(x + colW - 12, y + 25, fit(val, Math.max(4, chars - nChars - 1)), { 'text-anchor': 'end', fill: faded ? SOFT : (err ? ACCENT : (isRef ? LINK : INK)) }, g);
+          } else {
+            txt(x + 12, y + 25, fit(val, chars), { fill: faded ? SOFT : (err ? ACCENT : INK) }, g);
+          }
+          var tag = it.t || (/mut/.test(s) ? '&mut' : (/weak/.test(s) ? 'weak' : (/ref/.test(s) ? '&' : null)));
+          if (tag) {
+            var tw = 10 + tag.length * 6.2;
+            el('rect', { x: x + colW - tw - 8, y: y - 8, width: tw, height: 15, rx: 3, fill: err ? ACCENT : (ok ? OK : (hl ? ACCENT : LINK)) }, g);
+            txt(x + colW - tw - 3, y + 3, tag, { 'font-size': 9.5, fill: '#fff', 'font-weight': 600 }, g);
+          }
+          var id = it.id != null ? it.id : it.n;
+          if (id != null) pos[id] = { x: x, y: y + BOX_H / 2, col: ci, faded: faded, freed: /freed|dropped/.test(s) };
+          it._id = id;
+          y += BOX_H + GAP_Y;
+        });
+        if (!items.length && heads[ci]) txt(x, TOP + 24, data.empty && data.empty[ci] ? data.empty[ci] : '(empty)', { fill: SOFT });
+        bottom = Math.max(bottom, y);
+      }
+      // arrows
+      cols.forEach(function (items) {
+        (items || []).forEach(function (it) {
+          if (!it.to || /moved|dropped|freed/.test(it.s || '')) return;
+          var a = pos[it._id]; if (!a) return;
+          [].concat(it.to).forEach(function (t) {
+            var weak = t.charAt(0) === '~', bad = t.charAt(0) === '!';
+            if (weak || bad) t = t.slice(1);
+            var b = pos[t]; if (!b) return;
+            var color = bad || b.freed ? ACCENT : (weak || /ref|mut/.test(it.s || '') ? LINK : INK);
+            var mk = 'url(#' + uid + '-' + (color === ACCENT ? 'c' : (color === LINK ? 'b' : 'a')) + ')';
+            var dash = weak || bad || b.freed ? '4 3' : '', d;
+            if (b.col === a.col) {
+              var dx = 18 + Math.min(22, Math.abs(a.y - b.y) / 6), lx = a.x;
+              d = 'M' + lx + ' ' + a.y + ' C' + (lx - dx) + ' ' + a.y + ' ' + (lx - dx) + ' ' + b.y + ' ' + (lx - 2) + ' ' + b.y;
+            } else if (b.col > a.col) {
+              var x1 = a.x + colW, x2 = b.x - 2, mx = (x1 + x2) / 2;
+              d = 'M' + x1 + ' ' + a.y + ' C' + mx + ' ' + a.y + ' ' + mx + ' ' + b.y + ' ' + x2 + ' ' + b.y;
+            } else {
+              var x3 = a.x, x4 = b.x + colW + 2, mx2 = (x3 + x4) / 2;
+              d = 'M' + x3 + ' ' + a.y + ' C' + mx2 + ' ' + a.y + ' ' + mx2 + ' ' + b.y + ' ' + x4 + ' ' + b.y;
+            }
+            el('path', { d: d, fill: 'none', stroke: color, 'stroke-width': 1.6, 'stroke-dasharray': dash, 'marker-end': mk });
+          });
+        });
+      });
+      var H = Math.max(bottom, 90) + 6;
+      if (hasOut) {
+        var out = [];
+        for (var i = 0; i <= cur; i++) if (steps[i].o != null) out = out.concat(steps[i].o);
+        var shown = out.slice(-6), oh = 30 + Math.max(1, shown.length) * 18;
+        el('rect', { x: left, y: H, width: W - left - right, height: oh, rx: 6, fill: INK });
+        txt(left + 12, H + 18, 'OUTPUT', { 'font-size': 10, fill: RULE, 'letter-spacing': '2' });
+        if (!shown.length) txt(left + 12, H + 38, '(nothing printed yet)', { fill: RULE, 'font-style': 'italic' });
+        shown.forEach(function (ln, j) {
+          var bad = String(ln).charAt(0) === '!';
+          txt(left + 12, H + 38 + j * 18, fit(bad ? String(ln).slice(1) : ln, 76), { fill: bad ? '#ff9b7a' : PAPER });
+        });
+        H += oh + 10;
+      }
+      svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+      var on = [].concat(st.l || []);
+      Array.prototype.forEach.call(lines, function (ln) { ln.classList.toggle('on', on.indexOf(+ln.getAttribute('data-l')) !== -1); });
+      note.innerHTML = st.note;
+      live.textContent = 'step ' + (cur + 1) + ' / ' + steps.length;
+      prev.disabled = cur === 0;
+      next.disabled = cur === steps.length - 1;
+    }
+    prev.addEventListener('click', function () { if (cur > 0) { cur--; draw(); } });
+    next.addEventListener('click', function () { if (cur < steps.length - 1) { cur++; draw(); } });
+    reset.addEventListener('click', function () { cur = 0; draw(); });
+    fig.addEventListener('keydown', function (e) {
+      if (e.target.tagName === 'INPUT') return;
+      if (e.key === 'ArrowRight' && cur < steps.length - 1) { cur++; draw(); e.preventDefault(); }
+      if (e.key === 'ArrowLeft' && cur > 0) { cur--; draw(); e.preventDefault(); }
+    });
+    draw();
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('figure.sim'), initSim);
+})();
+</script>
+<!-- /section-sims -->
 </body>
 </html>

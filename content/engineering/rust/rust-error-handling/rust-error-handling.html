@@ -161,6 +161,28 @@ table.ops td:first-child{font-weight:600}
   <div class="pre-wrap"><pre class="shell"><code>$ RUST_BACKTRACE=1 cargo run      # show the call stack that led to the panic
 $ RUST_BACKTRACE=full cargo run   # with every frame</code></pre></div>
   <p>Unwinding takes work and code size. In <code>Cargo.toml</code>, <code>[profile.release] panic = 'abort'</code> makes a panic end the process immediately and leaves cleanup to the OS.</p>
+<!-- sim:panic -->
+  <figure class="card sim" id="sim-panic" aria-label="Simulator: panic! unwinds the stack">
+    <div class="card-top"><span class="eyebrow">Simulator 1</span><span class="card-title">panic! unwinds the stack</span></div>
+    <div class="trace">
+      <pre class="trace-code"><code><span class="ln" data-l="1"><span class="lno">1</span><span class="k">struct</span> <span class="t">Guard</span>(&amp;<span class="lt">'static</span> str);</span><span class="ln" data-l="2"><span class="lno">2</span><span class="k">impl</span> <span class="t">Drop</span> <span class="k">for</span> <span class="t">Guard</span> {</span><span class="ln" data-l="3"><span class="lno">3</span>    <span class="k">fn</span> drop(&amp;<span class="k">mut</span> <span class="k">self</span>) { <span class="m">println!</span>(<span class="s">"cleanup {}"</span>, <span class="k">self</span>.<span class="n">0</span>); }</span><span class="ln" data-l="4"><span class="lno">4</span>}</span><span class="ln" data-l="5"><span class="lno">5</span><span class="k">fn</span> inner(v: &amp;[i32]) -&gt; i32 {</span><span class="ln" data-l="6"><span class="lno">6</span>    <span class="k">let</span> _g = <span class="t">Guard</span>(<span class="s">"inner"</span>);</span><span class="ln" data-l="7"><span class="lno">7</span>    v[<span class="n">10</span>]                   <span class="c2">// out of bounds</span></span><span class="ln" data-l="8"><span class="lno">8</span>}</span><span class="ln" data-l="9"><span class="lno">9</span><span class="k">fn</span> main() {</span><span class="ln" data-l="10"><span class="lno">10</span>    <span class="k">let</span> _g = <span class="t">Guard</span>(<span class="s">"main"</span>);</span><span class="ln" data-l="11"><span class="lno">11</span>    <span class="k">let</span> v = <span class="m">vec!</span>[<span class="n">1</span>, <span class="n">2</span>, <span class="n">3</span>];</span><span class="ln" data-l="12"><span class="lno">12</span>    <span class="m">println!</span>(<span class="s">"start"</span>);</span><span class="ln" data-l="13"><span class="lno">13</span>    inner(&amp;v);</span><span class="ln" data-l="14"><span class="lno">14</span>    <span class="m">println!</span>(<span class="s">"never printed"</span>);</span><span class="ln" data-l="15"><span class="lno">15</span>}</span></code></pre>
+      <div class="scroll"><svg viewBox="0 0 640 200" role="img" aria-labelledby="sim-panic-title sim-panic-desc">
+        <title id="sim-panic-title">panic! unwinds the stack</title>
+        <desc id="sim-panic-desc">Step-by-step simulator for panic! unwinds the stack. Use Prev and Next, or the arrow keys, to move through the steps; the note under the figure explains each one.</desc>
+      </svg></div>
+    </div>
+    <p class="trace-note" aria-live="polite"></p>
+    <div class="card-bottom">
+      <div class="row" style="margin:0">
+        <button type="button" class="btn" data-act="prev">&larr; Prev</button>
+        <button type="button" class="btn" data-act="next">Next &rarr;</button>
+        <button type="button" class="btn" data-act="reset">Reset</button>
+      </div>
+      <span class="live"></span>
+    </div>
+    <script type="application/json" class="sim-data">{"heads":["CALL STACK"],"steps":[{"l":[10,11,12],"note":"\u003ccode>main\u003c/code> holds a guard with a \u003ccode>Drop\u003c/code> impl and a vector.","o":"start","cols":[[{"g":"main","n":"_g","v":"Guard(\"main\")"},{"g":"main","n":"v","v":"Vec len=3"}]]},{"l":[13,6],"note":"\u003ccode>inner\u003c/code> is called and creates its own guard.","cols":[[{"g":"main","n":"_g","v":"Guard(\"main\")"},{"g":"main","n":"v","v":"Vec len=3"},{"g":"inner","n":"_g","id":"g2","v":"Guard(\"inner\")"},{"g":"inner","n":"v","id":"vr","v":"&[i32]","s":"ref","to":"v"}]]},{"l":7,"note":"Indexing past the end does not read random memory: the bounds check fails and \u003ccode>panic!\u003c/code> is called. The message goes to stderr.","o":"!thread 'main' panicked: index out of bounds: the len is 3 but the index is 10","cols":[[{"g":"main","n":"_g","v":"Guard(\"main\")"},{"g":"main","n":"v","v":"Vec len=3"},{"g":"inner","n":"_g","id":"g2","v":"Guard(\"inner\")"},{"g":"inner","n":"v[10]","v":"panic!","s":"err"}]]},{"l":[6,8],"note":"Unwinding walks back up the stack and drops every live value in each frame, so destructors still run.","o":"cleanup inner","cols":[[{"g":"main","n":"_g","v":"Guard(\"main\")"},{"g":"main","n":"v","v":"Vec len=3"},{"g":"inner","n":"_g","id":"g2","s":"dropped"}]]},{"l":[13,15],"note":"\u003ccode>main\u003c/code>'s frame unwinds too: \u003ccode>v\u003c/code> frees its buffer, then the guard runs. Line 14 never executes and the process exits with code 101. With \u003ccode>panic = \"abort\"\u003c/code> in Cargo.toml, nothing would be cleaned up.","o":"cleanup main","cols":[[{"g":"main","n":"_g","s":"dropped"},{"g":"main","n":"v","s":"dropped"},{"g":"main","n":"line 14","v":"never runs","s":"moved"}]]}]}</script>
+  </figure>
+  <!-- /sim:panic -->
 </section>
 
 <section id="result">
@@ -204,6 +226,28 @@ $ RUST_BACKTRACE=full cargo run   # with every frame</code></pre></div>
 }</code></pre></div>
   <h3>unwrap and expect</h3>
   <p><code>unwrap()</code> returns the <code>Ok</code> value or panics with the error. <code>expect("msg")</code> does the same with your message, which should say why you expected success: <code>expect("config.toml is shipped with the binary")</code>. Production code prefers <code>expect</code>, because the message explains the assumption that broke.</p>
+<!-- sim:result -->
+  <figure class="card sim" id="sim-result" aria-label="Simulator: Result&lt;T, E&gt;: matching on Ok and Err">
+    <div class="card-top"><span class="eyebrow">Simulator 2</span><span class="card-title">Result&lt;T, E&gt;: matching on Ok and Err</span></div>
+    <div class="trace">
+      <pre class="trace-code"><code><span class="ln" data-l="1"><span class="lno">1</span><span class="k">use</span> std::num::<span class="t">ParseIntError</span>;</span><span class="ln" data-l="2"><span class="lno">2</span><span class="k">fn</span> parse(s: &amp;str) -&gt; <span class="t">Result</span>&lt;i32, <span class="t">ParseIntError</span>&gt; {</span><span class="ln" data-l="3"><span class="lno">3</span>    s.trim().parse::&lt;i32&gt;()</span><span class="ln" data-l="4"><span class="lno">4</span>}</span><span class="ln" data-l="5"><span class="lno">5</span><span class="k">fn</span> main() {</span><span class="ln" data-l="6"><span class="lno">6</span>    <span class="k">for</span> input <span class="k">in</span> [<span class="s">"42"</span>, <span class="s">"x7"</span>] {</span><span class="ln" data-l="7"><span class="lno">7</span>        <span class="k">match</span> parse(input) {</span><span class="ln" data-l="8"><span class="lno">8</span>            <span class="t">Ok</span>(n) =&gt; <span class="m">println!</span>(<span class="s">"ok {n}"</span>),</span><span class="ln" data-l="9"><span class="lno">9</span>            <span class="t">Err</span>(e) =&gt; <span class="m">println!</span>(<span class="s">"err: {e}"</span>),</span><span class="ln" data-l="10"><span class="lno">10</span>        }</span><span class="ln" data-l="11"><span class="lno">11</span>    }</span><span class="ln" data-l="12"><span class="lno">12</span>    <span class="k">let</span> n = parse(<span class="s">"8"</span>).expect(<span class="s">"8 is a number"</span>);</span><span class="ln" data-l="13"><span class="lno">13</span>    <span class="m">println!</span>(<span class="s">"{n} {}"</span>, parse(<span class="s">"?"</span>).unwrap_or(-<span class="n">1</span>));</span><span class="ln" data-l="14"><span class="lno">14</span>}</span></code></pre>
+      <div class="scroll"><svg viewBox="0 0 640 200" role="img" aria-labelledby="sim-result-title sim-result-desc">
+        <title id="sim-result-title">Result&lt;T, E&gt;: matching on Ok and Err</title>
+        <desc id="sim-result-desc">Step-by-step simulator for Result&lt;T, E&gt;: matching on Ok and Err. Use Prev and Next, or the arrow keys, to move through the steps; the note under the figure explains each one.</desc>
+      </svg></div>
+    </div>
+    <p class="trace-note" aria-live="polite"></p>
+    <div class="card-bottom">
+      <div class="row" style="margin:0">
+        <button type="button" class="btn" data-act="prev">&larr; Prev</button>
+        <button type="button" class="btn" data-act="next">Next &rarr;</button>
+        <button type="button" class="btn" data-act="reset">Reset</button>
+      </div>
+      <span class="live"></span>
+    </div>
+    <script type="application/json" class="sim-data">{"heads":["VALUE","BRANCH"],"steps":[{"l":[6,7,3],"note":"\u003ccode>parse\u003c/code> returns a \u003ccode>Result\u003c/code>: success and failure are both ordinary values of one type.","cols":[[{"n":"input","v":"\"42\""},{"n":"result","v":"Ok(42)","s":"ok"}],[]]},{"l":8,"note":"\u003ccode>Ok(n)\u003c/code> matches and binds \u003ccode>n = 42\u003c/code>.","o":"ok 42","cols":[[{"n":"input","v":"\"42\""},{"n":"result","v":"Ok(42)","s":"ok"}],[{"v":"Ok(n) =>","s":"ok"},{"v":"Err(e) =>","s":"moved"}]]},{"l":[6,7,3],"note":"\"x7\" is not a number. The error is a \u003ccode>ParseIntError\u003c/code> value, not an exception.","cols":[[{"n":"input","v":"\"x7\""},{"n":"result","v":"Err(InvalidDigit)","s":"err"}],[]]},{"l":9,"note":"The \u003ccode>Err\u003c/code> arm runs. Its \u003ccode>Display\u003c/code> text is \"invalid digit found in string\".","o":"err: invalid digit found in string","cols":[[{"n":"input","v":"\"x7\""},{"n":"result","v":"Err(InvalidDigit)","s":"err"}],[{"v":"Ok(n) =>","s":"moved"},{"v":"Err(e) =>","s":"ok"}]]},{"l":12,"note":"\u003ccode>expect\u003c/code> returns the \u003ccode>Ok\u003c/code> value or panics with your message. Use it when failure would be a bug.","cols":[[{"n":"n","v":"8","s":"hl"}],[{"v":"expect: Ok → 8","s":"ok"}]]},{"l":13,"note":"\u003ccode>unwrap_or\u003c/code> supplies a fallback instead of panicking.","o":"8 -1","cols":[[{"n":"n","v":"8"},{"n":"parse(\"?\")","v":"Err → -1"}],[{"v":"unwrap_or(-1)","s":"ok"}]]}]}</script>
+  </figure>
+  <!-- /sim:result -->
 </section>
 
 <section id="propagate">
@@ -256,6 +300,28 @@ $ RUST_BACKTRACE=full cargo run   # with every frame</code></pre></div>
 <span class="k">fn</span> main() {
     <span class="m">println!</span>(<span class="s">"{:?} {:?}"</span>, last_char_of_first_line(<span class="s">"Hi\nthere"</span>), last_char_of_first_line(<span class="s">""</span>));
 }</code></pre></div>
+<!-- sim:propagate -->
+  <figure class="card sim" id="sim-propagate" aria-label="Simulator: The ? operator returns early on Err">
+    <div class="card-top"><span class="eyebrow">Simulator 3</span><span class="card-title">The ? operator returns early on Err</span></div>
+    <div class="trace">
+      <pre class="trace-code"><code><span class="ln" data-l="1"><span class="lno">1</span><span class="k">use</span> std::num::<span class="t">ParseIntError</span>;</span><span class="ln" data-l="2"><span class="lno">2</span><span class="k">fn</span> sum(a: &amp;str, b: &amp;str) -&gt; <span class="t">Result</span>&lt;i32, <span class="t">ParseIntError</span>&gt; {</span><span class="ln" data-l="3"><span class="lno">3</span>    <span class="k">let</span> x: i32 = a.parse()?;</span><span class="ln" data-l="4"><span class="lno">4</span>    <span class="k">let</span> y: i32 = b.parse()?;</span><span class="ln" data-l="5"><span class="lno">5</span>    <span class="t">Ok</span>(x + y)</span><span class="ln" data-l="6"><span class="lno">6</span>}</span><span class="ln" data-l="7"><span class="lno">7</span><span class="k">fn</span> main() {</span><span class="ln" data-l="8"><span class="lno">8</span>    <span class="m">println!</span>(<span class="s">"{:?}"</span>, sum(<span class="s">"2"</span>, <span class="s">"3"</span>));</span><span class="ln" data-l="9"><span class="lno">9</span>    <span class="m">println!</span>(<span class="s">"{:?}"</span>, sum(<span class="s">"2"</span>, <span class="s">"z"</span>));</span><span class="ln" data-l="10"><span class="lno">10</span>}</span></code></pre>
+      <div class="scroll"><svg viewBox="0 0 640 200" role="img" aria-labelledby="sim-propagate-title sim-propagate-desc">
+        <title id="sim-propagate-title">The ? operator returns early on Err</title>
+        <desc id="sim-propagate-desc">Step-by-step simulator for The ? operator returns early on Err. Use Prev and Next, or the arrow keys, to move through the steps; the note under the figure explains each one.</desc>
+      </svg></div>
+    </div>
+    <p class="trace-note" aria-live="polite"></p>
+    <div class="card-bottom">
+      <div class="row" style="margin:0">
+        <button type="button" class="btn" data-act="prev">&larr; Prev</button>
+        <button type="button" class="btn" data-act="next">Next &rarr;</button>
+        <button type="button" class="btn" data-act="reset">Reset</button>
+      </div>
+      <span class="live"></span>
+    </div>
+    <script type="application/json" class="sim-data">{"heads":["CALL STACK"],"steps":[{"l":[8,3],"note":"\u003ccode>a.parse()\u003c/code> gives \u003ccode>Ok(2)\u003c/code>. \u003ccode>?\u003c/code> unwraps it into \u003ccode>x\u003c/code>.","cols":[[{"g":"main","n":"call","v":"sum(\"2\", \"3\")"},{"g":"sum","n":"x","v":"2","s":"hl"}]]},{"l":4,"note":"Same for \u003ccode>b\u003c/code>.","cols":[[{"g":"main","n":"call","v":"sum(\"2\", \"3\")"},{"g":"sum","n":"x","v":"2"},{"g":"sum","n":"y","v":"3","s":"hl"}]]},{"l":[5,8],"note":"Both succeeded, so the function returns \u003ccode>Ok(5)\u003c/code>.","o":"Ok(5)","cols":[[{"g":"main","n":"call","v":"Ok(5)","s":"ok"}]]},{"l":[9,3],"note":"Second call: \u003ccode>\"2\"\u003c/code> parses fine.","cols":[[{"g":"main","n":"call","v":"sum(\"2\", \"z\")"},{"g":"sum","n":"x","v":"2"}]]},{"l":4,"note":"\u003ccode>\"z\".parse()\u003c/code> is \u003ccode>Err\u003c/code>. \u003ccode>?\u003c/code> converts the error with \u003ccode>From::from\u003c/code> and does \u003ccode>return Err(e)\u003c/code> right here. Line 5 is skipped.","cols":[[{"g":"main","n":"call","v":"sum(\"2\", \"z\")"},{"g":"sum","n":"x","v":"2"},{"g":"sum","n":"y","v":"Err → return","s":"err"}]]},{"l":9,"note":"The caller receives the error and decides what to do. \u003ccode>?\u003c/code> only works in functions that return \u003ccode>Result\u003c/code> or \u003ccode>Option\u003c/code> (else E0277).","o":"Err(ParseIntError { kind: InvalidDigit })","cols":[[{"g":"main","n":"call","v":"Err(InvalidDigit)","s":"err"}]]}]}</script>
+  </figure>
+  <!-- /sim:propagate -->
 </section>
 
 <section id="custom">
@@ -298,6 +364,28 @@ $ RUST_BACKTRACE=full cargo run   # with every frame</code></pre></div>
     }
 }</code></pre></div>
   <div class="tw"><table class="ops"><thead><tr><th>Situation</th><th>Common choice</th></tr></thead><tbody><tr><td>Application code, errors are reported, not matched</td><td><code>Box&lt;dyn Error&gt;</code> or the <code>anyhow</code> crate</td></tr><tr><td>Library code, callers match on causes</td><td>An error enum, often written with the <code>thiserror</code> crate</td></tr><tr><td>Absence is not an error</td><td><code>Option&lt;T&gt;</code></td></tr></tbody></table></div>
+<!-- sim:custom -->
+  <figure class="card sim" id="sim-custom" aria-label="Simulator: One error enum, From, and ?">
+    <div class="card-top"><span class="eyebrow">Simulator 4</span><span class="card-title">One error enum, From, and ?</span></div>
+    <div class="trace">
+      <pre class="trace-code"><code><span class="ln" data-l="1"><span class="lno">1</span><span class="k">use</span> std::{fmt, num::<span class="t">ParseIntError</span>};</span><span class="ln" data-l="2"><span class="lno">2</span><span class="at">#[derive(Debug)]</span></span><span class="ln" data-l="3"><span class="lno">3</span><span class="k">enum</span> <span class="t">AppError</span> { <span class="t">Parse</span>(<span class="t">ParseIntError</span>), <span class="t">Negative</span>(i64) }</span><span class="ln" data-l="4"><span class="lno">4</span><span class="k">impl</span> fmt::<span class="t">Display</span> <span class="k">for</span> <span class="t">AppError</span> {</span><span class="ln" data-l="5"><span class="lno">5</span>    <span class="k">fn</span> fmt(&amp;<span class="k">self</span>, f: &amp;<span class="k">mut</span> fmt::<span class="t">Formatter</span>) -&gt; fmt::<span class="t">Result</span> {</span><span class="ln" data-l="6"><span class="lno">6</span>        <span class="k">match</span> <span class="k">self</span> {</span><span class="ln" data-l="7"><span class="lno">7</span>            <span class="t">AppError</span>::<span class="t">Parse</span>(e) =&gt; <span class="m">write!</span>(f, <span class="s">"bad number: {e}"</span>),</span><span class="ln" data-l="8"><span class="lno">8</span>            <span class="t">AppError</span>::<span class="t">Negative</span>(n) =&gt; <span class="m">write!</span>(f, <span class="s">"{n} &lt; 0"</span>),</span><span class="ln" data-l="9"><span class="lno">9</span>        }</span><span class="ln" data-l="10"><span class="lno">10</span>    }</span><span class="ln" data-l="11"><span class="lno">11</span>}</span><span class="ln" data-l="12"><span class="lno">12</span><span class="k">impl</span> std::error::<span class="t">Error</span> <span class="k">for</span> <span class="t">AppError</span> {}</span><span class="ln" data-l="13"><span class="lno">13</span><span class="k">impl</span> <span class="t">From</span>&lt;<span class="t">ParseIntError</span>&gt; <span class="k">for</span> <span class="t">AppError</span> {</span><span class="ln" data-l="14"><span class="lno">14</span>    <span class="k">fn</span> from(e: <span class="t">ParseIntError</span>) -&gt; <span class="k">Self</span> { <span class="t">AppError</span>::<span class="t">Parse</span>(e) }</span><span class="ln" data-l="15"><span class="lno">15</span>}</span><span class="ln" data-l="16"><span class="lno">16</span><span class="k">fn</span> age(s: &amp;str) -&gt; <span class="t">Result</span>&lt;i64, <span class="t">AppError</span>&gt; {</span><span class="ln" data-l="17"><span class="lno">17</span>    <span class="k">let</span> n: i64 = s.parse()?;</span><span class="ln" data-l="18"><span class="lno">18</span>    <span class="k">if</span> n &lt; <span class="n">0</span> { <span class="k">return</span> <span class="t">Err</span>(<span class="t">AppError</span>::<span class="t">Negative</span>(n)); }</span><span class="ln" data-l="19"><span class="lno">19</span>    <span class="t">Ok</span>(n)</span><span class="ln" data-l="20"><span class="lno">20</span>}</span><span class="ln" data-l="21"><span class="lno">21</span><span class="k">fn</span> main() {</span><span class="ln" data-l="22"><span class="lno">22</span>    <span class="k">for</span> s <span class="k">in</span> [<span class="s">"30"</span>, <span class="s">"-4"</span>, <span class="s">"abc"</span>] {</span><span class="ln" data-l="23"><span class="lno">23</span>        <span class="k">match</span> age(s) { <span class="t">Ok</span>(n) =&gt; <span class="m">println!</span>(<span class="s">"{n}"</span>), <span class="t">Err</span>(e) =&gt; <span class="m">println!</span>(<span class="s">"{e}"</span>) }</span><span class="ln" data-l="24"><span class="lno">24</span>    }</span><span class="ln" data-l="25"><span class="lno">25</span>}</span></code></pre>
+      <div class="scroll"><svg viewBox="0 0 640 200" role="img" aria-labelledby="sim-custom-title sim-custom-desc">
+        <title id="sim-custom-title">One error enum, From, and ?</title>
+        <desc id="sim-custom-desc">Step-by-step simulator for One error enum, From, and ?. Use Prev and Next, or the arrow keys, to move through the steps; the note under the figure explains each one.</desc>
+      </svg></div>
+    </div>
+    <p class="trace-note" aria-live="polite"></p>
+    <div class="card-bottom">
+      <div class="row" style="margin:0">
+        <button type="button" class="btn" data-act="prev">&larr; Prev</button>
+        <button type="button" class="btn" data-act="next">Next &rarr;</button>
+        <button type="button" class="btn" data-act="reset">Reset</button>
+      </div>
+      <span class="live"></span>
+    </div>
+    <script type="application/json" class="sim-data">{"heads":["VALUE","CONVERSION"],"steps":[{"l":3,"note":"One enum lists every way this module can fail. Callers match on it.","cols":[[{"v":"AppError::Parse(ParseIntError)"},{"v":"AppError::Negative(i64)"}],[]]},{"l":[4,12],"note":"\u003ccode>Display\u003c/code> gives the message for users; the empty \u003ccode>Error\u003c/code> impl makes it a standard error type (usable as \u003ccode>Box&lt;dyn Error&gt;\u003c/code>).","cols":[[{"v":"AppError"}],[{"v":"impl Display","s":"ok"},{"v":"impl Error","s":"ok"}]]},{"l":[22,17,19],"note":"\"30\" parses and is not negative.","o":"30","cols":[[{"n":"s","v":"\"30\""},{"n":"age","v":"Ok(30)","s":"ok"}],[]]},{"l":[22,18],"note":"\"-4\" parses, but the check fails. The function builds its own error variant.","o":"-4 \u003c 0","cols":[[{"n":"s","v":"\"-4\""},{"n":"age","v":"Err(Negative(-4))","s":"err"}],[]]},{"l":[22,17,14],"note":"\"abc\" fails to parse. \u003ccode>?\u003c/code> sees a \u003ccode>ParseIntError\u003c/code> but the function returns \u003ccode>AppError\u003c/code>, so it calls \u003ccode>From::from\u003c/code>, which wraps it in \u003ccode>AppError::Parse\u003c/code>.","o":"bad number: invalid digit found in string","cols":[[{"n":"s","v":"\"abc\""},{"n":"age","v":"Err(Parse(…))","s":"err"}],[{"v":"ParseIntError"},{"v":"From → AppError::Parse","s":"hl"}]]}]}</script>
+  </figure>
+  <!-- /sim:custom -->
 </section>
 
 <section id="when">
@@ -330,6 +418,28 @@ $ RUST_BACKTRACE=full cargo run   # with every frame</code></pre></div>
 <span class="k">fn</span> main() {
     <span class="m">println!</span>(<span class="s">"{}"</span>, <span class="t">Guess</span>::new(<span class="n">42</span>).value());
 }</code></pre></div>
+<!-- sim:when -->
+  <figure class="card sim" id="sim-when" aria-label="Simulator: Validate once with a type">
+    <div class="card-top"><span class="eyebrow">Simulator 5</span><span class="card-title">Validate once with a type</span></div>
+    <div class="trace">
+      <pre class="trace-code"><code><span class="ln" data-l="1"><span class="lno">1</span><span class="k">pub</span> <span class="k">struct</span> <span class="t">Guess</span> { value: i32 }</span><span class="ln" data-l="2"><span class="lno">2</span><span class="k">impl</span> <span class="t">Guess</span> {</span><span class="ln" data-l="3"><span class="lno">3</span>    <span class="k">pub</span> <span class="k">fn</span> new(value: i32) -&gt; <span class="t">Result</span>&lt;<span class="t">Guess</span>, <span class="t">String</span>&gt; {</span><span class="ln" data-l="4"><span class="lno">4</span>        <span class="k">if</span> !(<span class="n">1</span>..=<span class="n">100</span>).contains(&amp;value) {</span><span class="ln" data-l="5"><span class="lno">5</span>            <span class="k">return</span> <span class="t">Err</span>(<span class="m">format!</span>(<span class="s">"{value} is out of 1..=100"</span>));</span><span class="ln" data-l="6"><span class="lno">6</span>        }</span><span class="ln" data-l="7"><span class="lno">7</span>        <span class="t">Ok</span>(<span class="t">Guess</span> { value })</span><span class="ln" data-l="8"><span class="lno">8</span>    }</span><span class="ln" data-l="9"><span class="lno">9</span>    <span class="k">pub</span> <span class="k">fn</span> value(&amp;<span class="k">self</span>) -&gt; i32 { <span class="k">self</span>.value }</span><span class="ln" data-l="10"><span class="lno">10</span>}</span><span class="ln" data-l="11"><span class="lno">11</span><span class="k">fn</span> main() {</span><span class="ln" data-l="12"><span class="lno">12</span>    <span class="k">for</span> v <span class="k">in</span> [<span class="n">50</span>, <span class="n">0</span>, <span class="n">101</span>] {</span><span class="ln" data-l="13"><span class="lno">13</span>        <span class="k">match</span> <span class="t">Guess</span>::new(v) {</span><span class="ln" data-l="14"><span class="lno">14</span>            <span class="t">Ok</span>(g) =&gt; <span class="m">println!</span>(<span class="s">"guess {}"</span>, g.value()),</span><span class="ln" data-l="15"><span class="lno">15</span>            <span class="t">Err</span>(e) =&gt; <span class="m">println!</span>(<span class="s">"{e}"</span>),</span><span class="ln" data-l="16"><span class="lno">16</span>        }</span><span class="ln" data-l="17"><span class="lno">17</span>    }</span><span class="ln" data-l="18"><span class="lno">18</span>}</span></code></pre>
+      <div class="scroll"><svg viewBox="0 0 640 200" role="img" aria-labelledby="sim-when-title sim-when-desc">
+        <title id="sim-when-title">Validate once with a type</title>
+        <desc id="sim-when-desc">Step-by-step simulator for Validate once with a type. Use Prev and Next, or the arrow keys, to move through the steps; the note under the figure explains each one.</desc>
+      </svg></div>
+    </div>
+    <p class="trace-note" aria-live="polite"></p>
+    <div class="card-bottom">
+      <div class="row" style="margin:0">
+        <button type="button" class="btn" data-act="prev">&larr; Prev</button>
+        <button type="button" class="btn" data-act="next">Next &rarr;</button>
+        <button type="button" class="btn" data-act="reset">Reset</button>
+      </div>
+      <span class="live"></span>
+    </div>
+    <script type="application/json" class="sim-data">{"heads":["INPUT","OUTCOME"],"steps":[{"l":1,"note":"The field is private. Code outside this module cannot write \u003ccode>Guess { value: 500 }\u003c/code>, so every \u003ccode>Guess\u003c/code> must go through \u003ccode>new\u003c/code>.","cols":[[{"v":"Guess { value } (private)"}],[{"v":"only Guess::new can build one","s":"ok"}]]},{"l":[12,4,7],"note":"50 is in range: a \u003ccode>Guess\u003c/code> is returned.","o":"guess 50","cols":[[{"n":"v","v":"50"}],[{"v":"Ok(Guess { value: 50 })","s":"ok"}]]},{"l":[12,4,5],"note":"0 is out of range. Bad \u003cb>input\u003c/b> is expected, so it is a \u003ccode>Result\u003c/code>, not a panic.","o":"0 is out of 1..=100","cols":[[{"n":"v","v":"0"}],[{"v":"Err(\"0 is out of 1..=100\")","s":"err"}]]},{"l":[12,4,5],"note":"Same for 101.","o":"101 is out of 1..=100","cols":[[{"n":"v","v":"101"}],[{"v":"Err(\"101 is out …\")","s":"err"}]]},{"l":9,"note":"Any function that takes a \u003ccode>Guess\u003c/code> can trust the range without checking again. Panic instead when a broken invariant means a bug in your own code.","cols":[[{"v":"fn play(g: Guess)"}],[{"v":"value is always 1..=100","s":"ok"}]]}]}</script>
+  </figure>
+  <!-- /sim:when -->
 </section>
 
 <section id="quiz">
@@ -485,7 +595,7 @@ var CHECK_KEY = 'rust-rust-error-handling-check:' + location.pathname;
       if (!heap.length) txt(380, 64, '(nothing allocated)', { fill: SOFT });
       var H = Math.max(y, hy, 90) + 10;
       svg.setAttribute('viewBox', '0 0 640 ' + H);
-      Array.prototype.forEach.call(document.querySelectorAll('.trace-code .ln'), function (ln) {
+      Array.prototype.forEach.call(document.querySelectorAll('figure:not(.sim) .trace-code .ln'), function (ln) {
         ln.classList.toggle('on', +ln.getAttribute('data-l') === st.l);
       });
       $('traceNote').innerHTML = st.note;
@@ -542,5 +652,147 @@ var CHECK_KEY = 'rust-rust-error-handling-check:' + location.pathname;
 })();
 
 </script>
+<!-- section-sims -->
+<script>
+(function () {
+  // Section simulators: each figure.sim carries its steps as JSON and is drawn into its own SVG.
+  var NS = 'http://www.w3.org/2000/svg';
+  var INK = '#2d3142', SOFT = '#5a6580', RULE = '#bfc0c0', ACCENT = '#bf4520', LINK = '#2e5aa8', OK = '#2f7a4a', PAPER = '#f5f5f5';
+  var W = 640, BOX_H = 40, GAP_Y = 10, TOP = 40;
+  var fit = function (s, n) { s = String(s); return s.length > n ? s.slice(0, Math.max(1, n - 1)) + '\u2026' : s; };
+
+  function initSim(fig) {
+    var data = JSON.parse(fig.querySelector('script.sim-data').textContent);
+    var svg = fig.querySelector('svg'), lines = fig.querySelectorAll('.trace-code .ln');
+    var note = fig.querySelector('.trace-note'), live = fig.querySelector('.live');
+    var prev = fig.querySelector('[data-act="prev"]'), next = fig.querySelector('[data-act="next"]'), reset = fig.querySelector('[data-act="reset"]');
+    var steps = data.steps, heads = data.heads || [], cur = 0, uid = fig.id;
+    var hasOut = steps.some(function (s) { return s.o != null; });
+    var el = function (name, attrs, parent) {
+      var e = document.createElementNS(NS, name);
+      for (var k in attrs) if (attrs[k] !== '' && attrs[k] != null) e.setAttribute(k, attrs[k]);
+      (parent || svg).appendChild(e);
+      return e;
+    };
+    var txt = function (x, y, s, a, parent) {
+      var o = { x: x, y: y, 'font-size': 12, fill: INK, 'font-family': 'Geist Mono, monospace' };
+      for (var k in a) o[k] = a[k];
+      var t = el('text', o, parent); t.textContent = s; return t;
+    };
+    var clear = function () {
+      Array.prototype.slice.call(svg.childNodes).forEach(function (n) {
+        var nm = (n.localName || '').toLowerCase();
+        if (nm !== 'title' && nm !== 'desc') svg.removeChild(n);
+      });
+    };
+
+    function draw() {
+      var st = steps[cur], cols = st.cols || [];
+      var k = Math.max(1, heads.length, cols.length);
+      var left = 40, right = 24, gap = k === 1 ? 0 : (k === 2 ? 70 : 46);
+      var colW = (W - left - right - gap * (k - 1)) / k;
+      var chars = Math.floor((colW - 24) / 7.4);
+      clear();
+      var defs = el('defs', {});
+      [['a', INK], ['b', LINK], ['c', ACCENT]].forEach(function (m) {
+        var mk = el('marker', { id: uid + '-' + m[0], viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: 'auto-start-reverse' }, defs);
+        el('path', { d: 'M0 0 L10 5 L0 10 z', fill: m[1] }, mk);
+      });
+      var pos = {}, bottom = TOP;
+      for (var ci = 0; ci < k; ci++) {
+        var x = left + ci * (colW + gap), y = TOP, lastG = null, items = cols[ci] || [];
+        if (heads[ci]) txt(x, 24, heads[ci], { 'font-size': 11, fill: SOFT, 'letter-spacing': '2' });
+        items.forEach(function (it) {
+          if (it.g && it.g !== lastG) { txt(x, y + 12, fit(it.g, chars + 4), { 'font-size': 10.5, fill: SOFT, 'font-style': 'italic' }); y += 18; lastG = it.g; }
+          var s = it.s || '', faded = /moved|dropped|freed/.test(s);
+          var isRef = /ref|mut|weak/.test(s), hl = /hl/.test(s), err = /err/.test(s), ok = /ok/.test(s);
+          var stroke = err || hl ? ACCENT : (ok ? OK : (isRef ? LINK : (faded ? RULE : INK)));
+          var g = el('g', { opacity: /dropped|freed/.test(s) ? 0.4 : 1 });
+          el('rect', { x: x, y: y, width: colW, height: BOX_H, rx: 6, fill: err ? 'rgba(191,69,32,.08)' : (ok ? 'rgba(47,122,74,.07)' : (faded ? PAPER : '#fff')), stroke: stroke, 'stroke-width': hl || err ? 2 : 1.4, 'stroke-dasharray': faded ? '5 4' : '' }, g);
+          var stateWord = /moved/.test(s) ? 'moved' : (/dropped/.test(s) ? 'dropped' : (/freed/.test(s) ? 'freed' : null));
+          var val = stateWord && it.v == null ? stateWord : (it.v == null ? '' : it.v);
+          if (it.n != null) {
+            var nChars = Math.max(4, Math.min(String(it.n).length, Math.floor(chars * 0.45)));
+            txt(x + 12, y + 25, fit(it.n, nChars), { 'font-size': 13, 'font-weight': 600, fill: faded ? SOFT : INK }, g);
+            txt(x + colW - 12, y + 25, fit(val, Math.max(4, chars - nChars - 1)), { 'text-anchor': 'end', fill: faded ? SOFT : (err ? ACCENT : (isRef ? LINK : INK)) }, g);
+          } else {
+            txt(x + 12, y + 25, fit(val, chars), { fill: faded ? SOFT : (err ? ACCENT : INK) }, g);
+          }
+          var tag = it.t || (/mut/.test(s) ? '&mut' : (/weak/.test(s) ? 'weak' : (/ref/.test(s) ? '&' : null)));
+          if (tag) {
+            var tw = 10 + tag.length * 6.2;
+            el('rect', { x: x + colW - tw - 8, y: y - 8, width: tw, height: 15, rx: 3, fill: err ? ACCENT : (ok ? OK : (hl ? ACCENT : LINK)) }, g);
+            txt(x + colW - tw - 3, y + 3, tag, { 'font-size': 9.5, fill: '#fff', 'font-weight': 600 }, g);
+          }
+          var id = it.id != null ? it.id : it.n;
+          if (id != null) pos[id] = { x: x, y: y + BOX_H / 2, col: ci, faded: faded, freed: /freed|dropped/.test(s) };
+          it._id = id;
+          y += BOX_H + GAP_Y;
+        });
+        if (!items.length && heads[ci]) txt(x, TOP + 24, data.empty && data.empty[ci] ? data.empty[ci] : '(empty)', { fill: SOFT });
+        bottom = Math.max(bottom, y);
+      }
+      // arrows
+      cols.forEach(function (items) {
+        (items || []).forEach(function (it) {
+          if (!it.to || /moved|dropped|freed/.test(it.s || '')) return;
+          var a = pos[it._id]; if (!a) return;
+          [].concat(it.to).forEach(function (t) {
+            var weak = t.charAt(0) === '~', bad = t.charAt(0) === '!';
+            if (weak || bad) t = t.slice(1);
+            var b = pos[t]; if (!b) return;
+            var color = bad || b.freed ? ACCENT : (weak || /ref|mut/.test(it.s || '') ? LINK : INK);
+            var mk = 'url(#' + uid + '-' + (color === ACCENT ? 'c' : (color === LINK ? 'b' : 'a')) + ')';
+            var dash = weak || bad || b.freed ? '4 3' : '', d;
+            if (b.col === a.col) {
+              var dx = 18 + Math.min(22, Math.abs(a.y - b.y) / 6), lx = a.x;
+              d = 'M' + lx + ' ' + a.y + ' C' + (lx - dx) + ' ' + a.y + ' ' + (lx - dx) + ' ' + b.y + ' ' + (lx - 2) + ' ' + b.y;
+            } else if (b.col > a.col) {
+              var x1 = a.x + colW, x2 = b.x - 2, mx = (x1 + x2) / 2;
+              d = 'M' + x1 + ' ' + a.y + ' C' + mx + ' ' + a.y + ' ' + mx + ' ' + b.y + ' ' + x2 + ' ' + b.y;
+            } else {
+              var x3 = a.x, x4 = b.x + colW + 2, mx2 = (x3 + x4) / 2;
+              d = 'M' + x3 + ' ' + a.y + ' C' + mx2 + ' ' + a.y + ' ' + mx2 + ' ' + b.y + ' ' + x4 + ' ' + b.y;
+            }
+            el('path', { d: d, fill: 'none', stroke: color, 'stroke-width': 1.6, 'stroke-dasharray': dash, 'marker-end': mk });
+          });
+        });
+      });
+      var H = Math.max(bottom, 90) + 6;
+      if (hasOut) {
+        var out = [];
+        for (var i = 0; i <= cur; i++) if (steps[i].o != null) out = out.concat(steps[i].o);
+        var shown = out.slice(-6), oh = 30 + Math.max(1, shown.length) * 18;
+        el('rect', { x: left, y: H, width: W - left - right, height: oh, rx: 6, fill: INK });
+        txt(left + 12, H + 18, 'OUTPUT', { 'font-size': 10, fill: RULE, 'letter-spacing': '2' });
+        if (!shown.length) txt(left + 12, H + 38, '(nothing printed yet)', { fill: RULE, 'font-style': 'italic' });
+        shown.forEach(function (ln, j) {
+          var bad = String(ln).charAt(0) === '!';
+          txt(left + 12, H + 38 + j * 18, fit(bad ? String(ln).slice(1) : ln, 76), { fill: bad ? '#ff9b7a' : PAPER });
+        });
+        H += oh + 10;
+      }
+      svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+      var on = [].concat(st.l || []);
+      Array.prototype.forEach.call(lines, function (ln) { ln.classList.toggle('on', on.indexOf(+ln.getAttribute('data-l')) !== -1); });
+      note.innerHTML = st.note;
+      live.textContent = 'step ' + (cur + 1) + ' / ' + steps.length;
+      prev.disabled = cur === 0;
+      next.disabled = cur === steps.length - 1;
+    }
+    prev.addEventListener('click', function () { if (cur > 0) { cur--; draw(); } });
+    next.addEventListener('click', function () { if (cur < steps.length - 1) { cur++; draw(); } });
+    reset.addEventListener('click', function () { cur = 0; draw(); });
+    fig.addEventListener('keydown', function (e) {
+      if (e.target.tagName === 'INPUT') return;
+      if (e.key === 'ArrowRight' && cur < steps.length - 1) { cur++; draw(); e.preventDefault(); }
+      if (e.key === 'ArrowLeft' && cur > 0) { cur--; draw(); e.preventDefault(); }
+    });
+    draw();
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('figure.sim'), initSim);
+})();
+</script>
+<!-- /section-sims -->
 </body>
 </html>

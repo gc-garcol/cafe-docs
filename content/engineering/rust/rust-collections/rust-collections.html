@@ -206,6 +206,28 @@ table.ops td:first-child{font-weight:600}
     }
     <span class="m">println!</span>();
 }</code></pre></div>
+<!-- sim:vec -->
+  <figure class="card sim" id="sim-vec" aria-label="Simulator: Vec&lt;T&gt; grows by reallocating">
+    <div class="card-top"><span class="eyebrow">Simulator 1</span><span class="card-title">Vec&lt;T&gt; grows by reallocating</span></div>
+    <div class="trace">
+      <pre class="trace-code"><code><span class="ln" data-l="1"><span class="lno">1</span><span class="k">fn</span> main() {</span><span class="ln" data-l="2"><span class="lno">2</span>    <span class="k">let</span> <span class="k">mut</span> v: <span class="t">Vec</span>&lt;i32&gt; = <span class="t">Vec</span>::with_capacity(<span class="n">2</span>);</span><span class="ln" data-l="3"><span class="lno">3</span>    v.push(<span class="n">1</span>);</span><span class="ln" data-l="4"><span class="lno">4</span>    v.push(<span class="n">2</span>);</span><span class="ln" data-l="5"><span class="lno">5</span>    <span class="k">let</span> first = &amp;v[<span class="n">0</span>];</span><span class="ln" data-l="6"><span class="lno">6</span>    <span class="m">println!</span>(<span class="s">"{first}"</span>);</span><span class="ln" data-l="7"><span class="lno">7</span>    v.push(<span class="n">3</span>);              <span class="c2">// may move the buffer</span></span><span class="ln" data-l="8"><span class="lno">8</span>    <span class="c2">// println!("{first}"); // E0502 if used here</span></span><span class="ln" data-l="9"><span class="lno">9</span>    <span class="k">for</span> x <span class="k">in</span> &amp;<span class="k">mut</span> v { *x *= <span class="n">10</span>; }</span><span class="ln" data-l="10"><span class="lno">10</span>    <span class="m">println!</span>(<span class="s">"{v:?} {:?}"</span>, v.get(<span class="n">9</span>));</span><span class="ln" data-l="11"><span class="lno">11</span>}</span></code></pre>
+      <div class="scroll"><svg viewBox="0 0 640 200" role="img" aria-labelledby="sim-vec-title sim-vec-desc">
+        <title id="sim-vec-title">Vec&lt;T&gt; grows by reallocating</title>
+        <desc id="sim-vec-desc">Step-by-step simulator for Vec&lt;T&gt; grows by reallocating. Use Prev and Next, or the arrow keys, to move through the steps; the note under the figure explains each one.</desc>
+      </svg></div>
+    </div>
+    <p class="trace-note" aria-live="polite"></p>
+    <div class="card-bottom">
+      <div class="row" style="margin:0">
+        <button type="button" class="btn" data-act="prev">&larr; Prev</button>
+        <button type="button" class="btn" data-act="next">Next &rarr;</button>
+        <button type="button" class="btn" data-act="reset">Reset</button>
+      </div>
+      <span class="live"></span>
+    </div>
+    <script type="application/json" class="sim-data">{"heads":["STACK","HEAP"],"steps":[{"l":2,"note":"The \u003ccode>Vec\u003c/code> header is three words on the stack: pointer, length, capacity. Room for 2 is reserved on the heap.","cols":[[{"g":"main","n":"v","v":"len=0 cap=2","to":"b1"}],[{"id":"b1","v":"[_, _]"}]]},{"l":[3,4],"note":"Pushes fill the reserved slots. No reallocation yet.","cols":[[{"g":"main","n":"v","v":"len=2 cap=2","to":"b1","s":"hl"}],[{"id":"b1","v":"[1, 2]"}]]},{"l":[5,6],"note":"\u003ccode>&amp;v[0]\u003c/code> is a pointer straight into the heap buffer.","o":"1","cols":[[{"g":"main","n":"v","v":"len=2 cap=2","to":"b1"},{"g":"main","n":"first","v":"&i32","s":"ref","to":"b1"}],[{"id":"b1","v":"[1, 2]"}]]},{"l":7,"note":"The buffer is full, so \u003ccode>push\u003c/code> allocates a bigger one (here capacity 4), copies the elements and frees the old one. A reference into the old buffer would now dangle.","cols":[[{"g":"main","n":"v","v":"len=3 cap=4","to":"b2","s":"hl"},{"g":"main","n":"first","s":"dropped"}],[{"id":"b1","v":"old buffer","s":"freed"},{"id":"b2","v":"[1, 2, 3, _]","s":"hl"}]]},{"l":8,"note":"That is why using \u003ccode>first\u003c/code> after \u003ccode>push\u003c/code> is E0502: \u003ccode>push\u003c/code> needs \u003ccode>&amp;mut v\u003c/code> while \u003ccode>first\u003c/code> still borrows it.","cols":[[{"g":"main","n":"v","v":"len=3 cap=4","to":"b2"},{"g":"main","n":"first","v":"would dangle","s":"err","t":"E0502","to":"!b1"}],[{"id":"b1","v":"old buffer","s":"freed"},{"id":"b2","v":"[1, 2, 3, _]"}]]},{"l":9,"note":"Iterating over \u003ccode>&amp;mut v\u003c/code> yields \u003ccode>&amp;mut i32\u003c/code>; \u003ccode>*x\u003c/code> writes through it.","cols":[[{"g":"main","n":"v","v":"len=3 cap=4","to":"b2"},{"g":"main","n":"x","v":"&mut i32","s":"mut","to":"b2"}],[{"id":"b2","v":"[10, 20, 30, _]","s":"hl"}]]},{"l":10,"note":"\u003ccode>v[9]\u003c/code> would panic; \u003ccode>get(9)\u003c/code> returns \u003ccode>None\u003c/code>.","o":"[10, 20, 30] None","cols":[[{"g":"main","n":"v","v":"len=3 cap=4","to":"b2"}],[{"id":"b2","v":"[10, 20, 30, _]"}]]}]}</script>
+  </figure>
+  <!-- /sim:vec -->
 </section>
 
 <section id="string">
@@ -239,6 +261,28 @@ table.ops td:first-child{font-weight:600}
     <span class="k">for</span> b <span class="k">in</span> <span class="s">"Зд"</span>.bytes() { <span class="m">print!</span>(<span class="s">"{b} "</span>); }
     <span class="m">println!</span>(<span class="s">"\n{first_two} {} bytes, {n_chars} chars"</span>, hello.len());
 }</code></pre></div>
+<!-- sim:string -->
+  <figure class="card sim" id="sim-string" aria-label="Simulator: A String is UTF-8 bytes">
+    <div class="card-top"><span class="eyebrow">Simulator 2</span><span class="card-title">A String is UTF-8 bytes</span></div>
+    <div class="trace">
+      <pre class="trace-code"><code><span class="ln" data-l="1"><span class="lno">1</span><span class="k">fn</span> main() {</span><span class="ln" data-l="2"><span class="lno">2</span>    <span class="k">let</span> <span class="k">mut</span> s = <span class="t">String</span>::from(<span class="s">"hé"</span>);</span><span class="ln" data-l="3"><span class="lno">3</span>    s.push(<span class="s">'!'</span>);</span><span class="ln" data-l="4"><span class="lno">4</span>    <span class="k">let</span> t = <span class="t">String</span>::from(<span class="s">" yo"</span>);</span><span class="ln" data-l="5"><span class="lno">5</span>    <span class="k">let</span> u = s + &amp;t;             <span class="c2">// s is moved</span></span><span class="ln" data-l="6"><span class="lno">6</span>    <span class="c2">// let c = u[0];            // E0277: no indexing</span></span><span class="ln" data-l="7"><span class="lno">7</span>    <span class="k">let</span> first = &amp;u[<span class="n">0</span>..<span class="n">1</span>];</span><span class="ln" data-l="8"><span class="lno">8</span>    <span class="k">let</span> chars = u.chars().count();</span><span class="ln" data-l="9"><span class="lno">9</span>    <span class="m">println!</span>(<span class="s">"{u} {} {first} {chars}"</span>, u.len());</span><span class="ln" data-l="10"><span class="lno">10</span>}</span></code></pre>
+      <div class="scroll"><svg viewBox="0 0 640 200" role="img" aria-labelledby="sim-string-title sim-string-desc">
+        <title id="sim-string-title">A String is UTF-8 bytes</title>
+        <desc id="sim-string-desc">Step-by-step simulator for A String is UTF-8 bytes. Use Prev and Next, or the arrow keys, to move through the steps; the note under the figure explains each one.</desc>
+      </svg></div>
+    </div>
+    <p class="trace-note" aria-live="polite"></p>
+    <div class="card-bottom">
+      <div class="row" style="margin:0">
+        <button type="button" class="btn" data-act="prev">&larr; Prev</button>
+        <button type="button" class="btn" data-act="next">Next &rarr;</button>
+        <button type="button" class="btn" data-act="reset">Reset</button>
+      </div>
+      <span class="live"></span>
+    </div>
+    <script type="application/json" class="sim-data">{"heads":["STACK","HEAP"],"steps":[{"l":2,"note":"\"hé\" is 2 characters but 3 bytes: \u003ccode>é\u003c/code> takes 2 bytes in UTF-8.","cols":[[{"g":"main","n":"s","v":"len=3","to":"a"}],[{"id":"a","v":"\"hé\" = 68 C3 A9"}]]},{"l":3,"note":"\u003ccode>push\u003c/code> appends one \u003ccode>char\u003c/code>, encoded as UTF-8.","cols":[[{"g":"main","n":"s","v":"len=4","to":"a","s":"hl"}],[{"id":"a","v":"\"hé!\""}]]},{"l":4,"note":"A second string.","cols":[[{"g":"main","n":"s","v":"len=4","to":"a"},{"g":"main","n":"t","v":"len=3","to":"b"}],[{"id":"a","v":"\"hé!\""},{"id":"b","v":"\" yo\""}]]},{"l":5,"note":"\u003ccode>+\u003c/code> calls \u003ccode>add(self, &amp;str)\u003c/code>: it takes \u003ccode>s\u003c/code> by value, appends a copy of \u003ccode>t\u003c/code>'s bytes into \u003cb>s's buffer\u003c/b> and returns it. \u003ccode>s\u003c/code> is moved; \u003ccode>t\u003c/code> is only borrowed.","cols":[[{"g":"main","n":"s","s":"moved"},{"g":"main","n":"t","v":"len=3","to":"b"},{"g":"main","n":"u","v":"len=7","to":"a","s":"hl"}],[{"id":"a","v":"\"hé! yo\""},{"id":"b","v":"\" yo\""}]]},{"l":6,"note":"\u003ccode>u[0]\u003c/code> is E0277: a byte index is not a character, and returning a byte would be wrong for text like \u003ccode>é\u003c/code>.","cols":[[{"g":"main","n":"t","v":"len=3","to":"b"},{"g":"main","n":"u","v":"len=7","to":"a"},{"g":"main","n":"u[0]","v":"not allowed","s":"err","t":"E0277"}],[{"id":"a","v":"\"hé! yo\""},{"id":"b","v":"\" yo\""}]]},{"l":7,"note":"A byte range is allowed if it falls on character boundaries. \u003ccode>&amp;u[1..2]\u003c/code> would panic: byte 2 is inside \u003ccode>é\u003c/code>.","cols":[[{"g":"main","n":"t","v":"len=3","to":"b"},{"g":"main","n":"u","v":"len=7","to":"a"},{"g":"main","n":"first","v":"&str \"h\"","s":"ref","to":"a"}],[{"id":"a","v":"\"hé! yo\""},{"id":"b","v":"\" yo\""}]]},{"l":[8,9],"note":"\u003ccode>len()\u003c/code> counts bytes (7); \u003ccode>chars()\u003c/code> counts Unicode scalar values (6).","o":"hé! yo 7 h 6","cols":[[{"g":"main","n":"u","v":"len=7","to":"a"},{"g":"main","n":"chars","v":"6"}],[{"id":"a","v":"\"hé! yo\""}]]}]}</script>
+  </figure>
+  <!-- /sim:string -->
 </section>
 
 <section id="hashmap">
@@ -278,12 +322,56 @@ table.ops td:first-child{font-weight:600}
   <p>The entry API does one hash lookup for "find or insert", and it returns a mutable reference into the map, which is why the counter can be updated in place.</p>
   <h3>Hashing</h3>
   <p>The default hasher is SipHash 1-3. It is not the fastest, but it resists hash-flooding attacks, where an attacker sends keys chosen to collide. For trusted keys in hot code, a faster hasher can be plugged in with <code>HashMap::with_hasher</code> or a crate such as <code>ahash</code> or <code>fxhash</code>.</p>
+<!-- sim:hashmap -->
+  <figure class="card sim" id="sim-hashmap" aria-label="Simulator: HashMap: insert, entry and ownership">
+    <div class="card-top"><span class="eyebrow">Simulator 3</span><span class="card-title">HashMap: insert, entry and ownership</span></div>
+    <div class="trace">
+      <pre class="trace-code"><code><span class="ln" data-l="1"><span class="lno">1</span><span class="k">use</span> std::collections::<span class="t">HashMap</span>;</span><span class="ln" data-l="2"><span class="lno">2</span><span class="k">fn</span> main() {</span><span class="ln" data-l="3"><span class="lno">3</span>    <span class="k">let</span> <span class="k">mut</span> m: <span class="t">HashMap</span>&lt;<span class="t">String</span>, i32&gt; = <span class="t">HashMap</span>::new();</span><span class="ln" data-l="4"><span class="lno">4</span>    <span class="k">let</span> key = <span class="t">String</span>::from(<span class="s">"blue"</span>);</span><span class="ln" data-l="5"><span class="lno">5</span>    m.insert(key, <span class="n">10</span>);          <span class="c2">// key is moved in</span></span><span class="ln" data-l="6"><span class="lno">6</span>    m.insert(<span class="t">String</span>::from(<span class="s">"blue"</span>), <span class="n">25</span>);</span><span class="ln" data-l="7"><span class="lno">7</span>    m.entry(<span class="t">String</span>::from(<span class="s">"red"</span>)).or_insert(<span class="n">50</span>);</span><span class="ln" data-l="8"><span class="lno">8</span>    m.entry(<span class="t">String</span>::from(<span class="s">"blue"</span>)).or_insert(<span class="n">99</span>);</span><span class="ln" data-l="9"><span class="lno">9</span>    <span class="k">for</span> w <span class="k">in</span> <span class="s">"a b a"</span>.split(<span class="s">' '</span>) {</span><span class="ln" data-l="10"><span class="lno">10</span>        *m.entry(w.to_string()).or_insert(<span class="n">0</span>) += <span class="n">1</span>;</span><span class="ln" data-l="11"><span class="lno">11</span>    }</span><span class="ln" data-l="12"><span class="lno">12</span>    <span class="m">println!</span>(<span class="s">"{:?} {:?}"</span>, m.get(<span class="s">"blue"</span>), m.get(<span class="s">"a"</span>));</span><span class="ln" data-l="13"><span class="lno">13</span>}</span></code></pre>
+      <div class="scroll"><svg viewBox="0 0 640 200" role="img" aria-labelledby="sim-hashmap-title sim-hashmap-desc">
+        <title id="sim-hashmap-title">HashMap: insert, entry and ownership</title>
+        <desc id="sim-hashmap-desc">Step-by-step simulator for HashMap: insert, entry and ownership. Use Prev and Next, or the arrow keys, to move through the steps; the note under the figure explains each one.</desc>
+      </svg></div>
+    </div>
+    <p class="trace-note" aria-live="polite"></p>
+    <div class="card-bottom">
+      <div class="row" style="margin:0">
+        <button type="button" class="btn" data-act="prev">&larr; Prev</button>
+        <button type="button" class="btn" data-act="next">Next &rarr;</button>
+        <button type="button" class="btn" data-act="reset">Reset</button>
+      </div>
+      <span class="live"></span>
+    </div>
+    <script type="application/json" class="sim-data">{"heads":["MAP","NOTES"],"steps":[{"l":3,"note":"An empty map. Keys are hashed with SipHash, which resists hash-flooding attacks.","cols":[[],[{"v":"len = 0"}]]},{"l":[4,5],"note":"\u003ccode>insert\u003c/code> takes ownership of an owned key and value. \u003ccode>key\u003c/code> cannot be used afterwards.","cols":[[{"n":"\"blue\"","v":"10","s":"hl"}],[{"n":"key","s":"moved"}]]},{"l":6,"note":"Inserting an existing key overwrites the value (and returns \u003ccode>Some(10)\u003c/code>, the old one).","cols":[[{"n":"\"blue\"","v":"25","s":"hl"}],[{"v":"old value 10 returned"}]]},{"l":7,"note":"\u003ccode>entry(..).or_insert(v)\u003c/code> inserts only if the key is absent.","cols":[[{"n":"\"blue\"","v":"25"},{"n":"\"red\"","v":"50","s":"hl"}],[{"v":"\"red\" was absent → inserted","s":"ok"}]]},{"l":8,"note":"\"blue\" is present, so 99 is ignored.","cols":[[{"n":"\"blue\"","v":"25"},{"n":"\"red\"","v":"50"}],[{"v":"\"blue\" present → kept 25"}]]},{"l":[9,10],"note":"\u003ccode>or_insert\u003c/code> returns \u003ccode>&amp;mut V\u003c/code>, so a counter is one line. After \"a b a\": a = 2, b = 1.","cols":[[{"n":"\"blue\"","v":"25"},{"n":"\"red\"","v":"50"},{"n":"\"a\"","v":"2","s":"hl"},{"n":"\"b\"","v":"1","s":"hl"}],[{"v":"&mut i32 from or_insert","s":"mut"}]]},{"l":12,"note":"\u003ccode>get\u003c/code> borrows the key as \u003ccode>&amp;str\u003c/code> and returns \u003ccode>Option&lt;&amp;V&gt;\u003c/code>. Iteration order is arbitrary.","o":"Some(25) Some(2)","cols":[[{"n":"\"blue\"","v":"25"},{"n":"\"red\"","v":"50"},{"n":"\"a\"","v":"2"},{"n":"\"b\"","v":"1"}],[{"v":"get(\"blue\") = Some(&25)"}]]}]}</script>
+  </figure>
+  <!-- /sim:hashmap -->
 </section>
 
 <section id="others">
   <h2>4. Other collections</h2>
 
   <div class="tw"><table class="ops"><thead><tr><th>Collection</th><th>Use when</th><th>Key cost</th></tr></thead><tbody><tr><td><code>Vec&lt;T&gt;</code></td><td>Default list; push and pop at the end</td><td>index O(1), push amortized O(1)</td></tr><tr><td><code>VecDeque&lt;T&gt;</code></td><td>Queue: push and pop at both ends</td><td>ring buffer, O(1) at both ends</td></tr><tr><td><code>HashMap&lt;K, V&gt;</code></td><td>Lookup by key, order does not matter</td><td>O(1) average</td></tr><tr><td><code>BTreeMap&lt;K, V&gt;</code></td><td>Lookup by key, sorted iteration and ranges</td><td>O(log n)</td></tr><tr><td><code>HashSet&lt;T&gt;</code> / <code>BTreeSet&lt;T&gt;</code></td><td>Membership, deduplication</td><td>as the map</td></tr><tr><td><code>BinaryHeap&lt;T&gt;</code></td><td>Priority queue: always take the largest</td><td>push and pop O(log n)</td></tr><tr><td><code>LinkedList&lt;T&gt;</code></td><td>Rarely; splitting and splicing lists</td><td>poor cache locality</td></tr></tbody></table></div>
+<!-- sim:others -->
+  <figure class="card sim" id="sim-others" aria-label="Simulator: VecDeque, BTreeMap and HashSet">
+    <div class="card-top"><span class="eyebrow">Simulator 4</span><span class="card-title">VecDeque, BTreeMap and HashSet</span></div>
+    <div class="trace">
+      <pre class="trace-code"><code><span class="ln" data-l="1"><span class="lno">1</span><span class="k">use</span> std::collections::{<span class="t">BTreeMap</span>, <span class="t">HashSet</span>, <span class="t">VecDeque</span>};</span><span class="ln" data-l="2"><span class="lno">2</span><span class="k">fn</span> main() {</span><span class="ln" data-l="3"><span class="lno">3</span>    <span class="k">let</span> <span class="k">mut</span> q = <span class="t">VecDeque</span>::from([<span class="n">2</span>, <span class="n">3</span>]);</span><span class="ln" data-l="4"><span class="lno">4</span>    q.push_front(<span class="n">1</span>);</span><span class="ln" data-l="5"><span class="lno">5</span>    q.push_back(<span class="n">4</span>);</span><span class="ln" data-l="6"><span class="lno">6</span>    <span class="k">let</span> <span class="k">mut</span> t = <span class="t">BTreeMap</span>::new();</span><span class="ln" data-l="7"><span class="lno">7</span>    <span class="k">for</span> (k, v) <span class="k">in</span> [(<span class="n">3</span>, <span class="s">"c"</span>), (<span class="n">1</span>, <span class="s">"a"</span>), (<span class="n">2</span>, <span class="s">"b"</span>)] { t.insert(k, v); }</span><span class="ln" data-l="8"><span class="lno">8</span>    <span class="k">let</span> <span class="k">mut</span> seen = <span class="t">HashSet</span>::new();</span><span class="ln" data-l="9"><span class="lno">9</span>    <span class="k">let</span> dup = !seen.insert(<span class="n">7</span>) || !seen.insert(<span class="n">7</span>);</span><span class="ln" data-l="10"><span class="lno">10</span>    <span class="m">println!</span>(<span class="s">"{q:?} {:?} {dup}"</span>, t.keys().collect::&lt;<span class="t">Vec</span>&lt;_&gt;&gt;());</span><span class="ln" data-l="11"><span class="lno">11</span>}</span></code></pre>
+      <div class="scroll"><svg viewBox="0 0 640 200" role="img" aria-labelledby="sim-others-title sim-others-desc">
+        <title id="sim-others-title">VecDeque, BTreeMap and HashSet</title>
+        <desc id="sim-others-desc">Step-by-step simulator for VecDeque, BTreeMap and HashSet. Use Prev and Next, or the arrow keys, to move through the steps; the note under the figure explains each one.</desc>
+      </svg></div>
+    </div>
+    <p class="trace-note" aria-live="polite"></p>
+    <div class="card-bottom">
+      <div class="row" style="margin:0">
+        <button type="button" class="btn" data-act="prev">&larr; Prev</button>
+        <button type="button" class="btn" data-act="next">Next &rarr;</button>
+        <button type="button" class="btn" data-act="reset">Reset</button>
+      </div>
+      <span class="live"></span>
+    </div>
+    <script type="application/json" class="sim-data">{"heads":["COLLECTION","STATE"],"steps":[{"l":3,"note":"\u003ccode>VecDeque\u003c/code> is a ring buffer: cheap pushes and pops at both ends.","cols":[[{"v":"VecDeque"}],[{"v":"[2, 3]"}]]},{"l":[4,5],"note":"\u003ccode>push_front\u003c/code> and \u003ccode>push_back\u003c/code> are both O(1).","cols":[[{"v":"VecDeque"}],[{"v":"[1, 2, 3, 4]","s":"hl"}]]},{"l":[6,7],"note":"\u003ccode>BTreeMap\u003c/code> keeps keys sorted, whatever the insertion order.","cols":[[{"v":"VecDeque"},{"v":"BTreeMap"}],[{"v":"[1, 2, 3, 4]"},{"v":"{1: a, 2: b, 3: c}","s":"hl"}]]},{"l":[8,9],"note":"\u003ccode>HashSet::insert\u003c/code> returns \u003ccode>false\u003c/code> if the value was already there. The second insert of 7 reports the duplicate.","cols":[[{"v":"VecDeque"},{"v":"BTreeMap"},{"v":"HashSet"}],[{"v":"[1, 2, 3, 4]"},{"v":"{1: a, 2: b, 3: c}"},{"v":"{7}  second insert → false","s":"hl"}]]},{"l":10,"note":"Pick by access pattern: \u003ccode>Vec\u003c/code> by default, \u003ccode>VecDeque\u003c/code> for queues, \u003ccode>HashMap\u003c/code>/\u003ccode>HashSet\u003c/code> for lookup, the B-tree versions when you need order.","o":"[1, 2, 3, 4] [1, 2, 3] true","cols":[[{"v":"VecDeque"},{"v":"BTreeMap"},{"v":"HashSet"}],[{"v":"[1, 2, 3, 4]"},{"v":"{1: a, 2: b, 3: c}"},{"v":"{7}"}]]}]}</script>
+  </figure>
+  <!-- /sim:others -->
 </section>
 
 <section id="quiz">
@@ -441,7 +529,7 @@ var CHECK_KEY = 'rust-rust-collections-check:' + location.pathname;
       if (!heap.length) txt(380, 64, '(nothing allocated)', { fill: SOFT });
       var H = Math.max(y, hy, 90) + 10;
       svg.setAttribute('viewBox', '0 0 640 ' + H);
-      Array.prototype.forEach.call(document.querySelectorAll('.trace-code .ln'), function (ln) {
+      Array.prototype.forEach.call(document.querySelectorAll('figure:not(.sim) .trace-code .ln'), function (ln) {
         ln.classList.toggle('on', +ln.getAttribute('data-l') === st.l);
       });
       $('traceNote').innerHTML = st.note;
@@ -498,5 +586,147 @@ var CHECK_KEY = 'rust-rust-collections-check:' + location.pathname;
 })();
 
 </script>
+<!-- section-sims -->
+<script>
+(function () {
+  // Section simulators: each figure.sim carries its steps as JSON and is drawn into its own SVG.
+  var NS = 'http://www.w3.org/2000/svg';
+  var INK = '#2d3142', SOFT = '#5a6580', RULE = '#bfc0c0', ACCENT = '#bf4520', LINK = '#2e5aa8', OK = '#2f7a4a', PAPER = '#f5f5f5';
+  var W = 640, BOX_H = 40, GAP_Y = 10, TOP = 40;
+  var fit = function (s, n) { s = String(s); return s.length > n ? s.slice(0, Math.max(1, n - 1)) + '\u2026' : s; };
+
+  function initSim(fig) {
+    var data = JSON.parse(fig.querySelector('script.sim-data').textContent);
+    var svg = fig.querySelector('svg'), lines = fig.querySelectorAll('.trace-code .ln');
+    var note = fig.querySelector('.trace-note'), live = fig.querySelector('.live');
+    var prev = fig.querySelector('[data-act="prev"]'), next = fig.querySelector('[data-act="next"]'), reset = fig.querySelector('[data-act="reset"]');
+    var steps = data.steps, heads = data.heads || [], cur = 0, uid = fig.id;
+    var hasOut = steps.some(function (s) { return s.o != null; });
+    var el = function (name, attrs, parent) {
+      var e = document.createElementNS(NS, name);
+      for (var k in attrs) if (attrs[k] !== '' && attrs[k] != null) e.setAttribute(k, attrs[k]);
+      (parent || svg).appendChild(e);
+      return e;
+    };
+    var txt = function (x, y, s, a, parent) {
+      var o = { x: x, y: y, 'font-size': 12, fill: INK, 'font-family': 'Geist Mono, monospace' };
+      for (var k in a) o[k] = a[k];
+      var t = el('text', o, parent); t.textContent = s; return t;
+    };
+    var clear = function () {
+      Array.prototype.slice.call(svg.childNodes).forEach(function (n) {
+        var nm = (n.localName || '').toLowerCase();
+        if (nm !== 'title' && nm !== 'desc') svg.removeChild(n);
+      });
+    };
+
+    function draw() {
+      var st = steps[cur], cols = st.cols || [];
+      var k = Math.max(1, heads.length, cols.length);
+      var left = 40, right = 24, gap = k === 1 ? 0 : (k === 2 ? 70 : 46);
+      var colW = (W - left - right - gap * (k - 1)) / k;
+      var chars = Math.floor((colW - 24) / 7.4);
+      clear();
+      var defs = el('defs', {});
+      [['a', INK], ['b', LINK], ['c', ACCENT]].forEach(function (m) {
+        var mk = el('marker', { id: uid + '-' + m[0], viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: 'auto-start-reverse' }, defs);
+        el('path', { d: 'M0 0 L10 5 L0 10 z', fill: m[1] }, mk);
+      });
+      var pos = {}, bottom = TOP;
+      for (var ci = 0; ci < k; ci++) {
+        var x = left + ci * (colW + gap), y = TOP, lastG = null, items = cols[ci] || [];
+        if (heads[ci]) txt(x, 24, heads[ci], { 'font-size': 11, fill: SOFT, 'letter-spacing': '2' });
+        items.forEach(function (it) {
+          if (it.g && it.g !== lastG) { txt(x, y + 12, fit(it.g, chars + 4), { 'font-size': 10.5, fill: SOFT, 'font-style': 'italic' }); y += 18; lastG = it.g; }
+          var s = it.s || '', faded = /moved|dropped|freed/.test(s);
+          var isRef = /ref|mut|weak/.test(s), hl = /hl/.test(s), err = /err/.test(s), ok = /ok/.test(s);
+          var stroke = err || hl ? ACCENT : (ok ? OK : (isRef ? LINK : (faded ? RULE : INK)));
+          var g = el('g', { opacity: /dropped|freed/.test(s) ? 0.4 : 1 });
+          el('rect', { x: x, y: y, width: colW, height: BOX_H, rx: 6, fill: err ? 'rgba(191,69,32,.08)' : (ok ? 'rgba(47,122,74,.07)' : (faded ? PAPER : '#fff')), stroke: stroke, 'stroke-width': hl || err ? 2 : 1.4, 'stroke-dasharray': faded ? '5 4' : '' }, g);
+          var stateWord = /moved/.test(s) ? 'moved' : (/dropped/.test(s) ? 'dropped' : (/freed/.test(s) ? 'freed' : null));
+          var val = stateWord && it.v == null ? stateWord : (it.v == null ? '' : it.v);
+          if (it.n != null) {
+            var nChars = Math.max(4, Math.min(String(it.n).length, Math.floor(chars * 0.45)));
+            txt(x + 12, y + 25, fit(it.n, nChars), { 'font-size': 13, 'font-weight': 600, fill: faded ? SOFT : INK }, g);
+            txt(x + colW - 12, y + 25, fit(val, Math.max(4, chars - nChars - 1)), { 'text-anchor': 'end', fill: faded ? SOFT : (err ? ACCENT : (isRef ? LINK : INK)) }, g);
+          } else {
+            txt(x + 12, y + 25, fit(val, chars), { fill: faded ? SOFT : (err ? ACCENT : INK) }, g);
+          }
+          var tag = it.t || (/mut/.test(s) ? '&mut' : (/weak/.test(s) ? 'weak' : (/ref/.test(s) ? '&' : null)));
+          if (tag) {
+            var tw = 10 + tag.length * 6.2;
+            el('rect', { x: x + colW - tw - 8, y: y - 8, width: tw, height: 15, rx: 3, fill: err ? ACCENT : (ok ? OK : (hl ? ACCENT : LINK)) }, g);
+            txt(x + colW - tw - 3, y + 3, tag, { 'font-size': 9.5, fill: '#fff', 'font-weight': 600 }, g);
+          }
+          var id = it.id != null ? it.id : it.n;
+          if (id != null) pos[id] = { x: x, y: y + BOX_H / 2, col: ci, faded: faded, freed: /freed|dropped/.test(s) };
+          it._id = id;
+          y += BOX_H + GAP_Y;
+        });
+        if (!items.length && heads[ci]) txt(x, TOP + 24, data.empty && data.empty[ci] ? data.empty[ci] : '(empty)', { fill: SOFT });
+        bottom = Math.max(bottom, y);
+      }
+      // arrows
+      cols.forEach(function (items) {
+        (items || []).forEach(function (it) {
+          if (!it.to || /moved|dropped|freed/.test(it.s || '')) return;
+          var a = pos[it._id]; if (!a) return;
+          [].concat(it.to).forEach(function (t) {
+            var weak = t.charAt(0) === '~', bad = t.charAt(0) === '!';
+            if (weak || bad) t = t.slice(1);
+            var b = pos[t]; if (!b) return;
+            var color = bad || b.freed ? ACCENT : (weak || /ref|mut/.test(it.s || '') ? LINK : INK);
+            var mk = 'url(#' + uid + '-' + (color === ACCENT ? 'c' : (color === LINK ? 'b' : 'a')) + ')';
+            var dash = weak || bad || b.freed ? '4 3' : '', d;
+            if (b.col === a.col) {
+              var dx = 18 + Math.min(22, Math.abs(a.y - b.y) / 6), lx = a.x;
+              d = 'M' + lx + ' ' + a.y + ' C' + (lx - dx) + ' ' + a.y + ' ' + (lx - dx) + ' ' + b.y + ' ' + (lx - 2) + ' ' + b.y;
+            } else if (b.col > a.col) {
+              var x1 = a.x + colW, x2 = b.x - 2, mx = (x1 + x2) / 2;
+              d = 'M' + x1 + ' ' + a.y + ' C' + mx + ' ' + a.y + ' ' + mx + ' ' + b.y + ' ' + x2 + ' ' + b.y;
+            } else {
+              var x3 = a.x, x4 = b.x + colW + 2, mx2 = (x3 + x4) / 2;
+              d = 'M' + x3 + ' ' + a.y + ' C' + mx2 + ' ' + a.y + ' ' + mx2 + ' ' + b.y + ' ' + x4 + ' ' + b.y;
+            }
+            el('path', { d: d, fill: 'none', stroke: color, 'stroke-width': 1.6, 'stroke-dasharray': dash, 'marker-end': mk });
+          });
+        });
+      });
+      var H = Math.max(bottom, 90) + 6;
+      if (hasOut) {
+        var out = [];
+        for (var i = 0; i <= cur; i++) if (steps[i].o != null) out = out.concat(steps[i].o);
+        var shown = out.slice(-6), oh = 30 + Math.max(1, shown.length) * 18;
+        el('rect', { x: left, y: H, width: W - left - right, height: oh, rx: 6, fill: INK });
+        txt(left + 12, H + 18, 'OUTPUT', { 'font-size': 10, fill: RULE, 'letter-spacing': '2' });
+        if (!shown.length) txt(left + 12, H + 38, '(nothing printed yet)', { fill: RULE, 'font-style': 'italic' });
+        shown.forEach(function (ln, j) {
+          var bad = String(ln).charAt(0) === '!';
+          txt(left + 12, H + 38 + j * 18, fit(bad ? String(ln).slice(1) : ln, 76), { fill: bad ? '#ff9b7a' : PAPER });
+        });
+        H += oh + 10;
+      }
+      svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+      var on = [].concat(st.l || []);
+      Array.prototype.forEach.call(lines, function (ln) { ln.classList.toggle('on', on.indexOf(+ln.getAttribute('data-l')) !== -1); });
+      note.innerHTML = st.note;
+      live.textContent = 'step ' + (cur + 1) + ' / ' + steps.length;
+      prev.disabled = cur === 0;
+      next.disabled = cur === steps.length - 1;
+    }
+    prev.addEventListener('click', function () { if (cur > 0) { cur--; draw(); } });
+    next.addEventListener('click', function () { if (cur < steps.length - 1) { cur++; draw(); } });
+    reset.addEventListener('click', function () { cur = 0; draw(); });
+    fig.addEventListener('keydown', function (e) {
+      if (e.target.tagName === 'INPUT') return;
+      if (e.key === 'ArrowRight' && cur < steps.length - 1) { cur++; draw(); e.preventDefault(); }
+      if (e.key === 'ArrowLeft' && cur > 0) { cur--; draw(); e.preventDefault(); }
+    });
+    draw();
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('figure.sim'), initSim);
+})();
+</script>
+<!-- /section-sims -->
 </body>
 </html>
