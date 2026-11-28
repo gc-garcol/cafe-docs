@@ -178,6 +178,28 @@ table.ops td:first-child{font-weight:600}
     <span class="k">let</span> b = <span class="t">Box</span>::new(<span class="n">5</span>);
     <span class="m">println!</span>(<span class="s">"b = {b}"</span>); <span class="c2">// used like the value itself</span>
 }</code></pre></div>
+<!-- sim:box -->
+  <figure class="card sim" id="sim-box" aria-label="Simulator: Box&lt;T&gt;: a pointer on the stack, the value on the heap">
+    <div class="card-top"><span class="eyebrow">Simulator 1</span><span class="card-title">Box&lt;T&gt;: a pointer on the stack, the value on the heap</span></div>
+    <div class="trace">
+      <pre class="trace-code"><code><span class="ln" data-l="1"><span class="lno">1</span><span class="k">enum</span> <span class="t">List</span> { <span class="t">Cons</span>(i32, <span class="t">Box</span>&lt;<span class="t">List</span>&gt;), <span class="t">Nil</span> }</span><span class="ln" data-l="2"><span class="lno">2</span><span class="k">use</span> <span class="t">List</span>::{<span class="t">Cons</span>, <span class="t">Nil</span>};</span><span class="ln" data-l="3"><span class="lno">3</span><span class="k">fn</span> main() {</span><span class="ln" data-l="4"><span class="lno">4</span>    <span class="k">let</span> b = <span class="t">Box</span>::new(<span class="n">5</span>);</span><span class="ln" data-l="5"><span class="lno">5</span>    <span class="m">println!</span>(<span class="s">"b = {b}"</span>);</span><span class="ln" data-l="6"><span class="lno">6</span>    <span class="k">let</span> list = <span class="t">Cons</span>(<span class="n">1</span>, <span class="t">Box</span>::new(<span class="t">Cons</span>(<span class="n">2</span>, <span class="t">Box</span>::new(<span class="t">Nil</span>))));</span><span class="ln" data-l="7"><span class="lno">7</span>    <span class="k">let</span> moved = list;       <span class="c2">// moves the outer node only</span></span><span class="ln" data-l="8"><span class="lno">8</span>}                           <span class="c2">// moved, then b, are dropped</span></span></code></pre>
+      <div class="scroll"><svg viewBox="0 0 640 200" role="img" aria-labelledby="sim-box-title sim-box-desc">
+        <title id="sim-box-title">Box&lt;T&gt;: a pointer on the stack, the value on the heap</title>
+        <desc id="sim-box-desc">Step-by-step simulator for Box&lt;T&gt;: a pointer on the stack, the value on the heap. Use Prev and Next, or the arrow keys, to move through the steps; the note under the figure explains each one.</desc>
+      </svg></div>
+    </div>
+    <p class="trace-note" aria-live="polite"></p>
+    <div class="card-bottom">
+      <div class="row" style="margin:0">
+        <button type="button" class="btn" data-act="prev">&larr; Prev</button>
+        <button type="button" class="btn" data-act="next">Next &rarr;</button>
+        <button type="button" class="btn" data-act="reset">Reset</button>
+      </div>
+      <span class="live"></span>
+    </div>
+    <script type="application/json" class="sim-data">{"heads":["STACK","HEAP"],"steps":[{"l":4,"note":"\u003ccode>Box::new(5)\u003c/code> allocates the \u003ccode>i32\u003c/code> on the heap. \u003ccode>b\u003c/code> itself is one pointer on the stack.","cols":[[{"g":"main","n":"b","v":"Box\u003ci32>","to":"five"}],[{"id":"five","v":"5"}]]},{"l":5,"note":"Display goes through the box to the value, so a \u003ccode>Box&lt;i32&gt;\u003c/code> prints like an \u003ccode>i32\u003c/code>.","o":"b = 5","cols":[[{"g":"main","n":"b","v":"Box\u003ci32>","to":"five"}],[{"id":"five","v":"5"}]]},{"l":6,"note":"The outer \u003ccode>Cons(1, …)\u003c/code> is a plain value on the stack. Each \u003ccode>Box\u003c/code> is one pointer, so \u003ccode>List\u003c/code> has a fixed size and the rest of the chain lives on the heap.","cols":[[{"g":"main","n":"b","v":"Box\u003ci32>","to":"five"},{"g":"main","n":"list","v":"Cons(1, Box)","to":"c2"}],[{"id":"five","v":"5"},{"id":"c2","v":"Cons(2, Box)","to":"nil"},{"id":"nil","v":"Nil"}]]},{"l":7,"note":"A move copies only the stack part: the tag, the \u003ccode>1\u003c/code> and one pointer. The heap nodes do not move and \u003ccode>list\u003c/code> can no longer be used.","cols":[[{"g":"main","n":"b","v":"Box\u003ci32>","to":"five"},{"g":"main","n":"list","s":"moved"},{"g":"main","n":"moved","v":"Cons(1, Box)","to":"c2","s":"hl"}],[{"id":"five","v":"5"},{"id":"c2","v":"Cons(2, Box)","to":"nil"},{"id":"nil","v":"Nil"}]]},{"l":8,"note":"Variables drop in reverse order. Dropping \u003ccode>moved\u003c/code> drops its box, which drops the next box, down the chain. Then \u003ccode>b\u003c/code> frees the \u003ccode>5\u003c/code>. No leaks, no manual \u003ccode>free\u003c/code>.","cols":[[{"g":"main","n":"b","s":"dropped"},{"g":"main","n":"list","s":"moved"},{"g":"main","n":"moved","s":"dropped"}],[{"id":"five","s":"freed"},{"id":"c2","s":"freed"},{"id":"nil","s":"freed"}]]}]}</script>
+  </figure>
+  <!-- /sim:box -->
 </section>
 
 <section id="deref">
@@ -212,6 +234,28 @@ table.ops td:first-child{font-weight:600}
   <p>When a reference's type does not match a parameter, the compiler inserts as many <code>deref</code> calls as needed. It is resolved at compile time and costs nothing. The rules:</p>
   <div class="tw"><table class="ops"><thead><tr><th>From</th><th>To</th><th>When</th></tr></thead><tbody><tr><td><code>&amp;T</code></td><td><code>&amp;U</code></td><td><code>T: Deref&lt;Target = U&gt;</code></td></tr><tr><td><code>&amp;mut T</code></td><td><code>&amp;mut U</code></td><td><code>T: DerefMut&lt;Target = U&gt;</code></td></tr><tr><td><code>&amp;mut T</code></td><td><code>&amp;U</code></td><td><code>T: Deref&lt;Target = U&gt;</code></td></tr></tbody></table></div>
   <p>An immutable reference never coerces to a mutable one: that would break the rule that a <code>&amp;mut</code> is the only reference.</p>
+<!-- sim:deref -->
+  <figure class="card sim" id="sim-deref" aria-label="Simulator: Deref: *y becomes *(y.deref())">
+    <div class="card-top"><span class="eyebrow">Simulator 2</span><span class="card-title">Deref: *y becomes *(y.deref())</span></div>
+    <div class="trace">
+      <pre class="trace-code"><code><span class="ln" data-l="1"><span class="lno">1</span><span class="k">use</span> std::ops::<span class="t">Deref</span>;</span><span class="ln" data-l="2"><span class="lno">2</span><span class="k">struct</span> <span class="t">MyBox</span>&lt;<span class="t">T</span>&gt;(<span class="t">T</span>);</span><span class="ln" data-l="3"><span class="lno">3</span><span class="k">impl</span>&lt;<span class="t">T</span>&gt; <span class="t">Deref</span> <span class="k">for</span> <span class="t">MyBox</span>&lt;<span class="t">T</span>&gt; {</span><span class="ln" data-l="4"><span class="lno">4</span>    <span class="k">type</span> <span class="t">Target</span> = <span class="t">T</span>;</span><span class="ln" data-l="5"><span class="lno">5</span>    <span class="k">fn</span> deref(&amp;<span class="k">self</span>) -&gt; &amp;<span class="t">T</span> { &amp;<span class="k">self</span>.<span class="n">0</span> }</span><span class="ln" data-l="6"><span class="lno">6</span>}</span><span class="ln" data-l="7"><span class="lno">7</span><span class="k">fn</span> hello(name: &amp;str) { <span class="m">println!</span>(<span class="s">"Hello, {name}!"</span>); }</span><span class="ln" data-l="8"><span class="lno">8</span><span class="k">fn</span> main() {</span><span class="ln" data-l="9"><span class="lno">9</span>    <span class="k">let</span> x = <span class="n">5</span>;</span><span class="ln" data-l="10"><span class="lno">10</span>    <span class="k">let</span> y = <span class="t">MyBox</span>(x);</span><span class="ln" data-l="11"><span class="lno">11</span>    <span class="m">assert_eq!</span>(<span class="n">5</span>, *y);          <span class="c2">// *(y.deref())</span></span><span class="ln" data-l="12"><span class="lno">12</span>    <span class="k">let</span> m = <span class="t">MyBox</span>(<span class="t">String</span>::from(<span class="s">"Rust"</span>));</span><span class="ln" data-l="13"><span class="lno">13</span>    hello(&amp;m);                  <span class="c2">// &amp;MyBox&lt;String&gt; -&gt; &amp;String -&gt; &amp;str</span></span><span class="ln" data-l="14"><span class="lno">14</span>}</span></code></pre>
+      <div class="scroll"><svg viewBox="0 0 640 200" role="img" aria-labelledby="sim-deref-title sim-deref-desc">
+        <title id="sim-deref-title">Deref: *y becomes *(y.deref())</title>
+        <desc id="sim-deref-desc">Step-by-step simulator for Deref: *y becomes *(y.deref()). Use Prev and Next, or the arrow keys, to move through the steps; the note under the figure explains each one.</desc>
+      </svg></div>
+    </div>
+    <p class="trace-note" aria-live="polite"></p>
+    <div class="card-bottom">
+      <div class="row" style="margin:0">
+        <button type="button" class="btn" data-act="prev">&larr; Prev</button>
+        <button type="button" class="btn" data-act="next">Next &rarr;</button>
+        <button type="button" class="btn" data-act="reset">Reset</button>
+      </div>
+      <span class="live"></span>
+    </div>
+    <script type="application/json" class="sim-data">{"heads":["STACK","HEAP"],"steps":[{"l":9,"note":"\u003ccode>x\u003c/code> is an \u003ccode>i32\u003c/code> on the stack.","cols":[[{"g":"main","n":"x","v":"5"}],[]]},{"l":10,"note":"\u003ccode>MyBox\u003c/code> is a tuple struct that stores its value inline, with no heap allocation. \u003ccode>i32\u003c/code> is \u003ccode>Copy\u003c/code>, so \u003ccode>x\u003c/code> stays valid.","cols":[[{"g":"main","n":"x","v":"5"},{"g":"main","n":"y","v":"MyBox(5)","s":"hl"}],[]]},{"l":11,"note":"Without \u003ccode>Deref\u003c/code>, \u003ccode>*y\u003c/code> is error E0614. With it, the compiler rewrites \u003ccode>*y\u003c/code> as \u003ccode>*(y.deref())\u003c/code>: \u003ccode>deref\u003c/code> returns \u003ccode>&amp;y.0\u003c/code>, then the plain \u003ccode>*\u003c/code> reads \u003ccode>5\u003c/code>.","cols":[[{"g":"main","n":"x","v":"5"},{"g":"main","n":"y","v":"MyBox(5)"},{"g":"main","n":"y.deref()","v":"&i32","s":"ref","to":"y"}],[]]},{"l":12,"note":"Now \u003ccode>MyBox\u003c/code> wraps a \u003ccode>String\u003c/code>: the \u003ccode>String\u003c/code> header sits inside \u003ccode>m\u003c/code> and its bytes are on the heap.","cols":[[{"g":"main","n":"x","v":"5"},{"g":"main","n":"y","v":"MyBox(5)"},{"g":"main","n":"m","v":"MyBox(String)","to":"rust"}],[{"id":"rust","v":"\"Rust\""}]]},{"l":13,"note":"\u003ccode>hello\u003c/code> wants \u003ccode>&amp;str\u003c/code> but gets \u003ccode>&amp;MyBox&lt;String&gt;\u003c/code>. Deref coercion calls \u003ccode>deref\u003c/code> twice at compile time: to \u003ccode>&amp;String\u003c/code>, then to \u003ccode>&amp;str\u003c/code> through \u003ccode>String\u003c/code>'s own \u003ccode>Deref\u003c/code>.","o":"Hello, Rust!","cols":[[{"g":"main","n":"x","v":"5"},{"g":"main","n":"y","v":"MyBox(5)"},{"g":"main","n":"m","v":"MyBox(String)","to":"rust"},{"g":"hello","n":"name","v":"&str","s":"ref","to":"rust"}],[{"id":"rust","v":"\"Rust\""}]]},{"l":14,"note":"At the end of \u003ccode>main\u003c/code>, \u003ccode>m\u003c/code> drops its \u003ccode>String\u003c/code> and the heap bytes are freed. \u003ccode>y\u003c/code> and \u003ccode>x\u003c/code> just leave the stack.","cols":[[{"g":"main","n":"x","s":"dropped"},{"g":"main","n":"y","s":"dropped"},{"g":"main","n":"m","s":"dropped"}],[{"id":"rust","s":"freed"}]]}]}</script>
+  </figure>
+  <!-- /sim:deref -->
 </section>
 
 <section id="drop">
@@ -233,6 +277,28 @@ table.ops td:first-child{font-weight:600}
     <span class="m">println!</span>(<span class="s">"d dropped before the end of main"</span>);
 }                                  <span class="c2">// _c dropped here</span></code></pre></div>
   <p>Variables are dropped in reverse order of creation. You cannot call <code>d.drop()</code> yourself (error E0040), because Rust would call it again at the end of the scope: a double free. <code>std::mem::drop(d)</code>, in the prelude as <code>drop</code>, takes ownership instead, so the automatic drop never happens. Typical uses: releasing a lock early, closing a file, flushing a buffer.</p>
+<!-- sim:drop -->
+  <figure class="card sim" id="sim-drop" aria-label="Simulator: Drop order and std::mem::drop">
+    <div class="card-top"><span class="eyebrow">Simulator 3</span><span class="card-title">Drop order and std::mem::drop</span></div>
+    <div class="trace">
+      <pre class="trace-code"><code><span class="ln" data-l="1"><span class="lno">1</span><span class="k">struct</span> <span class="t">Noisy</span>(&amp;<span class="lt">'static</span> str);</span><span class="ln" data-l="2"><span class="lno">2</span><span class="k">impl</span> <span class="t">Drop</span> <span class="k">for</span> <span class="t">Noisy</span> {</span><span class="ln" data-l="3"><span class="lno">3</span>    <span class="k">fn</span> drop(&amp;<span class="k">mut</span> <span class="k">self</span>) { <span class="m">println!</span>(<span class="s">"drop {}"</span>, <span class="k">self</span>.<span class="n">0</span>); }</span><span class="ln" data-l="4"><span class="lno">4</span>}</span><span class="ln" data-l="5"><span class="lno">5</span><span class="k">fn</span> main() {</span><span class="ln" data-l="6"><span class="lno">6</span>    <span class="k">let</span> _a = <span class="t">Noisy</span>(<span class="s">"a"</span>);</span><span class="ln" data-l="7"><span class="lno">7</span>    <span class="k">let</span> b = <span class="t">Noisy</span>(<span class="s">"b"</span>);</span><span class="ln" data-l="8"><span class="lno">8</span>    <span class="k">let</span> _ = <span class="t">Noisy</span>(<span class="s">"c"</span>);     <span class="c2">// _ binds nothing</span></span><span class="ln" data-l="9"><span class="lno">9</span>    <span class="k">let</span> _d = <span class="t">Noisy</span>(<span class="s">"d"</span>);</span><span class="ln" data-l="10"><span class="lno">10</span>    drop(b);                <span class="c2">// std::mem::drop takes ownership</span></span><span class="ln" data-l="11"><span class="lno">11</span>    <span class="m">println!</span>(<span class="s">"end of main"</span>);</span><span class="ln" data-l="12"><span class="lno">12</span>}                           <span class="c2">// reverse order: _d, then _a</span></span></code></pre>
+      <div class="scroll"><svg viewBox="0 0 640 200" role="img" aria-labelledby="sim-drop-title sim-drop-desc">
+        <title id="sim-drop-title">Drop order and std::mem::drop</title>
+        <desc id="sim-drop-desc">Step-by-step simulator for Drop order and std::mem::drop. Use Prev and Next, or the arrow keys, to move through the steps; the note under the figure explains each one.</desc>
+      </svg></div>
+    </div>
+    <p class="trace-note" aria-live="polite"></p>
+    <div class="card-bottom">
+      <div class="row" style="margin:0">
+        <button type="button" class="btn" data-act="prev">&larr; Prev</button>
+        <button type="button" class="btn" data-act="next">Next &rarr;</button>
+        <button type="button" class="btn" data-act="reset">Reset</button>
+      </div>
+      <span class="live"></span>
+    </div>
+    <script type="application/json" class="sim-data">{"heads":["STACK"],"steps":[{"l":6,"note":"\u003ccode>_a\u003c/code> is bound. A leading underscore only silences the unused warning; it is still a real binding that lives to the end of the scope.","cols":[[{"g":"main","n":"_a","v":"Noisy(\"a\")"}]]},{"l":7,"note":"\u003ccode>b\u003c/code> is bound.","cols":[[{"g":"main","n":"_a","v":"Noisy(\"a\")"},{"g":"main","n":"b","v":"Noisy(\"b\")"}]]},{"l":8,"note":"The pattern \u003ccode>_\u003c/code> does not bind, so the temporary is dropped at the end of the statement. \u003ccode>drop c\u003c/code> prints right away.","o":"drop c","cols":[[{"g":"main","n":"_a","v":"Noisy(\"a\")"},{"g":"main","n":"b","v":"Noisy(\"b\")"},{"g":"main","n":"(temp)","v":"Noisy(\"c\")","s":"dropped"}]]},{"l":9,"note":"\u003ccode>_d\u003c/code> is bound.","cols":[[{"g":"main","n":"_a","v":"Noisy(\"a\")"},{"g":"main","n":"b","v":"Noisy(\"b\")"},{"g":"main","n":"_d","v":"Noisy(\"d\")"}]]},{"l":10,"note":"\u003ccode>drop(b)\u003c/code> moves \u003ccode>b\u003c/code> into \u003ccode>std::mem::drop\u003c/code>, whose body is empty. The value is dropped when that function returns, and the compiler will not drop \u003ccode>b\u003c/code> again.","o":"drop b","cols":[[{"g":"main","n":"_a","v":"Noisy(\"a\")"},{"g":"main","n":"b","s":"moved"},{"g":"main","n":"_d","v":"Noisy(\"d\")"}]]},{"l":11,"note":"Normal code keeps running.","o":"end of main","cols":[[{"g":"main","n":"_a","v":"Noisy(\"a\")"},{"g":"main","n":"b","s":"moved"},{"g":"main","n":"_d","v":"Noisy(\"d\")"}]]},{"l":12,"note":"At the closing brace, live variables drop in reverse order of declaration: \u003ccode>_d\u003c/code> first, then \u003ccode>_a\u003c/code>. \u003ccode>b\u003c/code> was moved, so it is skipped.","o":["drop d","drop a"],"cols":[[{"g":"main","n":"_a","s":"dropped"},{"g":"main","n":"b","s":"moved"},{"g":"main","n":"_d","s":"dropped"}]]}]}</script>
+  </figure>
+  <!-- /sim:drop -->
 </section>
 
 <section id="rc">
@@ -257,6 +323,28 @@ table.ops td:first-child{font-weight:600}
     <span class="m">println!</span>(<span class="s">"count after c goes out of scope = {}"</span>, <span class="t">Rc</span>::strong_count(&amp;a));
 }</code></pre></div>
   <p>Write <code>Rc::clone(&amp;a)</code>, not <code>a.clone()</code>: same effect, but it signals a cheap count increment, not a deep copy. <code>Rc</code> gives only shared, read-only access, since many owners with mutable access would be aliasing plus mutation. It is single-threaded; across threads use <code>Arc</code> (chapter 16).</p>
+<!-- sim:rc -->
+  <figure class="card sim" id="sim-rc" aria-label="Simulator: Rc&lt;T&gt;: two lists share one tail">
+    <div class="card-top"><span class="eyebrow">Simulator 4</span><span class="card-title">Rc&lt;T&gt;: two lists share one tail</span></div>
+    <div class="trace">
+      <pre class="trace-code"><code><span class="ln" data-l="1"><span class="lno">1</span><span class="k">use</span> std::rc::<span class="t">Rc</span>;</span><span class="ln" data-l="2"><span class="lno">2</span><span class="k">enum</span> <span class="t">List</span> { <span class="t">Cons</span>(i32, <span class="t">Rc</span>&lt;<span class="t">List</span>&gt;), <span class="t">Nil</span> }</span><span class="ln" data-l="3"><span class="lno">3</span><span class="k">use</span> <span class="t">List</span>::{<span class="t">Cons</span>, <span class="t">Nil</span>};</span><span class="ln" data-l="4"><span class="lno">4</span><span class="k">fn</span> main() {</span><span class="ln" data-l="5"><span class="lno">5</span>    <span class="k">let</span> a = <span class="t">Rc</span>::new(<span class="t">Cons</span>(<span class="n">5</span>, <span class="t">Rc</span>::new(<span class="t">Nil</span>)));</span><span class="ln" data-l="6"><span class="lno">6</span>    <span class="k">let</span> b = <span class="t">Cons</span>(<span class="n">3</span>, <span class="t">Rc</span>::clone(&amp;a));</span><span class="ln" data-l="7"><span class="lno">7</span>    {</span><span class="ln" data-l="8"><span class="lno">8</span>        <span class="k">let</span> c = <span class="t">Cons</span>(<span class="n">4</span>, <span class="t">Rc</span>::clone(&amp;a));</span><span class="ln" data-l="9"><span class="lno">9</span>        <span class="m">println!</span>(<span class="s">"{}"</span>, <span class="t">Rc</span>::strong_count(&amp;a));</span><span class="ln" data-l="10"><span class="lno">10</span>    }</span><span class="ln" data-l="11"><span class="lno">11</span>    <span class="m">println!</span>(<span class="s">"{}"</span>, <span class="t">Rc</span>::strong_count(&amp;a));</span><span class="ln" data-l="12"><span class="lno">12</span>}</span></code></pre>
+      <div class="scroll"><svg viewBox="0 0 640 200" role="img" aria-labelledby="sim-rc-title sim-rc-desc">
+        <title id="sim-rc-title">Rc&lt;T&gt;: two lists share one tail</title>
+        <desc id="sim-rc-desc">Step-by-step simulator for Rc&lt;T&gt;: two lists share one tail. Use Prev and Next, or the arrow keys, to move through the steps; the note under the figure explains each one.</desc>
+      </svg></div>
+    </div>
+    <p class="trace-note" aria-live="polite"></p>
+    <div class="card-bottom">
+      <div class="row" style="margin:0">
+        <button type="button" class="btn" data-act="prev">&larr; Prev</button>
+        <button type="button" class="btn" data-act="next">Next &rarr;</button>
+        <button type="button" class="btn" data-act="reset">Reset</button>
+      </div>
+      <span class="live"></span>
+    </div>
+    <script type="application/json" class="sim-data">{"heads":["STACK","HEAP"],"steps":[{"l":5,"note":"Each \u003ccode>Rc::new\u003c/code> makes one heap allocation holding the counts and the value. \u003ccode>a\u003c/code> is the only owner of \u003ccode>Cons(5, …)\u003c/code>.","cols":[[{"g":"main","n":"a","v":"Rc\u003cList>","to":"five"}],[{"id":"five","v":"strong=1  Cons(5, Rc)","to":"nil"},{"id":"nil","v":"strong=1  Nil"}]]},{"l":6,"note":"\u003ccode>b\u003c/code> is a \u003ccode>Cons\u003c/code> on the stack whose tail is a clone of \u003ccode>a\u003c/code>. \u003ccode>Rc::clone\u003c/code> only bumps the count to 2; the list is not copied.","cols":[[{"g":"main","n":"a","v":"Rc\u003cList>","to":"five"},{"g":"main","n":"b","v":"Cons(3, Rc)","to":"five"}],[{"id":"five","v":"strong=2  Cons(5, Rc)","to":"nil","s":"hl"},{"id":"nil","v":"strong=1  Nil"}]]},{"l":8,"note":"A third owner, \u003ccode>c\u003c/code>, inside the block. Count 3.","cols":[[{"g":"main","n":"a","v":"Rc\u003cList>","to":"five"},{"g":"main","n":"b","v":"Cons(3, Rc)","to":"five"},{"g":"block","n":"c","v":"Cons(4, Rc)","to":"five"}],[{"id":"five","v":"strong=3  Cons(5, Rc)","to":"nil","s":"hl"},{"id":"nil","v":"strong=1  Nil"}]]},{"l":9,"note":"\u003ccode>Rc::strong_count\u003c/code> reads the counter.","o":"3","cols":[[{"g":"main","n":"a","v":"Rc\u003cList>","to":"five"},{"g":"main","n":"b","v":"Cons(3, Rc)","to":"five"},{"g":"block","n":"c","v":"Cons(4, Rc)","to":"five"}],[{"id":"five","v":"strong=3  Cons(5, Rc)","to":"nil"},{"id":"nil","v":"strong=1  Nil"}]]},{"l":10,"note":"The block ends and \u003ccode>c\u003c/code> is dropped. Dropping an \u003ccode>Rc\u003c/code> decrements the count; nothing is freed while it is above zero.","cols":[[{"g":"main","n":"a","v":"Rc\u003cList>","to":"five"},{"g":"main","n":"b","v":"Cons(3, Rc)","to":"five"},{"g":"block","n":"c","s":"dropped"}],[{"id":"five","v":"strong=2  Cons(5, Rc)","to":"nil","s":"hl"},{"id":"nil","v":"strong=1  Nil"}]]},{"l":11,"note":"Back to two owners.","o":"2","cols":[[{"g":"main","n":"a","v":"Rc\u003cList>","to":"five"},{"g":"main","n":"b","v":"Cons(3, Rc)","to":"five"}],[{"id":"five","v":"strong=2  Cons(5, Rc)","to":"nil"},{"id":"nil","v":"strong=1  Nil"}]]},{"l":12,"note":"\u003ccode>b\u003c/code> drops (count 1), then \u003ccode>a\u003c/code> drops (count 0). At zero the \u003ccode>Cons(5, …)\u003c/code> is freed, which drops its own \u003ccode>Rc\u003c/code> to \u003ccode>Nil\u003c/code>, so that is freed too.","cols":[[{"g":"main","n":"a","s":"dropped"},{"g":"main","n":"b","s":"dropped"}],[{"id":"five","s":"freed"},{"id":"nil","s":"freed"}]]}]}</script>
+  </figure>
+  <!-- /sim:rc -->
 </section>
 
 <section id="refcell">
@@ -305,6 +393,28 @@ table.ops td:first-child{font-weight:600}
 
     <span class="m">println!</span>(<span class="s">"a = {a:?}\nb = {b:?}\nc = {c:?}"</span>);
 }</code></pre></div>
+<!-- sim:refcell -->
+  <figure class="card sim" id="sim-refcell" aria-label="Simulator: RefCell&lt;T&gt;: the borrow flag at run time">
+    <div class="card-top"><span class="eyebrow">Simulator 5</span><span class="card-title">RefCell&lt;T&gt;: the borrow flag at run time</span></div>
+    <div class="trace">
+      <pre class="trace-code"><code><span class="ln" data-l="1"><span class="lno">1</span><span class="k">use</span> std::cell::<span class="t">RefCell</span>;</span><span class="ln" data-l="2"><span class="lno">2</span><span class="k">fn</span> main() {</span><span class="ln" data-l="3"><span class="lno">3</span>    <span class="k">let</span> cell = <span class="t">RefCell</span>::new(<span class="m">vec!</span>[<span class="n">1</span>]);</span><span class="ln" data-l="4"><span class="lno">4</span>    {</span><span class="ln" data-l="5"><span class="lno">5</span>        <span class="k">let</span> r1 = cell.borrow();</span><span class="ln" data-l="6"><span class="lno">6</span>        <span class="k">let</span> r2 = cell.borrow();</span><span class="ln" data-l="7"><span class="lno">7</span>        <span class="m">println!</span>(<span class="s">"{} {}"</span>, r1[<span class="n">0</span>], r2[<span class="n">0</span>]);</span><span class="ln" data-l="8"><span class="lno">8</span>    }</span><span class="ln" data-l="9"><span class="lno">9</span>    cell.borrow_mut().push(<span class="n">2</span>);</span><span class="ln" data-l="10"><span class="lno">10</span>    <span class="k">let</span> w = cell.borrow_mut();</span><span class="ln" data-l="11"><span class="lno">11</span>    <span class="k">let</span> t = cell.try_borrow();</span><span class="ln" data-l="12"><span class="lno">12</span>    <span class="m">println!</span>(<span class="s">"{}"</span>, t.is_err());</span><span class="ln" data-l="13"><span class="lno">13</span>}</span></code></pre>
+      <div class="scroll"><svg viewBox="0 0 640 200" role="img" aria-labelledby="sim-refcell-title sim-refcell-desc">
+        <title id="sim-refcell-title">RefCell&lt;T&gt;: the borrow flag at run time</title>
+        <desc id="sim-refcell-desc">Step-by-step simulator for RefCell&lt;T&gt;: the borrow flag at run time. Use Prev and Next, or the arrow keys, to move through the steps; the note under the figure explains each one.</desc>
+      </svg></div>
+    </div>
+    <p class="trace-note" aria-live="polite"></p>
+    <div class="card-bottom">
+      <div class="row" style="margin:0">
+        <button type="button" class="btn" data-act="prev">&larr; Prev</button>
+        <button type="button" class="btn" data-act="next">Next &rarr;</button>
+        <button type="button" class="btn" data-act="reset">Reset</button>
+      </div>
+      <span class="live"></span>
+    </div>
+    <script type="application/json" class="sim-data">{"heads":["STACK","HEAP"],"steps":[{"l":3,"note":"A \u003ccode>RefCell\u003c/code> holds the value plus a borrow flag. \u003ccode>0\u003c/code> means nobody is borrowing.","cols":[[{"g":"main","n":"cell","v":"flag 0","to":"v"}],[{"id":"v","v":"[1]"}]]},{"l":5,"note":"\u003ccode>borrow()\u003c/code> checks that no mutable borrow exists, increments the flag and returns a \u003ccode>Ref\u003c/code> guard.","cols":[[{"g":"main","n":"cell","v":"flag 1","to":"v","s":"hl"},{"g":"block","n":"r1","v":"Ref\u003cVec>","s":"ref","to":"cell"}],[{"id":"v","v":"[1]"}]]},{"l":6,"note":"Any number of shared borrows is fine. The flag counts them.","cols":[[{"g":"main","n":"cell","v":"flag 2","to":"v","s":"hl"},{"g":"block","n":"r1","v":"Ref\u003cVec>","s":"ref","to":"cell"},{"g":"block","n":"r2","v":"Ref\u003cVec>","s":"ref","to":"cell"}],[{"id":"v","v":"[1]"}]]},{"l":7,"note":"Both guards deref to the vector.","o":"1 1","cols":[[{"g":"main","n":"cell","v":"flag 2","to":"v"},{"g":"block","n":"r1","v":"Ref\u003cVec>","s":"ref","to":"cell"},{"g":"block","n":"r2","v":"Ref\u003cVec>","s":"ref","to":"cell"}],[{"id":"v","v":"[1]"}]]},{"l":8,"note":"Dropping a \u003ccode>Ref\u003c/code> decrements the flag. Back to 0.","cols":[[{"g":"main","n":"cell","v":"flag 0","to":"v","s":"hl"},{"g":"block","n":"r1","s":"dropped"},{"g":"block","n":"r2","s":"dropped"}],[{"id":"v","v":"[1]"}]]},{"l":9,"note":"\u003ccode>borrow_mut()\u003c/code> needs the flag at 0, sets it to \"writing\" and returns a \u003ccode>RefMut\u003c/code>. This guard is a temporary, dropped at the end of the statement, so the flag returns to 0 after the push.","cols":[[{"g":"main","n":"cell","v":"flag 0","to":"v"},{"g":"main","n":"(temp)","v":"RefMut","s":"dropped"}],[{"id":"v","v":"[1, 2]","s":"hl"}]]},{"l":10,"note":"This \u003ccode>RefMut\u003c/code> is kept in \u003ccode>w\u003c/code>, so the cell stays exclusively borrowed until \u003ccode>w\u003c/code> is dropped.","cols":[[{"g":"main","n":"cell","v":"flag writing","to":"v","s":"hl"},{"g":"main","n":"w","v":"RefMut\u003cVec>","s":"mut","to":"cell"}],[{"id":"v","v":"[1, 2]"}]]},{"l":11,"note":"A shared borrow while \u003ccode>w\u003c/code> is alive breaks the rules. \u003ccode>cell.borrow()\u003c/code> would panic with \"already mutably borrowed\"; \u003ccode>try_borrow\u003c/code> returns \u003ccode>Err\u003c/code> instead.","cols":[[{"g":"main","n":"cell","v":"flag writing","to":"v"},{"g":"main","n":"w","v":"RefMut\u003cVec>","s":"mut","to":"cell"},{"g":"main","n":"t","v":"Err(BorrowError)","s":"err"}],[{"id":"v","v":"[1, 2]"}]]},{"l":12,"note":"The same rule the compiler enforces for \u003ccode>&amp;\u003c/code> and \u003ccode>&amp;mut\u003c/code>, checked when the program runs.","o":"true","cols":[[{"g":"main","n":"cell","v":"flag writing","to":"v"},{"g":"main","n":"w","v":"RefMut\u003cVec>","s":"mut","to":"cell"},{"g":"main","n":"t","v":"Err(BorrowError)","s":"err"}],[{"id":"v","v":"[1, 2]"}]]}]}</script>
+  </figure>
+  <!-- /sim:refcell -->
 </section>
 
 <section id="cycles">
@@ -338,6 +448,28 @@ table.ops td:first-child{font-weight:600}
     <span class="m">println!</span>(<span class="s">"leaf strong = {}"</span>, <span class="t">Rc</span>::strong_count(&amp;leaf));                          <span class="c2">// 1</span>
 }</code></pre></div>
   <div class="tw"><table class="ops"><thead><tr><th>Pointer</th><th>Use it for</th></tr></thead><tbody><tr><td><code>Box&lt;T&gt;</code></td><td>Single owner on the heap; recursive types; trait objects.</td></tr><tr><td><code>Rc&lt;T&gt;</code></td><td>Several owners, read-only, one thread.</td></tr><tr><td><code>RefCell&lt;T&gt;</code> / <code>Cell&lt;T&gt;</code></td><td>Mutation through a shared reference, checked at run time.</td></tr><tr><td><code>Weak&lt;T&gt;</code></td><td>Back-pointers and caches that must not keep a value alive.</td></tr><tr><td><code>Arc&lt;T&gt;</code> / <code>Mutex&lt;T&gt;</code></td><td>The thread-safe versions of <code>Rc</code> and <code>RefCell</code>.</td></tr></tbody></table></div>
+<!-- sim:cycles -->
+  <figure class="card sim" id="sim-cycles" aria-label="Simulator: A strong cycle leaks; a Weak back-pointer does not">
+    <div class="card-top"><span class="eyebrow">Simulator 6</span><span class="card-title">A strong cycle leaks; a Weak back-pointer does not</span></div>
+    <div class="trace">
+      <pre class="trace-code"><code><span class="ln" data-l="1"><span class="lno">1</span><span class="k">use</span> std::{cell::<span class="t">RefCell</span>, rc::{<span class="t">Rc</span>, <span class="t">Weak</span>}};</span><span class="ln" data-l="2"><span class="lno">2</span><span class="k">struct</span> <span class="t">Pair</span> { next: <span class="t">RefCell</span>&lt;<span class="t">Option</span>&lt;<span class="t">Rc</span>&lt;<span class="t">Pair</span>&gt;&gt;&gt; }</span><span class="ln" data-l="3"><span class="lno">3</span><span class="k">struct</span> <span class="t">Node</span> { parent: <span class="t">RefCell</span>&lt;<span class="t">Weak</span>&lt;<span class="t">Node</span>&gt;&gt;, kids: <span class="t">RefCell</span>&lt;<span class="t">Vec</span>&lt;<span class="t">Rc</span>&lt;<span class="t">Node</span>&gt;&gt;&gt; }</span><span class="ln" data-l="4"><span class="lno">4</span><span class="k">fn</span> main() {</span><span class="ln" data-l="5"><span class="lno">5</span>    {   <span class="c2">// two strong links in a loop</span></span><span class="ln" data-l="6"><span class="lno">6</span>        <span class="k">let</span> a = <span class="t">Rc</span>::new(<span class="t">Pair</span> { next: <span class="t">RefCell</span>::new(<span class="t">None</span>) });</span><span class="ln" data-l="7"><span class="lno">7</span>        <span class="k">let</span> b = <span class="t">Rc</span>::new(<span class="t">Pair</span> { next: <span class="t">RefCell</span>::new(<span class="t">Some</span>(<span class="t">Rc</span>::clone(&amp;a))) });</span><span class="ln" data-l="8"><span class="lno">8</span>        *a.next.borrow_mut() = <span class="t">Some</span>(<span class="t">Rc</span>::clone(&amp;b));</span><span class="ln" data-l="9"><span class="lno">9</span>    }</span><span class="ln" data-l="10"><span class="lno">10</span>    <span class="k">let</span> leaf = <span class="t">Rc</span>::new(<span class="t">Node</span> { parent: <span class="t">RefCell</span>::new(<span class="t">Weak</span>::new()), kids: <span class="t">RefCell</span>::new(<span class="m">vec!</span>[]) });</span><span class="ln" data-l="11"><span class="lno">11</span>    {</span><span class="ln" data-l="12"><span class="lno">12</span>        <span class="k">let</span> branch = <span class="t">Rc</span>::new(<span class="t">Node</span> { parent: <span class="t">RefCell</span>::new(<span class="t">Weak</span>::new()), kids: <span class="t">RefCell</span>::new(<span class="m">vec!</span>[<span class="t">Rc</span>::clone(&amp;leaf)]) });</span><span class="ln" data-l="13"><span class="lno">13</span>        *leaf.parent.borrow_mut() = <span class="t">Rc</span>::downgrade(&amp;branch);</span><span class="ln" data-l="14"><span class="lno">14</span>    }</span><span class="ln" data-l="15"><span class="lno">15</span>    <span class="m">println!</span>(<span class="s">"{}"</span>, leaf.parent.borrow().upgrade().is_none());</span><span class="ln" data-l="16"><span class="lno">16</span>}</span></code></pre>
+      <div class="scroll"><svg viewBox="0 0 640 200" role="img" aria-labelledby="sim-cycles-title sim-cycles-desc">
+        <title id="sim-cycles-title">A strong cycle leaks; a Weak back-pointer does not</title>
+        <desc id="sim-cycles-desc">Step-by-step simulator for A strong cycle leaks; a Weak back-pointer does not. Use Prev and Next, or the arrow keys, to move through the steps; the note under the figure explains each one.</desc>
+      </svg></div>
+    </div>
+    <p class="trace-note" aria-live="polite"></p>
+    <div class="card-bottom">
+      <div class="row" style="margin:0">
+        <button type="button" class="btn" data-act="prev">&larr; Prev</button>
+        <button type="button" class="btn" data-act="next">Next &rarr;</button>
+        <button type="button" class="btn" data-act="reset">Reset</button>
+      </div>
+      <span class="live"></span>
+    </div>
+    <script type="application/json" class="sim-data">{"heads":["STACK","HEAP"],"steps":[{"l":6,"note":"\u003ccode>a\u003c/code> owns a \u003ccode>Pair\u003c/code> with no \u003ccode>next\u003c/code>. Strong count 1.","cols":[[{"g":"block","n":"a","v":"Rc\u003cPair>","to":"A"}],[{"id":"A","v":"A strong=1 next=None"}]]},{"l":7,"note":"\u003ccode>b\u003c/code>'s \u003ccode>next\u003c/code> holds a clone of \u003ccode>a\u003c/code>, so A has two owners.","cols":[[{"g":"block","n":"a","v":"Rc\u003cPair>","to":"A"},{"g":"block","n":"b","v":"Rc\u003cPair>","to":"B"}],[{"id":"A","v":"A strong=2 next=None","s":"hl"},{"id":"B","v":"B strong=1 next=A","to":"A"}]]},{"l":8,"note":"Through the \u003ccode>RefCell\u003c/code>, A now points back to B. Each node is owned by the other: a cycle.","cols":[[{"g":"block","n":"a","v":"Rc\u003cPair>","to":"A"},{"g":"block","n":"b","v":"Rc\u003cPair>","to":"B"}],[{"id":"A","v":"A strong=2 next=B","to":"B"},{"id":"B","v":"B strong=2 next=A","to":"A","s":"hl"}]]},{"l":9,"note":"\u003ccode>b\u003c/code> and \u003ccode>a\u003c/code> are dropped and each count falls to 1, never 0. Neither node is freed and nothing can reach them now: a memory leak, which safe Rust allows.","cols":[[{"g":"block","n":"a","s":"dropped"},{"g":"block","n":"b","s":"dropped"}],[{"id":"A","v":"A strong=1  leaked","to":"B","s":"err"},{"id":"B","v":"B strong=1  leaked","to":"A","s":"err"}]]},{"l":10,"note":"Now a tree, where only parents own. \u003ccode>leaf\u003c/code> starts with an empty \u003ccode>Weak\u003c/code> parent.","cols":[[{"g":"main","n":"leaf","v":"Rc\u003cNode>","to":"L"}],[{"id":"A","v":"A strong=1  leaked","s":"err"},{"id":"B","v":"B strong=1  leaked","s":"err"},{"id":"L","v":"leaf strong=1 weak=0"}]]},{"l":12,"note":"\u003ccode>branch\u003c/code> owns \u003ccode>leaf\u003c/code> through \u003ccode>kids\u003c/code>, so leaf's strong count is 2.","cols":[[{"g":"main","n":"leaf","v":"Rc\u003cNode>","to":"L"},{"g":"block","n":"branch","v":"Rc\u003cNode>","to":"Br"}],[{"id":"A","v":"A strong=1  leaked","s":"err"},{"id":"B","v":"B strong=1  leaked","s":"err"},{"id":"L","v":"leaf strong=2 weak=0","s":"hl"},{"id":"Br","v":"branch strong=1 weak=0","to":"L"}]]},{"l":13,"note":"\u003ccode>Rc::downgrade\u003c/code> gives leaf a back-pointer that raises branch's \u003cb>weak\u003c/b> count only. The dashed arrow does not own.","cols":[[{"g":"main","n":"leaf","v":"Rc\u003cNode>","to":"L"},{"g":"block","n":"branch","v":"Rc\u003cNode>","to":"Br"}],[{"id":"A","v":"A strong=1  leaked","s":"err"},{"id":"B","v":"B strong=1  leaked","s":"err"},{"id":"L","v":"leaf strong=2 weak=0","to":"~Br"},{"id":"Br","v":"branch strong=1 weak=1","to":"L","s":"hl"}]]},{"l":14,"note":"\u003ccode>branch\u003c/code> goes out of scope: strong 1 → 0, so the node is dropped and its \u003ccode>kids\u003c/code> vector releases leaf (strong back to 1). Only the counters stay allocated while the \u003ccode>Weak\u003c/code> exists.","cols":[[{"g":"main","n":"leaf","v":"Rc\u003cNode>","to":"L"},{"g":"block","n":"branch","s":"dropped"}],[{"id":"A","v":"A strong=1  leaked","s":"err"},{"id":"B","v":"B strong=1  leaked","s":"err"},{"id":"L","v":"leaf strong=1 weak=0","to":"~Br","s":"hl"},{"id":"Br","v":"branch dropped, weak=1","s":"freed"}]]},{"l":15,"note":"\u003ccode>upgrade()\u003c/code> finds strong = 0 and returns \u003ccode>None\u003c/code>. The tree cleaned up; the strong cycle above is still leaked.","o":"true","cols":[[{"g":"main","n":"leaf","v":"Rc\u003cNode>","to":"L"}],[{"id":"A","v":"A strong=1  leaked","s":"err"},{"id":"B","v":"B strong=1  leaked","s":"err"},{"id":"L","v":"leaf strong=1 weak=0","to":"~Br"},{"id":"Br","v":"branch dropped, weak=1","s":"freed"}]]}]}</script>
+  </figure>
+  <!-- /sim:cycles -->
 </section>
 
 <section id="quiz">
@@ -494,7 +626,7 @@ var CHECK_KEY = 'rust-rust-smart-pointers-check:' + location.pathname;
       if (!heap.length) txt(380, 64, '(nothing allocated)', { fill: SOFT });
       var H = Math.max(y, hy, 90) + 10;
       svg.setAttribute('viewBox', '0 0 640 ' + H);
-      Array.prototype.forEach.call(document.querySelectorAll('.trace-code .ln'), function (ln) {
+      Array.prototype.forEach.call(document.querySelectorAll('figure:not(.sim) .trace-code .ln'), function (ln) {
         ln.classList.toggle('on', +ln.getAttribute('data-l') === st.l);
       });
       $('traceNote').innerHTML = st.note;
@@ -551,5 +683,147 @@ var CHECK_KEY = 'rust-rust-smart-pointers-check:' + location.pathname;
 })();
 
 </script>
+<!-- section-sims -->
+<script>
+(function () {
+  // Section simulators: each figure.sim carries its steps as JSON and is drawn into its own SVG.
+  var NS = 'http://www.w3.org/2000/svg';
+  var INK = '#2d3142', SOFT = '#5a6580', RULE = '#bfc0c0', ACCENT = '#bf4520', LINK = '#2e5aa8', OK = '#2f7a4a', PAPER = '#f5f5f5';
+  var W = 640, BOX_H = 40, GAP_Y = 10, TOP = 40;
+  var fit = function (s, n) { s = String(s); return s.length > n ? s.slice(0, Math.max(1, n - 1)) + '\u2026' : s; };
+
+  function initSim(fig) {
+    var data = JSON.parse(fig.querySelector('script.sim-data').textContent);
+    var svg = fig.querySelector('svg'), lines = fig.querySelectorAll('.trace-code .ln');
+    var note = fig.querySelector('.trace-note'), live = fig.querySelector('.live');
+    var prev = fig.querySelector('[data-act="prev"]'), next = fig.querySelector('[data-act="next"]'), reset = fig.querySelector('[data-act="reset"]');
+    var steps = data.steps, heads = data.heads || [], cur = 0, uid = fig.id;
+    var hasOut = steps.some(function (s) { return s.o != null; });
+    var el = function (name, attrs, parent) {
+      var e = document.createElementNS(NS, name);
+      for (var k in attrs) if (attrs[k] !== '' && attrs[k] != null) e.setAttribute(k, attrs[k]);
+      (parent || svg).appendChild(e);
+      return e;
+    };
+    var txt = function (x, y, s, a, parent) {
+      var o = { x: x, y: y, 'font-size': 12, fill: INK, 'font-family': 'Geist Mono, monospace' };
+      for (var k in a) o[k] = a[k];
+      var t = el('text', o, parent); t.textContent = s; return t;
+    };
+    var clear = function () {
+      Array.prototype.slice.call(svg.childNodes).forEach(function (n) {
+        var nm = (n.localName || '').toLowerCase();
+        if (nm !== 'title' && nm !== 'desc') svg.removeChild(n);
+      });
+    };
+
+    function draw() {
+      var st = steps[cur], cols = st.cols || [];
+      var k = Math.max(1, heads.length, cols.length);
+      var left = 40, right = 24, gap = k === 1 ? 0 : (k === 2 ? 70 : 46);
+      var colW = (W - left - right - gap * (k - 1)) / k;
+      var chars = Math.floor((colW - 24) / 7.4);
+      clear();
+      var defs = el('defs', {});
+      [['a', INK], ['b', LINK], ['c', ACCENT]].forEach(function (m) {
+        var mk = el('marker', { id: uid + '-' + m[0], viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: 'auto-start-reverse' }, defs);
+        el('path', { d: 'M0 0 L10 5 L0 10 z', fill: m[1] }, mk);
+      });
+      var pos = {}, bottom = TOP;
+      for (var ci = 0; ci < k; ci++) {
+        var x = left + ci * (colW + gap), y = TOP, lastG = null, items = cols[ci] || [];
+        if (heads[ci]) txt(x, 24, heads[ci], { 'font-size': 11, fill: SOFT, 'letter-spacing': '2' });
+        items.forEach(function (it) {
+          if (it.g && it.g !== lastG) { txt(x, y + 12, fit(it.g, chars + 4), { 'font-size': 10.5, fill: SOFT, 'font-style': 'italic' }); y += 18; lastG = it.g; }
+          var s = it.s || '', faded = /moved|dropped|freed/.test(s);
+          var isRef = /ref|mut|weak/.test(s), hl = /hl/.test(s), err = /err/.test(s), ok = /ok/.test(s);
+          var stroke = err || hl ? ACCENT : (ok ? OK : (isRef ? LINK : (faded ? RULE : INK)));
+          var g = el('g', { opacity: /dropped|freed/.test(s) ? 0.4 : 1 });
+          el('rect', { x: x, y: y, width: colW, height: BOX_H, rx: 6, fill: err ? 'rgba(191,69,32,.08)' : (ok ? 'rgba(47,122,74,.07)' : (faded ? PAPER : '#fff')), stroke: stroke, 'stroke-width': hl || err ? 2 : 1.4, 'stroke-dasharray': faded ? '5 4' : '' }, g);
+          var stateWord = /moved/.test(s) ? 'moved' : (/dropped/.test(s) ? 'dropped' : (/freed/.test(s) ? 'freed' : null));
+          var val = stateWord && it.v == null ? stateWord : (it.v == null ? '' : it.v);
+          if (it.n != null) {
+            var nChars = Math.max(4, Math.min(String(it.n).length, Math.floor(chars * 0.45)));
+            txt(x + 12, y + 25, fit(it.n, nChars), { 'font-size': 13, 'font-weight': 600, fill: faded ? SOFT : INK }, g);
+            txt(x + colW - 12, y + 25, fit(val, Math.max(4, chars - nChars - 1)), { 'text-anchor': 'end', fill: faded ? SOFT : (err ? ACCENT : (isRef ? LINK : INK)) }, g);
+          } else {
+            txt(x + 12, y + 25, fit(val, chars), { fill: faded ? SOFT : (err ? ACCENT : INK) }, g);
+          }
+          var tag = it.t || (/mut/.test(s) ? '&mut' : (/weak/.test(s) ? 'weak' : (/ref/.test(s) ? '&' : null)));
+          if (tag) {
+            var tw = 10 + tag.length * 6.2;
+            el('rect', { x: x + colW - tw - 8, y: y - 8, width: tw, height: 15, rx: 3, fill: err ? ACCENT : (ok ? OK : (hl ? ACCENT : LINK)) }, g);
+            txt(x + colW - tw - 3, y + 3, tag, { 'font-size': 9.5, fill: '#fff', 'font-weight': 600 }, g);
+          }
+          var id = it.id != null ? it.id : it.n;
+          if (id != null) pos[id] = { x: x, y: y + BOX_H / 2, col: ci, faded: faded, freed: /freed|dropped/.test(s) };
+          it._id = id;
+          y += BOX_H + GAP_Y;
+        });
+        if (!items.length && heads[ci]) txt(x, TOP + 24, data.empty && data.empty[ci] ? data.empty[ci] : '(empty)', { fill: SOFT });
+        bottom = Math.max(bottom, y);
+      }
+      // arrows
+      cols.forEach(function (items) {
+        (items || []).forEach(function (it) {
+          if (!it.to || /moved|dropped|freed/.test(it.s || '')) return;
+          var a = pos[it._id]; if (!a) return;
+          [].concat(it.to).forEach(function (t) {
+            var weak = t.charAt(0) === '~', bad = t.charAt(0) === '!';
+            if (weak || bad) t = t.slice(1);
+            var b = pos[t]; if (!b) return;
+            var color = bad || b.freed ? ACCENT : (weak || /ref|mut/.test(it.s || '') ? LINK : INK);
+            var mk = 'url(#' + uid + '-' + (color === ACCENT ? 'c' : (color === LINK ? 'b' : 'a')) + ')';
+            var dash = weak || bad || b.freed ? '4 3' : '', d;
+            if (b.col === a.col) {
+              var dx = 18 + Math.min(22, Math.abs(a.y - b.y) / 6), lx = a.x;
+              d = 'M' + lx + ' ' + a.y + ' C' + (lx - dx) + ' ' + a.y + ' ' + (lx - dx) + ' ' + b.y + ' ' + (lx - 2) + ' ' + b.y;
+            } else if (b.col > a.col) {
+              var x1 = a.x + colW, x2 = b.x - 2, mx = (x1 + x2) / 2;
+              d = 'M' + x1 + ' ' + a.y + ' C' + mx + ' ' + a.y + ' ' + mx + ' ' + b.y + ' ' + x2 + ' ' + b.y;
+            } else {
+              var x3 = a.x, x4 = b.x + colW + 2, mx2 = (x3 + x4) / 2;
+              d = 'M' + x3 + ' ' + a.y + ' C' + mx2 + ' ' + a.y + ' ' + mx2 + ' ' + b.y + ' ' + x4 + ' ' + b.y;
+            }
+            el('path', { d: d, fill: 'none', stroke: color, 'stroke-width': 1.6, 'stroke-dasharray': dash, 'marker-end': mk });
+          });
+        });
+      });
+      var H = Math.max(bottom, 90) + 6;
+      if (hasOut) {
+        var out = [];
+        for (var i = 0; i <= cur; i++) if (steps[i].o != null) out = out.concat(steps[i].o);
+        var shown = out.slice(-6), oh = 30 + Math.max(1, shown.length) * 18;
+        el('rect', { x: left, y: H, width: W - left - right, height: oh, rx: 6, fill: INK });
+        txt(left + 12, H + 18, 'OUTPUT', { 'font-size': 10, fill: RULE, 'letter-spacing': '2' });
+        if (!shown.length) txt(left + 12, H + 38, '(nothing printed yet)', { fill: RULE, 'font-style': 'italic' });
+        shown.forEach(function (ln, j) {
+          var bad = String(ln).charAt(0) === '!';
+          txt(left + 12, H + 38 + j * 18, fit(bad ? String(ln).slice(1) : ln, 76), { fill: bad ? '#ff9b7a' : PAPER });
+        });
+        H += oh + 10;
+      }
+      svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+      var on = [].concat(st.l || []);
+      Array.prototype.forEach.call(lines, function (ln) { ln.classList.toggle('on', on.indexOf(+ln.getAttribute('data-l')) !== -1); });
+      note.innerHTML = st.note;
+      live.textContent = 'step ' + (cur + 1) + ' / ' + steps.length;
+      prev.disabled = cur === 0;
+      next.disabled = cur === steps.length - 1;
+    }
+    prev.addEventListener('click', function () { if (cur > 0) { cur--; draw(); } });
+    next.addEventListener('click', function () { if (cur < steps.length - 1) { cur++; draw(); } });
+    reset.addEventListener('click', function () { cur = 0; draw(); });
+    fig.addEventListener('keydown', function (e) {
+      if (e.target.tagName === 'INPUT') return;
+      if (e.key === 'ArrowRight' && cur < steps.length - 1) { cur++; draw(); e.preventDefault(); }
+      if (e.key === 'ArrowLeft' && cur > 0) { cur--; draw(); e.preventDefault(); }
+    });
+    draw();
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('figure.sim'), initSim);
+})();
+</script>
+<!-- /section-sims -->
 </body>
 </html>

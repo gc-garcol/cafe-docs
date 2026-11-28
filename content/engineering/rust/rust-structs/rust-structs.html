@@ -162,6 +162,28 @@ table.ops td:first-child{font-weight:600}
     <span class="m">println!</span>(<span class="s">"{}"</span>, user1.username); <span class="c2">// error[E0382]: username was moved into user2</span>
 }</code></pre></div>
   <p>Had <code>user2</code> also set its own <code>username</code>, only <code>Copy</code> fields (<code>active</code>, <code>sign_in_count</code>) would have been taken from <code>user1</code>, and <code>user1</code> would still be fully usable.</p>
+<!-- sim:define -->
+  <figure class="card sim" id="sim-define" aria-label="Simulator: Struct update syntax moves fields">
+    <div class="card-top"><span class="eyebrow">Simulator 1</span><span class="card-title">Struct update syntax moves fields</span></div>
+    <div class="trace">
+      <pre class="trace-code"><code><span class="ln" data-l="1"><span class="lno">1</span><span class="k">struct</span> <span class="t">User</span> { active: bool, name: <span class="t">String</span>, email: <span class="t">String</span>, count: u64 }</span><span class="ln" data-l="2"><span class="lno">2</span><span class="k">fn</span> main() {</span><span class="ln" data-l="3"><span class="lno">3</span>    <span class="k">let</span> u1 = <span class="t">User</span> {</span><span class="ln" data-l="4"><span class="lno">4</span>        active: <span class="k">true</span>,</span><span class="ln" data-l="5"><span class="lno">5</span>        name: <span class="t">String</span>::from(<span class="s">"ana"</span>),</span><span class="ln" data-l="6"><span class="lno">6</span>        email: <span class="t">String</span>::from(<span class="s">"a@x.io"</span>),</span><span class="ln" data-l="7"><span class="lno">7</span>        count: <span class="n">1</span>,</span><span class="ln" data-l="8"><span class="lno">8</span>    };</span><span class="ln" data-l="9"><span class="lno">9</span>    <span class="k">let</span> u2 = <span class="t">User</span> { email: <span class="t">String</span>::from(<span class="s">"b@x.io"</span>), ..u1 };</span><span class="ln" data-l="10"><span class="lno">10</span>    <span class="m">println!</span>(<span class="s">"{} {}"</span>, u1.email, u1.count);</span><span class="ln" data-l="11"><span class="lno">11</span>    <span class="c2">// println!("{}", u1.name);  // E0382: moved into u2</span></span><span class="ln" data-l="12"><span class="lno">12</span>    <span class="m">println!</span>(<span class="s">"{} {}"</span>, u2.name, u2.email);</span><span class="ln" data-l="13"><span class="lno">13</span>}</span></code></pre>
+      <div class="scroll"><svg viewBox="0 0 640 200" role="img" aria-labelledby="sim-define-title sim-define-desc">
+        <title id="sim-define-title">Struct update syntax moves fields</title>
+        <desc id="sim-define-desc">Step-by-step simulator for Struct update syntax moves fields. Use Prev and Next, or the arrow keys, to move through the steps; the note under the figure explains each one.</desc>
+      </svg></div>
+    </div>
+    <p class="trace-note" aria-live="polite"></p>
+    <div class="card-bottom">
+      <div class="row" style="margin:0">
+        <button type="button" class="btn" data-act="prev">&larr; Prev</button>
+        <button type="button" class="btn" data-act="next">Next &rarr;</button>
+        <button type="button" class="btn" data-act="reset">Reset</button>
+      </div>
+      <span class="live"></span>
+    </div>
+    <script type="application/json" class="sim-data">{"heads":["STACK","HEAP"],"steps":[{"l":[3,8],"note":"A struct instance lays its fields out together. The two \u003ccode>String\u003c/code> fields each own a heap buffer.","cols":[[{"g":"u1","n":"active","v":"true"},{"g":"u1","n":"name","id":"n1","v":"String","to":"ana"},{"g":"u1","n":"email","id":"e1","v":"String","to":"ax"},{"g":"u1","n":"count","v":"1"}],[{"id":"ana","v":"\"ana\""},{"id":"ax","v":"\"a@x.io\""}]]},{"l":9,"note":"\u003ccode>..u1\u003c/code> fills the remaining fields from \u003ccode>u1\u003c/code>. \u003ccode>active\u003c/code> and \u003ccode>count\u003c/code> are copied, but \u003ccode>name\u003c/code> is a \u003ccode>String\u003c/code>, so it is \u003cb>moved\u003c/b> into \u003ccode>u2\u003c/code>.","cols":[[{"g":"u1","n":"active","v":"true"},{"g":"u1","n":"name","id":"n1","s":"moved"},{"g":"u1","n":"email","id":"e1","v":"String","to":"ax"},{"g":"u1","n":"count","v":"1"},{"g":"u2","n":"active","id":"a2","v":"true"},{"g":"u2","n":"name","id":"n2","v":"String","to":"ana","s":"hl"},{"g":"u2","n":"email","id":"e2","v":"String","to":"bx"},{"g":"u2","n":"count","id":"c2","v":"1"}],[{"id":"ana","v":"\"ana\""},{"id":"ax","v":"\"a@x.io\""},{"id":"bx","v":"\"b@x.io\""}]]},{"l":10,"note":"Only \u003ccode>u1.name\u003c/code> was moved. Its other fields are still usable: Rust tracks moves per field.","o":"a@x.io 1","cols":[[{"g":"u1","n":"active","v":"true"},{"g":"u1","n":"name","id":"n1","s":"moved"},{"g":"u1","n":"email","id":"e1","v":"String","to":"ax"},{"g":"u1","n":"count","v":"1"},{"g":"u2","n":"name","id":"n2","v":"String","to":"ana"},{"g":"u2","n":"email","id":"e2","v":"String","to":"bx"}],[{"id":"ana","v":"\"ana\""},{"id":"ax","v":"\"a@x.io\""},{"id":"bx","v":"\"b@x.io\""}]]},{"l":11,"note":"Reading \u003ccode>u1.name\u003c/code> would be E0382, \"borrow of moved value\". Using \u003ccode>u1\u003c/code> as a whole is also no longer possible.","cols":[[{"g":"u1","n":"name","id":"n1","v":"moved","s":"err"},{"g":"u1","n":"email","id":"e1","v":"String","to":"ax"},{"g":"u2","n":"name","id":"n2","v":"String","to":"ana"},{"g":"u2","n":"email","id":"e2","v":"String","to":"bx"}],[{"id":"ana","v":"\"ana\""},{"id":"ax","v":"\"a@x.io\""},{"id":"bx","v":"\"b@x.io\""}]]},{"l":12,"note":"\u003ccode>u2\u003c/code> owns \u003ccode>\"ana\"\u003c/code> now.","o":"ana b@x.io","cols":[[{"g":"u1","n":"email","id":"e1","v":"String","to":"ax"},{"g":"u2","n":"name","id":"n2","v":"String","to":"ana"},{"g":"u2","n":"email","id":"e2","v":"String","to":"bx"}],[{"id":"ana","v":"\"ana\""},{"id":"ax","v":"\"a@x.io\""},{"id":"bx","v":"\"b@x.io\""}]]},{"l":13,"note":"Each buffer is freed once by its current owner: \u003ccode>u2\u003c/code> frees two, \u003ccode>u1\u003c/code> frees the email it kept.","cols":[[{"g":"u1","n":"email","id":"e1","s":"dropped"},{"g":"u2","n":"name","id":"n2","s":"dropped"},{"g":"u2","n":"email","id":"e2","s":"dropped"}],[{"id":"ana","s":"freed"},{"id":"ax","s":"freed"},{"id":"bx","s":"freed"}]]}]}</script>
+  </figure>
+  <!-- /sim:define -->
 </section>
 
 <section id="kinds">
@@ -181,6 +203,28 @@ table.ops td:first-child{font-weight:600}
 }</code></pre></div>
   <p>A <b>unit-like struct</b> carries no data. It is useful when you need a type to implement a trait on, or as a marker.</p>
   <div class="tw"><table class="ops"><thead><tr><th>Kind</th><th>Syntax</th><th>Use for</th></tr></thead><tbody><tr><td>Classic struct</td><td><code>struct P { x: f64, y: f64 }</code></td><td>Most data: fields have meaningful names.</td></tr><tr><td>Tuple struct</td><td><code>struct P(f64, f64);</code></td><td>Newtypes and small wrappers where names add nothing.</td></tr><tr><td>Unit-like</td><td><code>struct Marker;</code></td><td>Trait implementations, type-level markers.</td></tr></tbody></table></div>
+<!-- sim:kinds -->
+  <figure class="card sim" id="sim-kinds" aria-label="Simulator: Tuple structs are distinct types">
+    <div class="card-top"><span class="eyebrow">Simulator 2</span><span class="card-title">Tuple structs are distinct types</span></div>
+    <div class="trace">
+      <pre class="trace-code"><code><span class="ln" data-l="1"><span class="lno">1</span><span class="k">struct</span> <span class="t">Color</span>(u8, u8, u8);</span><span class="ln" data-l="2"><span class="lno">2</span><span class="k">struct</span> <span class="t">Point</span>(i32, i32, i32);</span><span class="ln" data-l="3"><span class="lno">3</span><span class="k">struct</span> <span class="t">AlwaysEqual</span>;</span><span class="ln" data-l="4"><span class="lno">4</span><span class="k">fn</span> red(c: &amp;<span class="t">Color</span>) -&gt; u8 { c.<span class="n">0</span> }</span><span class="ln" data-l="5"><span class="lno">5</span><span class="k">fn</span> main() {</span><span class="ln" data-l="6"><span class="lno">6</span>    <span class="k">let</span> black = <span class="t">Color</span>(<span class="n">0</span>, <span class="n">0</span>, <span class="n">0</span>);</span><span class="ln" data-l="7"><span class="lno">7</span>    <span class="k">let</span> origin = <span class="t">Point</span>(<span class="n">0</span>, <span class="n">0</span>, <span class="n">0</span>);</span><span class="ln" data-l="8"><span class="lno">8</span>    <span class="k">let</span> <span class="t">Point</span>(x, _, _) = origin;</span><span class="ln" data-l="9"><span class="lno">9</span>    <span class="c2">// red(&amp;origin);  // E0308: expected Color</span></span><span class="ln" data-l="10"><span class="lno">10</span>    <span class="k">let</span> _unit = <span class="t">AlwaysEqual</span>;</span><span class="ln" data-l="11"><span class="lno">11</span>    <span class="m">println!</span>(<span class="s">"{} {x} {}"</span>, red(&amp;black), size_of::&lt;<span class="t">AlwaysEqual</span>&gt;());</span><span class="ln" data-l="12"><span class="lno">12</span>}</span></code></pre>
+      <div class="scroll"><svg viewBox="0 0 640 200" role="img" aria-labelledby="sim-kinds-title sim-kinds-desc">
+        <title id="sim-kinds-title">Tuple structs are distinct types</title>
+        <desc id="sim-kinds-desc">Step-by-step simulator for Tuple structs are distinct types. Use Prev and Next, or the arrow keys, to move through the steps; the note under the figure explains each one.</desc>
+      </svg></div>
+    </div>
+    <p class="trace-note" aria-live="polite"></p>
+    <div class="card-bottom">
+      <div class="row" style="margin:0">
+        <button type="button" class="btn" data-act="prev">&larr; Prev</button>
+        <button type="button" class="btn" data-act="next">Next &rarr;</button>
+        <button type="button" class="btn" data-act="reset">Reset</button>
+      </div>
+      <span class="live"></span>
+    </div>
+    <script type="application/json" class="sim-data">{"heads":["VALUES","TYPE CHECK"],"steps":[{"l":6,"note":"A tuple struct has a name but unnamed fields.","cols":[[{"n":"black","v":"Color(0, 0, 0)"}],[{"v":"Color"}]]},{"l":7,"note":"Same field types, different struct: \u003ccode>Point\u003c/code> and \u003ccode>Color\u003c/code> are not interchangeable.","cols":[[{"n":"black","v":"Color(0, 0, 0)"},{"n":"origin","v":"Point(0, 0, 0)"}],[{"v":"Color"},{"v":"Point"}]]},{"l":8,"note":"Destructuring needs the type name in the pattern. Fields are also reachable as \u003ccode>.0\u003c/code>, \u003ccode>.1\u003c/code>, \u003ccode>.2\u003c/code>.","cols":[[{"n":"black","v":"Color(0, 0, 0)"},{"n":"origin","v":"Point(0, 0, 0)"},{"n":"x","v":"0","s":"hl"}],[{"v":"Color"},{"v":"Point"},{"v":"i32"}]]},{"l":9,"note":"Passing \u003ccode>&amp;origin\u003c/code> where \u003ccode>&amp;Color\u003c/code> is expected is E0308. The names are what make tuple structs useful: they stop mix-ups.","cols":[[{"n":"black","v":"Color(0, 0, 0)"},{"n":"origin","v":"Point(0, 0, 0)"}],[{"v":"&Point ≠ &Color","s":"err","t":"E0308"}]]},{"l":10,"note":"A unit-like struct has no fields. It is useful for implementing a trait on a type that needs no data.","cols":[[{"n":"black","v":"Color(0, 0, 0)"},{"n":"origin","v":"Point(0, 0, 0)"},{"n":"_unit","v":"AlwaysEqual","s":"hl"}],[{"v":"Color"},{"v":"Point"},{"v":"AlwaysEqual: 0 bytes"}]]},{"l":11,"note":"\u003ccode>size_of\u003c/code> confirms a unit struct takes no memory.","o":"0 0 0","cols":[[{"n":"black","v":"Color(0, 0, 0)"},{"n":"origin","v":"Point(0, 0, 0)"},{"n":"_unit","v":"AlwaysEqual"}],[{"v":"Color"},{"v":"Point"},{"v":"AlwaysEqual: 0 bytes","s":"ok"}]]}]}</script>
+  </figure>
+  <!-- /sim:kinds -->
 </section>
 
 <section id="owned">
@@ -198,6 +242,28 @@ table.ops td:first-child{font-weight:600}
     <span class="m">println!</span>(<span class="s">"{}"</span>, e.text);
 }</code></pre></div>
   <p>Start with owned fields. Reach for references in structs once you know you need them; chapter 10 covers the syntax.</p>
+<!-- sim:owned -->
+  <figure class="card sim" id="sim-owned" aria-label="Simulator: Owned fields versus borrowed fields">
+    <div class="card-top"><span class="eyebrow">Simulator 3</span><span class="card-title">Owned fields versus borrowed fields</span></div>
+    <div class="trace">
+      <pre class="trace-code"><code><span class="ln" data-l="1"><span class="lno">1</span><span class="k">struct</span> <span class="t">Owned</span> { name: <span class="t">String</span> }</span><span class="ln" data-l="2"><span class="lno">2</span><span class="k">struct</span> <span class="t">Borrowed</span>&lt;<span class="lt">'a</span>&gt; { name: &amp;<span class="lt">'a</span> str }</span><span class="ln" data-l="3"><span class="lno">3</span><span class="k">fn</span> main() {</span><span class="ln" data-l="4"><span class="lno">4</span>    <span class="k">let</span> o;</span><span class="ln" data-l="5"><span class="lno">5</span>    {</span><span class="ln" data-l="6"><span class="lno">6</span>        <span class="k">let</span> s = <span class="t">String</span>::from(<span class="s">"kim"</span>);</span><span class="ln" data-l="7"><span class="lno">7</span>        o = <span class="t">Owned</span> { name: s.clone() };</span><span class="ln" data-l="8"><span class="lno">8</span>        <span class="k">let</span> b = <span class="t">Borrowed</span> { name: &amp;s };</span><span class="ln" data-l="9"><span class="lno">9</span>        <span class="m">println!</span>(<span class="s">"{}"</span>, b.name);</span><span class="ln" data-l="10"><span class="lno">10</span>    }   <span class="c2">// s dropped: b must be gone by now</span></span><span class="ln" data-l="11"><span class="lno">11</span>    <span class="m">println!</span>(<span class="s">"{}"</span>, o.name);</span><span class="ln" data-l="12"><span class="lno">12</span>}</span></code></pre>
+      <div class="scroll"><svg viewBox="0 0 640 200" role="img" aria-labelledby="sim-owned-title sim-owned-desc">
+        <title id="sim-owned-title">Owned fields versus borrowed fields</title>
+        <desc id="sim-owned-desc">Step-by-step simulator for Owned fields versus borrowed fields. Use Prev and Next, or the arrow keys, to move through the steps; the note under the figure explains each one.</desc>
+      </svg></div>
+    </div>
+    <p class="trace-note" aria-live="polite"></p>
+    <div class="card-bottom">
+      <div class="row" style="margin:0">
+        <button type="button" class="btn" data-act="prev">&larr; Prev</button>
+        <button type="button" class="btn" data-act="next">Next &rarr;</button>
+        <button type="button" class="btn" data-act="reset">Reset</button>
+      </div>
+      <span class="live"></span>
+    </div>
+    <script type="application/json" class="sim-data">{"heads":["STACK","HEAP"],"steps":[{"l":6,"note":"\u003ccode>s\u003c/code> owns a string inside the block.","cols":[[{"g":"main","n":"o","v":"(uninit)"},{"g":"block","n":"s","v":"String","to":"k"}],[{"id":"k","v":"\"kim\""}]]},{"l":7,"note":"\u003ccode>Owned\u003c/code> holds its own \u003ccode>String\u003c/code>, here a clone. Its data lives as long as the struct does.","cols":[[{"g":"main","n":"o","v":"Owned{name}","to":"k2","s":"hl"},{"g":"block","n":"s","v":"String","to":"k"}],[{"id":"k","v":"\"kim\""},{"id":"k2","v":"\"kim\" (clone)"}]]},{"l":[8,9],"note":"\u003ccode>Borrowed\u003c/code> holds a \u003ccode>&amp;str\u003c/code>. That needs a lifetime parameter \u003ccode>'a\u003c/code>: the struct cannot outlive \u003ccode>s\u003c/code>. Without \u003ccode>&lt;'a&gt;\u003c/code> the definition is E0106.","o":"kim","cols":[[{"g":"main","n":"o","v":"Owned{name}","to":"k2"},{"g":"block","n":"s","v":"String","to":"k"},{"g":"block","n":"b","v":"Borrowed\u003c'a>","s":"ref","to":"k"}],[{"id":"k","v":"\"kim\""},{"id":"k2","v":"\"kim\" (clone)"}]]},{"l":10,"note":"The block ends: \u003ccode>b\u003c/code> and \u003ccode>s\u003c/code> go away. Moving \u003ccode>b\u003c/code> out of the block would be E0597, \"\u003ccode>s\u003c/code> does not live long enough\".","cols":[[{"g":"main","n":"o","v":"Owned{name}","to":"k2"},{"g":"block","n":"s","s":"dropped"},{"g":"block","n":"b","s":"dropped"}],[{"id":"k","s":"freed"},{"id":"k2","v":"\"kim\" (clone)"}]]},{"l":11,"note":"The owned struct is self-contained, so it is still valid.","o":"kim","cols":[[{"g":"main","n":"o","v":"Owned{name}","to":"k2"}],[{"id":"k","s":"freed"},{"id":"k2","v":"\"kim\" (clone)"}]]}]}</script>
+  </figure>
+  <!-- /sim:owned -->
 </section>
 
 <section id="debug">
@@ -218,6 +284,28 @@ table.ops td:first-child{font-weight:600}
     <span class="m">dbg!</span>(&amp;rect);            <span class="c2">// prints file:line and the value to stderr</span>
 }</code></pre></div>
   <p><code>dbg!</code> takes ownership of its argument and returns it, which is why it can wrap an expression inline. Pass a reference when you want to keep the value. Other derivable traits include <code>Clone</code>, <code>Copy</code>, <code>PartialEq</code>, <code>Eq</code>, <code>Hash</code>, <code>PartialOrd</code>, <code>Ord</code> and <code>Default</code>.</p>
+<!-- sim:debug -->
+  <figure class="card sim" id="sim-debug" aria-label="Simulator: derive(Debug), {:?}, {:#?} and dbg!">
+    <div class="card-top"><span class="eyebrow">Simulator 4</span><span class="card-title">derive(Debug), {:?}, {:#?} and dbg!</span></div>
+    <div class="trace">
+      <pre class="trace-code"><code><span class="ln" data-l="1"><span class="lno">1</span><span class="at">#[derive(Debug)]</span></span><span class="ln" data-l="2"><span class="lno">2</span><span class="k">struct</span> <span class="t">Rect</span> { w: u32, h: u32 }</span><span class="ln" data-l="3"><span class="lno">3</span><span class="k">fn</span> main() {</span><span class="ln" data-l="4"><span class="lno">4</span>    <span class="k">let</span> scale = <span class="n">2</span>;</span><span class="ln" data-l="5"><span class="lno">5</span>    <span class="k">let</span> r = <span class="t">Rect</span> { w: <span class="m">dbg!</span>(<span class="n">30</span> * scale), h: <span class="n">50</span> };</span><span class="ln" data-l="6"><span class="lno">6</span>    <span class="m">println!</span>(<span class="s">"{r:?}"</span>);</span><span class="ln" data-l="7"><span class="lno">7</span>    <span class="m">println!</span>(<span class="s">"{r:#?}"</span>);</span><span class="ln" data-l="8"><span class="lno">8</span>    <span class="m">dbg!</span>(&amp;r);</span><span class="ln" data-l="9"><span class="lno">9</span>}</span></code></pre>
+      <div class="scroll"><svg viewBox="0 0 640 200" role="img" aria-labelledby="sim-debug-title sim-debug-desc">
+        <title id="sim-debug-title">derive(Debug), {:?}, {:#?} and dbg!</title>
+        <desc id="sim-debug-desc">Step-by-step simulator for derive(Debug), {:?}, {:#?} and dbg!. Use Prev and Next, or the arrow keys, to move through the steps; the note under the figure explains each one.</desc>
+      </svg></div>
+    </div>
+    <p class="trace-note" aria-live="polite"></p>
+    <div class="card-bottom">
+      <div class="row" style="margin:0">
+        <button type="button" class="btn" data-act="prev">&larr; Prev</button>
+        <button type="button" class="btn" data-act="next">Next &rarr;</button>
+        <button type="button" class="btn" data-act="reset">Reset</button>
+      </div>
+      <span class="live"></span>
+    </div>
+    <script type="application/json" class="sim-data">{"heads":["VALUE","FORMAT"],"steps":[{"l":[1,2],"note":"\u003ccode>#[derive(Debug)]\u003c/code> generates a \u003ccode>Debug\u003c/code> impl. Without it, \u003ccode>{:?}\u003c/code> is E0277, \"\u003ccode>Rect\u003c/code> doesn't implement \u003ccode>Debug\u003c/code>\".","cols":[[{"v":"Rect { w, h }"}],[{"v":"impl Debug for Rect","s":"ok"}]]},{"l":5,"note":"\u003ccode>dbg!\u003c/code> prints the file, line, expression and value to \u003cb>stderr\u003c/b>, then returns the value, so it can wrap part of an expression.","o":"![src/main.rs:5:23] 30 * scale = 60","cols":[[{"n":"r","v":"Rect { w: 60, h: 50 }"}],[{"v":"dbg! → stderr, returns 60","s":"hl"}]]},{"l":6,"note":"\u003ccode>{:?}\u003c/code> prints on one line.","o":"Rect { w: 60, h: 50 }","cols":[[{"n":"r","v":"Rect { w: 60, h: 50 }"}],[{"v":"{:?}  one line"}]]},{"l":7,"note":"\u003ccode>{:#?}\u003c/code> pretty-prints one field per line.","o":["Rect {","    w: 60,","    h: 50,","}"],"cols":[[{"n":"r","v":"Rect { w: 60, h: 50 }"}],[{"v":"{:#?}  pretty"}]]},{"l":8,"note":"\u003ccode>dbg!\u003c/code> takes ownership of its argument, so pass \u003ccode>&amp;r\u003c/code> to keep using \u003ccode>r\u003c/code>. Output goes to stderr in pretty form.","o":"![src/main.rs:8:5] &r = Rect { …","cols":[[{"n":"r","v":"Rect { w: 60, h: 50 }"}],[{"v":"dbg!(&r) → stderr","s":"hl"}]]}]}</script>
+  </figure>
+  <!-- /sim:debug -->
 </section>
 
 <section id="methods">
@@ -256,6 +344,28 @@ table.ops td:first-child{font-weight:600}
   <h3>Automatic referencing</h3>
   <p>There is no <code>-&gt;</code> operator. When you call <code>r.area()</code>, Rust adds <code>&amp;</code>, <code>&amp;mut</code> or <code>*</code> so the receiver matches the signature. <code>r.area()</code> and <code>Rectangle::area(&amp;r)</code> are the same call. This works because the receiver type is explicit in every method.</p>
   <p>A method can share a name with a field: <code>r.width</code> reads the field, <code>r.width()</code> calls the method. That is how getters are usually written.</p>
+<!-- sim:methods -->
+  <figure class="card sim" id="sim-methods" aria-label="Simulator: Methods: &amp;self, &amp;mut self and automatic referencing">
+    <div class="card-top"><span class="eyebrow">Simulator 5</span><span class="card-title">Methods: &amp;self, &amp;mut self and automatic referencing</span></div>
+    <div class="trace">
+      <pre class="trace-code"><code><span class="ln" data-l="1"><span class="lno">1</span><span class="k">struct</span> <span class="t">Rect</span> { w: u32, h: u32 }</span><span class="ln" data-l="2"><span class="lno">2</span><span class="k">impl</span> <span class="t">Rect</span> {</span><span class="ln" data-l="3"><span class="lno">3</span>    <span class="k">fn</span> area(&amp;<span class="k">self</span>) -&gt; u32 { <span class="k">self</span>.w * <span class="k">self</span>.h }</span><span class="ln" data-l="4"><span class="lno">4</span>    <span class="k">fn</span> grow(&amp;<span class="k">mut</span> <span class="k">self</span>, by: u32) { <span class="k">self</span>.w += by; }</span><span class="ln" data-l="5"><span class="lno">5</span>    <span class="k">fn</span> can_hold(&amp;<span class="k">self</span>, o: &amp;<span class="t">Rect</span>) -&gt; bool { <span class="k">self</span>.w &gt; o.w &amp;&amp; <span class="k">self</span>.h &gt; o.h }</span><span class="ln" data-l="6"><span class="lno">6</span>}</span><span class="ln" data-l="7"><span class="lno">7</span><span class="k">fn</span> main() {</span><span class="ln" data-l="8"><span class="lno">8</span>    <span class="k">let</span> <span class="k">mut</span> r = <span class="t">Rect</span> { w: <span class="n">3</span>, h: <span class="n">4</span> };</span><span class="ln" data-l="9"><span class="lno">9</span>    <span class="k">let</span> a = r.area();       <span class="c2">// Rect::area(&amp;r)</span></span><span class="ln" data-l="10"><span class="lno">10</span>    r.grow(<span class="n">2</span>);              <span class="c2">// Rect::grow(&amp;mut r, 2)</span></span><span class="ln" data-l="11"><span class="lno">11</span>    <span class="k">let</span> small = <span class="t">Rect</span> { w: <span class="n">1</span>, h: <span class="n">1</span> };</span><span class="ln" data-l="12"><span class="lno">12</span>    <span class="m">println!</span>(<span class="s">"{a} {} {}"</span>, r.area(), r.can_hold(&amp;small));</span><span class="ln" data-l="13"><span class="lno">13</span>}</span></code></pre>
+      <div class="scroll"><svg viewBox="0 0 640 200" role="img" aria-labelledby="sim-methods-title sim-methods-desc">
+        <title id="sim-methods-title">Methods: &amp;self, &amp;mut self and automatic referencing</title>
+        <desc id="sim-methods-desc">Step-by-step simulator for Methods: &amp;self, &amp;mut self and automatic referencing. Use Prev and Next, or the arrow keys, to move through the steps; the note under the figure explains each one.</desc>
+      </svg></div>
+    </div>
+    <p class="trace-note" aria-live="polite"></p>
+    <div class="card-bottom">
+      <div class="row" style="margin:0">
+        <button type="button" class="btn" data-act="prev">&larr; Prev</button>
+        <button type="button" class="btn" data-act="next">Next &rarr;</button>
+        <button type="button" class="btn" data-act="reset">Reset</button>
+      </div>
+      <span class="live"></span>
+    </div>
+    <script type="application/json" class="sim-data">{"heads":["STACK"],"steps":[{"l":8,"note":"\u003ccode>r\u003c/code> is a \u003ccode>Rect\u003c/code> on the stack.","cols":[[{"g":"main","n":"r","v":"Rect { w: 3, h: 4 }"}]]},{"l":[9,3],"note":"\u003ccode>r.area()\u003c/code> is sugar for \u003ccode>Rect::area(&amp;r)\u003c/code>. Rust adds the \u003ccode>&amp;\u003c/code> for you because the method takes \u003ccode>&amp;self\u003c/code>.","cols":[[{"g":"main","n":"r","v":"Rect { w: 3, h: 4 }"},{"g":"area","n":"self","v":"&Rect","s":"ref","to":"r"}]]},{"l":[10,4],"note":"\u003ccode>grow\u003c/code> takes \u003ccode>&amp;mut self\u003c/code>, so the call borrows \u003ccode>r\u003c/code> mutably (\u003ccode>r\u003c/code> must be declared \u003ccode>mut\u003c/code>).","cols":[[{"g":"main","n":"r","v":"Rect { w: 5, h: 4 }","s":"hl"},{"g":"main","n":"a","v":"12"},{"g":"grow","n":"self","v":"&mut Rect","s":"mut","to":"r"},{"g":"grow","n":"by","v":"2"}]]},{"l":[11,5],"note":"\u003ccode>can_hold\u003c/code> borrows two rects: \u003ccode>self\u003c/code> and the argument.","cols":[[{"g":"main","n":"r","v":"Rect { w: 5, h: 4 }"},{"g":"main","n":"a","v":"12"},{"g":"main","n":"small","v":"Rect { w: 1, h: 1 }"},{"g":"can_hold","n":"self","v":"&Rect","s":"ref","to":"r"},{"g":"can_hold","n":"o","v":"&Rect","s":"ref","to":"small"}]]},{"l":12,"note":"Area went from 12 to 20, and 5 × 4 holds 1 × 1.","o":"12 20 true","cols":[[{"g":"main","n":"r","v":"Rect { w: 5, h: 4 }"},{"g":"main","n":"a","v":"12"},{"g":"main","n":"small","v":"Rect { w: 1, h: 1 }"}]]}]}</script>
+  </figure>
+  <!-- /sim:methods -->
 </section>
 
 <section id="assoc">
@@ -284,6 +394,28 @@ table.ops td:first-child{font-weight:600}
     <span class="m">println!</span>(<span class="s">"{a:?} {}"</span>, b.is_square());
 }</code></pre></div>
   <p>Multiple <code>impl</code> blocks for one type are legal. They become useful with generics and traits, where a block can apply only to some type parameters.</p>
+<!-- sim:assoc -->
+  <figure class="card sim" id="sim-assoc" aria-label="Simulator: Associated functions are called with ::">
+    <div class="card-top"><span class="eyebrow">Simulator 6</span><span class="card-title">Associated functions are called with ::</span></div>
+    <div class="trace">
+      <pre class="trace-code"><code><span class="ln" data-l="1"><span class="lno">1</span><span class="at">#[derive(Debug)]</span></span><span class="ln" data-l="2"><span class="lno">2</span><span class="k">struct</span> <span class="t">Rect</span> { w: u32, h: u32 }</span><span class="ln" data-l="3"><span class="lno">3</span><span class="k">impl</span> <span class="t">Rect</span> {</span><span class="ln" data-l="4"><span class="lno">4</span>    <span class="k">const</span> <span class="t">UNIT</span>: <span class="t">Rect</span> = <span class="t">Rect</span> { w: <span class="n">1</span>, h: <span class="n">1</span> };</span><span class="ln" data-l="5"><span class="lno">5</span>    <span class="k">fn</span> square(size: u32) -&gt; <span class="k">Self</span> { <span class="k">Self</span> { w: size, h: size } }</span><span class="ln" data-l="6"><span class="lno">6</span>    <span class="k">fn</span> area(&amp;<span class="k">self</span>) -&gt; u32 { <span class="k">self</span>.w * <span class="k">self</span>.h }</span><span class="ln" data-l="7"><span class="lno">7</span>}</span><span class="ln" data-l="8"><span class="lno">8</span><span class="k">fn</span> main() {</span><span class="ln" data-l="9"><span class="lno">9</span>    <span class="k">let</span> s = <span class="t">Rect</span>::square(<span class="n">3</span>);</span><span class="ln" data-l="10"><span class="lno">10</span>    <span class="k">let</span> n = <span class="t">Rect</span>::area(&amp;s);  <span class="c2">// same as s.area()</span></span><span class="ln" data-l="11"><span class="lno">11</span>    <span class="m">println!</span>(<span class="s">"{s:?} {n} {}"</span>, <span class="t">Rect</span>::<span class="t">UNIT</span>.area());</span><span class="ln" data-l="12"><span class="lno">12</span>}</span></code></pre>
+      <div class="scroll"><svg viewBox="0 0 640 200" role="img" aria-labelledby="sim-assoc-title sim-assoc-desc">
+        <title id="sim-assoc-title">Associated functions are called with ::</title>
+        <desc id="sim-assoc-desc">Step-by-step simulator for Associated functions are called with ::. Use Prev and Next, or the arrow keys, to move through the steps; the note under the figure explains each one.</desc>
+      </svg></div>
+    </div>
+    <p class="trace-note" aria-live="polite"></p>
+    <div class="card-bottom">
+      <div class="row" style="margin:0">
+        <button type="button" class="btn" data-act="prev">&larr; Prev</button>
+        <button type="button" class="btn" data-act="next">Next &rarr;</button>
+        <button type="button" class="btn" data-act="reset">Reset</button>
+      </div>
+      <span class="live"></span>
+    </div>
+    <script type="application/json" class="sim-data">{"heads":["CALL","RESULT"],"steps":[{"l":[9,5],"note":"\u003ccode>square\u003c/code> has no \u003ccode>self\u003c/code> parameter: it is an associated function, called on the type with \u003ccode>::\u003c/code>. Constructors are usually written this way.","cols":[[{"v":"Rect::square(3)","s":"hl"}],[{"n":"s","v":"Rect { w: 3, h: 3 }"}]]},{"l":5,"note":"\u003ccode>Self\u003c/code> is an alias for the type the \u003ccode>impl\u003c/code> block is for, here \u003ccode>Rect\u003c/code>.","cols":[[{"v":"Self = Rect"}],[{"n":"s","v":"Rect { w: 3, h: 3 }"}]]},{"l":[10,6],"note":"Methods are associated functions too. \u003ccode>Rect::area(&amp;s)\u003c/code> is the fully written form of \u003ccode>s.area()\u003c/code>.","cols":[[{"v":"Rect::area(&s)","s":"hl"}],[{"n":"s","v":"Rect { w: 3, h: 3 }"},{"n":"n","v":"9"}]]},{"l":[11,4],"note":"An associated constant belongs to the type as well.","o":"Rect { w: 3, h: 3 } 9 1","cols":[[{"v":"Rect::UNIT.area()","s":"hl"}],[{"n":"s","v":"Rect { w: 3, h: 3 }"},{"n":"n","v":"9"},{"n":"UNIT","v":"Rect { w: 1, h: 1 }"}]]}]}</script>
+  </figure>
+  <!-- /sim:assoc -->
 </section>
 
 <section id="quiz">
@@ -445,7 +577,7 @@ var CHECK_KEY = 'rust-rust-structs-check:' + location.pathname;
       if (!heap.length) txt(380, 64, '(nothing allocated)', { fill: SOFT });
       var H = Math.max(y, hy, 90) + 10;
       svg.setAttribute('viewBox', '0 0 640 ' + H);
-      Array.prototype.forEach.call(document.querySelectorAll('.trace-code .ln'), function (ln) {
+      Array.prototype.forEach.call(document.querySelectorAll('figure:not(.sim) .trace-code .ln'), function (ln) {
         ln.classList.toggle('on', +ln.getAttribute('data-l') === st.l);
       });
       $('traceNote').innerHTML = st.note;
@@ -502,5 +634,147 @@ var CHECK_KEY = 'rust-rust-structs-check:' + location.pathname;
 })();
 
 </script>
+<!-- section-sims -->
+<script>
+(function () {
+  // Section simulators: each figure.sim carries its steps as JSON and is drawn into its own SVG.
+  var NS = 'http://www.w3.org/2000/svg';
+  var INK = '#2d3142', SOFT = '#5a6580', RULE = '#bfc0c0', ACCENT = '#bf4520', LINK = '#2e5aa8', OK = '#2f7a4a', PAPER = '#f5f5f5';
+  var W = 640, BOX_H = 40, GAP_Y = 10, TOP = 40;
+  var fit = function (s, n) { s = String(s); return s.length > n ? s.slice(0, Math.max(1, n - 1)) + '\u2026' : s; };
+
+  function initSim(fig) {
+    var data = JSON.parse(fig.querySelector('script.sim-data').textContent);
+    var svg = fig.querySelector('svg'), lines = fig.querySelectorAll('.trace-code .ln');
+    var note = fig.querySelector('.trace-note'), live = fig.querySelector('.live');
+    var prev = fig.querySelector('[data-act="prev"]'), next = fig.querySelector('[data-act="next"]'), reset = fig.querySelector('[data-act="reset"]');
+    var steps = data.steps, heads = data.heads || [], cur = 0, uid = fig.id;
+    var hasOut = steps.some(function (s) { return s.o != null; });
+    var el = function (name, attrs, parent) {
+      var e = document.createElementNS(NS, name);
+      for (var k in attrs) if (attrs[k] !== '' && attrs[k] != null) e.setAttribute(k, attrs[k]);
+      (parent || svg).appendChild(e);
+      return e;
+    };
+    var txt = function (x, y, s, a, parent) {
+      var o = { x: x, y: y, 'font-size': 12, fill: INK, 'font-family': 'Geist Mono, monospace' };
+      for (var k in a) o[k] = a[k];
+      var t = el('text', o, parent); t.textContent = s; return t;
+    };
+    var clear = function () {
+      Array.prototype.slice.call(svg.childNodes).forEach(function (n) {
+        var nm = (n.localName || '').toLowerCase();
+        if (nm !== 'title' && nm !== 'desc') svg.removeChild(n);
+      });
+    };
+
+    function draw() {
+      var st = steps[cur], cols = st.cols || [];
+      var k = Math.max(1, heads.length, cols.length);
+      var left = 40, right = 24, gap = k === 1 ? 0 : (k === 2 ? 70 : 46);
+      var colW = (W - left - right - gap * (k - 1)) / k;
+      var chars = Math.floor((colW - 24) / 7.4);
+      clear();
+      var defs = el('defs', {});
+      [['a', INK], ['b', LINK], ['c', ACCENT]].forEach(function (m) {
+        var mk = el('marker', { id: uid + '-' + m[0], viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: 'auto-start-reverse' }, defs);
+        el('path', { d: 'M0 0 L10 5 L0 10 z', fill: m[1] }, mk);
+      });
+      var pos = {}, bottom = TOP;
+      for (var ci = 0; ci < k; ci++) {
+        var x = left + ci * (colW + gap), y = TOP, lastG = null, items = cols[ci] || [];
+        if (heads[ci]) txt(x, 24, heads[ci], { 'font-size': 11, fill: SOFT, 'letter-spacing': '2' });
+        items.forEach(function (it) {
+          if (it.g && it.g !== lastG) { txt(x, y + 12, fit(it.g, chars + 4), { 'font-size': 10.5, fill: SOFT, 'font-style': 'italic' }); y += 18; lastG = it.g; }
+          var s = it.s || '', faded = /moved|dropped|freed/.test(s);
+          var isRef = /ref|mut|weak/.test(s), hl = /hl/.test(s), err = /err/.test(s), ok = /ok/.test(s);
+          var stroke = err || hl ? ACCENT : (ok ? OK : (isRef ? LINK : (faded ? RULE : INK)));
+          var g = el('g', { opacity: /dropped|freed/.test(s) ? 0.4 : 1 });
+          el('rect', { x: x, y: y, width: colW, height: BOX_H, rx: 6, fill: err ? 'rgba(191,69,32,.08)' : (ok ? 'rgba(47,122,74,.07)' : (faded ? PAPER : '#fff')), stroke: stroke, 'stroke-width': hl || err ? 2 : 1.4, 'stroke-dasharray': faded ? '5 4' : '' }, g);
+          var stateWord = /moved/.test(s) ? 'moved' : (/dropped/.test(s) ? 'dropped' : (/freed/.test(s) ? 'freed' : null));
+          var val = stateWord && it.v == null ? stateWord : (it.v == null ? '' : it.v);
+          if (it.n != null) {
+            var nChars = Math.max(4, Math.min(String(it.n).length, Math.floor(chars * 0.45)));
+            txt(x + 12, y + 25, fit(it.n, nChars), { 'font-size': 13, 'font-weight': 600, fill: faded ? SOFT : INK }, g);
+            txt(x + colW - 12, y + 25, fit(val, Math.max(4, chars - nChars - 1)), { 'text-anchor': 'end', fill: faded ? SOFT : (err ? ACCENT : (isRef ? LINK : INK)) }, g);
+          } else {
+            txt(x + 12, y + 25, fit(val, chars), { fill: faded ? SOFT : (err ? ACCENT : INK) }, g);
+          }
+          var tag = it.t || (/mut/.test(s) ? '&mut' : (/weak/.test(s) ? 'weak' : (/ref/.test(s) ? '&' : null)));
+          if (tag) {
+            var tw = 10 + tag.length * 6.2;
+            el('rect', { x: x + colW - tw - 8, y: y - 8, width: tw, height: 15, rx: 3, fill: err ? ACCENT : (ok ? OK : (hl ? ACCENT : LINK)) }, g);
+            txt(x + colW - tw - 3, y + 3, tag, { 'font-size': 9.5, fill: '#fff', 'font-weight': 600 }, g);
+          }
+          var id = it.id != null ? it.id : it.n;
+          if (id != null) pos[id] = { x: x, y: y + BOX_H / 2, col: ci, faded: faded, freed: /freed|dropped/.test(s) };
+          it._id = id;
+          y += BOX_H + GAP_Y;
+        });
+        if (!items.length && heads[ci]) txt(x, TOP + 24, data.empty && data.empty[ci] ? data.empty[ci] : '(empty)', { fill: SOFT });
+        bottom = Math.max(bottom, y);
+      }
+      // arrows
+      cols.forEach(function (items) {
+        (items || []).forEach(function (it) {
+          if (!it.to || /moved|dropped|freed/.test(it.s || '')) return;
+          var a = pos[it._id]; if (!a) return;
+          [].concat(it.to).forEach(function (t) {
+            var weak = t.charAt(0) === '~', bad = t.charAt(0) === '!';
+            if (weak || bad) t = t.slice(1);
+            var b = pos[t]; if (!b) return;
+            var color = bad || b.freed ? ACCENT : (weak || /ref|mut/.test(it.s || '') ? LINK : INK);
+            var mk = 'url(#' + uid + '-' + (color === ACCENT ? 'c' : (color === LINK ? 'b' : 'a')) + ')';
+            var dash = weak || bad || b.freed ? '4 3' : '', d;
+            if (b.col === a.col) {
+              var dx = 18 + Math.min(22, Math.abs(a.y - b.y) / 6), lx = a.x;
+              d = 'M' + lx + ' ' + a.y + ' C' + (lx - dx) + ' ' + a.y + ' ' + (lx - dx) + ' ' + b.y + ' ' + (lx - 2) + ' ' + b.y;
+            } else if (b.col > a.col) {
+              var x1 = a.x + colW, x2 = b.x - 2, mx = (x1 + x2) / 2;
+              d = 'M' + x1 + ' ' + a.y + ' C' + mx + ' ' + a.y + ' ' + mx + ' ' + b.y + ' ' + x2 + ' ' + b.y;
+            } else {
+              var x3 = a.x, x4 = b.x + colW + 2, mx2 = (x3 + x4) / 2;
+              d = 'M' + x3 + ' ' + a.y + ' C' + mx2 + ' ' + a.y + ' ' + mx2 + ' ' + b.y + ' ' + x4 + ' ' + b.y;
+            }
+            el('path', { d: d, fill: 'none', stroke: color, 'stroke-width': 1.6, 'stroke-dasharray': dash, 'marker-end': mk });
+          });
+        });
+      });
+      var H = Math.max(bottom, 90) + 6;
+      if (hasOut) {
+        var out = [];
+        for (var i = 0; i <= cur; i++) if (steps[i].o != null) out = out.concat(steps[i].o);
+        var shown = out.slice(-6), oh = 30 + Math.max(1, shown.length) * 18;
+        el('rect', { x: left, y: H, width: W - left - right, height: oh, rx: 6, fill: INK });
+        txt(left + 12, H + 18, 'OUTPUT', { 'font-size': 10, fill: RULE, 'letter-spacing': '2' });
+        if (!shown.length) txt(left + 12, H + 38, '(nothing printed yet)', { fill: RULE, 'font-style': 'italic' });
+        shown.forEach(function (ln, j) {
+          var bad = String(ln).charAt(0) === '!';
+          txt(left + 12, H + 38 + j * 18, fit(bad ? String(ln).slice(1) : ln, 76), { fill: bad ? '#ff9b7a' : PAPER });
+        });
+        H += oh + 10;
+      }
+      svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+      var on = [].concat(st.l || []);
+      Array.prototype.forEach.call(lines, function (ln) { ln.classList.toggle('on', on.indexOf(+ln.getAttribute('data-l')) !== -1); });
+      note.innerHTML = st.note;
+      live.textContent = 'step ' + (cur + 1) + ' / ' + steps.length;
+      prev.disabled = cur === 0;
+      next.disabled = cur === steps.length - 1;
+    }
+    prev.addEventListener('click', function () { if (cur > 0) { cur--; draw(); } });
+    next.addEventListener('click', function () { if (cur < steps.length - 1) { cur++; draw(); } });
+    reset.addEventListener('click', function () { cur = 0; draw(); });
+    fig.addEventListener('keydown', function (e) {
+      if (e.target.tagName === 'INPUT') return;
+      if (e.key === 'ArrowRight' && cur < steps.length - 1) { cur++; draw(); e.preventDefault(); }
+      if (e.key === 'ArrowLeft' && cur > 0) { cur--; draw(); e.preventDefault(); }
+    });
+    draw();
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('figure.sim'), initSim);
+})();
+</script>
+<!-- /section-sims -->
 </body>
 </html>

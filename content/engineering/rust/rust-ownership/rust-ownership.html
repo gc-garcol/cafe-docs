@@ -158,6 +158,28 @@ table.ops td:first-child{font-weight:600}
 
   <p>The <b>stack</b> holds values whose size is known at compile time: integers, fixed arrays, pointers. Pushing and popping is just moving a pointer, and the frame of a function vanishes when it returns. The <b>heap</b> holds data whose size is decided at run time, such as the text of a <code>String</code>. Allocating means asking the allocator for space, and someone must later give it back.</p>
   <p>Managing that "someone" is the hard problem. Forget to free and you leak. Free twice and you corrupt the allocator. Free too early and another pointer reads garbage. Garbage collectors solve this at run time; C leaves it to you. Ownership is Rust's third answer.</p>
+<!-- sim:stack-heap -->
+  <figure class="card sim" id="sim-stack-heap" aria-label="Simulator: Stack frames and heap allocations">
+    <div class="card-top"><span class="eyebrow">Simulator 1</span><span class="card-title">Stack frames and heap allocations</span></div>
+    <div class="trace">
+      <pre class="trace-code"><code><span class="ln" data-l="1"><span class="lno">1</span><span class="k">fn</span> square(n: i32) -&gt; i32 {</span><span class="ln" data-l="2"><span class="lno">2</span>    <span class="k">let</span> r = n * n;</span><span class="ln" data-l="3"><span class="lno">3</span>    r</span><span class="ln" data-l="4"><span class="lno">4</span>}</span><span class="ln" data-l="5"><span class="lno">5</span><span class="k">fn</span> main() {</span><span class="ln" data-l="6"><span class="lno">6</span>    <span class="k">let</span> a = <span class="n">4</span>;</span><span class="ln" data-l="7"><span class="lno">7</span>    <span class="k">let</span> b = square(a);</span><span class="ln" data-l="8"><span class="lno">8</span>    <span class="k">let</span> s = <span class="t">String</span>::from(<span class="s">"hi"</span>);</span><span class="ln" data-l="9"><span class="lno">9</span>    <span class="m">println!</span>(<span class="s">"{a} {b} {s}"</span>);</span><span class="ln" data-l="10"><span class="lno">10</span>}</span></code></pre>
+      <div class="scroll"><svg viewBox="0 0 640 200" role="img" aria-labelledby="sim-stack-heap-title sim-stack-heap-desc">
+        <title id="sim-stack-heap-title">Stack frames and heap allocations</title>
+        <desc id="sim-stack-heap-desc">Step-by-step simulator for Stack frames and heap allocations. Use Prev and Next, or the arrow keys, to move through the steps; the note under the figure explains each one.</desc>
+      </svg></div>
+    </div>
+    <p class="trace-note" aria-live="polite"></p>
+    <div class="card-bottom">
+      <div class="row" style="margin:0">
+        <button type="button" class="btn" data-act="prev">&larr; Prev</button>
+        <button type="button" class="btn" data-act="next">Next &rarr;</button>
+        <button type="button" class="btn" data-act="reset">Reset</button>
+      </div>
+      <span class="live"></span>
+    </div>
+    <script type="application/json" class="sim-data">{"heads":["STACK","HEAP"],"steps":[{"l":6,"note":"Fixed-size values like \u003ccode>i32\u003c/code> live directly in the stack frame of \u003ccode>main\u003c/code>.","cols":[[{"g":"main","n":"a","v":"4"}],[]]},{"l":[1,2],"note":"Calling \u003ccode>square\u003c/code> pushes a new frame on top. \u003ccode>n\u003c/code> is a copy of \u003ccode>a\u003c/code>; \u003ccode>r\u003c/code> is computed in the new frame.","cols":[[{"g":"main","n":"a","v":"4"},{"g":"square","n":"n","v":"4"},{"g":"square","n":"r","v":"16","s":"hl"}],[]]},{"l":7,"note":"Returning pops the frame in one move of the stack pointer. The result is copied into \u003ccode>b\u003c/code>.","cols":[[{"g":"main","n":"a","v":"4"},{"g":"main","n":"b","v":"16","s":"hl"}],[]]},{"l":8,"note":"A \u003ccode>String\u003c/code> can grow, so its bytes go on the heap. The stack holds a fixed-size header: pointer, length 2, capacity 2.","cols":[[{"g":"main","n":"a","v":"4"},{"g":"main","n":"b","v":"16"},{"g":"main","n":"s","v":"ptr len=2 cap=2","to":"hi"}],[{"id":"hi","v":"\"hi\""}]]},{"l":9,"note":"Reading \u003ccode>s\u003c/code> follows the pointer. Heap access is one indirection away; stack access is not.","o":"4 16 hi","cols":[[{"g":"main","n":"a","v":"4"},{"g":"main","n":"b","v":"16"},{"g":"main","n":"s","v":"ptr len=2 cap=2","to":"hi"}],[{"id":"hi","v":"\"hi\""}]]},{"l":10,"note":"At the end of \u003ccode>main\u003c/code>, \u003ccode>s\u003c/code> is dropped and frees its heap bytes; then the frame is popped.","cols":[[{"g":"main","n":"a","s":"dropped"},{"g":"main","n":"b","s":"dropped"},{"g":"main","n":"s","s":"dropped"}],[{"id":"hi","s":"freed"}]]}]}</script>
+  </figure>
+  <!-- /sim:stack-heap -->
 </section>
 
 <section id="rules">
@@ -175,6 +197,28 @@ table.ops td:first-child{font-weight:600}
     }                                   <span class="c2">// scope over: drop(s) runs, memory freed</span>
 }</code></pre></div>
   <p>At the closing brace Rust calls <code>drop</code> automatically. This is the RAII pattern from C++: tie a resource to a scope. It works for files, locks and sockets too, not only memory.</p>
+<!-- sim:rules -->
+  <figure class="card sim" id="sim-rules" aria-label="Simulator: One owner, dropped at the end of its scope">
+    <div class="card-top"><span class="eyebrow">Simulator 2</span><span class="card-title">One owner, dropped at the end of its scope</span></div>
+    <div class="trace">
+      <pre class="trace-code"><code><span class="ln" data-l="1"><span class="lno">1</span><span class="k">fn</span> main() {</span><span class="ln" data-l="2"><span class="lno">2</span>    <span class="k">let</span> outer = <span class="t">String</span>::from(<span class="s">"outer"</span>);</span><span class="ln" data-l="3"><span class="lno">3</span>    {</span><span class="ln" data-l="4"><span class="lno">4</span>        <span class="k">let</span> inner = <span class="t">String</span>::from(<span class="s">"inner"</span>);</span><span class="ln" data-l="5"><span class="lno">5</span>        <span class="m">println!</span>(<span class="s">"{inner} {outer}"</span>);</span><span class="ln" data-l="6"><span class="lno">6</span>    }</span><span class="ln" data-l="7"><span class="lno">7</span>    <span class="c2">// inner is not valid here</span></span><span class="ln" data-l="8"><span class="lno">8</span>    <span class="m">println!</span>(<span class="s">"{outer}"</span>);</span><span class="ln" data-l="9"><span class="lno">9</span>}</span></code></pre>
+      <div class="scroll"><svg viewBox="0 0 640 200" role="img" aria-labelledby="sim-rules-title sim-rules-desc">
+        <title id="sim-rules-title">One owner, dropped at the end of its scope</title>
+        <desc id="sim-rules-desc">Step-by-step simulator for One owner, dropped at the end of its scope. Use Prev and Next, or the arrow keys, to move through the steps; the note under the figure explains each one.</desc>
+      </svg></div>
+    </div>
+    <p class="trace-note" aria-live="polite"></p>
+    <div class="card-bottom">
+      <div class="row" style="margin:0">
+        <button type="button" class="btn" data-act="prev">&larr; Prev</button>
+        <button type="button" class="btn" data-act="next">Next &rarr;</button>
+        <button type="button" class="btn" data-act="reset">Reset</button>
+      </div>
+      <span class="live"></span>
+    </div>
+    <script type="application/json" class="sim-data">{"heads":["STACK","HEAP"],"steps":[{"l":2,"note":"Rule 1 and 2: the \u003ccode>String\u003c/code> has exactly one owner, \u003ccode>outer\u003c/code>.","cols":[[{"g":"main","n":"outer","v":"String","to":"o"}],[{"id":"o","v":"\"outer\""}]]},{"l":4,"note":"A new scope starts. \u003ccode>inner\u003c/code> owns a second allocation.","cols":[[{"g":"main","n":"outer","v":"String","to":"o"},{"g":"block","n":"inner","v":"String","to":"i"}],[{"id":"o","v":"\"outer\""},{"id":"i","v":"\"inner\""}]]},{"l":5,"note":"Both owners are in scope, so both can be used.","o":"inner outer","cols":[[{"g":"main","n":"outer","v":"String","to":"o"},{"g":"block","n":"inner","v":"String","to":"i"}],[{"id":"o","v":"\"outer\""},{"id":"i","v":"\"inner\""}]]},{"l":6,"note":"Rule 3: when the owner goes out of scope, Rust calls \u003ccode>drop\u003c/code> and the heap memory is returned. No garbage collector, no manual \u003ccode>free\u003c/code>.","cols":[[{"g":"main","n":"outer","v":"String","to":"o"},{"g":"block","n":"inner","s":"dropped"}],[{"id":"o","v":"\"outer\""},{"id":"i","s":"freed"}]]},{"l":7,"note":"Using \u003ccode>inner\u003c/code> here would be error E0425: the name does not exist outside its block.","cols":[[{"g":"main","n":"outer","v":"String","to":"o"}],[{"id":"o","v":"\"outer\""}]]},{"l":[8,9],"note":"\u003ccode>outer\u003c/code> is used, then dropped at the closing brace of \u003ccode>main\u003c/code>.","o":"outer","cols":[[{"g":"main","n":"outer","s":"dropped"}],[{"id":"o","s":"freed"}]]}]}</script>
+  </figure>
+  <!-- /sim:rules -->
 </section>
 
 <section id="move">
@@ -208,6 +252,28 @@ table.ops td:first-child{font-weight:600}
 <span class="k">fn</span> makes_copy(x: <span class="t">i32</span>) { <span class="m">println!</span>(<span class="s">"{x}"</span>); }
 <span class="k">fn</span> gives_back(text: <span class="t">String</span>) -&gt; <span class="t">String</span> { text }</code></pre></div>
   <p>Moving values in and back out of every function would be tedious. That is what references are for.</p>
+<!-- sim:move -->
+  <figure class="card sim" id="sim-move" aria-label="Simulator: Move, Copy and Clone side by side">
+    <div class="card-top"><span class="eyebrow">Simulator 3</span><span class="card-title">Move, Copy and Clone side by side</span></div>
+    <div class="trace">
+      <pre class="trace-code"><code><span class="ln" data-l="1"><span class="lno">1</span><span class="k">fn</span> take(s: <span class="t">String</span>) -&gt; usize { s.len() }</span><span class="ln" data-l="2"><span class="lno">2</span><span class="k">fn</span> main() {</span><span class="ln" data-l="3"><span class="lno">3</span>    <span class="k">let</span> x = <span class="n">5</span>;</span><span class="ln" data-l="4"><span class="lno">4</span>    <span class="k">let</span> y = x;                  <span class="c2">// Copy</span></span><span class="ln" data-l="5"><span class="lno">5</span>    <span class="k">let</span> s1 = <span class="t">String</span>::from(<span class="s">"hey"</span>);</span><span class="ln" data-l="6"><span class="lno">6</span>    <span class="k">let</span> s2 = s1;                <span class="c2">// move</span></span><span class="ln" data-l="7"><span class="lno">7</span>    <span class="k">let</span> s3 = s2.clone();        <span class="c2">// deep copy</span></span><span class="ln" data-l="8"><span class="lno">8</span>    <span class="k">let</span> n = take(s3);           <span class="c2">// move into a function</span></span><span class="ln" data-l="9"><span class="lno">9</span>    <span class="m">println!</span>(<span class="s">"{x} {y} {s2} {n}"</span>);</span><span class="ln" data-l="10"><span class="lno">10</span>}</span></code></pre>
+      <div class="scroll"><svg viewBox="0 0 640 200" role="img" aria-labelledby="sim-move-title sim-move-desc">
+        <title id="sim-move-title">Move, Copy and Clone side by side</title>
+        <desc id="sim-move-desc">Step-by-step simulator for Move, Copy and Clone side by side. Use Prev and Next, or the arrow keys, to move through the steps; the note under the figure explains each one.</desc>
+      </svg></div>
+    </div>
+    <p class="trace-note" aria-live="polite"></p>
+    <div class="card-bottom">
+      <div class="row" style="margin:0">
+        <button type="button" class="btn" data-act="prev">&larr; Prev</button>
+        <button type="button" class="btn" data-act="next">Next &rarr;</button>
+        <button type="button" class="btn" data-act="reset">Reset</button>
+      </div>
+      <span class="live"></span>
+    </div>
+    <script type="application/json" class="sim-data">{"heads":["STACK","HEAP"],"steps":[{"l":3,"note":"\u003ccode>x\u003c/code> is an \u003ccode>i32\u003c/code>.","cols":[[{"g":"main","n":"x","v":"5"}],[]]},{"l":4,"note":"\u003ccode>i32\u003c/code> is \u003ccode>Copy\u003c/code>: the bits are duplicated and both variables stay usable.","cols":[[{"g":"main","n":"x","v":"5"},{"g":"main","n":"y","v":"5","s":"hl"}],[]]},{"l":5,"note":"\u003ccode>s1\u003c/code> owns a heap buffer.","cols":[[{"g":"main","n":"x","v":"5"},{"g":"main","n":"y","v":"5"},{"g":"main","n":"s1","v":"String","to":"a"}],[{"id":"a","v":"\"hey\""}]]},{"l":6,"note":"Assigning a \u003ccode>String\u003c/code> copies the header and moves ownership. \u003ccode>s1\u003c/code> is invalidated, so the buffer is never freed twice.","cols":[[{"g":"main","n":"x","v":"5"},{"g":"main","n":"y","v":"5"},{"g":"main","n":"s1","s":"moved"},{"g":"main","n":"s2","v":"String","to":"a","s":"hl"}],[{"id":"a","v":"\"hey\""}]]},{"l":7,"note":"\u003ccode>clone\u003c/code> allocates a second buffer and copies the bytes. Two owners, two allocations.","cols":[[{"g":"main","n":"x","v":"5"},{"g":"main","n":"y","v":"5"},{"g":"main","n":"s1","s":"moved"},{"g":"main","n":"s2","v":"String","to":"a"},{"g":"main","n":"s3","v":"String","to":"b","s":"hl"}],[{"id":"a","v":"\"hey\""},{"id":"b","v":"\"hey\" (copy)"}]]},{"l":[8,1],"note":"Passing \u003ccode>s3\u003c/code> by value moves it into \u003ccode>take\u003c/code>. When \u003ccode>take\u003c/code> returns, its parameter \u003ccode>s\u003c/code> is dropped and the clone is freed.","cols":[[{"g":"main","n":"x","v":"5"},{"g":"main","n":"y","v":"5"},{"g":"main","n":"s1","s":"moved"},{"g":"main","n":"s2","v":"String","to":"a"},{"g":"main","n":"s3","s":"moved"},{"g":"main","n":"n","v":"3","s":"hl"}],[{"id":"a","v":"\"hey\""},{"id":"b","s":"freed"}]]},{"l":9,"note":"Only valid owners can be used. Printing \u003ccode>s1\u003c/code> or \u003ccode>s3\u003c/code> here would be error E0382, \"borrow of moved value\".","o":"5 5 hey 3","cols":[[{"g":"main","n":"x","v":"5"},{"g":"main","n":"y","v":"5"},{"g":"main","n":"s1","s":"moved"},{"g":"main","n":"s2","v":"String","to":"a"},{"g":"main","n":"s3","s":"moved"},{"g":"main","n":"n","v":"3"}],[{"id":"a","v":"\"hey\""},{"id":"b","s":"freed"}]]}]}</script>
+  </figure>
+  <!-- /sim:move -->
 </section>
 
 <section id="refs">
@@ -233,6 +299,28 @@ table.ops td:first-child{font-weight:600}
 <span class="k">fn</span> change(s: &amp;<span class="k">mut</span> <span class="t">String</span>) {
     s.push_str(<span class="s">", world"</span>);
 }</code></pre></div>
+<!-- sim:refs -->
+  <figure class="card sim" id="sim-refs" aria-label="Simulator: Borrowing with &amp; and &amp;mut">
+    <div class="card-top"><span class="eyebrow">Simulator 4</span><span class="card-title">Borrowing with &amp; and &amp;mut</span></div>
+    <div class="trace">
+      <pre class="trace-code"><code><span class="ln" data-l="1"><span class="lno">1</span><span class="k">fn</span> len(s: &amp;<span class="t">String</span>) -&gt; usize { s.len() }</span><span class="ln" data-l="2"><span class="lno">2</span><span class="k">fn</span> push(s: &amp;<span class="k">mut</span> <span class="t">String</span>) { s.push_str(<span class="s">"!"</span>); }</span><span class="ln" data-l="3"><span class="lno">3</span><span class="k">fn</span> main() {</span><span class="ln" data-l="4"><span class="lno">4</span>    <span class="k">let</span> <span class="k">mut</span> s = <span class="t">String</span>::from(<span class="s">"hi"</span>);</span><span class="ln" data-l="5"><span class="lno">5</span>    <span class="k">let</span> n = len(&amp;s);</span><span class="ln" data-l="6"><span class="lno">6</span>    push(&amp;<span class="k">mut</span> s);</span><span class="ln" data-l="7"><span class="lno">7</span>    <span class="m">println!</span>(<span class="s">"{s} {n}"</span>);</span><span class="ln" data-l="8"><span class="lno">8</span>}</span></code></pre>
+      <div class="scroll"><svg viewBox="0 0 640 200" role="img" aria-labelledby="sim-refs-title sim-refs-desc">
+        <title id="sim-refs-title">Borrowing with &amp; and &amp;mut</title>
+        <desc id="sim-refs-desc">Step-by-step simulator for Borrowing with &amp; and &amp;mut. Use Prev and Next, or the arrow keys, to move through the steps; the note under the figure explains each one.</desc>
+      </svg></div>
+    </div>
+    <p class="trace-note" aria-live="polite"></p>
+    <div class="card-bottom">
+      <div class="row" style="margin:0">
+        <button type="button" class="btn" data-act="prev">&larr; Prev</button>
+        <button type="button" class="btn" data-act="next">Next &rarr;</button>
+        <button type="button" class="btn" data-act="reset">Reset</button>
+      </div>
+      <span class="live"></span>
+    </div>
+    <script type="application/json" class="sim-data">{"heads":["STACK","HEAP"],"steps":[{"l":4,"note":"\u003ccode>s\u003c/code> owns the string. It is declared \u003ccode>mut\u003c/code> so it can be mutably borrowed later.","cols":[[{"g":"main","n":"s","v":"String","to":"h"}],[{"id":"h","v":"\"hi\""}]]},{"l":[5,1],"note":"\u003ccode>&amp;s\u003c/code> creates a reference: a pointer to \u003ccode>s\u003c/code> that does not own it. \u003ccode>len\u003c/code> reads through it; when it returns, the reference ends and nothing is dropped.","cols":[[{"g":"main","n":"s","v":"String","to":"h"},{"g":"len","n":"s","id":"r","v":"&String","s":"ref","to":"s"}],[{"id":"h","v":"\"hi\""}]]},{"l":[6,2],"note":"\u003ccode>&amp;mut s\u003c/code> lends exclusive access. \u003ccode>push\u003c/code> modifies the owner's string through it; the buffer may grow in place or be reallocated.","cols":[[{"g":"main","n":"s","v":"String","to":"h"},{"g":"main","n":"n","v":"2"},{"g":"push","n":"s","id":"m","v":"&mut String","s":"mut","to":"s"}],[{"id":"h","v":"\"hi!\"","s":"hl"}]]},{"l":7,"note":"The borrows are over and \u003ccode>s\u003c/code> still owns its data. Borrowing let two functions use it without giving it away.","o":"hi! 2","cols":[[{"g":"main","n":"s","v":"String","to":"h"},{"g":"main","n":"n","v":"2"}],[{"id":"h","v":"\"hi!\""}]]},{"l":8,"note":"The owner drops the string at the end of \u003ccode>main\u003c/code>.","cols":[[{"g":"main","n":"s","s":"dropped"},{"g":"main","n":"n","s":"dropped"}],[{"id":"h","s":"freed"}]]}]}</script>
+  </figure>
+  <!-- /sim:refs -->
 </section>
 
 <section id="borrow-rules">
@@ -258,6 +346,28 @@ table.ops td:first-child{font-weight:600}
     <span class="m">println!</span>(<span class="s">"{r3}"</span>);
 }</code></pre></div>
   <p>Use a new scope <code>{ }</code> when you need two mutable borrows one after the other in a way NLL cannot see.</p>
+<!-- sim:borrow-rules -->
+  <figure class="card sim" id="sim-borrow-rules" aria-label="Simulator: Many readers or one writer, never both">
+    <div class="card-top"><span class="eyebrow">Simulator 5</span><span class="card-title">Many readers or one writer, never both</span></div>
+    <div class="trace">
+      <pre class="trace-code"><code><span class="ln" data-l="1"><span class="lno">1</span><span class="k">fn</span> main() {</span><span class="ln" data-l="2"><span class="lno">2</span>    <span class="k">let</span> <span class="k">mut</span> s = <span class="t">String</span>::from(<span class="s">"a"</span>);</span><span class="ln" data-l="3"><span class="lno">3</span>    <span class="k">let</span> r1 = &amp;s;</span><span class="ln" data-l="4"><span class="lno">4</span>    <span class="k">let</span> r2 = &amp;s;</span><span class="ln" data-l="5"><span class="lno">5</span>    <span class="c2">// let w = &amp;mut s;  // E0502 while r1, r2 are used below</span></span><span class="ln" data-l="6"><span class="lno">6</span>    <span class="m">println!</span>(<span class="s">"{r1} {r2}"</span>);</span><span class="ln" data-l="7"><span class="lno">7</span>    <span class="k">let</span> w = &amp;<span class="k">mut</span> s;     <span class="c2">// ok: r1 and r2 are no longer used</span></span><span class="ln" data-l="8"><span class="lno">8</span>    w.push(<span class="s">'b'</span>);</span><span class="ln" data-l="9"><span class="lno">9</span>    <span class="m">println!</span>(<span class="s">"{s}"</span>);</span><span class="ln" data-l="10"><span class="lno">10</span>}</span></code></pre>
+      <div class="scroll"><svg viewBox="0 0 640 200" role="img" aria-labelledby="sim-borrow-rules-title sim-borrow-rules-desc">
+        <title id="sim-borrow-rules-title">Many readers or one writer, never both</title>
+        <desc id="sim-borrow-rules-desc">Step-by-step simulator for Many readers or one writer, never both. Use Prev and Next, or the arrow keys, to move through the steps; the note under the figure explains each one.</desc>
+      </svg></div>
+    </div>
+    <p class="trace-note" aria-live="polite"></p>
+    <div class="card-bottom">
+      <div class="row" style="margin:0">
+        <button type="button" class="btn" data-act="prev">&larr; Prev</button>
+        <button type="button" class="btn" data-act="next">Next &rarr;</button>
+        <button type="button" class="btn" data-act="reset">Reset</button>
+      </div>
+      <span class="live"></span>
+    </div>
+    <script type="application/json" class="sim-data">{"heads":["STACK","HEAP"],"steps":[{"l":2,"note":"One owner, no borrows yet.","cols":[[{"g":"main","n":"s","v":"String","to":"h"}],[{"id":"h","v":"\"a\""}]]},{"l":[3,4],"note":"Any number of shared references may exist at once. Nobody can change the data while they look.","cols":[[{"g":"main","n":"s","v":"String","to":"h"},{"g":"main","n":"r1","v":"&String","s":"ref","to":"s"},{"g":"main","n":"r2","v":"&String","s":"ref","to":"s"}],[{"id":"h","v":"\"a\""}]]},{"l":5,"note":"A \u003ccode>&amp;mut\u003c/code> here would overlap with \u003ccode>r1\u003c/code> and \u003ccode>r2\u003c/code>, which are still used on the next line. The compiler rejects it: E0502, \"cannot borrow \u003ccode>s\u003c/code> as mutable because it is also borrowed as immutable\".","cols":[[{"g":"main","n":"s","v":"String","to":"h"},{"g":"main","n":"r1","v":"&String","s":"ref","to":"s"},{"g":"main","n":"r2","v":"&String","s":"ref","to":"s"},{"g":"main","n":"w?","v":"rejected","s":"err","t":"E0502","to":"!s"}],[{"id":"h","v":"\"a\""}]]},{"l":6,"note":"This is the last use of \u003ccode>r1\u003c/code> and \u003ccode>r2\u003c/code>. A borrow lasts until its last use, not until the end of the block (non-lexical lifetimes).","o":"a a","cols":[[{"g":"main","n":"s","v":"String","to":"h"},{"g":"main","n":"r1","v":"&String","s":"ref","to":"s"},{"g":"main","n":"r2","v":"&String","s":"ref","to":"s"}],[{"id":"h","v":"\"a\""}]]},{"l":7,"note":"The shared borrows have ended, so one mutable borrow is allowed.","cols":[[{"g":"main","n":"s","v":"String","to":"h"},{"g":"main","n":"r1","s":"dropped"},{"g":"main","n":"r2","s":"dropped"},{"g":"main","n":"w","v":"&mut String","s":"mut","to":"s"}],[{"id":"h","v":"\"a\""}]]},{"l":8,"note":"Writes go through \u003ccode>w\u003c/code>.","cols":[[{"g":"main","n":"s","v":"String","to":"h"},{"g":"main","n":"w","v":"&mut String","s":"mut","to":"s"}],[{"id":"h","v":"\"ab\"","s":"hl"}]]},{"l":9,"note":"\u003ccode>w\u003c/code> is not used again, so reading \u003ccode>s\u003c/code> is fine.","o":"ab","cols":[[{"g":"main","n":"s","v":"String","to":"h"}],[{"id":"h","v":"\"ab\""}]]}]}</script>
+  </figure>
+  <!-- /sim:borrow-rules -->
 </section>
 
 <section id="dangling">
@@ -269,6 +379,28 @@ table.ops td:first-child{font-weight:600}
     &amp;s                   <span class="c2">// s is dropped at the end of this function</span>
 }</code></pre></div>
   <p>The fix is to return the owned value, <code>String</code>, and move it out. Chapter 10 explains lifetimes, the tool the compiler uses to prove a reference never outlives its data.</p>
+<!-- sim:dangling -->
+  <figure class="card sim" id="sim-dangling" aria-label="Simulator: Why a reference cannot outlive its value">
+    <div class="card-top"><span class="eyebrow">Simulator 6</span><span class="card-title">Why a reference cannot outlive its value</span></div>
+    <div class="trace">
+      <pre class="trace-code"><code><span class="ln" data-l="1"><span class="lno">1</span><span class="c2">// fn dangle() -&gt; &amp;String {      // E0106</span></span><span class="ln" data-l="2"><span class="lno">2</span><span class="c2">//     let s = String::from("x");</span></span><span class="ln" data-l="3"><span class="lno">3</span><span class="c2">//     &amp;s                         // s dies here</span></span><span class="ln" data-l="4"><span class="lno">4</span><span class="c2">// }</span></span><span class="ln" data-l="5"><span class="lno">5</span><span class="k">fn</span> no_dangle() -&gt; <span class="t">String</span> {</span><span class="ln" data-l="6"><span class="lno">6</span>    <span class="k">let</span> s = <span class="t">String</span>::from(<span class="s">"x"</span>);</span><span class="ln" data-l="7"><span class="lno">7</span>    s                             <span class="c2">// ownership moves out</span></span><span class="ln" data-l="8"><span class="lno">8</span>}</span><span class="ln" data-l="9"><span class="lno">9</span><span class="k">fn</span> main() {</span><span class="ln" data-l="10"><span class="lno">10</span>    <span class="k">let</span> t = no_dangle();</span><span class="ln" data-l="11"><span class="lno">11</span>    <span class="m">println!</span>(<span class="s">"{t}"</span>);</span><span class="ln" data-l="12"><span class="lno">12</span>}</span></code></pre>
+      <div class="scroll"><svg viewBox="0 0 640 200" role="img" aria-labelledby="sim-dangling-title sim-dangling-desc">
+        <title id="sim-dangling-title">Why a reference cannot outlive its value</title>
+        <desc id="sim-dangling-desc">Step-by-step simulator for Why a reference cannot outlive its value. Use Prev and Next, or the arrow keys, to move through the steps; the note under the figure explains each one.</desc>
+      </svg></div>
+    </div>
+    <p class="trace-note" aria-live="polite"></p>
+    <div class="card-bottom">
+      <div class="row" style="margin:0">
+        <button type="button" class="btn" data-act="prev">&larr; Prev</button>
+        <button type="button" class="btn" data-act="next">Next &rarr;</button>
+        <button type="button" class="btn" data-act="reset">Reset</button>
+      </div>
+      <span class="live"></span>
+    </div>
+    <script type="application/json" class="sim-data">{"heads":["STACK","HEAP"],"steps":[{"l":[1,2],"note":"Imagine \u003ccode>dangle\u003c/code> ran: \u003ccode>s\u003c/code> lives in \u003ccode>dangle\u003c/code>'s frame and owns a heap buffer.","cols":[[{"g":"main","n":"(caller)","v":""},{"g":"dangle","n":"s","v":"String","to":"x"}],[{"id":"x","v":"\"x\""}]]},{"l":[3,4],"note":"Returning \u003ccode>&amp;s\u003c/code> would hand back a pointer into a frame that is about to be popped, while \u003ccode>s\u003c/code> frees its buffer. The compiler refuses: the return type needs a lifetime, and nothing local lives long enough (E0106, then E0515).","cols":[[{"g":"main","n":"(result)","v":"&String","s":"err","t":"dangling","to":"!s"},{"g":"dangle","n":"s","s":"dropped"}],[{"id":"x","s":"freed"}]]},{"l":[5,6],"note":"The fix is to return the owned value. \u003ccode>s\u003c/code> is created in \u003ccode>no_dangle\u003c/code>'s frame.","cols":[[{"g":"no_dangle","n":"s","v":"String","to":"y"}],[{"id":"y","v":"\"x\""}]]},{"l":[7,10],"note":"Returning \u003ccode>s\u003c/code> moves the header into \u003ccode>t\u003c/code>. The heap buffer stays where it is, now owned by \u003ccode>main\u003c/code>.","cols":[[{"g":"main","n":"t","v":"String","to":"y","s":"hl"},{"g":"no_dangle","n":"s","s":"moved"}],[{"id":"y","v":"\"x\""}]]},{"l":11,"note":"No reference ever pointed at freed memory.","o":"x","cols":[[{"g":"main","n":"t","v":"String","to":"y"}],[{"id":"y","v":"\"x\""}]]}]}</script>
+  </figure>
+  <!-- /sim:dangling -->
 </section>
 
 <section id="slices">
@@ -304,12 +436,56 @@ table.ops td:first-child{font-weight:600}
     <span class="m">println!</span>(<span class="s">"{word}"</span>);
 }</code></pre></div>
   <p>Range syntax: <code>[..2]</code> from the start, <code>[3..]</code> to the end, <code>[..]</code> the whole thing. String slice indexes are byte offsets and must fall on UTF-8 character boundaries, otherwise the program panics. Prefer parameters of type <code>&amp;str</code> and <code>&amp;[T]</code> over <code>&amp;String</code> and <code>&amp;Vec&lt;T&gt;</code>: they accept more callers at no cost.</p>
+<!-- sim:slices -->
+  <figure class="card sim" id="sim-slices" aria-label="Simulator: A &amp;str slice points into the String">
+    <div class="card-top"><span class="eyebrow">Simulator 7</span><span class="card-title">A &amp;str slice points into the String</span></div>
+    <div class="trace">
+      <pre class="trace-code"><code><span class="ln" data-l="1"><span class="lno">1</span><span class="k">fn</span> first_word(s: &amp;str) -&gt; &amp;str {</span><span class="ln" data-l="2"><span class="lno">2</span>    <span class="k">match</span> s.find(<span class="s">' '</span>) {</span><span class="ln" data-l="3"><span class="lno">3</span>        <span class="t">Some</span>(i) =&gt; &amp;s[..i],</span><span class="ln" data-l="4"><span class="lno">4</span>        <span class="t">None</span> =&gt; s,</span><span class="ln" data-l="5"><span class="lno">5</span>    }</span><span class="ln" data-l="6"><span class="lno">6</span>}</span><span class="ln" data-l="7"><span class="lno">7</span><span class="k">fn</span> main() {</span><span class="ln" data-l="8"><span class="lno">8</span>    <span class="k">let</span> <span class="k">mut</span> text = <span class="t">String</span>::from(<span class="s">"hello world"</span>);</span><span class="ln" data-l="9"><span class="lno">9</span>    <span class="k">let</span> w = first_word(&amp;text);</span><span class="ln" data-l="10"><span class="lno">10</span>    <span class="m">println!</span>(<span class="s">"{w}"</span>);</span><span class="ln" data-l="11"><span class="lno">11</span>    <span class="c2">// text.clear();  // E0502 if w were used after it</span></span><span class="ln" data-l="12"><span class="lno">12</span>    text.clear();</span><span class="ln" data-l="13"><span class="lno">13</span>    <span class="m">println!</span>(<span class="s">"[{text}]"</span>);</span><span class="ln" data-l="14"><span class="lno">14</span>}</span></code></pre>
+      <div class="scroll"><svg viewBox="0 0 640 200" role="img" aria-labelledby="sim-slices-title sim-slices-desc">
+        <title id="sim-slices-title">A &amp;str slice points into the String</title>
+        <desc id="sim-slices-desc">Step-by-step simulator for A &amp;str slice points into the String. Use Prev and Next, or the arrow keys, to move through the steps; the note under the figure explains each one.</desc>
+      </svg></div>
+    </div>
+    <p class="trace-note" aria-live="polite"></p>
+    <div class="card-bottom">
+      <div class="row" style="margin:0">
+        <button type="button" class="btn" data-act="prev">&larr; Prev</button>
+        <button type="button" class="btn" data-act="next">Next &rarr;</button>
+        <button type="button" class="btn" data-act="reset">Reset</button>
+      </div>
+      <span class="live"></span>
+    </div>
+    <script type="application/json" class="sim-data">{"heads":["STACK","HEAP"],"steps":[{"l":8,"note":"\u003ccode>text\u003c/code> owns 11 bytes on the heap.","cols":[[{"g":"main","n":"text","v":"len=11","to":"h"}],[{"id":"h","v":"\"hello world\""}]]},{"l":[9,1,2],"note":"\u003ccode>&amp;text\u003c/code> is \u003ccode>&amp;String\u003c/code>; deref coercion turns it into \u003ccode>&amp;str\u003c/code>. \u003ccode>find\u003c/code> returns \u003ccode>Some(5)\u003c/code>, the index of the space.","cols":[[{"g":"main","n":"text","v":"len=11","to":"h"},{"g":"first_word","n":"s","v":"&str len=11","s":"ref","to":"h"},{"g":"first_word","n":"i","v":"5"}],[{"id":"h","v":"\"hello world\""}]]},{"l":[3,9],"note":"\u003ccode>&amp;s[..5]\u003c/code> is a slice: a pointer to the start plus a length of 5. No bytes are copied. It is returned into \u003ccode>w\u003c/code>.","cols":[[{"g":"main","n":"text","v":"len=11","to":"h"},{"g":"main","n":"w","v":"&str len=5","s":"ref","to":"h"}],[{"id":"h","v":"\"hello\" world"}]]},{"l":10,"note":"Printing \u003ccode>w\u003c/code> reads 5 bytes of the original buffer.","o":"hello","cols":[[{"g":"main","n":"text","v":"len=11","to":"h"},{"g":"main","n":"w","v":"&str len=5","s":"ref","to":"h"}],[{"id":"h","v":"\"hello\" world"}]]},{"l":11,"note":"If \u003ccode>w\u003c/code> were used after \u003ccode>clear\u003c/code>, the compiler would reject the clear: it needs \u003ccode>&amp;mut text\u003c/code> while \u003ccode>w\u003c/code> borrows it. The slice is tied to the data it points into.","cols":[[{"g":"main","n":"text","v":"len=11","to":"h"},{"g":"main","n":"w","v":"&str len=5","s":"ref","to":"h"},{"g":"main","n":"clear()","v":"needs &mut","s":"err","t":"E0502"}],[{"id":"h","v":"\"hello\" world"}]]},{"l":[12,13],"note":"Here \u003ccode>w\u003c/code> is no longer used, so its borrow has ended and \u003ccode>clear\u003c/code> is allowed.","o":"[]","cols":[[{"g":"main","n":"text","v":"len=0","to":"h","s":"hl"},{"g":"main","n":"w","s":"dropped"}],[{"id":"h","v":"\"\""}]]}]}</script>
+  </figure>
+  <!-- /sim:slices -->
 </section>
 
 <section id="summary">
   <h2>8. Summary</h2>
 
   <div class="tw"><table class="ops"><thead><tr><th>You write</th><th>What happens</th><th>Original still usable?</th></tr></thead><tbody><tr><td><code>let b = a;</code> (a is Copy)</td><td>Bitwise copy</td><td>Yes</td></tr><tr><td><code>let b = a;</code> (a is not Copy)</td><td>Move: shallow copy, a invalidated</td><td>No</td></tr><tr><td><code>let b = a.clone();</code></td><td>Deep copy</td><td>Yes</td></tr><tr><td><code>let b = &amp;a;</code></td><td>Shared borrow</td><td>Yes, read-only while b lives</td></tr><tr><td><code>let b = &amp;mut a;</code></td><td>Exclusive borrow</td><td>Not at all while b lives</td></tr><tr><td>end of scope</td><td><code>drop</code> runs for each owner, reverse order</td><td>-</td></tr></tbody></table></div>
+<!-- sim:summary -->
+  <figure class="card sim" id="sim-summary" aria-label="Simulator: Ownership in one pass">
+    <div class="card-top"><span class="eyebrow">Simulator 8</span><span class="card-title">Ownership in one pass</span></div>
+    <div class="trace">
+      <pre class="trace-code"><code><span class="ln" data-l="1"><span class="lno">1</span><span class="k">fn</span> shout(s: &amp;<span class="k">mut</span> <span class="t">String</span>) { s.make_ascii_uppercase(); }</span><span class="ln" data-l="2"><span class="lno">2</span><span class="k">fn</span> main() {</span><span class="ln" data-l="3"><span class="lno">3</span>    <span class="k">let</span> a = <span class="t">String</span>::from(<span class="s">"ok"</span>);</span><span class="ln" data-l="4"><span class="lno">4</span>    <span class="k">let</span> <span class="k">mut</span> b = a;          <span class="c2">// move</span></span><span class="ln" data-l="5"><span class="lno">5</span>    shout(&amp;<span class="k">mut</span> b);          <span class="c2">// borrow mutably</span></span><span class="ln" data-l="6"><span class="lno">6</span>    <span class="k">let</span> c = &amp;b;             <span class="c2">// borrow shared</span></span><span class="ln" data-l="7"><span class="lno">7</span>    <span class="m">println!</span>(<span class="s">"{c}"</span>);</span><span class="ln" data-l="8"><span class="lno">8</span>}                           <span class="c2">// b dropped once</span></span></code></pre>
+      <div class="scroll"><svg viewBox="0 0 640 200" role="img" aria-labelledby="sim-summary-title sim-summary-desc">
+        <title id="sim-summary-title">Ownership in one pass</title>
+        <desc id="sim-summary-desc">Step-by-step simulator for Ownership in one pass. Use Prev and Next, or the arrow keys, to move through the steps; the note under the figure explains each one.</desc>
+      </svg></div>
+    </div>
+    <p class="trace-note" aria-live="polite"></p>
+    <div class="card-bottom">
+      <div class="row" style="margin:0">
+        <button type="button" class="btn" data-act="prev">&larr; Prev</button>
+        <button type="button" class="btn" data-act="next">Next &rarr;</button>
+        <button type="button" class="btn" data-act="reset">Reset</button>
+      </div>
+      <span class="live"></span>
+    </div>
+    <script type="application/json" class="sim-data">{"heads":["STACK","HEAP"],"steps":[{"l":3,"note":"Own: \u003ccode>a\u003c/code> is the single owner.","cols":[[{"g":"main","n":"a","v":"String","to":"h"}],[{"id":"h","v":"\"ok\""}]]},{"l":4,"note":"Move: ownership passes to \u003ccode>b\u003c/code>; \u003ccode>a\u003c/code> is unusable.","cols":[[{"g":"main","n":"a","s":"moved"},{"g":"main","n":"b","v":"String","to":"h","s":"hl"}],[{"id":"h","v":"\"ok\""}]]},{"l":[5,1],"note":"Borrow mutably: one writer, for the duration of the call.","cols":[[{"g":"main","n":"a","s":"moved"},{"g":"main","n":"b","v":"String","to":"h"},{"g":"shout","n":"s","v":"&mut String","s":"mut","to":"b"}],[{"id":"h","v":"\"OK\"","s":"hl"}]]},{"l":[6,7],"note":"Borrow shared: readers are fine once the writer is gone.","o":"OK","cols":[[{"g":"main","n":"a","s":"moved"},{"g":"main","n":"b","v":"String","to":"h"},{"g":"main","n":"c","v":"&String","s":"ref","to":"b"}],[{"id":"h","v":"\"OK\""}]]},{"l":8,"note":"Drop: the one owner frees the buffer exactly once. References and moved-from variables free nothing.","cols":[[{"g":"main","n":"a","s":"moved"},{"g":"main","n":"b","s":"dropped"},{"g":"main","n":"c","s":"dropped"}],[{"id":"h","s":"freed"}]]}]}</script>
+  </figure>
+  <!-- /sim:summary -->
 </section>
 
 <section id="quiz">
@@ -480,7 +656,7 @@ var CHECK_KEY = 'rust-rust-ownership-check:' + location.pathname;
       if (!heap.length) txt(380, 64, '(nothing allocated)', { fill: SOFT });
       var H = Math.max(y, hy, 90) + 10;
       svg.setAttribute('viewBox', '0 0 640 ' + H);
-      Array.prototype.forEach.call(document.querySelectorAll('.trace-code .ln'), function (ln) {
+      Array.prototype.forEach.call(document.querySelectorAll('figure:not(.sim) .trace-code .ln'), function (ln) {
         ln.classList.toggle('on', +ln.getAttribute('data-l') === st.l);
       });
       $('traceNote').innerHTML = st.note;
@@ -537,5 +713,147 @@ var CHECK_KEY = 'rust-rust-ownership-check:' + location.pathname;
 })();
 
 </script>
+<!-- section-sims -->
+<script>
+(function () {
+  // Section simulators: each figure.sim carries its steps as JSON and is drawn into its own SVG.
+  var NS = 'http://www.w3.org/2000/svg';
+  var INK = '#2d3142', SOFT = '#5a6580', RULE = '#bfc0c0', ACCENT = '#bf4520', LINK = '#2e5aa8', OK = '#2f7a4a', PAPER = '#f5f5f5';
+  var W = 640, BOX_H = 40, GAP_Y = 10, TOP = 40;
+  var fit = function (s, n) { s = String(s); return s.length > n ? s.slice(0, Math.max(1, n - 1)) + '\u2026' : s; };
+
+  function initSim(fig) {
+    var data = JSON.parse(fig.querySelector('script.sim-data').textContent);
+    var svg = fig.querySelector('svg'), lines = fig.querySelectorAll('.trace-code .ln');
+    var note = fig.querySelector('.trace-note'), live = fig.querySelector('.live');
+    var prev = fig.querySelector('[data-act="prev"]'), next = fig.querySelector('[data-act="next"]'), reset = fig.querySelector('[data-act="reset"]');
+    var steps = data.steps, heads = data.heads || [], cur = 0, uid = fig.id;
+    var hasOut = steps.some(function (s) { return s.o != null; });
+    var el = function (name, attrs, parent) {
+      var e = document.createElementNS(NS, name);
+      for (var k in attrs) if (attrs[k] !== '' && attrs[k] != null) e.setAttribute(k, attrs[k]);
+      (parent || svg).appendChild(e);
+      return e;
+    };
+    var txt = function (x, y, s, a, parent) {
+      var o = { x: x, y: y, 'font-size': 12, fill: INK, 'font-family': 'Geist Mono, monospace' };
+      for (var k in a) o[k] = a[k];
+      var t = el('text', o, parent); t.textContent = s; return t;
+    };
+    var clear = function () {
+      Array.prototype.slice.call(svg.childNodes).forEach(function (n) {
+        var nm = (n.localName || '').toLowerCase();
+        if (nm !== 'title' && nm !== 'desc') svg.removeChild(n);
+      });
+    };
+
+    function draw() {
+      var st = steps[cur], cols = st.cols || [];
+      var k = Math.max(1, heads.length, cols.length);
+      var left = 40, right = 24, gap = k === 1 ? 0 : (k === 2 ? 70 : 46);
+      var colW = (W - left - right - gap * (k - 1)) / k;
+      var chars = Math.floor((colW - 24) / 7.4);
+      clear();
+      var defs = el('defs', {});
+      [['a', INK], ['b', LINK], ['c', ACCENT]].forEach(function (m) {
+        var mk = el('marker', { id: uid + '-' + m[0], viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: 'auto-start-reverse' }, defs);
+        el('path', { d: 'M0 0 L10 5 L0 10 z', fill: m[1] }, mk);
+      });
+      var pos = {}, bottom = TOP;
+      for (var ci = 0; ci < k; ci++) {
+        var x = left + ci * (colW + gap), y = TOP, lastG = null, items = cols[ci] || [];
+        if (heads[ci]) txt(x, 24, heads[ci], { 'font-size': 11, fill: SOFT, 'letter-spacing': '2' });
+        items.forEach(function (it) {
+          if (it.g && it.g !== lastG) { txt(x, y + 12, fit(it.g, chars + 4), { 'font-size': 10.5, fill: SOFT, 'font-style': 'italic' }); y += 18; lastG = it.g; }
+          var s = it.s || '', faded = /moved|dropped|freed/.test(s);
+          var isRef = /ref|mut|weak/.test(s), hl = /hl/.test(s), err = /err/.test(s), ok = /ok/.test(s);
+          var stroke = err || hl ? ACCENT : (ok ? OK : (isRef ? LINK : (faded ? RULE : INK)));
+          var g = el('g', { opacity: /dropped|freed/.test(s) ? 0.4 : 1 });
+          el('rect', { x: x, y: y, width: colW, height: BOX_H, rx: 6, fill: err ? 'rgba(191,69,32,.08)' : (ok ? 'rgba(47,122,74,.07)' : (faded ? PAPER : '#fff')), stroke: stroke, 'stroke-width': hl || err ? 2 : 1.4, 'stroke-dasharray': faded ? '5 4' : '' }, g);
+          var stateWord = /moved/.test(s) ? 'moved' : (/dropped/.test(s) ? 'dropped' : (/freed/.test(s) ? 'freed' : null));
+          var val = stateWord && it.v == null ? stateWord : (it.v == null ? '' : it.v);
+          if (it.n != null) {
+            var nChars = Math.max(4, Math.min(String(it.n).length, Math.floor(chars * 0.45)));
+            txt(x + 12, y + 25, fit(it.n, nChars), { 'font-size': 13, 'font-weight': 600, fill: faded ? SOFT : INK }, g);
+            txt(x + colW - 12, y + 25, fit(val, Math.max(4, chars - nChars - 1)), { 'text-anchor': 'end', fill: faded ? SOFT : (err ? ACCENT : (isRef ? LINK : INK)) }, g);
+          } else {
+            txt(x + 12, y + 25, fit(val, chars), { fill: faded ? SOFT : (err ? ACCENT : INK) }, g);
+          }
+          var tag = it.t || (/mut/.test(s) ? '&mut' : (/weak/.test(s) ? 'weak' : (/ref/.test(s) ? '&' : null)));
+          if (tag) {
+            var tw = 10 + tag.length * 6.2;
+            el('rect', { x: x + colW - tw - 8, y: y - 8, width: tw, height: 15, rx: 3, fill: err ? ACCENT : (ok ? OK : (hl ? ACCENT : LINK)) }, g);
+            txt(x + colW - tw - 3, y + 3, tag, { 'font-size': 9.5, fill: '#fff', 'font-weight': 600 }, g);
+          }
+          var id = it.id != null ? it.id : it.n;
+          if (id != null) pos[id] = { x: x, y: y + BOX_H / 2, col: ci, faded: faded, freed: /freed|dropped/.test(s) };
+          it._id = id;
+          y += BOX_H + GAP_Y;
+        });
+        if (!items.length && heads[ci]) txt(x, TOP + 24, data.empty && data.empty[ci] ? data.empty[ci] : '(empty)', { fill: SOFT });
+        bottom = Math.max(bottom, y);
+      }
+      // arrows
+      cols.forEach(function (items) {
+        (items || []).forEach(function (it) {
+          if (!it.to || /moved|dropped|freed/.test(it.s || '')) return;
+          var a = pos[it._id]; if (!a) return;
+          [].concat(it.to).forEach(function (t) {
+            var weak = t.charAt(0) === '~', bad = t.charAt(0) === '!';
+            if (weak || bad) t = t.slice(1);
+            var b = pos[t]; if (!b) return;
+            var color = bad || b.freed ? ACCENT : (weak || /ref|mut/.test(it.s || '') ? LINK : INK);
+            var mk = 'url(#' + uid + '-' + (color === ACCENT ? 'c' : (color === LINK ? 'b' : 'a')) + ')';
+            var dash = weak || bad || b.freed ? '4 3' : '', d;
+            if (b.col === a.col) {
+              var dx = 18 + Math.min(22, Math.abs(a.y - b.y) / 6), lx = a.x;
+              d = 'M' + lx + ' ' + a.y + ' C' + (lx - dx) + ' ' + a.y + ' ' + (lx - dx) + ' ' + b.y + ' ' + (lx - 2) + ' ' + b.y;
+            } else if (b.col > a.col) {
+              var x1 = a.x + colW, x2 = b.x - 2, mx = (x1 + x2) / 2;
+              d = 'M' + x1 + ' ' + a.y + ' C' + mx + ' ' + a.y + ' ' + mx + ' ' + b.y + ' ' + x2 + ' ' + b.y;
+            } else {
+              var x3 = a.x, x4 = b.x + colW + 2, mx2 = (x3 + x4) / 2;
+              d = 'M' + x3 + ' ' + a.y + ' C' + mx2 + ' ' + a.y + ' ' + mx2 + ' ' + b.y + ' ' + x4 + ' ' + b.y;
+            }
+            el('path', { d: d, fill: 'none', stroke: color, 'stroke-width': 1.6, 'stroke-dasharray': dash, 'marker-end': mk });
+          });
+        });
+      });
+      var H = Math.max(bottom, 90) + 6;
+      if (hasOut) {
+        var out = [];
+        for (var i = 0; i <= cur; i++) if (steps[i].o != null) out = out.concat(steps[i].o);
+        var shown = out.slice(-6), oh = 30 + Math.max(1, shown.length) * 18;
+        el('rect', { x: left, y: H, width: W - left - right, height: oh, rx: 6, fill: INK });
+        txt(left + 12, H + 18, 'OUTPUT', { 'font-size': 10, fill: RULE, 'letter-spacing': '2' });
+        if (!shown.length) txt(left + 12, H + 38, '(nothing printed yet)', { fill: RULE, 'font-style': 'italic' });
+        shown.forEach(function (ln, j) {
+          var bad = String(ln).charAt(0) === '!';
+          txt(left + 12, H + 38 + j * 18, fit(bad ? String(ln).slice(1) : ln, 76), { fill: bad ? '#ff9b7a' : PAPER });
+        });
+        H += oh + 10;
+      }
+      svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+      var on = [].concat(st.l || []);
+      Array.prototype.forEach.call(lines, function (ln) { ln.classList.toggle('on', on.indexOf(+ln.getAttribute('data-l')) !== -1); });
+      note.innerHTML = st.note;
+      live.textContent = 'step ' + (cur + 1) + ' / ' + steps.length;
+      prev.disabled = cur === 0;
+      next.disabled = cur === steps.length - 1;
+    }
+    prev.addEventListener('click', function () { if (cur > 0) { cur--; draw(); } });
+    next.addEventListener('click', function () { if (cur < steps.length - 1) { cur++; draw(); } });
+    reset.addEventListener('click', function () { cur = 0; draw(); });
+    fig.addEventListener('keydown', function (e) {
+      if (e.target.tagName === 'INPUT') return;
+      if (e.key === 'ArrowRight' && cur < steps.length - 1) { cur++; draw(); e.preventDefault(); }
+      if (e.key === 'ArrowLeft' && cur > 0) { cur--; draw(); e.preventDefault(); }
+    });
+    draw();
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('figure.sim'), initSim);
+})();
+</script>
+<!-- /section-sims -->
 </body>
 </html>
