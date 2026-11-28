@@ -1216,6 +1216,17 @@ const DOCS = [
     related: ['Rust Cargo and Crates.io', 'Rust Structs', 'Rust Testing'],
   },
   {
+    title: 'Rust Collections',
+    path: 'content/engineering/rust/rust-collections/rust-collections.html',
+    category: 'Engineering',
+    topic: 'Rust',
+    order: 39,
+    level: 'Beginner',
+    tags: ['rust', 'vec', 'string', 'hashmap', 'collections', 'utf-8', 'entry api', 'iteration'],
+    summary: 'Vec<T>, String and HashMap<K, V>: creating, reading, updating and iterating them, why a push invalidates references, UTF-8 and why strings cannot be indexed, and the entry API. Watch a Vec grow its capacity.',
+    related: ['Rust Ownership', 'Rust Closures and Iterators', 'Rust Error Handling'],
+  },
+  {
     title: 'Quant Roadmap',
     path: 'content/quant/quant-roadmap/quant-roadmap.html',
     category: 'Quant',
