@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NUMA: Non-Uniform Memory Access, a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+h3{font-family:var(--serif);font-weight:400;font-size:24px;line-height:1.2;margin:28px 0 10px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+
+.howto{margin:16px 0 0;padding:16px 20px;background:#fff;border:1px solid var(--rule-solid);border-left:3px solid var(--accent);border-radius:8px;max-width:760px}
+.howto h3{font:600 11px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--soft);margin:0 0 8px}
+.howto ol{margin:0;padding-left:20px}.howto li{margin:4px 0}
+
+.card{margin:24px 0 0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--ink)}
+.toolbar{display:grid;grid-template-columns:1fr 1fr;gap:10px 16px;padding:0 16px 12px;border-bottom:1px solid var(--rule)}
+.toolbar .grp{min-width:0}
+.toolbar .btns{grid-column:1/-1}
+.group-label{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);margin:0 0 6px}
+.seg{display:flex;flex-wrap:wrap;border:1px solid var(--rule-solid);border-radius:6px;overflow:hidden}
+.seg button{flex:1 1 40%;min-height:40px;border:0;background:transparent;font:500 13px var(--sans);color:var(--muted);cursor:pointer;padding:4px 10px;box-shadow:inset 1px 0 0 var(--rule-solid),inset 0 1px 0 var(--rule-solid)}
+.seg button:hover{background:var(--paper-2)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.stage{padding:8px}
+.stage svg{display:block;width:100%;height:auto;max-width:900px;margin:0 auto}
+
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px;margin-top:16px;display:grid;grid-template-columns:1fr 1fr;gap:0 24px}
+.panel .task{grid-column:1/-1}
+.task{margin:0 0 16px;padding:12px 14px;background:var(--accent-tint);border:1px solid rgba(191,69,32,.25);border-radius:6px;font-size:13.5px;line-height:1.55}
+.res-label{font:500 11px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--soft);margin:0 0 6px}
+#readout{margin:0;padding:14px 16px;background:var(--paper);border:1px solid var(--rule);border-radius:6px;font-family:var(--mono);font-size:12px;line-height:1.7;white-space:pre-wrap;color:var(--ink);overflow-x:auto}
+.bars{display:grid;gap:10px}
+.bar{display:grid;grid-template-columns:118px 1fr 70px;gap:10px;align-items:center;font-family:var(--mono);font-size:11.5px}
+.bar .track{height:14px;background:var(--paper);border:1px solid var(--rule);border-radius:3px;overflow:hidden}
+.bar .fill{height:100%;background:var(--link)}
+.bar.on{font-weight:600}
+.bar.on .fill{background:var(--accent)}
+.bar output{text-align:right}
+.bar small{display:block;font-size:10px;color:var(--soft);font-weight:400}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:3px;border:1.5px solid var(--ink);display:inline-block}
+.ln{display:inline-block;width:22px;height:0;border-top:2px solid var(--ink)}
+.ln.dash{border-top-style:dashed;border-color:var(--accent)}
+
+.fig{margin:20px 0 8px}
+.scroll{overflow-x:auto;border:1px solid var(--rule);border-radius:8px;background:#fff;padding:8px}
+.scroll svg{display:block;height:auto;margin:0 auto}
+.cap{font-family:var(--mono);font-size:11px;color:var(--soft);margin:8px 0 0}
+
+pre{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .t{color:var(--link)} .c{color:var(--soft);font-style:italic}
+
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:32px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+
+table.ops{border-collapse:collapse;width:100%;max-width:820px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
+
+.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;text-align:center;overflow-x:auto}
+.formula .katex{font-size:1.25em}
+.katex{color:var(--ink)}
+p .katex,td .katex,li .katex{font-size:1.05em}
+
+@media (max-width:860px){.toolbar,.panel{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+.doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}.doc-tags a{font:500 12px "Geist Mono",ui-monospace,monospace;padding:4px 10px;border:1px solid var(--rule-solid,#bfc0c0);border-radius:4px;background:#fff;color:var(--muted,#4f5d75);text-decoration:none}.doc-tags a:hover{border-color:var(--ink,#2d3142);color:var(--ink,#2d3142)}.doc-tags a:focus-visible{outline:2px solid var(--accent,#bf4520);outline-offset:2px}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" style="margin-right:8px" href="../../../../index.html">&larr; Back to home</a>
+<a class="back back-cat" href="../../../../index.html#cat=Engineering">&larr; Back to Engineering</a>
+
+<header>
+  <div class="eyebrow">Engineering · Concurrency</div>
+  <h1>NUMA: Non-Uniform Memory Access</h1>
+  <p class="lede">On a multi-socket server, every CPU has its own memory, and reaching the other socket's memory is slower. Where a page lands and where a thread runs decide whether a program gets the full bandwidth of the machine or half of it.</p>
+  <nav class="doc-tags" aria-label="Main tags"><a href="../../../../index.html#tag=numa">#numa</a><a href="../../../../index.html#tag=memory">#memory</a><a href="../../../../index.html#tag=performance">#performance</a><a href="../../../../index.html#tag=concurrency">#concurrency</a></nav>
+</header>
+
+<section>
+  <h2>Put threads and pages on a two-socket machine</h2>
+  <p>Four worker threads stream through a 16-page array. Each worker owns four pages: T0 owns p0 to p3, T1 owns p4 to p7, and so on. Pick where the threads run and which memory policy places the pages, then step through the accesses.</p>
+
+  <div class="howto">
+    <h3>How to use this simulator</h3>
+    <ol>
+      <li>Start with <b>Spread</b> and <b>First touch, main thread inits</b>. Every page lands on node 0, so the threads on node 1 go remote, and node 0's memory controller overloads.</li>
+      <li>Switch to <b>First touch, each worker inits</b>. Every access becomes local and the bandwidth doubles.</li>
+      <li>Try <b>Interleave</b>, then <b>All on node 0</b> and <b>Migrated after init</b>, and compare the bars on the right.</li>
+      <li>Press <b>Step</b> or <b>Play</b> to see one access per thread. Solid arrows are local, dashed arrows cross the interconnect.</li>
+    </ol>
+  </div>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">Two NUMA nodes, four threads, sixteen pages</span></div>
+    <div class="toolbar">
+      <div class="grp">
+        <div class="group-label" id="place-label">Where the threads run</div>
+        <div class="seg" role="group" aria-labelledby="place-label">
+          <button type="button" data-place="spread" aria-pressed="true">Spread · 2 per node</button>
+          <button type="button" data-place="packed" aria-pressed="false">All on node 0</button>
+          <button type="button" data-place="migrated" aria-pressed="false">Migrated after init</button>
+        </div>
+      </div>
+      <div class="grp">
+        <div class="group-label" id="pol-label">Where the pages go</div>
+        <div class="seg" role="group" aria-labelledby="pol-label">
+          <button type="button" data-pol="main" aria-pressed="true">First touch, main thread inits</button>
+          <button type="button" data-pol="par" aria-pressed="false">First touch, each worker inits</button>
+          <button type="button" data-pol="inter" aria-pressed="false">Interleave</button>
+          <button type="button" data-pol="bind0" aria-pressed="false">Bind to node 0</button>
+        </div>
+      </div>
+      <div class="btns">
+        <button type="button" class="btn" id="bStep">Step</button>
+        <button type="button" class="btn" id="bPlay" aria-pressed="false">Play</button>
+        <button type="button" class="btn" id="bReset">Reset</button>
+      </div>
+    </div>
+    <div class="stage">
+      <svg id="stage" viewBox="0 0 680 340" role="img" aria-labelledby="nm-title nm-desc">
+        <title id="nm-title">A two-socket NUMA machine with threads and pages</title>
+        <desc id="nm-desc">Two NUMA nodes side by side. Each node has four cores, a memory controller with a load meter, and local DRAM holding pages. The interconnect between the nodes has its own load meter. Each step draws one memory access per thread, solid when the page is on the thread's node and dashed when it crosses the interconnect. The readout below repeats every number.</desc>
+        <g id="scene"></g>
+      </svg>
+    </div>
+    <div class="card-bottom"><span class="hint">Latencies and bandwidths are illustrative round numbers</span><span class="live" id="live"></span></div>
+  </figure>
+
+  <div class="panel">
+    <div class="task" id="task" aria-live="polite"></div>
+    <div><div class="res-label">This round</div><pre id="readout" aria-live="polite"></pre></div>
+    <div><div class="res-label">Same threads, every policy</div><div class="bars" id="bars"></div>
+      <div class="legend" aria-label="Legend">
+        <span><i class="ln"></i>local access</span>
+        <span><i class="ln dash"></i>remote access</span>
+        <span><i class="sw" style="background:#e3efe6;border-color:#23774a"></i>load under capacity</span>
+        <span><i class="sw" style="background:#f8ddd2;border-color:#bf4520"></i>over capacity</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>1. Why memory stopped being uniform</h2>
+  <p>Older multiprocessors used <b>UMA</b>, uniform memory access. Every CPU reached memory through one shared bus and one memory controller, so every address cost the same. That bus became the bottleneck: adding CPUs added demand but no bandwidth.</p>
+  <p>Modern server CPUs put the memory controller on the CPU die. Each socket gets its own DRAM channels, and sockets talk over a point-to-point link: Intel UPI, AMD Infinity Fabric, or the older QPI and HyperTransport. A socket together with its local memory is a <b>NUMA node</b>. Bandwidth now grows with every socket, but an address now has a home, and reaching another node's home costs extra.</p>
+
+  <div class="fig">
+    <div class="scroll"><svg width="920" height="250" viewBox="0 0 920 250" style="min-width:760px;width:100%;max-width:920px" role="img" aria-labelledby="um-title um-desc">
+<title id="um-title">UMA compared with NUMA</title>
+<desc id="um-desc">Left, UMA: four CPUs share one bus to a single memory controller and one bank of DRAM. Right, NUMA: two sockets, each with its own cores, memory controller and DRAM, joined by an interconnect link. Local access stays inside a socket; remote access crosses the link.</desc>
+<g font-family="'Geist',sans-serif" font-size="14" font-weight="600" fill="#2d3142"><text x="24" y="28">UMA · one shared bus</text><text x="470" y="28">NUMA · memory per socket</text></g>
+<g font-family="'Geist Mono',monospace" font-size="11" fill="#2d3142" text-anchor="middle">
+  <rect x="24" y="48" width="80" height="40" rx="6" fill="#dbe8fa" stroke="#2e5aa8"/><text x="64" y="72">CPU 0</text>
+  <rect x="124" y="48" width="80" height="40" rx="6" fill="#dbe8fa" stroke="#2e5aa8"/><text x="164" y="72">CPU 1</text>
+  <rect x="224" y="48" width="80" height="40" rx="6" fill="#dbe8fa" stroke="#2e5aa8"/><text x="264" y="72">CPU 2</text>
+  <rect x="324" y="48" width="80" height="40" rx="6" fill="#dbe8fa" stroke="#2e5aa8"/><text x="364" y="72">CPU 3</text>
+  <path d="M64 88 V118 M164 88 V118 M264 88 V118 M364 88 V118" stroke="#2d3142" stroke-width="1.4"/>
+  <rect x="24" y="118" width="380" height="16" rx="4" fill="#f8ddd2" stroke="#bf4520"/><text x="214" y="130" font-size="10" fill="#8f2f12">shared front-side bus · the bottleneck</text>
+  <path d="M214 134 V154" stroke="#2d3142" stroke-width="1.4"/>
+  <rect x="134" y="154" width="160" height="32" rx="6" fill="#f5f5f5" stroke="#2d3142"/><text x="214" y="174">memory controller</text>
+  <path d="M214 186 V202" stroke="#2d3142" stroke-width="1.4"/>
+  <rect x="104" y="202" width="220" height="32" rx="6" fill="#e3efe6" stroke="#23774a"/><text x="214" y="222">DRAM · same cost everywhere</text>
+</g>
+<line x1="444" y1="40" x2="444" y2="236" stroke="rgba(45,49,66,.15)"/>
+<g font-family="'Geist Mono',monospace" font-size="11" fill="#2d3142" text-anchor="middle">
+  <rect x="470" y="48" width="170" height="130" rx="8" fill="#fff" stroke="#2d3142"/>
+  <rect x="736" y="48" width="170" height="130" rx="8" fill="#fff" stroke="#2d3142"/>
+  <text x="555" y="66" font-family="'Geist',sans-serif" font-weight="600">Node 0 · socket 0</text><text x="821" y="66" font-family="'Geist',sans-serif" font-weight="600">Node 1 · socket 1</text>
+  <rect x="484" y="78" width="66" height="34" rx="5" fill="#dbe8fa" stroke="#2e5aa8"/><text x="517" y="99">cores</text>
+  <rect x="560" y="78" width="66" height="34" rx="5" fill="#dbe8fa" stroke="#2e5aa8"/><text x="593" y="99">cores</text>
+  <rect x="750" y="78" width="66" height="34" rx="5" fill="#dbe8fa" stroke="#2e5aa8"/><text x="783" y="99">cores</text>
+  <rect x="826" y="78" width="66" height="34" rx="5" fill="#dbe8fa" stroke="#2e5aa8"/><text x="859" y="99">cores</text>
+  <rect x="484" y="124" width="142" height="40" rx="5" fill="#f5f5f5" stroke="#2d3142"/><text x="555" y="148">memory controller</text>
+  <rect x="750" y="124" width="142" height="40" rx="5" fill="#f5f5f5" stroke="#2d3142"/><text x="821" y="148">memory controller</text>
+  <path d="M555 178 V200 M821 178 V200" stroke="#2d3142" stroke-width="1.4"/>
+  <rect x="480" y="200" width="150" height="32" rx="6" fill="#e3efe6" stroke="#23774a"/><text x="555" y="220">local DRAM</text>
+  <rect x="746" y="200" width="150" height="32" rx="6" fill="#e3efe6" stroke="#23774a"/><text x="821" y="220">local DRAM</text>
+  <rect x="640" y="132" width="96" height="24" rx="4" fill="#f8ddd2" stroke="#bf4520"/><text x="688" y="148" font-size="10" fill="#8f2f12">UPI / Infinity Fabric</text>
+  <text x="688" y="120" font-size="10" fill="#5a6580">interconnect</text>
+</g>
+</svg></div>
+    <p class="cap">Fig 2 · UMA shares one path to memory. NUMA gives each socket its own path and adds a link for the rare trip to the other socket.</p>
+  </div>
+  <p class="callout">NUMA trades uniform cost for scalable bandwidth. Software gets the bandwidth only if it keeps each thread near its data.</p>
+</section>
+
+<section>
+  <h2>2. Nodes and distances</h2>
+  <p>On Linux, <code>numactl --hardware</code> (or <code>numactl -H</code>) lists the nodes, the CPUs and memory in each, and a distance table. The output below is a typical two-socket server:</p>
+<pre><span class="k">$</span> numactl --hardware
+available: 2 nodes (0-1)
+node 0 cpus: 0 1 2 3 4 5 6 7 8 9 10 11 24 25 26 27 28 29 30 31 32 33 34 35
+node 0 size: 128625 MB
+node 0 free: 101240 MB
+node 1 cpus: 12 13 14 15 16 17 18 19 20 21 22 23 36 37 38 39 40 41 42 43 44 45 46 47
+node 1 size: 129019 MB
+node 1 free: 110872 MB
+node distances:
+node   0   1
+  0:  10  21
+  1:  21  10</pre>
+  <p>The distances come from the firmware's ACPI SLIT table. They are relative, not nanoseconds: 10 means local, so 21 says "about 2.1 times as far". Real latency ratios are usually smaller than the table claims, often 1.3 to 2 times, so measure instead of trusting the numbers. CPU numbering also interleaves: here CPUs 24 to 35 are the hyper-thread siblings of 0 to 11, still on node 0.</p>
+
+  <h3>More sockets, more hops</h3>
+  <p>With four or eight sockets, not every pair of sockets has a direct link. A request may take two hops, and the distance table grows a third value.</p>
+  <div class="fig">
+    <div class="scroll"><svg width="720" height="230" viewBox="0 0 720 230" style="min-width:600px;width:100%;max-width:720px" role="img" aria-labelledby="hop-title hop-desc">
+<title id="hop-title">A four-node ring with one-hop and two-hop paths</title>
+<desc id="hop-desc">Four nodes in a square, linked only along the sides. Node 0 reaches nodes 1 and 3 in one hop and node 2 in two hops, through node 1 or node 3. A distance table beside it lists 10 for local, 21 for one hop and 31 for two hops.</desc>
+<g font-family="'Geist Mono',monospace" font-size="12" text-anchor="middle" fill="#2d3142">
+  <path d="M90 50 H250 M250 50 V180 M250 180 H90 M90 180 V50" stroke="#2d3142" stroke-width="2" fill="none"/>
+  <path d="M110 62 L232 168" stroke="#bf4520" stroke-width="1.6" stroke-dasharray="5 4" fill="none"/>
+  <text x="185" y="104" font-size="10" fill="#8f2f12">no direct link</text>
+  <rect x="50" y="30" width="80" height="40" rx="8" fill="#dbe8fa" stroke="#2e5aa8" stroke-width="1.6"/><text x="90" y="55" font-weight="600">node 0</text>
+  <rect x="210" y="30" width="80" height="40" rx="8" fill="#fff" stroke="#2d3142"/><text x="250" y="55">node 1</text>
+  <rect x="210" y="160" width="80" height="40" rx="8" fill="#fff" stroke="#2d3142"/><text x="250" y="185">node 2</text>
+  <rect x="50" y="160" width="80" height="40" rx="8" fill="#fff" stroke="#2d3142"/><text x="90" y="185">node 3</text>
+  <text x="170" y="42" font-size="10" fill="#5a6580">1 hop</text><text x="30" y="120" font-size="10" fill="#5a6580" text-anchor="start">1 hop</text>
+  <text x="170" y="222" font-size="10" fill="#5a6580">node 0 → node 2: 2 hops</text>
+</g>
+<g font-family="'Geist Mono',monospace" font-size="12" fill="#2d3142" text-anchor="middle">
+  <text x="500" y="40" font-size="11" fill="#5a6580">example distance table</text>
+  <text x="420" y="70" fill="#5a6580">node</text><text x="480" y="70" fill="#5a6580">0</text><text x="530" y="70" fill="#5a6580">1</text><text x="580" y="70" fill="#5a6580">2</text><text x="630" y="70" fill="#5a6580">3</text>
+  <text x="420" y="100" fill="#5a6580">0</text><text x="480" y="100" font-weight="600" fill="#23774a">10</text><text x="530" y="100">21</text><text x="580" y="100" font-weight="600" fill="#bf4520">31</text><text x="630" y="100">21</text>
+  <text x="420" y="130" fill="#5a6580">1</text><text x="480" y="130">21</text><text x="530" y="130" font-weight="600" fill="#23774a">10</text><text x="580" y="130">21</text><text x="630" y="130" font-weight="600" fill="#bf4520">31</text>
+  <text x="420" y="160" fill="#5a6580">2</text><text x="480" y="160" font-weight="600" fill="#bf4520">31</text><text x="530" y="160">21</text><text x="580" y="160" font-weight="600" fill="#23774a">10</text><text x="630" y="160">21</text>
+  <text x="420" y="190" fill="#5a6580">3</text><text x="480" y="190">21</text><text x="530" y="190" font-weight="600" fill="#bf4520">31</text><text x="580" y="190">21</text><text x="630" y="190" font-weight="600" fill="#23774a">10</text>
+</g>
+</svg></div>
+    <p class="cap">Fig 3 · In a ring of four nodes, opposite corners are two hops apart. The values are an example of the shape, not of a specific machine.</p>
+  </div>
+  <p>One socket can also be several nodes. Intel's Sub-NUMA Clustering (SNC) and AMD's NPS setting (Nodes Per Socket: NPS1, NPS2, NPS4) split a socket's cores and memory channels into smaller domains. The distances inside a socket are small, but a program that ignores them still leaves bandwidth on the table. <code>lstopo</code> from hwloc draws the whole hierarchy: nodes, caches, cores and the PCIe devices attached to each node.</p>
+</section>
+
+<section>
+  <h2>3. Where a page lands: first touch</h2>
+  <p><code>malloc</code> and <code>mmap</code> only reserve virtual addresses. The kernel picks a physical page, and therefore a node, at the <b>first write or read that faults the page in</b>. Under the default policy that page goes to the node of the CPU that touched it. This is <b>first-touch</b> placement, and it is the source of the most common NUMA bug.</p>
+<pre><span class="c">// The bug: the main thread touches everything, so every page is on its node</span>
+<span class="k">double</span> *a = malloc(n * <span class="k">sizeof</span>(<span class="k">double</span>));
+<span class="k">for</span> (size_t i = <span class="t">0</span>; i &lt; n; i++) a[i] = <span class="t">0.0</span>;   <span class="c">// all pages land on node 0</span>
+
+<span class="k">#pragma omp parallel for</span>
+<span class="k">for</span> (size_t i = <span class="t">0</span>; i &lt; n; i++) a[i] = f(a[i]);  <span class="c">// half the threads go remote</span>
+
+<span class="c">// The fix: initialise with the same parallel loop and schedule that uses the data</span>
+<span class="k">#pragma omp parallel for schedule(static)</span>
+<span class="k">for</span> (size_t i = <span class="t">0</span>; i &lt; n; i++) a[i] = <span class="t">0.0</span>;   <span class="c">// each thread faults in its own chunk</span>
+
+<span class="k">#pragma omp parallel for schedule(static)</span>
+<span class="k">for</span> (size_t i = <span class="t">0</span>; i &lt; n; i++) a[i] = f(a[i]);  <span class="c">// same chunks, now local</span></pre>
+  <p>Pin the threads too (<code>OMP_PROC_BIND=true</code>, <code>OMP_PLACES=cores</code>), or the scheduler can move a thread away from the chunk it initialised. That is the "Migrated after init" case in Fig 1. Note that <code>calloc</code> of a large block often maps fresh zero pages, so it does not touch them for you; the first real write still decides.</p>
+  <p class="callout">Whoever touches a page first decides where it lives. Make that the thread that will use it.</p>
+</section>
+
+<section>
+  <h2>4. Memory policies</h2>
+  <p>First touch is only the default. Linux lets a process, a thread or a single address range choose another policy, with <code>set_mempolicy</code> for the whole thread, <code>mbind</code> for a range, or <code>numactl</code> for a whole program.</p>
+  <table class="ops">
+    <thead><tr><th>Policy</th><th>numactl</th><th>What it does</th><th>Good for</th></tr></thead>
+    <tbody>
+      <tr><td>Default / local</td><td><code>--localalloc</code></td><td>Allocate on the node of the faulting CPU, fall back to others when it is full</td><td>Threads that own their data</td></tr>
+      <tr><td>Bind</td><td><code>--membind=0</code></td><td>Only these nodes. If they run out, reclaim or fail instead of spilling</td><td>Strict isolation, pinned services</td></tr>
+      <tr><td>Preferred</td><td><code>--preferred=0</code></td><td>Try this node first, spill elsewhere when full</td><td>A soft hint that must not fail</td></tr>
+      <tr><td>Interleave</td><td><code>--interleave=all</code></td><td>Round-robin pages across nodes</td><td>Large data shared by every thread, such as a database buffer pool</td></tr>
+      <tr><td>Weighted interleave</td><td>sysfs weights</td><td>Round-robin with per-node weights (Linux 6.9 and later)</td><td>Nodes with unequal bandwidth, such as DRAM plus CXL memory</td></tr>
+    </tbody>
+  </table>
+<pre><span class="c"># Run on node 0's CPUs and allocate only from node 0's memory</span>
+numactl --cpunodebind=<span class="t">0</span> --membind=<span class="t">0</span> ./server
+
+<span class="c"># Spread a big shared cache across both nodes</span>
+numactl --interleave=all ./cache-node
+
+<span class="c"># C: allocate directly on a node with libnuma (link with -lnuma)</span>
+<span class="k">void</span> *buf = numa_alloc_onnode(<span class="t">64</span> &lt;&lt; <span class="t">20</span>, <span class="t">1</span>);   <span class="c">// 64 MiB on node 1</span>
+numa_run_on_node(<span class="t">1</span>);                               <span class="c">// and run this thread there</span>
+numa_free(buf, <span class="t">64</span> &lt;&lt; <span class="t">20</span>);</pre>
+  <p>Interleave looks like a compromise in Fig 1, and it is: half the accesses go remote, but both memory controllers share the load. For data that every thread reads at random, there is no "right" node, and interleave is the best you can do. For data with a clear owner, local placement wins.</p>
+</section>
+
+<section>
+  <h2>5. Keeping threads near their data</h2>
+  <p>Memory placement only helps if the thread stays put. The tools, from coarse to fine:</p>
+  <ul class="tight">
+    <li><b>Whole process:</b> <code>numactl --cpunodebind</code>, <code>taskset -c</code>, or a systemd unit with <code>CPUAffinity=</code> and <code>NUMAPolicy=</code>.</li>
+    <li><b>Containers:</b> cgroup cpusets (<code>cpuset.cpus</code> and <code>cpuset.mems</code>). In Kubernetes, the CPU Manager's static policy plus the Topology Manager align CPUs, memory and devices to one node.</li>
+    <li><b>Per thread:</b> <code>pthread_setaffinity_np</code>, <code>sched_setaffinity</code>, or a runtime option such as <code>OMP_PROC_BIND</code>.</li>
+    <li><b>Let the kernel do it:</b> automatic NUMA balancing (<code>/proc/sys/kernel/numa_balancing</code>) periodically unmaps pages, watches which node faults on them, and migrates either the page or the task toward the other. It helps programs that never thought about NUMA, at the cost of extra page faults and migrations.</li>
+  </ul>
+  <p>Devices have a home node too. A network card or NVMe drive hangs off one socket's PCIe lanes, and <code>/sys/class/net/eth0/device/numa_node</code> tells you which. Low-latency systems pin the interrupt handlers, the polling thread and its buffers to that node, so packets never cross the interconnect.</p>
+</section>
+
+<section>
+  <h2>6. What it costs</h2>
+  <p>If a fraction $p$ of a thread's memory accesses are local, the average latency is a weighted mix of the two costs:</p>
+  <div class="formula">$$\bar{t} = p\,t_{\text{local}} + (1-p)\,t_{\text{remote}}$$</div>
+  <p>With $t_{\text{local}} = 90$ ns and $t_{\text{remote}} = 150$ ns, interleaving across two nodes ($p = 0.5$) gives $\bar{t} = 120$ ns, and the worst case ($p = 0$) gives 150 ns. Latency alone is a modest penalty. Bandwidth is where it hurts: when all pages sit on one node, every thread shares one memory controller, and the machine delivers at most one node's bandwidth:</p>
+  <div class="formula">$$B_{\text{total}} \le \sum_{j} \min\bigl(\text{demand}_j,\ B_{\text{node } j}\bigr)$$</div>
+  <p>Here $\text{demand}_j$ is the traffic aimed at node $j$'s memory, and the remote part of it is also capped by the interconnect. Fig 1 uses this bound: one overloaded node limits the "main thread inits" case to 25 GB/s, while local placement reaches the full 40 GB/s.</p>
+  <div class="cards">
+    <div class="stat"><div class="eyebrow">Local DRAM</div><div class="big">~80–100 ns</div><p>Load to use on a recent server, cache miss included.</p></div>
+    <div class="stat focal"><div class="eyebrow">Remote, one hop</div><div class="big">~1.3–2×</div><p>Typically 130–180 ns. More with two hops or a busy link.</p></div>
+    <div class="stat"><div class="eyebrow">Bandwidth</div><div class="big">per node</div><p>Each node adds its own memory channels. Remote traffic also has to fit through the link.</p></div>
+  </div>
+  <p style="margin-top:16px">Coherence crosses sockets too. A cache line bouncing between cores on different nodes, as in <a href="../false-sharing/false-sharing.html">False Sharing</a>, pays the interconnect on every transfer, so locks and atomics shared across sockets are much slower than within one.</p>
+</section>
+
+<section>
+  <h2>7. Measuring it</h2>
+  <ul class="tight">
+    <li><code>numastat</code> shows per-node counters: <code>numa_hit</code> and <code>numa_miss</code> (allocations that did or did not land on the intended node), <code>local_node</code> and <code>other_node</code>. <code>numastat -p &lt;pid&gt;</code> breaks one process's memory down by node.</li>
+    <li><code>/proc/&lt;pid&gt;/numa_maps</code> lists every mapping with its policy and page counts per node, for example <code>N0=51200 N1=12</code>.</li>
+    <li><code>perf stat -e node-loads,node-load-misses</code> counts loads served by the local node and by remote nodes, where the CPU supports those events. <code>perf c2c</code> finds cache lines shared across cores and sockets.</li>
+    <li>Intel Memory Latency Checker (<code>mlc --latency_matrix</code>, <code>mlc --bandwidth_matrix</code>) measures the real node-to-node numbers, which beat the SLIT table.</li>
+  </ul>
+<pre><span class="c">// Which node holds the page behind ptr? move_pages with nodes = NULL only queries.</span>
+<span class="k">#include</span> &lt;numaif.h&gt;
+<span class="k">void</span> *pages[<span class="t">1</span>] = { ptr };
+<span class="k">int</span> status[<span class="t">1</span>];
+<span class="k">if</span> (move_pages(<span class="t">0</span>, <span class="t">1</span>, pages, NULL, status, <span class="t">0</span>) == <span class="t">0</span>)
+    printf(<span class="t">"page is on node %d\n"</span>, status[<span class="t">0</span>]);   <span class="c">// negative = not faulted in yet</span></pre>
+</section>
+
+<section>
+  <h2>8. Runtimes, databases and new hardware</h2>
+  <ul class="tight">
+    <li><b>JVM:</b> <code>-XX:+UseNUMA</code> makes the heap NUMA-aware, so new objects are allocated on the node of the allocating thread. Parallel GC has supported it for a long time, and G1 gained it in JDK 14.</li>
+    <li><b>Databases:</b> one large buffer pool is shared by every thread, so interleaving it is common. MySQL has <code>innodb_numa_interleave</code>, and many vendors recommend starting the server under <code>numactl --interleave=all</code>.</li>
+    <li><b>Packet processing:</b> DPDK allocates memory pools per socket and expects each polling core to use the pool and NIC queue of its own node.</li>
+    <li><b>Virtual machines:</b> a large VM spanning two sockets should expose a matching virtual NUMA topology to the guest, or the guest kernel places memory blindly.</li>
+    <li><b>CXL memory:</b> memory expanders on CXL show up as a NUMA node with memory but no CPUs, farther away than local DRAM. Tiering and weighted interleave decide which pages live there.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>Pitfalls</h2>
+  <ul class="tight">
+    <li>Initialising data on one thread and processing it on many, the classic first-touch trap.</li>
+    <li>Pinning memory with <code>--membind</code> but not the threads, or the reverse. Bind both, to the same node.</li>
+    <li>Binding a process to a node that does not have enough free memory. With bind it reclaims, swaps or gets OOM-killed even though the other node is half empty.</li>
+    <li>Assuming one socket means one node. SNC and NPS settings change the node count, and so does the BIOS.</li>
+    <li>Sharing hot locks, counters or queues across sockets. Shard them per node, the same way you pad them per core.</li>
+    <li>Benchmarking on a laptop. A single-socket machine has one node, so NUMA bugs only appear in production.</li>
+  </ul>
+</section>
+
+</main>
+
+<script>
+(() => {
+  // ---------- model ----------
+  // 4 threads, 16 pages (thread t owns pages 4t..4t+3), 2 nodes. Illustrative costs.
+  const T = 4, P = 16, DEMAND = 10, CAP = 25, LINK = 16, LAT_L = 90, LAT_R = 150;
+  const TC = ['#2e5aa8', '#1f7a8c', '#bf4520', '#9a6200'];
+  const PLACE = { spread: [0, 0, 1, 1], packed: [0, 0, 0, 0], migrated: [1, 1, 0, 0] };
+  // where the workers ran while they initialised their pages (migration happens later)
+  const INIT = { spread: 'spread', packed: 'packed', migrated: 'spread' };
+  const POLS = ['main', 'par', 'inter', 'bind0'];
+  const POLNAME = { main: 'First touch, main', par: 'First touch, workers', inter: 'Interleave', bind0: 'Bind node 0' };
+  const st = { place: 'spread', pol: 'main', round: 0, shown: false };
+  let timer = null;
+
+  function pageNodes(place, pol) {
+    const out = [];
+    for (let i = 0; i < P; i++) {
+      const owner = i >> 2;
+      if (pol === 'main' || pol === 'bind0') out.push(0);          // the main thread runs on node 0
+      else if (pol === 'inter') out.push(i % 2);
+      else out.push(PLACE[INIT[place]][owner]);
+    }
+    return out;
+  }
+
+  function model(place, pol) {
+    const run = PLACE[place], pn = pageNodes(place, pol), ctrl = [0, 0], frac = [];
+    let link = 0;
+    for (let t = 0; t < T; t++) {
+      const f = [0, 0];
+      for (let k = 0; k < 4; k++) f[pn[4 * t + k]] += 0.25;
+      frac.push(f);
+      ctrl[0] += DEMAND * f[0]; ctrl[1] += DEMAND * f[1];
+      link += DEMAND * f[1 - run[t]];
+    }
+    const rc = ctrl.map(c => c / CAP), rl = link / LINK;
+    // a thread is slowed by the most overloaded resource on its paths
+    let bw = 0, lat = 0, remote = 0;
+    const factor = (t, j) => Math.max(1, rc[j], j !== run[t] ? rl : 0);
+    for (let t = 0; t < T; t++) {
+      let worst = 1;
+      for (let j = 0; j < 2; j++) if (frac[t][j] > 0) {
+        worst = Math.max(worst, factor(t, j));
+        lat += frac[t][j] * (j === run[t] ? LAT_L : LAT_R) * factor(t, j);
+      }
+      bw += DEMAND / worst;
+      remote += frac[t][1 - run[t]];
+    }
+    return { run, pn, ctrl, link, rc, rl, bw, lat: lat / T, remote: remote / T, factor };
+  }
+
+  // ---------- drawing ----------
+  const $ = id => document.getElementById(id);
+  const NX = [16, 364], NW = 300;
+  const txt = (s, x, y, size, fill, weight, anchor, mono = true) =>
+    `<text x="${x}" y="${y}" text-anchor="${anchor || 'middle'}" font-size="${size}" font-weight="${weight || 400}" fill="${fill}" font-family="${mono ? "'Geist Mono',ui-monospace,monospace" : "'Geist',system-ui,sans-serif"}">${s}</text>`;
+  const coreX = (node, c) => NX[node] + 14 + c * 70;
+  const slotXY = (node, k) => [NX[node] + 14 + (k % 8) * 34.5, 190 + Math.floor(k / 8) * 34];
+  const loadCol = r => r > 1 ? ['#f8ddd2', '#bf4520'] : ['#e3efe6', '#23774a'];
+
+  function meter(x, y, w, r, label) {
+    const [f, s] = loadCol(r), fillW = Math.min(r, 2) / 2 * w;
+    return `<rect x="${x}" y="${y}" width="${w}" height="10" rx="2" fill="#f5f5f5" stroke="rgba(45,49,66,.25)"/>` +
+      `<rect x="${x}" y="${y}" width="${fillW.toFixed(1)}" height="10" rx="2" fill="${f}" stroke="${s}"/>` +
+      `<line x1="${x + w / 2}" y1="${y - 3}" x2="${x + w / 2}" y2="${y + 13}" stroke="#2d3142" stroke-width="1"/>` +
+      txt(label, x + w, y - 4, 9.5, s, 600, 'end');
+  }
+
+  function render() {
+    const m = model(st.place, st.pol), k = st.round % 4;
+    // core slot of each thread: threads fill a node's cores in order
+    const coreOf = [], used = [0, 0];
+    for (let t = 0; t < T; t++) coreOf.push(used[m.run[t]]++);
+    // page slot inside its node
+    const slotOf = [], fill = [0, 0];
+    for (let i = 0; i < P; i++) slotOf.push(fill[m.pn[i]]++);
+
+    let s = '';
+    // interconnect in the gap between the nodes
+    const linkHot = m.rl > 0;
+    s += `<rect x="${NX[0] + NW + 6}" y="104" width="36" height="160" rx="6" fill="${linkHot ? 'rgba(191,69,32,.10)' : '#f5f5f5'}" stroke="${linkHot ? '#bf4520' : 'rgba(45,49,66,.25)'}"/>`;
+    s += `<text transform="translate(${NX[0] + NW + 28} 184) rotate(-90)" text-anchor="middle" font-size="10" fill="#5a6580" font-family="'Geist Mono',monospace">interconnect</text>`;
+    for (let n = 0; n < 2; n++) s += `<rect x="${NX[n]}" y="12" width="${NW}" height="262" rx="8" fill="#fff" stroke="#2d3142" stroke-width="1.2"/>`;
+    // accesses of this round, drawn under the controllers: core → down through its controller → lane → page.
+    // Second-row pages are reached through the gap left of the page, so no arrow hides behind the first row.
+    if (st.shown) for (let t = 0; t < T; t++) {
+      const i = 4 * t + k, n = m.pn[i], [px, py] = slotXY(n, slotOf[i]);
+      const cx = coreX(m.run[t], coreOf[t]) + 31, lane = 152 + t * 7, remote = n !== m.run[t];
+      const dash = remote ? ' stroke-dasharray="5 3"' : '', col = TC[t];
+      if (py === 190) {
+        const tx = px + 15;
+        s += `<path d="M${cx} 92 V${lane} H${tx} V${py - 2}" fill="none" stroke="${col}" stroke-width="2"${dash}/>`;
+        s += `<path d="M${tx - 4} ${py - 8} L${tx + 4} ${py - 8} L${tx} ${py - 1} Z" fill="${col}"/>`;
+      } else {
+        const gx = px - 2.25, ay = py + 14;
+        s += `<path d="M${cx} 92 V${lane} H${gx} V${ay}" fill="none" stroke="${col}" stroke-width="2"${dash}/>`;
+        s += `<path d="M${gx - 1} ${ay - 4} L${gx - 1} ${ay + 4} L${px + 2} ${ay} Z" fill="${col}"/>`;
+      }
+    }
+    for (let n = 0; n < 2; n++) {
+      const x = NX[n];
+      s += txt(`Node ${n}`, x + 14, 32, 15, '#2d3142', 600, 'start', false);
+      s += txt(`socket ${n}`, x + NW - 14, 32, 10, '#5a6580', 400, 'end');
+      for (let c = 0; c < 4; c++) {
+        const cx = coreX(n, c), t = m.run.findIndex((r, i) => r === n && coreOf[i] === c);
+        s += `<rect x="${cx}" y="44" width="62" height="48" rx="6" fill="${t >= 0 ? '#f8f9fb' : '#fafafa'}" stroke="${t >= 0 ? TC[t] : 'rgba(45,49,66,.2)'}" stroke-width="${t >= 0 ? 1.6 : 1}"/>`;
+        s += txt(`cpu ${n * 4 + c}`, cx + 31, 58, 9, '#5a6580');
+        if (t >= 0) s += `<circle cx="${cx + 31}" cy="76" r="11" fill="${TC[t]}"/>` + txt(`T${t}`, cx + 31, 80, 10, '#fff', 600);
+        else s += txt('idle', cx + 31, 80, 9.5, '#aab0bd');
+      }
+      // memory controller with load meter
+      s += `<rect x="${x + 14}" y="104" width="${NW - 28}" height="40" rx="6" fill="#f5f5f5" stroke="rgba(45,49,66,.3)"/>`;
+      s += txt('memory controller', x + 24, 122, 10.5, '#2d3142', 600, 'start');
+      s += txt(`${m.ctrl[n].toFixed(0)} / ${CAP} GB/s`, x + 24, 136, 9.5, '#5a6580', 400, 'start');
+      s += meter(x + 156, 126, 124, m.rc[n], m.rc[n] > 1 ? `overloaded ×${m.rc[n].toFixed(1)}` : `${Math.round(m.rc[n] * 100)}%`);
+      s += txt('DRAM', x + NW - 14, 266, 9.5, '#5a6580', 400, 'end');
+    }
+    // pages
+    for (let i = 0; i < P; i++) {
+      const n = m.pn[i], [px, py] = slotXY(n, slotOf[i]), o = i >> 2, hit = st.shown && (i & 3) === k;
+      s += `<rect x="${px}" y="${py}" width="30" height="28" rx="4" fill="${TC[o]}" fill-opacity="${hit ? 0.35 : 0.12}" stroke="${TC[o]}" stroke-width="${hit ? 2.2 : 1}"/>`;
+      s += txt(`p${i}`, px + 15, py + 18, 10, TC[o], 600);
+    }
+    // interconnect load strip
+    s += txt('interconnect load', 16, 300, 10.5, '#2d3142', 600, 'start');
+    s += txt(`${m.link.toFixed(0)} / ${LINK} GB/s`, 16, 316, 9.5, '#5a6580', 400, 'start');
+    s += meter(160, 304, 504, m.rl, m.rl > 1 ? `overloaded ×${m.rl.toFixed(2)}` : m.rl > 0 ? `${Math.round(m.rl * 100)}%` : 'idle');
+    $('scene').innerHTML = s;
+
+    // readout
+    let r = st.shown ? `round ${st.round + 1}, one access per thread\n` : 'press Step to draw one access per thread\n';
+    if (st.shown) for (let t = 0; t < T; t++) {
+      const i = 4 * t + k, n = m.pn[i], remote = n !== m.run[t], base = remote ? LAT_R : LAT_L, f = m.factor(t, n);
+      r += `<span style="color:${TC[t]};font-weight:600">T${t}</span> node ${m.run[t]} → p${String(i).padEnd(2)} node ${n}  ${remote ? '<b style="color:#bf4520">remote</b>' : 'local '}  ${base} ns` + (f > 1 ? ` × ${f.toFixed(2)} = ${Math.round(base * f)} ns` : '') + '\n';
+    }
+    r += `\nbandwidth  ${m.bw.toFixed(1)} of ${T * DEMAND} GB/s wanted\navg latency ${Math.round(m.lat)} ns\nremote     ${Math.round(m.remote * 100)}% of accesses`;
+    $('readout').innerHTML = r;
+    $('live').textContent = `${m.bw.toFixed(1)} GB/s · ${Math.round(m.lat)} ns · ${Math.round(m.remote * 100)}% remote`;
+    $('task').innerHTML = note(m);
+
+    // compare all policies for the current thread placement
+    $('bars').innerHTML = POLS.map(p => {
+      const q = model(st.place, p);
+      return `<div class="bar${p === st.pol ? ' on' : ''}"><span>${POLNAME[p]}<small>${Math.round(q.lat)} ns · ${Math.round(q.remote * 100)}% remote</small></span>` +
+        `<div class="track"><div class="fill" style="width:${(q.bw / (T * DEMAND) * 100).toFixed(1)}%"></div></div><output>${q.bw.toFixed(1)} GB/s</output></div>`;
+    }).join('');
+  }
+
+  function note(m) {
+    const hot = Math.max(m.rc[0], m.rc[1]) > 1;
+    if (st.pol === 'inter') return '<b>Interleave</b> spreads the pages evenly. Half the accesses go remote, but both memory controllers share the load. It is a good choice for data every thread reads, and a poor one for data with a clear owner.';
+    if (m.remote === 1) return '<b>Every access is remote.</b> The workers placed their pages on their own nodes, then the scheduler moved the threads to the other socket. Pin the threads, or let automatic NUMA balancing migrate the pages back.';
+    if (m.remote > 0) return '<b>All pages landed on node 0</b>, because one thread on node 0 touched them first (or the policy forced it). Threads on node 1 cross the interconnect, and node 0\'s controller serves everyone. Initialise the data in parallel, from the threads that will use it.';
+    if (hot) return '<b>Every access is local, and it is still slow.</b> All four threads hammer node 0\'s memory controller while node 1\'s bandwidth sits idle. Local is not enough; spread the work across nodes.';
+    return '<b>Every access is local and both controllers have headroom.</b> Each worker touched its own pages first and still runs on that node. This is the target layout.';
+  }
+
+  // ---------- controls ----------
+  function wire(attr, key) {
+    const btns = document.querySelectorAll(`[${attr}]`);
+    btns.forEach(b => b.addEventListener('click', () => {
+      st[key] = b.getAttribute(attr);
+      btns.forEach(o => o.setAttribute('aria-pressed', o === b ? 'true' : 'false'));
+      render();
+    }));
+  }
+  wire('data-place', 'place');
+  wire('data-pol', 'pol');
+  function step() { if (st.shown) st.round++; st.shown = true; render(); }
+  function stop() { clearInterval(timer); timer = null; $('bPlay').textContent = 'Play'; $('bPlay').setAttribute('aria-pressed', 'false'); }
+  $('bStep').addEventListener('click', () => { stop(); step(); });
+  $('bPlay').addEventListener('click', () => {
+    if (timer) { stop(); return; }
+    step();
+    timer = setInterval(step, 900);
+    $('bPlay').textContent = 'Pause'; $('bPlay').setAttribute('aria-pressed', 'true');
+  });
+  $('bReset').addEventListener('click', () => { stop(); st.round = 0; st.shown = false; render(); });
+  render();
+})();
+
+document.addEventListener('DOMContentLoaded', function () {
+  if (window.renderMathInElement) renderMathInElement(document.body, {
+    delimiters: [{ left: '$$', right: '$$', display: true }, { left: '$', right: '$', display: false }],
+    ignoredTags: ['script', 'style', 'textarea', 'pre', 'code'],
+    throwOnError: false
+  });
+});
+</script>
+</body>
+</html>
