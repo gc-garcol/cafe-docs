@@ -183,6 +183,28 @@ table.ops td:first-child{font-weight:600}
     <span class="m">println!</span>(<span class="s">"{}"</span>, c.average()); <span class="c2">// 3</span>
 }</code></pre></div>
   <p>Because <code>list</code> is private, the <code>Vec</code> could later become a <code>HashSet</code> without breaking callers. Inheritance is left out on purpose: it tends to share more code than intended, and subclasses inherit methods that may not make sense for them. Rust prefers composition and traits.</p>
+<!-- sim:oop -->
+  <figure class="card sim" id="sim-oop" aria-label="Simulator: Encapsulation: the fields stay in sync">
+    <div class="card-top"><span class="eyebrow">Simulator 1</span><span class="card-title">Encapsulation: the fields stay in sync</span></div>
+    <div class="trace">
+      <pre class="trace-code"><code><span class="ln" data-l="1"><span class="lno">1</span><span class="k">pub</span> <span class="k">struct</span> <span class="t">Averaged</span> { list: <span class="t">Vec</span>&lt;i32&gt;, average: f64 }</span><span class="ln" data-l="2"><span class="lno">2</span><span class="k">impl</span> <span class="t">Averaged</span> {</span><span class="ln" data-l="3"><span class="lno">3</span>    <span class="k">pub</span> <span class="k">fn</span> new() -&gt; <span class="k">Self</span> { <span class="k">Self</span> { list: <span class="m">vec!</span>[], average: <span class="n">0.0</span> } }</span><span class="ln" data-l="4"><span class="lno">4</span>    <span class="k">pub</span> <span class="k">fn</span> add(&amp;<span class="k">mut</span> <span class="k">self</span>, v: i32) { <span class="k">self</span>.list.push(v); <span class="k">self</span>.update(); }</span><span class="ln" data-l="5"><span class="lno">5</span>    <span class="k">pub</span> <span class="k">fn</span> remove(&amp;<span class="k">mut</span> <span class="k">self</span>) -&gt; <span class="t">Option</span>&lt;i32&gt; {</span><span class="ln" data-l="6"><span class="lno">6</span>        <span class="k">let</span> r = <span class="k">self</span>.list.pop();</span><span class="ln" data-l="7"><span class="lno">7</span>        <span class="k">self</span>.update();</span><span class="ln" data-l="8"><span class="lno">8</span>        r</span><span class="ln" data-l="9"><span class="lno">9</span>    }</span><span class="ln" data-l="10"><span class="lno">10</span>    <span class="k">pub</span> <span class="k">fn</span> average(&amp;<span class="k">self</span>) -&gt; f64 { <span class="k">self</span>.average }</span><span class="ln" data-l="11"><span class="lno">11</span>    <span class="k">fn</span> update(&amp;<span class="k">mut</span> <span class="k">self</span>) {</span><span class="ln" data-l="12"><span class="lno">12</span>        <span class="k">let</span> total: i32 = <span class="k">self</span>.list.iter().sum();</span><span class="ln" data-l="13"><span class="lno">13</span>        <span class="k">self</span>.average = total <span class="k">as</span> f64 / <span class="k">self</span>.list.len().max(<span class="n">1</span>) <span class="k">as</span> f64;</span><span class="ln" data-l="14"><span class="lno">14</span>    }</span><span class="ln" data-l="15"><span class="lno">15</span>}</span><span class="ln" data-l="16"><span class="lno">16</span><span class="k">fn</span> main() {</span><span class="ln" data-l="17"><span class="lno">17</span>    <span class="k">let</span> <span class="k">mut</span> a = <span class="t">Averaged</span>::new();</span><span class="ln" data-l="18"><span class="lno">18</span>    a.add(<span class="n">4</span>); a.add(<span class="n">8</span>);</span><span class="ln" data-l="19"><span class="lno">19</span>    <span class="k">let</span> r = a.remove();</span><span class="ln" data-l="20"><span class="lno">20</span>    <span class="m">println!</span>(<span class="s">"{r:?} {}"</span>, a.average());</span><span class="ln" data-l="21"><span class="lno">21</span>}</span></code></pre>
+      <div class="scroll"><svg viewBox="0 0 640 200" role="img" aria-labelledby="sim-oop-title sim-oop-desc">
+        <title id="sim-oop-title">Encapsulation: the fields stay in sync</title>
+        <desc id="sim-oop-desc">Step-by-step simulator for Encapsulation: the fields stay in sync. Use Prev and Next, or the arrow keys, to move through the steps; the note under the figure explains each one.</desc>
+      </svg></div>
+    </div>
+    <p class="trace-note" aria-live="polite"></p>
+    <div class="card-bottom">
+      <div class="row" style="margin:0">
+        <button type="button" class="btn" data-act="prev">&larr; Prev</button>
+        <button type="button" class="btn" data-act="next">Next &rarr;</button>
+        <button type="button" class="btn" data-act="reset">Reset</button>
+      </div>
+      <span class="live"></span>
+    </div>
+    <script type="application/json" class="sim-data">{"heads":["PUBLIC API","PRIVATE STATE"],"steps":[{"l":1,"note":"The struct is public, its fields are not. Outside code cannot set \u003ccode>average\u003c/code> directly, so it can never disagree with \u003ccode>list\u003c/code>.","cols":[[{"v":"new, add, remove, average"}],[{"n":"list","v":"[]"},{"n":"average","v":"0.0"}]]},{"l":[18,4,11],"note":"Every public mutator calls the private \u003ccode>update\u003c/code>.","cols":[[{"v":"add(4), add(8)","s":"hl"}],[{"n":"list","v":"[4, 8]"},{"n":"average","v":"6.0","s":"hl"}]]},{"l":[19,6,7],"note":"\u003ccode>remove\u003c/code> pops and recomputes.","cols":[[{"v":"remove() → Some(8)","s":"hl"}],[{"n":"list","v":"[4]"},{"n":"average","v":"4.0","s":"hl"}]]},{"l":[20,10],"note":"The getter is the only way to read it. The representation could change (say, to a running sum) without breaking callers.","o":"Some(8) 4","cols":[[{"v":"average() → 4.0","s":"ok"}],[{"n":"list","v":"[4]"},{"n":"average","v":"4.0"}]]}]}</script>
+  </figure>
+  <!-- /sim:oop -->
 </section>
 
 <section id="trait-objects">
@@ -234,6 +256,28 @@ table.ops td:first-child{font-weight:600}
         components: <span class="m">vec!</span>[<span class="t">Box</span>::new(<span class="t">String</span>::from(<span class="s">"Hi"</span>))], <span class="c2">// error[E0277]: the trait bound `String: Draw` is not satisfied</span>
     };
 }</code></pre></div>
+<!-- sim:trait-objects -->
+  <figure class="card sim" id="sim-trait-objects" aria-label="Simulator: Box&lt;dyn Draw&gt;: a data pointer and a vtable pointer">
+    <div class="card-top"><span class="eyebrow">Simulator 2</span><span class="card-title">Box&lt;dyn Draw&gt;: a data pointer and a vtable pointer</span></div>
+    <div class="trace">
+      <pre class="trace-code"><code><span class="ln" data-l="1"><span class="lno">1</span><span class="k">trait</span> <span class="t">Draw</span> { <span class="k">fn</span> draw(&amp;<span class="k">self</span>) -&gt; <span class="t">String</span>; }</span><span class="ln" data-l="2"><span class="lno">2</span><span class="k">struct</span> <span class="t">Button</span> { label: <span class="t">String</span> }</span><span class="ln" data-l="3"><span class="lno">3</span><span class="k">struct</span> <span class="t">Slider</span> { value: u8 }</span><span class="ln" data-l="4"><span class="lno">4</span><span class="k">impl</span> <span class="t">Draw</span> <span class="k">for</span> <span class="t">Button</span> { <span class="k">fn</span> draw(&amp;<span class="k">self</span>) -&gt; <span class="t">String</span> { <span class="m">format!</span>(<span class="s">"[{}]"</span>, <span class="k">self</span>.label) } }</span><span class="ln" data-l="5"><span class="lno">5</span><span class="k">impl</span> <span class="t">Draw</span> <span class="k">for</span> <span class="t">Slider</span> { <span class="k">fn</span> draw(&amp;<span class="k">self</span>) -&gt; <span class="t">String</span> { <span class="m">format!</span>(<span class="s">"&lt;{}&gt;"</span>, <span class="k">self</span>.value) } }</span><span class="ln" data-l="6"><span class="lno">6</span><span class="k">fn</span> main() {</span><span class="ln" data-l="7"><span class="lno">7</span>    <span class="k">let</span> ui: <span class="t">Vec</span>&lt;<span class="t">Box</span>&lt;<span class="k">dyn</span> <span class="t">Draw</span>&gt;&gt; = <span class="m">vec!</span>[</span><span class="ln" data-l="8"><span class="lno">8</span>        <span class="t">Box</span>::new(<span class="t">Button</span> { label: <span class="t">String</span>::from(<span class="s">"OK"</span>) }),</span><span class="ln" data-l="9"><span class="lno">9</span>        <span class="t">Box</span>::new(<span class="t">Slider</span> { value: <span class="n">7</span> }),</span><span class="ln" data-l="10"><span class="lno">10</span>    ];</span><span class="ln" data-l="11"><span class="lno">11</span>    <span class="k">for</span> c <span class="k">in</span> &amp;ui { <span class="m">println!</span>(<span class="s">"{}"</span>, c.draw()); }</span><span class="ln" data-l="12"><span class="lno">12</span>}</span></code></pre>
+      <div class="scroll"><svg viewBox="0 0 640 200" role="img" aria-labelledby="sim-trait-objects-title sim-trait-objects-desc">
+        <title id="sim-trait-objects-title">Box&lt;dyn Draw&gt;: a data pointer and a vtable pointer</title>
+        <desc id="sim-trait-objects-desc">Step-by-step simulator for Box&lt;dyn Draw&gt;: a data pointer and a vtable pointer. Use Prev and Next, or the arrow keys, to move through the steps; the note under the figure explains each one.</desc>
+      </svg></div>
+    </div>
+    <p class="trace-note" aria-live="polite"></p>
+    <div class="card-bottom">
+      <div class="row" style="margin:0">
+        <button type="button" class="btn" data-act="prev">&larr; Prev</button>
+        <button type="button" class="btn" data-act="next">Next &rarr;</button>
+        <button type="button" class="btn" data-act="reset">Reset</button>
+      </div>
+      <span class="live"></span>
+    </div>
+    <script type="application/json" class="sim-data">{"heads":["VEC\u003cBOX\u003cDYN DRAW>>","HEAP DATA","VTABLES"],"steps":[{"l":[7,8],"note":"A \u003ccode>Box&lt;dyn Draw&gt;\u003c/code> is a \u003cb>fat pointer\u003c/b>: one pointer to the value and one to the vtable for its concrete type.","cols":[[{"id":"e0","n":"ui[0]","v":"data | vtable","to":["b","vb"]}],[{"id":"b","v":"Button { \"OK\" }"}],[{"id":"vb","v":"Button: draw, drop, size"}]]},{"l":9,"note":"A \u003ccode>Slider\u003c/code> has a different size and type, but its box has the same shape, so both fit in one \u003ccode>Vec\u003c/code>.","cols":[[{"id":"e0","n":"ui[0]","v":"data | vtable","to":["b","vb"]},{"id":"e1","n":"ui[1]","v":"data | vtable","to":["s","vs"],"s":"hl"}],[{"id":"b","v":"Button { \"OK\" }"},{"id":"s","v":"Slider { 7 }"}],[{"id":"vb","v":"Button: draw, drop, size"},{"id":"vs","v":"Slider: draw, drop, size"}]]},{"l":11,"note":"\u003ccode>c.draw()\u003c/code> loads \u003ccode>draw\u003c/code> from the vtable of element 0 and calls it with the data pointer.","o":"[OK]","cols":[[{"id":"e0","n":"ui[0]","v":"data | vtable","to":["b","vb"],"s":"hl"},{"id":"e1","n":"ui[1]","v":"data | vtable","to":["s","vs"]}],[{"id":"b","v":"Button { \"OK\" }"},{"id":"s","v":"Slider { 7 }"}],[{"id":"vb","v":"Button::draw ←","s":"ok"},{"id":"vs","v":"Slider: draw, drop, size"}]]},{"l":11,"note":"The same call site picks \u003ccode>Slider::draw\u003c/code> for element 1. New types can be added without changing this loop.","o":"\u003c7>","cols":[[{"id":"e0","n":"ui[0]","v":"data | vtable","to":["b","vb"]},{"id":"e1","n":"ui[1]","v":"data | vtable","to":["s","vs"],"s":"hl"}],[{"id":"b","v":"Button { \"OK\" }"},{"id":"s","v":"Slider { 7 }"}],[{"id":"vb","v":"Button: draw, drop, size"},{"id":"vs","v":"Slider::draw ←","s":"ok"}]]},{"l":12,"note":"Dropping the vector drops each box through the vtable's \u003ccode>drop\u003c/code> entry, which knows the concrete type.","cols":[[{"id":"e0","n":"ui[0]","s":"dropped"},{"id":"e1","n":"ui[1]","s":"dropped"}],[{"id":"b","s":"freed"},{"id":"s","s":"freed"}],[{"id":"vb","v":"Button vtable (static)"},{"id":"vs","v":"Slider vtable (static)"}]]}]}</script>
+  </figure>
+  <!-- /sim:trait-objects -->
 </section>
 
 <section id="dispatch">
@@ -254,6 +298,28 @@ table.ops td:first-child{font-weight:600}
 <span class="k">fn</span> main() {
     <span class="k">let</span> _v: <span class="t">Vec</span>&lt;<span class="t">Box</span>&lt;<span class="k">dyn</span> <span class="t">Shape</span>&gt;&gt; = <span class="t">Vec</span>::new(); <span class="c2">// error[E0038]: the trait `Shape` is not dyn compatible</span>
 }</code></pre></div>
+<!-- sim:dispatch -->
+  <figure class="card sim" id="sim-dispatch" aria-label="Simulator: Static dispatch versus dynamic dispatch">
+    <div class="card-top"><span class="eyebrow">Simulator 3</span><span class="card-title">Static dispatch versus dynamic dispatch</span></div>
+    <div class="trace">
+      <pre class="trace-code"><code><span class="ln" data-l="1"><span class="lno">1</span><span class="k">trait</span> <span class="t">Speak</span> { <span class="k">fn</span> hi(&amp;<span class="k">self</span>) -&gt; &amp;<span class="lt">'static</span> str; }</span><span class="ln" data-l="2"><span class="lno">2</span><span class="k">struct</span> <span class="t">Dog</span>;</span><span class="ln" data-l="3"><span class="lno">3</span><span class="k">struct</span> <span class="t">Cat</span>;</span><span class="ln" data-l="4"><span class="lno">4</span><span class="k">impl</span> <span class="t">Speak</span> <span class="k">for</span> <span class="t">Dog</span> { <span class="k">fn</span> hi(&amp;<span class="k">self</span>) -&gt; &amp;<span class="lt">'static</span> str { <span class="s">"woof"</span> } }</span><span class="ln" data-l="5"><span class="lno">5</span><span class="k">impl</span> <span class="t">Speak</span> <span class="k">for</span> <span class="t">Cat</span> { <span class="k">fn</span> hi(&amp;<span class="k">self</span>) -&gt; &amp;<span class="lt">'static</span> str { <span class="s">"meow"</span> } }</span><span class="ln" data-l="6"><span class="lno">6</span><span class="k">fn</span> stat&lt;<span class="t">T</span>: <span class="t">Speak</span>&gt;(x: &amp;<span class="t">T</span>) -&gt; &amp;<span class="lt">'static</span> str { x.hi() }</span><span class="ln" data-l="7"><span class="lno">7</span><span class="k">fn</span> dynamic(x: &amp;<span class="k">dyn</span> <span class="t">Speak</span>) -&gt; &amp;<span class="lt">'static</span> str { x.hi() }</span><span class="ln" data-l="8"><span class="lno">8</span><span class="k">fn</span> main() {</span><span class="ln" data-l="9"><span class="lno">9</span>    <span class="m">println!</span>(<span class="s">"{} {}"</span>, stat(&amp;<span class="t">Dog</span>), stat(&amp;<span class="t">Cat</span>));</span><span class="ln" data-l="10"><span class="lno">10</span>    <span class="m">println!</span>(<span class="s">"{}"</span>, dynamic(&amp;<span class="t">Cat</span>));</span><span class="ln" data-l="11"><span class="lno">11</span>    <span class="m">println!</span>(<span class="s">"{}"</span>, size_of::&lt;&amp;<span class="k">dyn</span> <span class="t">Speak</span>&gt;() / size_of::&lt;&amp;<span class="t">Cat</span>&gt;());</span><span class="ln" data-l="12"><span class="lno">12</span>}</span></code></pre>
+      <div class="scroll"><svg viewBox="0 0 640 200" role="img" aria-labelledby="sim-dispatch-title sim-dispatch-desc">
+        <title id="sim-dispatch-title">Static dispatch versus dynamic dispatch</title>
+        <desc id="sim-dispatch-desc">Step-by-step simulator for Static dispatch versus dynamic dispatch. Use Prev and Next, or the arrow keys, to move through the steps; the note under the figure explains each one.</desc>
+      </svg></div>
+    </div>
+    <p class="trace-note" aria-live="polite"></p>
+    <div class="card-bottom">
+      <div class="row" style="margin:0">
+        <button type="button" class="btn" data-act="prev">&larr; Prev</button>
+        <button type="button" class="btn" data-act="next">Next &rarr;</button>
+        <button type="button" class="btn" data-act="reset">Reset</button>
+      </div>
+      <span class="live"></span>
+    </div>
+    <script type="application/json" class="sim-data">{"heads":["SOURCE","WHAT RUNS"],"steps":[{"l":[6,9],"note":"A generic is monomorphized: \u003ccode>stat::&lt;Dog&gt;\u003c/code> and \u003ccode>stat::&lt;Cat&gt;\u003c/code> are compiled separately, each calling its \u003ccode>hi\u003c/code> directly, which can be inlined.","o":"woof meow","cols":[[{"v":"stat\u003cT: Speak>"}],[{"v":"stat::\u003cDog> → Dog::hi","s":"ok"},{"v":"stat::\u003cCat> → Cat::hi","s":"ok"}]]},{"l":[7,10],"note":"\u003ccode>&amp;dyn Speak\u003c/code> compiles one function. At run time it reads \u003ccode>hi\u003c/code> from the vtable and calls through the pointer. One indirection, no inlining, smaller code.","o":"meow","cols":[[{"v":"dynamic(&dyn Speak)"}],[{"v":"vtable lookup → Cat::hi","s":"hl"}]]},{"l":11,"note":"That is why \u003ccode>&amp;dyn Speak\u003c/code> is two words wide.","o":"2","cols":[[{"v":"&dyn Speak"}],[{"v":"2 × pointer size","s":"ok"}]]},{"l":1,"note":"Dyn compatibility: a trait can be used as \u003ccode>dyn\u003c/code> only if its methods can go in a vtable, so no generic methods and no methods returning \u003ccode>Self\u003c/code> by value (unless they have \u003ccode>where Self: Sized\u003c/code>). \u003ccode>Clone\u003c/code> is not dyn compatible.","cols":[[{"v":"dyn Clone"}],[{"v":"clone() -> Self","s":"err","t":"E0038"}]]}]}</script>
+  </figure>
+  <!-- /sim:dispatch -->
 </section>
 
 <section id="state">
@@ -317,6 +383,28 @@ table.ops td:first-child{font-weight:600}
 }</code></pre></div>
   <p><code>self: Box&lt;Self&gt;</code> means the method takes ownership of the boxed state, so the old state cannot be used after a transition. <code>Option::take</code> moves the state out of the field and leaves <code>None</code> for a moment, because Rust does not allow a field to be empty otherwise.</p>
   <p>It works, and adding a state touches only that state. But invalid calls, like <code>approve</code> on a draft, are silently ignored at run time, and the states repeat the same delegation boilerplate.</p>
+<!-- sim:state -->
+  <figure class="card sim" id="sim-state" aria-label="Simulator: State pattern: Box&lt;dyn State&gt; swapped in place">
+    <div class="card-top"><span class="eyebrow">Simulator 4</span><span class="card-title">State pattern: Box&lt;dyn State&gt; swapped in place</span></div>
+    <div class="trace">
+      <pre class="trace-code"><code><span class="ln" data-l="1"><span class="lno">1</span><span class="k">trait</span> <span class="t">State</span> {</span><span class="ln" data-l="2"><span class="lno">2</span>    <span class="k">fn</span> request_review(<span class="k">self</span>: <span class="t">Box</span>&lt;<span class="k">Self</span>&gt;) -&gt; <span class="t">Box</span>&lt;<span class="k">dyn</span> <span class="t">State</span>&gt;;</span><span class="ln" data-l="3"><span class="lno">3</span>    <span class="k">fn</span> approve(<span class="k">self</span>: <span class="t">Box</span>&lt;<span class="k">Self</span>&gt;) -&gt; <span class="t">Box</span>&lt;<span class="k">dyn</span> <span class="t">State</span>&gt;;</span><span class="ln" data-l="4"><span class="lno">4</span>    <span class="k">fn</span> content&lt;<span class="lt">'a</span>&gt;(&amp;<span class="k">self</span>, _p: &amp;<span class="lt">'a</span> <span class="t">Post</span>) -&gt; &amp;<span class="lt">'a</span> str { <span class="s">""</span> }</span><span class="ln" data-l="5"><span class="lno">5</span>}</span><span class="ln" data-l="6"><span class="lno">6</span><span class="k">struct</span> <span class="t">Draft</span>; <span class="k">struct</span> <span class="t">Pending</span>; <span class="k">struct</span> <span class="t">Published</span>;</span><span class="ln" data-l="7"><span class="lno">7</span><span class="k">impl</span> <span class="t">State</span> <span class="k">for</span> <span class="t">Draft</span> {</span><span class="ln" data-l="8"><span class="lno">8</span>    <span class="k">fn</span> request_review(<span class="k">self</span>: <span class="t">Box</span>&lt;<span class="k">Self</span>&gt;) -&gt; <span class="t">Box</span>&lt;<span class="k">dyn</span> <span class="t">State</span>&gt; { <span class="t">Box</span>::new(<span class="t">Pending</span>) }</span><span class="ln" data-l="9"><span class="lno">9</span>    <span class="k">fn</span> approve(<span class="k">self</span>: <span class="t">Box</span>&lt;<span class="k">Self</span>&gt;) -&gt; <span class="t">Box</span>&lt;<span class="k">dyn</span> <span class="t">State</span>&gt; { <span class="k">self</span> }</span><span class="ln" data-l="10"><span class="lno">10</span>}</span><span class="ln" data-l="11"><span class="lno">11</span><span class="k">impl</span> <span class="t">State</span> <span class="k">for</span> <span class="t">Pending</span> {</span><span class="ln" data-l="12"><span class="lno">12</span>    <span class="k">fn</span> request_review(<span class="k">self</span>: <span class="t">Box</span>&lt;<span class="k">Self</span>&gt;) -&gt; <span class="t">Box</span>&lt;<span class="k">dyn</span> <span class="t">State</span>&gt; { <span class="k">self</span> }</span><span class="ln" data-l="13"><span class="lno">13</span>    <span class="k">fn</span> approve(<span class="k">self</span>: <span class="t">Box</span>&lt;<span class="k">Self</span>&gt;) -&gt; <span class="t">Box</span>&lt;<span class="k">dyn</span> <span class="t">State</span>&gt; { <span class="t">Box</span>::new(<span class="t">Published</span>) }</span><span class="ln" data-l="14"><span class="lno">14</span>}</span><span class="ln" data-l="15"><span class="lno">15</span><span class="k">impl</span> <span class="t">State</span> <span class="k">for</span> <span class="t">Published</span> {</span><span class="ln" data-l="16"><span class="lno">16</span>    <span class="k">fn</span> request_review(<span class="k">self</span>: <span class="t">Box</span>&lt;<span class="k">Self</span>&gt;) -&gt; <span class="t">Box</span>&lt;<span class="k">dyn</span> <span class="t">State</span>&gt; { <span class="k">self</span> }</span><span class="ln" data-l="17"><span class="lno">17</span>    <span class="k">fn</span> approve(<span class="k">self</span>: <span class="t">Box</span>&lt;<span class="k">Self</span>&gt;) -&gt; <span class="t">Box</span>&lt;<span class="k">dyn</span> <span class="t">State</span>&gt; { <span class="k">self</span> }</span><span class="ln" data-l="18"><span class="lno">18</span>    <span class="k">fn</span> content&lt;<span class="lt">'a</span>&gt;(&amp;<span class="k">self</span>, p: &amp;<span class="lt">'a</span> <span class="t">Post</span>) -&gt; &amp;<span class="lt">'a</span> str { &amp;p.text }</span><span class="ln" data-l="19"><span class="lno">19</span>}</span><span class="ln" data-l="20"><span class="lno">20</span><span class="k">pub</span> <span class="k">struct</span> <span class="t">Post</span> { state: <span class="t">Option</span>&lt;<span class="t">Box</span>&lt;<span class="k">dyn</span> <span class="t">State</span>&gt;&gt;, text: <span class="t">String</span> }</span><span class="ln" data-l="21"><span class="lno">21</span><span class="k">impl</span> <span class="t">Post</span> {</span><span class="ln" data-l="22"><span class="lno">22</span>    <span class="k">fn</span> content(&amp;<span class="k">self</span>) -&gt; &amp;str { <span class="k">self</span>.state.as_ref().unwrap().content(<span class="k">self</span>) }</span><span class="ln" data-l="23"><span class="lno">23</span>    <span class="k">fn</span> request_review(&amp;<span class="k">mut</span> <span class="k">self</span>) {</span><span class="ln" data-l="24"><span class="lno">24</span>        <span class="k">if</span> <span class="k">let</span> <span class="t">Some</span>(s) = <span class="k">self</span>.state.take() { <span class="k">self</span>.state = <span class="t">Some</span>(s.request_review()) }</span><span class="ln" data-l="25"><span class="lno">25</span>    }</span><span class="ln" data-l="26"><span class="lno">26</span>    <span class="k">fn</span> approve(&amp;<span class="k">mut</span> <span class="k">self</span>) {</span><span class="ln" data-l="27"><span class="lno">27</span>        <span class="k">if</span> <span class="k">let</span> <span class="t">Some</span>(s) = <span class="k">self</span>.state.take() { <span class="k">self</span>.state = <span class="t">Some</span>(s.approve()) }</span><span class="ln" data-l="28"><span class="lno">28</span>    }</span><span class="ln" data-l="29"><span class="lno">29</span>}</span><span class="ln" data-l="30"><span class="lno">30</span><span class="k">fn</span> main() {</span><span class="ln" data-l="31"><span class="lno">31</span>    <span class="k">let</span> <span class="k">mut</span> p = <span class="t">Post</span> { state: <span class="t">Some</span>(<span class="t">Box</span>::new(<span class="t">Draft</span>)), text: <span class="t">String</span>::from(<span class="s">"salad"</span>) };</span><span class="ln" data-l="32"><span class="lno">32</span>    <span class="m">print!</span>(<span class="s">"[{}] "</span>, p.content());</span><span class="ln" data-l="33"><span class="lno">33</span>    p.request_review();</span><span class="ln" data-l="34"><span class="lno">34</span>    <span class="m">print!</span>(<span class="s">"[{}] "</span>, p.content());</span><span class="ln" data-l="35"><span class="lno">35</span>    p.approve();</span><span class="ln" data-l="36"><span class="lno">36</span>    <span class="m">println!</span>(<span class="s">"[{}]"</span>, p.content());</span><span class="ln" data-l="37"><span class="lno">37</span>}</span></code></pre>
+      <div class="scroll"><svg viewBox="0 0 640 200" role="img" aria-labelledby="sim-state-title sim-state-desc">
+        <title id="sim-state-title">State pattern: Box&lt;dyn State&gt; swapped in place</title>
+        <desc id="sim-state-desc">Step-by-step simulator for State pattern: Box&lt;dyn State&gt; swapped in place. Use Prev and Next, or the arrow keys, to move through the steps; the note under the figure explains each one.</desc>
+      </svg></div>
+    </div>
+    <p class="trace-note" aria-live="polite"></p>
+    <div class="card-bottom">
+      <div class="row" style="margin:0">
+        <button type="button" class="btn" data-act="prev">&larr; Prev</button>
+        <button type="button" class="btn" data-act="next">Next &rarr;</button>
+        <button type="button" class="btn" data-act="reset">Reset</button>
+      </div>
+      <span class="live"></span>
+    </div>
+    <script type="application/json" class="sim-data">{"heads":["POST","STATE OBJECT"],"steps":[{"l":[31,32],"note":"A new post starts as \u003ccode>Draft\u003c/code>. Its \u003ccode>content\u003c/code> uses the trait default and returns \"\".","cols":[[{"n":"p.state","v":"Some(Box)","to":"st"},{"n":"p.text","v":"\"salad\""}],[{"id":"st","v":"Draft"}]]},{"l":[33,24,8],"note":"\u003ccode>take()\u003c/code> moves the box out, leaving \u003ccode>None\u003c/code> for a moment. \u003ccode>request_review(self: Box&lt;Self&gt;)\u003c/code> consumes the old state and returns the next one.","cols":[[{"n":"p.state","v":"Some(Box)","to":"st"},{"n":"p.text","v":"\"salad\""}],[{"id":"old","v":"Draft (consumed)","s":"freed"},{"id":"st","v":"Pending","s":"hl"}]]},{"l":34,"note":"Still empty: \u003ccode>Pending\u003c/code> does not override \u003ccode>content\u003c/code>.","cols":[[{"n":"p.state","v":"Some(Box)","to":"st"},{"n":"p.text","v":"\"salad\""}],[{"id":"st","v":"Pending"}]]},{"l":[35,27,13],"note":"\u003ccode>approve\u003c/code> on \u003ccode>Pending\u003c/code> returns \u003ccode>Published\u003c/code>. \u003ccode>Post\u003c/code> never checks which state it is in; each state decides the transition.","cols":[[{"n":"p.state","v":"Some(Box)","to":"st"},{"n":"p.text","v":"\"salad\""}],[{"id":"old","v":"Pending (consumed)","s":"freed"},{"id":"st","v":"Published","s":"hl"}]]},{"l":[36,18],"note":"\u003ccode>Published::content\u003c/code> returns the text.","o":"[] [] [salad]","cols":[[{"n":"p.state","v":"Some(Box)","to":"st"},{"n":"p.text","v":"\"salad\"","s":"ok"}],[{"id":"st","v":"Published"}]]}]}</script>
+  </figure>
+  <!-- /sim:state -->
 </section>
 
 <section id="types">
@@ -353,6 +441,28 @@ table.ops td:first-child{font-weight:600}
 }</code></pre></div>
   <div class="tw"><table class="ops"><thead><tr><th></th><th>Trait-object states</th><th>Type states</th></tr></thead><tbody><tr><td>Invalid transition</td><td>ignored at run time</td><td>compile error</td></tr><tr><td>Reading a draft</td><td>returns ""</td><td>method does not exist</td></tr><tr><td>Caller code</td><td>one variable, mutated</td><td>rebinding with <code>let</code></td></tr><tr><td>Add a state</td><td>one new type, others unchanged</td><td>may change signatures</td></tr><tr><td>Store posts of mixed states</td><td>easy: one type</td><td>needs an enum</td></tr></tbody></table></div>
   <p>Object-oriented patterns are a tool, not a goal. Rust's ownership and types often let you move whole classes of bugs from run time to compile time.</p>
+<!-- sim:types -->
+  <figure class="card sim" id="sim-types" aria-label="Simulator: States as types: invalid calls do not compile">
+    <div class="card-top"><span class="eyebrow">Simulator 5</span><span class="card-title">States as types: invalid calls do not compile</span></div>
+    <div class="trace">
+      <pre class="trace-code"><code><span class="ln" data-l="1"><span class="lno">1</span><span class="k">pub</span> <span class="k">struct</span> <span class="t">DraftPost</span> { text: <span class="t">String</span> }</span><span class="ln" data-l="2"><span class="lno">2</span><span class="k">pub</span> <span class="k">struct</span> <span class="t">PendingPost</span> { text: <span class="t">String</span> }</span><span class="ln" data-l="3"><span class="lno">3</span><span class="k">pub</span> <span class="k">struct</span> <span class="t">Post</span> { text: <span class="t">String</span> }</span><span class="ln" data-l="4"><span class="lno">4</span><span class="k">impl</span> <span class="t">Post</span> {</span><span class="ln" data-l="5"><span class="lno">5</span>    <span class="k">pub</span> <span class="k">fn</span> new() -&gt; <span class="t">DraftPost</span> { <span class="t">DraftPost</span> { text: <span class="t">String</span>::new() } }</span><span class="ln" data-l="6"><span class="lno">6</span>    <span class="k">pub</span> <span class="k">fn</span> content(&amp;<span class="k">self</span>) -&gt; &amp;str { &amp;<span class="k">self</span>.text }</span><span class="ln" data-l="7"><span class="lno">7</span>}</span><span class="ln" data-l="8"><span class="lno">8</span><span class="k">impl</span> <span class="t">DraftPost</span> {</span><span class="ln" data-l="9"><span class="lno">9</span>    <span class="k">pub</span> <span class="k">fn</span> add_text(&amp;<span class="k">mut</span> <span class="k">self</span>, t: &amp;str) { <span class="k">self</span>.text.push_str(t); }</span><span class="ln" data-l="10"><span class="lno">10</span>    <span class="k">pub</span> <span class="k">fn</span> request_review(<span class="k">self</span>) -&gt; <span class="t">PendingPost</span> { <span class="t">PendingPost</span> { text: <span class="k">self</span>.text } }</span><span class="ln" data-l="11"><span class="lno">11</span>}</span><span class="ln" data-l="12"><span class="lno">12</span><span class="k">impl</span> <span class="t">PendingPost</span> {</span><span class="ln" data-l="13"><span class="lno">13</span>    <span class="k">pub</span> <span class="k">fn</span> approve(<span class="k">self</span>) -&gt; <span class="t">Post</span> { <span class="t">Post</span> { text: <span class="k">self</span>.text } }</span><span class="ln" data-l="14"><span class="lno">14</span>}</span><span class="ln" data-l="15"><span class="lno">15</span><span class="k">fn</span> main() {</span><span class="ln" data-l="16"><span class="lno">16</span>    <span class="k">let</span> <span class="k">mut</span> d = <span class="t">Post</span>::new();</span><span class="ln" data-l="17"><span class="lno">17</span>    d.add_text(<span class="s">"salad"</span>);</span><span class="ln" data-l="18"><span class="lno">18</span>    <span class="c2">// d.content();          // E0599: no method on DraftPost</span></span><span class="ln" data-l="19"><span class="lno">19</span>    <span class="k">let</span> pending = d.request_review();</span><span class="ln" data-l="20"><span class="lno">20</span>    <span class="k">let</span> post = pending.approve();</span><span class="ln" data-l="21"><span class="lno">21</span>    <span class="m">println!</span>(<span class="s">"{}"</span>, post.content());</span><span class="ln" data-l="22"><span class="lno">22</span>}</span></code></pre>
+      <div class="scroll"><svg viewBox="0 0 640 200" role="img" aria-labelledby="sim-types-title sim-types-desc">
+        <title id="sim-types-title">States as types: invalid calls do not compile</title>
+        <desc id="sim-types-desc">Step-by-step simulator for States as types: invalid calls do not compile. Use Prev and Next, or the arrow keys, to move through the steps; the note under the figure explains each one.</desc>
+      </svg></div>
+    </div>
+    <p class="trace-note" aria-live="polite"></p>
+    <div class="card-bottom">
+      <div class="row" style="margin:0">
+        <button type="button" class="btn" data-act="prev">&larr; Prev</button>
+        <button type="button" class="btn" data-act="next">Next &rarr;</button>
+        <button type="button" class="btn" data-act="reset">Reset</button>
+      </div>
+      <span class="live"></span>
+    </div>
+    <script type="application/json" class="sim-data">{"heads":["VALUE","AVAILABLE METHODS"],"steps":[{"l":[16,17],"note":"\u003ccode>Post::new\u003c/code> returns a \u003ccode>DraftPost\u003c/code>, a different type.","cols":[[{"n":"d","v":"DraftPost \"salad\""}],[{"v":"add_text, request_review"}]]},{"l":18,"note":"\u003ccode>DraftPost\u003c/code> has no \u003ccode>content\u003c/code> method. Reading an unpublished post is E0599 at compile time, not an empty string at run time.","cols":[[{"n":"d","v":"DraftPost \"salad\""}],[{"v":"content()","s":"err","t":"E0599"}]]},{"l":[19,10],"note":"\u003ccode>request_review(self)\u003c/code> consumes the draft and returns a \u003ccode>PendingPost\u003c/code>. \u003ccode>d\u003c/code> is moved and cannot be edited afterwards.","cols":[[{"n":"d","s":"moved"},{"n":"pending","v":"PendingPost","s":"hl"}],[{"v":"approve"}]]},{"l":[20,13],"note":"\u003ccode>approve\u003c/code> turns it into a \u003ccode>Post\u003c/code>.","cols":[[{"n":"d","s":"moved"},{"n":"pending","s":"moved"},{"n":"post","v":"Post \"salad\"","s":"hl"}],[{"v":"content"}]]},{"l":21,"note":"Only a \u003ccode>Post\u003c/code> can be read. The trade-off versus the state pattern: no trait objects, but callers must rebind as the type changes.","o":"salad","cols":[[{"n":"post","v":"Post \"salad\""}],[{"v":"content() → \"salad\"","s":"ok"}]]}]}</script>
+  </figure>
+  <!-- /sim:types -->
 </section>
 
 <section id="quiz">
@@ -510,7 +620,7 @@ var CHECK_KEY = 'rust-rust-oop-check:' + location.pathname;
       if (!heap.length) txt(380, 64, '(nothing allocated)', { fill: SOFT });
       var H = Math.max(y, hy, 90) + 10;
       svg.setAttribute('viewBox', '0 0 640 ' + H);
-      Array.prototype.forEach.call(document.querySelectorAll('.trace-code .ln'), function (ln) {
+      Array.prototype.forEach.call(document.querySelectorAll('figure:not(.sim) .trace-code .ln'), function (ln) {
         ln.classList.toggle('on', +ln.getAttribute('data-l') === st.l);
       });
       $('traceNote').innerHTML = st.note;
@@ -567,5 +677,147 @@ var CHECK_KEY = 'rust-rust-oop-check:' + location.pathname;
 })();
 
 </script>
+<!-- section-sims -->
+<script>
+(function () {
+  // Section simulators: each figure.sim carries its steps as JSON and is drawn into its own SVG.
+  var NS = 'http://www.w3.org/2000/svg';
+  var INK = '#2d3142', SOFT = '#5a6580', RULE = '#bfc0c0', ACCENT = '#bf4520', LINK = '#2e5aa8', OK = '#2f7a4a', PAPER = '#f5f5f5';
+  var W = 640, BOX_H = 40, GAP_Y = 10, TOP = 40;
+  var fit = function (s, n) { s = String(s); return s.length > n ? s.slice(0, Math.max(1, n - 1)) + '\u2026' : s; };
+
+  function initSim(fig) {
+    var data = JSON.parse(fig.querySelector('script.sim-data').textContent);
+    var svg = fig.querySelector('svg'), lines = fig.querySelectorAll('.trace-code .ln');
+    var note = fig.querySelector('.trace-note'), live = fig.querySelector('.live');
+    var prev = fig.querySelector('[data-act="prev"]'), next = fig.querySelector('[data-act="next"]'), reset = fig.querySelector('[data-act="reset"]');
+    var steps = data.steps, heads = data.heads || [], cur = 0, uid = fig.id;
+    var hasOut = steps.some(function (s) { return s.o != null; });
+    var el = function (name, attrs, parent) {
+      var e = document.createElementNS(NS, name);
+      for (var k in attrs) if (attrs[k] !== '' && attrs[k] != null) e.setAttribute(k, attrs[k]);
+      (parent || svg).appendChild(e);
+      return e;
+    };
+    var txt = function (x, y, s, a, parent) {
+      var o = { x: x, y: y, 'font-size': 12, fill: INK, 'font-family': 'Geist Mono, monospace' };
+      for (var k in a) o[k] = a[k];
+      var t = el('text', o, parent); t.textContent = s; return t;
+    };
+    var clear = function () {
+      Array.prototype.slice.call(svg.childNodes).forEach(function (n) {
+        var nm = (n.localName || '').toLowerCase();
+        if (nm !== 'title' && nm !== 'desc') svg.removeChild(n);
+      });
+    };
+
+    function draw() {
+      var st = steps[cur], cols = st.cols || [];
+      var k = Math.max(1, heads.length, cols.length);
+      var left = 40, right = 24, gap = k === 1 ? 0 : (k === 2 ? 70 : 46);
+      var colW = (W - left - right - gap * (k - 1)) / k;
+      var chars = Math.floor((colW - 24) / 7.4);
+      clear();
+      var defs = el('defs', {});
+      [['a', INK], ['b', LINK], ['c', ACCENT]].forEach(function (m) {
+        var mk = el('marker', { id: uid + '-' + m[0], viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: 'auto-start-reverse' }, defs);
+        el('path', { d: 'M0 0 L10 5 L0 10 z', fill: m[1] }, mk);
+      });
+      var pos = {}, bottom = TOP;
+      for (var ci = 0; ci < k; ci++) {
+        var x = left + ci * (colW + gap), y = TOP, lastG = null, items = cols[ci] || [];
+        if (heads[ci]) txt(x, 24, heads[ci], { 'font-size': 11, fill: SOFT, 'letter-spacing': '2' });
+        items.forEach(function (it) {
+          if (it.g && it.g !== lastG) { txt(x, y + 12, fit(it.g, chars + 4), { 'font-size': 10.5, fill: SOFT, 'font-style': 'italic' }); y += 18; lastG = it.g; }
+          var s = it.s || '', faded = /moved|dropped|freed/.test(s);
+          var isRef = /ref|mut|weak/.test(s), hl = /hl/.test(s), err = /err/.test(s), ok = /ok/.test(s);
+          var stroke = err || hl ? ACCENT : (ok ? OK : (isRef ? LINK : (faded ? RULE : INK)));
+          var g = el('g', { opacity: /dropped|freed/.test(s) ? 0.4 : 1 });
+          el('rect', { x: x, y: y, width: colW, height: BOX_H, rx: 6, fill: err ? 'rgba(191,69,32,.08)' : (ok ? 'rgba(47,122,74,.07)' : (faded ? PAPER : '#fff')), stroke: stroke, 'stroke-width': hl || err ? 2 : 1.4, 'stroke-dasharray': faded ? '5 4' : '' }, g);
+          var stateWord = /moved/.test(s) ? 'moved' : (/dropped/.test(s) ? 'dropped' : (/freed/.test(s) ? 'freed' : null));
+          var val = stateWord && it.v == null ? stateWord : (it.v == null ? '' : it.v);
+          if (it.n != null) {
+            var nChars = Math.max(4, Math.min(String(it.n).length, Math.floor(chars * 0.45)));
+            txt(x + 12, y + 25, fit(it.n, nChars), { 'font-size': 13, 'font-weight': 600, fill: faded ? SOFT : INK }, g);
+            txt(x + colW - 12, y + 25, fit(val, Math.max(4, chars - nChars - 1)), { 'text-anchor': 'end', fill: faded ? SOFT : (err ? ACCENT : (isRef ? LINK : INK)) }, g);
+          } else {
+            txt(x + 12, y + 25, fit(val, chars), { fill: faded ? SOFT : (err ? ACCENT : INK) }, g);
+          }
+          var tag = it.t || (/mut/.test(s) ? '&mut' : (/weak/.test(s) ? 'weak' : (/ref/.test(s) ? '&' : null)));
+          if (tag) {
+            var tw = 10 + tag.length * 6.2;
+            el('rect', { x: x + colW - tw - 8, y: y - 8, width: tw, height: 15, rx: 3, fill: err ? ACCENT : (ok ? OK : (hl ? ACCENT : LINK)) }, g);
+            txt(x + colW - tw - 3, y + 3, tag, { 'font-size': 9.5, fill: '#fff', 'font-weight': 600 }, g);
+          }
+          var id = it.id != null ? it.id : it.n;
+          if (id != null) pos[id] = { x: x, y: y + BOX_H / 2, col: ci, faded: faded, freed: /freed|dropped/.test(s) };
+          it._id = id;
+          y += BOX_H + GAP_Y;
+        });
+        if (!items.length && heads[ci]) txt(x, TOP + 24, data.empty && data.empty[ci] ? data.empty[ci] : '(empty)', { fill: SOFT });
+        bottom = Math.max(bottom, y);
+      }
+      // arrows
+      cols.forEach(function (items) {
+        (items || []).forEach(function (it) {
+          if (!it.to || /moved|dropped|freed/.test(it.s || '')) return;
+          var a = pos[it._id]; if (!a) return;
+          [].concat(it.to).forEach(function (t) {
+            var weak = t.charAt(0) === '~', bad = t.charAt(0) === '!';
+            if (weak || bad) t = t.slice(1);
+            var b = pos[t]; if (!b) return;
+            var color = bad || b.freed ? ACCENT : (weak || /ref|mut/.test(it.s || '') ? LINK : INK);
+            var mk = 'url(#' + uid + '-' + (color === ACCENT ? 'c' : (color === LINK ? 'b' : 'a')) + ')';
+            var dash = weak || bad || b.freed ? '4 3' : '', d;
+            if (b.col === a.col) {
+              var dx = 18 + Math.min(22, Math.abs(a.y - b.y) / 6), lx = a.x;
+              d = 'M' + lx + ' ' + a.y + ' C' + (lx - dx) + ' ' + a.y + ' ' + (lx - dx) + ' ' + b.y + ' ' + (lx - 2) + ' ' + b.y;
+            } else if (b.col > a.col) {
+              var x1 = a.x + colW, x2 = b.x - 2, mx = (x1 + x2) / 2;
+              d = 'M' + x1 + ' ' + a.y + ' C' + mx + ' ' + a.y + ' ' + mx + ' ' + b.y + ' ' + x2 + ' ' + b.y;
+            } else {
+              var x3 = a.x, x4 = b.x + colW + 2, mx2 = (x3 + x4) / 2;
+              d = 'M' + x3 + ' ' + a.y + ' C' + mx2 + ' ' + a.y + ' ' + mx2 + ' ' + b.y + ' ' + x4 + ' ' + b.y;
+            }
+            el('path', { d: d, fill: 'none', stroke: color, 'stroke-width': 1.6, 'stroke-dasharray': dash, 'marker-end': mk });
+          });
+        });
+      });
+      var H = Math.max(bottom, 90) + 6;
+      if (hasOut) {
+        var out = [];
+        for (var i = 0; i <= cur; i++) if (steps[i].o != null) out = out.concat(steps[i].o);
+        var shown = out.slice(-6), oh = 30 + Math.max(1, shown.length) * 18;
+        el('rect', { x: left, y: H, width: W - left - right, height: oh, rx: 6, fill: INK });
+        txt(left + 12, H + 18, 'OUTPUT', { 'font-size': 10, fill: RULE, 'letter-spacing': '2' });
+        if (!shown.length) txt(left + 12, H + 38, '(nothing printed yet)', { fill: RULE, 'font-style': 'italic' });
+        shown.forEach(function (ln, j) {
+          var bad = String(ln).charAt(0) === '!';
+          txt(left + 12, H + 38 + j * 18, fit(bad ? String(ln).slice(1) : ln, 76), { fill: bad ? '#ff9b7a' : PAPER });
+        });
+        H += oh + 10;
+      }
+      svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+      var on = [].concat(st.l || []);
+      Array.prototype.forEach.call(lines, function (ln) { ln.classList.toggle('on', on.indexOf(+ln.getAttribute('data-l')) !== -1); });
+      note.innerHTML = st.note;
+      live.textContent = 'step ' + (cur + 1) + ' / ' + steps.length;
+      prev.disabled = cur === 0;
+      next.disabled = cur === steps.length - 1;
+    }
+    prev.addEventListener('click', function () { if (cur > 0) { cur--; draw(); } });
+    next.addEventListener('click', function () { if (cur < steps.length - 1) { cur++; draw(); } });
+    reset.addEventListener('click', function () { cur = 0; draw(); });
+    fig.addEventListener('keydown', function (e) {
+      if (e.target.tagName === 'INPUT') return;
+      if (e.key === 'ArrowRight' && cur < steps.length - 1) { cur++; draw(); e.preventDefault(); }
+      if (e.key === 'ArrowLeft' && cur > 0) { cur--; draw(); e.preventDefault(); }
+    });
+    draw();
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('figure.sim'), initSim);
+})();
+</script>
+<!-- /section-sims -->
 </body>
 </html>

@@ -198,6 +198,28 @@ table.ops td:first-child{font-weight:600}
     }); <span class="c2">// both threads joined here</span>
     <span class="m">println!</span>(<span class="s">"{data:?}"</span>); <span class="c2">// [10, 20, 4, 5]</span>
 }</code></pre></div>
+<!-- sim:threads -->
+  <figure class="card sim" id="sim-threads" aria-label="Simulator: spawn, join and scoped threads">
+    <div class="card-top"><span class="eyebrow">Simulator 1</span><span class="card-title">spawn, join and scoped threads</span></div>
+    <div class="trace">
+      <pre class="trace-code"><code><span class="ln" data-l="1"><span class="lno">1</span><span class="k">use</span> std::thread;</span><span class="ln" data-l="2"><span class="lno">2</span><span class="k">fn</span> main() {</span><span class="ln" data-l="3"><span class="lno">3</span>    <span class="k">let</span> v = <span class="m">vec!</span>[<span class="n">1</span>, <span class="n">2</span>, <span class="n">3</span>];</span><span class="ln" data-l="4"><span class="lno">4</span>    <span class="k">let</span> h = thread::spawn(<span class="k">move</span> || v.iter().sum::&lt;i32&gt;());</span><span class="ln" data-l="5"><span class="lno">5</span>    <span class="k">let</span> total = h.join().unwrap();</span><span class="ln" data-l="6"><span class="lno">6</span>    <span class="k">let</span> <span class="k">mut</span> words = <span class="m">vec!</span>[<span class="s">"a"</span>, <span class="s">"b"</span>];</span><span class="ln" data-l="7"><span class="lno">7</span>    thread::scope(|s| {</span><span class="ln" data-l="8"><span class="lno">8</span>        s.spawn(|| <span class="m">println!</span>(<span class="s">"len {}"</span>, words.len()));</span><span class="ln" data-l="9"><span class="lno">9</span>        s.spawn(|| <span class="m">println!</span>(<span class="s">"first {}"</span>, words[<span class="n">0</span>]));</span><span class="ln" data-l="10"><span class="lno">10</span>    });</span><span class="ln" data-l="11"><span class="lno">11</span>    words.push(<span class="s">"c"</span>);</span><span class="ln" data-l="12"><span class="lno">12</span>    <span class="m">println!</span>(<span class="s">"{total} {words:?}"</span>);</span><span class="ln" data-l="13"><span class="lno">13</span>}</span></code></pre>
+      <div class="scroll"><svg viewBox="0 0 640 200" role="img" aria-labelledby="sim-threads-title sim-threads-desc">
+        <title id="sim-threads-title">spawn, join and scoped threads</title>
+        <desc id="sim-threads-desc">Step-by-step simulator for spawn, join and scoped threads. Use Prev and Next, or the arrow keys, to move through the steps; the note under the figure explains each one.</desc>
+      </svg></div>
+    </div>
+    <p class="trace-note" aria-live="polite"></p>
+    <div class="card-bottom">
+      <div class="row" style="margin:0">
+        <button type="button" class="btn" data-act="prev">&larr; Prev</button>
+        <button type="button" class="btn" data-act="next">Next &rarr;</button>
+        <button type="button" class="btn" data-act="reset">Reset</button>
+      </div>
+      <span class="live"></span>
+    </div>
+    <script type="application/json" class="sim-data">{"heads":["MAIN THREAD","OTHER THREADS"],"steps":[{"l":3,"note":"\u003ccode>main\u003c/code> owns a vector.","cols":[[{"n":"v","v":"Vec [1, 2, 3]"}],[]]},{"l":4,"note":"\u003ccode>spawn\u003c/code> needs a \u003ccode>'static\u003c/code> closure, since the new thread could outlive \u003ccode>main\u003c/code>. \u003ccode>move\u003c/code> hands \u003ccode>v\u003c/code> to it. The thread starts running at once, in parallel.","cols":[[{"n":"v","s":"moved"},{"n":"h","v":"JoinHandle\u003ci32>","to":"t1"}],[{"id":"t1","v":"thread 1: owns v, summing","s":"hl"}]]},{"l":5,"note":"\u003ccode>join\u003c/code> blocks until the thread finishes and returns its result (\u003ccode>Err\u003c/code> if it panicked).","cols":[[{"n":"total","v":"6","s":"hl"}],[{"id":"t1","v":"thread 1: finished","s":"dropped"}]]},{"l":[6,7,8,9],"note":"\u003ccode>thread::scope\u003c/code> lets threads \u003cb>borrow\u003c/b> local data: both closures read \u003ccode>words\u003c/code> without \u003ccode>move\u003c/code>. Their print order may vary.","o":["len 2","first a"],"cols":[[{"n":"total","v":"6"},{"n":"words","v":"[\"a\", \"b\"]"}],[{"id":"s1","v":"scoped 1: &words","s":"ref","to":"words"},{"id":"s2","v":"scoped 2: &words","s":"ref","to":"words"}]]},{"l":10,"note":"The scope joins every thread it spawned before it returns, so the borrows are guaranteed to be over.","cols":[[{"n":"total","v":"6"},{"n":"words","v":"[\"a\", \"b\"]"}],[{"id":"s1","v":"joined","s":"dropped"},{"id":"s2","v":"joined","s":"dropped"}]]},{"l":[11,12],"note":"Now \u003ccode>main\u003c/code> may mutate \u003ccode>words\u003c/code> again.","o":"6 [\"a\", \"b\", \"c\"]","cols":[[{"n":"total","v":"6"},{"n":"words","v":"[\"a\", \"b\", \"c\"]","s":"hl"}],[]]}]}</script>
+  </figure>
+  <!-- /sim:threads -->
 </section>
 
 <section id="channels">
@@ -243,6 +265,28 @@ table.ops td:first-child{font-weight:600}
 }</code></pre></div>
   <div class="tw"><table class="ops"><thead><tr><th>Receiver method</th><th>Behaviour</th></tr></thead><tbody><tr><td><code>recv()</code></td><td>Block until a value arrives. <code>Err</code> once all senders are gone.</td></tr><tr><td><code>try_recv()</code></td><td>Return immediately: a value, <code>Empty</code> or <code>Disconnected</code>.</td></tr><tr><td><code>recv_timeout(d)</code></td><td>Block for at most <code>d</code>.</td></tr><tr><td><code>for v in rx</code></td><td>Iterate until the channel is closed.</td></tr></tbody></table></div>
   <p><code>mpsc::channel</code> is unbounded. <code>mpsc::sync_channel(n)</code> has a capacity of <code>n</code>, and <code>send</code> blocks when it is full, which gives back-pressure.</p>
+<!-- sim:channels -->
+  <figure class="card sim" id="sim-channels" aria-label="Simulator: mpsc: values move through the channel">
+    <div class="card-top"><span class="eyebrow">Simulator 2</span><span class="card-title">mpsc: values move through the channel</span></div>
+    <div class="trace">
+      <pre class="trace-code"><code><span class="ln" data-l="1"><span class="lno">1</span><span class="k">use</span> std::sync::mpsc;</span><span class="ln" data-l="2"><span class="lno">2</span><span class="k">use</span> std::thread;</span><span class="ln" data-l="3"><span class="lno">3</span><span class="k">fn</span> main() {</span><span class="ln" data-l="4"><span class="lno">4</span>    <span class="k">let</span> (tx, rx) = mpsc::channel();</span><span class="ln" data-l="5"><span class="lno">5</span>    <span class="k">let</span> tx2 = tx.clone();</span><span class="ln" data-l="6"><span class="lno">6</span>    thread::spawn(<span class="k">move</span> || { tx.send(<span class="t">String</span>::from(<span class="s">"hi"</span>)).unwrap(); });</span><span class="ln" data-l="7"><span class="lno">7</span>    thread::spawn(<span class="k">move</span> || { tx2.send(<span class="t">String</span>::from(<span class="s">"yo"</span>)).unwrap(); });</span><span class="ln" data-l="8"><span class="lno">8</span>    <span class="k">let</span> <span class="k">mut</span> got: <span class="t">Vec</span>&lt;<span class="t">String</span>&gt; = rx.iter().collect();</span><span class="ln" data-l="9"><span class="lno">9</span>    got.sort();</span><span class="ln" data-l="10"><span class="lno">10</span>    <span class="m">println!</span>(<span class="s">"{got:?}"</span>);</span><span class="ln" data-l="11"><span class="lno">11</span>}</span></code></pre>
+      <div class="scroll"><svg viewBox="0 0 640 200" role="img" aria-labelledby="sim-channels-title sim-channels-desc">
+        <title id="sim-channels-title">mpsc: values move through the channel</title>
+        <desc id="sim-channels-desc">Step-by-step simulator for mpsc: values move through the channel. Use Prev and Next, or the arrow keys, to move through the steps; the note under the figure explains each one.</desc>
+      </svg></div>
+    </div>
+    <p class="trace-note" aria-live="polite"></p>
+    <div class="card-bottom">
+      <div class="row" style="margin:0">
+        <button type="button" class="btn" data-act="prev">&larr; Prev</button>
+        <button type="button" class="btn" data-act="next">Next &rarr;</button>
+        <button type="button" class="btn" data-act="reset">Reset</button>
+      </div>
+      <span class="live"></span>
+    </div>
+    <script type="application/json" class="sim-data">{"heads":["PRODUCERS","CHANNEL","CONSUMER"],"steps":[{"l":4,"note":"A channel has a transmitter and a receiver. mpsc means multiple producer, single consumer.","cols":[[{"n":"tx","v":"Sender","to":"q"}],[{"id":"q","v":"queue: []"}],[{"n":"rx","v":"Receiver","to":"q"}]]},{"l":5,"note":"Cloning the sender makes a second producer for the same queue.","cols":[[{"n":"tx","v":"Sender","to":"q"},{"n":"tx2","v":"Sender","to":"q","s":"hl"}],[{"id":"q","v":"queue: []"}],[{"n":"rx","v":"Receiver","to":"q"}]]},{"l":6,"note":"Each sender moves into its own thread. \u003ccode>send\u003c/code> takes ownership of the \u003ccode>String\u003c/code>: the thread can no longer use it, which rules out sharing by accident.","cols":[[{"n":"thread 1","v":"owns tx","to":"q"},{"n":"tx2","v":"Sender","to":"q"}],[{"id":"q","v":"queue: [\"hi\"]","s":"hl"}],[{"n":"rx","v":"Receiver","to":"q"}]]},{"l":7,"note":"The second producer sends. The two messages may arrive in either order.","cols":[[{"n":"thread 1","v":"done, tx dropped","s":"dropped"},{"n":"thread 2","v":"owns tx2","to":"q"}],[{"id":"q","v":"queue: [\"hi\", \"yo\"]","s":"hl"}],[{"n":"rx","v":"Receiver","to":"q"}]]},{"l":8,"note":"\u003ccode>rx.iter()\u003c/code> blocks on \u003ccode>recv\u003c/code> for each message. It ends when every sender has been dropped, so the threads finishing is what closes the channel.","cols":[[{"n":"thread 1","s":"dropped"},{"n":"thread 2","s":"dropped"}],[{"id":"q","v":"closed","s":"moved"}],[{"n":"got","v":"[\"yo\", \"hi\"]","s":"hl"}]]},{"l":[9,10],"note":"Sorting makes the output stable.","o":"[\"hi\", \"yo\"]","cols":[[],[{"id":"q","v":"closed","s":"moved"}],[{"n":"got","v":"[\"hi\", \"yo\"]"}]]}]}</script>
+  </figure>
+  <!-- /sim:channels -->
 </section>
 
 <section id="mutex">
@@ -300,6 +344,28 @@ table.ops td:first-child{font-weight:600}
     });
     <span class="m">println!</span>(<span class="s">"{}"</span>, <span class="t">HITS</span>.load(<span class="t">Ordering</span>::<span class="t">Relaxed</span>)); <span class="c2">// 4000</span>
 }</code></pre></div>
+<!-- sim:mutex -->
+  <figure class="card sim" id="sim-mutex" aria-label="Simulator: Arc&lt;Mutex&lt;T&gt;&gt;: ten threads, one counter">
+    <div class="card-top"><span class="eyebrow">Simulator 3</span><span class="card-title">Arc&lt;Mutex&lt;T&gt;&gt;: ten threads, one counter</span></div>
+    <div class="trace">
+      <pre class="trace-code"><code><span class="ln" data-l="1"><span class="lno">1</span><span class="k">use</span> std::sync::{<span class="t">Arc</span>, <span class="t">Mutex</span>};</span><span class="ln" data-l="2"><span class="lno">2</span><span class="k">use</span> std::thread;</span><span class="ln" data-l="3"><span class="lno">3</span><span class="k">fn</span> main() {</span><span class="ln" data-l="4"><span class="lno">4</span>    <span class="k">let</span> counter = <span class="t">Arc</span>::new(<span class="t">Mutex</span>::new(<span class="n">0</span>));</span><span class="ln" data-l="5"><span class="lno">5</span>    <span class="k">let</span> <span class="k">mut</span> hs = <span class="m">vec!</span>[];</span><span class="ln" data-l="6"><span class="lno">6</span>    <span class="k">for</span> _ <span class="k">in</span> <span class="n">0</span>..<span class="n">10</span> {</span><span class="ln" data-l="7"><span class="lno">7</span>        <span class="k">let</span> c = <span class="t">Arc</span>::clone(&amp;counter);</span><span class="ln" data-l="8"><span class="lno">8</span>        hs.push(thread::spawn(<span class="k">move</span> || { *c.lock().unwrap() += <span class="n">1</span>; }));</span><span class="ln" data-l="9"><span class="lno">9</span>    }</span><span class="ln" data-l="10"><span class="lno">10</span>    <span class="k">for</span> h <span class="k">in</span> hs { h.join().unwrap(); }</span><span class="ln" data-l="11"><span class="lno">11</span>    <span class="m">println!</span>(<span class="s">"{}"</span>, *counter.lock().unwrap());</span><span class="ln" data-l="12"><span class="lno">12</span>}</span></code></pre>
+      <div class="scroll"><svg viewBox="0 0 640 200" role="img" aria-labelledby="sim-mutex-title sim-mutex-desc">
+        <title id="sim-mutex-title">Arc&lt;Mutex&lt;T&gt;&gt;: ten threads, one counter</title>
+        <desc id="sim-mutex-desc">Step-by-step simulator for Arc&lt;Mutex&lt;T&gt;&gt;: ten threads, one counter. Use Prev and Next, or the arrow keys, to move through the steps; the note under the figure explains each one.</desc>
+      </svg></div>
+    </div>
+    <p class="trace-note" aria-live="polite"></p>
+    <div class="card-bottom">
+      <div class="row" style="margin:0">
+        <button type="button" class="btn" data-act="prev">&larr; Prev</button>
+        <button type="button" class="btn" data-act="next">Next &rarr;</button>
+        <button type="button" class="btn" data-act="reset">Reset</button>
+      </div>
+      <span class="live"></span>
+    </div>
+    <script type="application/json" class="sim-data">{"heads":["THREADS","SHARED"],"steps":[{"l":4,"note":"A \u003ccode>Mutex\u003c/code> guards the value; \u003ccode>Arc\u003c/code> (atomic reference count) lets several threads own the mutex. \u003ccode>Rc\u003c/code> here would be E0277: it is not \u003ccode>Send\u003c/code>.","cols":[[{"n":"main","v":"counter","to":"m"}],[{"id":"m","v":"Arc strong=1 | Mutex(0) unlocked"}]]},{"l":[6,7,8],"note":"Each iteration clones the \u003ccode>Arc\u003c/code> (strong count +1, atomically) and moves the clone into a thread.","cols":[[{"n":"main","v":"counter","to":"m"},{"n":"thread 1","v":"c","to":"m"},{"n":"thread 2","v":"c","to":"m"},{"n":"… ×10","v":""}],[{"id":"m","v":"Arc strong=11 | Mutex(0)","s":"hl"}]]},{"l":8,"note":"\u003ccode>lock()\u003c/code> blocks until the mutex is free and returns a \u003ccode>MutexGuard\u003c/code>. Only the holder can touch the value; the others wait.","cols":[[{"n":"main","v":"counter","to":"m"},{"n":"thread 1","v":"holds lock","s":"mut","to":"m"},{"n":"thread 2","v":"waiting","s":"moved"}],[{"id":"m","v":"Mutex(1) locked by thread 1","s":"hl"}]]},{"l":8,"note":"The guard is a temporary, dropped at the end of the statement, which unlocks the mutex. The next thread gets in.","cols":[[{"n":"main","v":"counter","to":"m"},{"n":"thread 1","s":"dropped"},{"n":"thread 2","v":"holds lock","s":"mut","to":"m"}],[{"id":"m","v":"Mutex(2) locked by thread 2","s":"hl"}]]},{"l":10,"note":"Joining waits for all ten. Each finished thread drops its \u003ccode>Arc\u003c/code>.","cols":[[{"n":"main","v":"counter","to":"m"}],[{"id":"m","v":"Arc strong=1 | Mutex(10)","s":"ok"}]]},{"l":11,"note":"No increment was lost.","o":"10","cols":[[{"n":"main","v":"counter","to":"m"}],[{"id":"m","v":"Mutex(10)"}]]}]}</script>
+  </figure>
+  <!-- /sim:mutex -->
 </section>
 
 <section id="send-sync">
@@ -309,6 +375,28 @@ table.ops td:first-child{font-weight:600}
   <div class="tw"><table class="ops"><thead><tr><th>Trait</th><th>Means</th><th>Not implemented by</th></tr></thead><tbody><tr><td><code>Send</code></td><td>Ownership of a value can move to another thread.</td><td><code>Rc&lt;T&gt;</code>, raw pointers</td></tr><tr><td><code>Sync</code></td><td>A <code>&amp;T</code> can be shared between threads. <code>T: Sync</code> exactly when <code>&amp;T: Send</code>.</td><td><code>Rc&lt;T&gt;</code>, <code>RefCell&lt;T&gt;</code>, <code>Cell&lt;T&gt;</code></td></tr></tbody></table></div>
   <p>Both are <b>auto traits</b>: a type made only of <code>Send</code> parts is <code>Send</code>, and the same for <code>Sync</code>. <code>thread::spawn</code> requires its closure to be <code>Send + 'static</code>, which is how the <code>Rc</code> example above was rejected. Implementing them by hand requires <code>unsafe</code>, because the compiler can no longer check the promise.</p>
   <p class="callout">A data race needs shared, mutable, unsynchronized access. Ownership removes "shared and mutable"; Send and Sync remove "unsynchronized".</p>
+<!-- sim:send-sync -->
+  <figure class="card sim" id="sim-send-sync" aria-label="Simulator: The compiler checks Send before spawn">
+    <div class="card-top"><span class="eyebrow">Simulator 4</span><span class="card-title">The compiler checks Send before spawn</span></div>
+    <div class="trace">
+      <pre class="trace-code"><code><span class="ln" data-l="1"><span class="lno">1</span><span class="k">use</span> std::rc::<span class="t">Rc</span>;</span><span class="ln" data-l="2"><span class="lno">2</span><span class="k">use</span> std::sync::<span class="t">Arc</span>;</span><span class="ln" data-l="3"><span class="lno">3</span><span class="k">use</span> std::thread;</span><span class="ln" data-l="4"><span class="lno">4</span><span class="k">fn</span> main() {</span><span class="ln" data-l="5"><span class="lno">5</span>    <span class="k">let</span> a = <span class="t">Arc</span>::new(<span class="n">5</span>);</span><span class="ln" data-l="6"><span class="lno">6</span>    <span class="k">let</span> r = <span class="t">Rc</span>::new(<span class="n">5</span>);</span><span class="ln" data-l="7"><span class="lno">7</span>    <span class="c2">// thread::spawn(move || println!("{r}"));  // E0277</span></span><span class="ln" data-l="8"><span class="lno">8</span>    <span class="k">let</span> a2 = <span class="t">Arc</span>::clone(&amp;a);</span><span class="ln" data-l="9"><span class="lno">9</span>    <span class="k">let</span> h = thread::spawn(<span class="k">move</span> || *a2 + <span class="n">1</span>);</span><span class="ln" data-l="10"><span class="lno">10</span>    <span class="m">println!</span>(<span class="s">"{} {r}"</span>, h.join().unwrap());</span><span class="ln" data-l="11"><span class="lno">11</span>}</span></code></pre>
+      <div class="scroll"><svg viewBox="0 0 640 200" role="img" aria-labelledby="sim-send-sync-title sim-send-sync-desc">
+        <title id="sim-send-sync-title">The compiler checks Send before spawn</title>
+        <desc id="sim-send-sync-desc">Step-by-step simulator for The compiler checks Send before spawn. Use Prev and Next, or the arrow keys, to move through the steps; the note under the figure explains each one.</desc>
+      </svg></div>
+    </div>
+    <p class="trace-note" aria-live="polite"></p>
+    <div class="card-bottom">
+      <div class="row" style="margin:0">
+        <button type="button" class="btn" data-act="prev">&larr; Prev</button>
+        <button type="button" class="btn" data-act="next">Next &rarr;</button>
+        <button type="button" class="btn" data-act="reset">Reset</button>
+      </div>
+      <span class="live"></span>
+    </div>
+    <script type="application/json" class="sim-data">{"heads":["TYPE","Send / Sync"],"steps":[{"l":5,"note":"\u003ccode>Arc&lt;i32&gt;\u003c/code> updates its count atomically. It is \u003ccode>Send\u003c/code> (can move to another thread) and \u003ccode>Sync\u003c/code> (can be shared by reference).","cols":[[{"v":"Arc\u003ci32>"}],[{"v":"Send ✓  Sync ✓","s":"ok"}]]},{"l":6,"note":"\u003ccode>Rc\u003c/code> uses a plain counter. Two threads changing it at once could corrupt it, so \u003ccode>Rc\u003c/code> is neither \u003ccode>Send\u003c/code> nor \u003ccode>Sync\u003c/code>.","cols":[[{"v":"Arc\u003ci32>"},{"v":"Rc\u003ci32>"}],[{"v":"Send ✓  Sync ✓"},{"v":"Send ✗  Sync ✗","s":"err"}]]},{"l":7,"note":"Moving \u003ccode>r\u003c/code> into a thread is E0277: \"\u003ccode>Rc&lt;i32&gt;\u003c/code> cannot be sent between threads safely\". The bug is caught at compile time, not as a rare crash.","cols":[[{"v":"spawn(move || r)"}],[{"v":"requires F: Send","s":"err","t":"E0277"}]]},{"l":[8,9,10],"note":"With \u003ccode>Arc\u003c/code> it compiles. Types made of \u003ccode>Send\u003c/code>/\u003ccode>Sync\u003c/code> parts get these traits automatically; implementing them by hand is \u003ccode>unsafe\u003c/code>.","o":"6 5","cols":[[{"v":"spawn(move || a2)"}],[{"v":"Arc\u003ci32>: Send ✓","s":"ok"}]]}]}</script>
+  </figure>
+  <!-- /sim:send-sync -->
 </section>
 
 <section id="quiz">
@@ -472,7 +560,7 @@ var CHECK_KEY = 'rust-rust-concurrency-check:' + location.pathname;
       if (!heap.length) txt(380, 64, '(nothing allocated)', { fill: SOFT });
       var H = Math.max(y, hy, 90) + 10;
       svg.setAttribute('viewBox', '0 0 640 ' + H);
-      Array.prototype.forEach.call(document.querySelectorAll('.trace-code .ln'), function (ln) {
+      Array.prototype.forEach.call(document.querySelectorAll('figure:not(.sim) .trace-code .ln'), function (ln) {
         ln.classList.toggle('on', +ln.getAttribute('data-l') === st.l);
       });
       $('traceNote').innerHTML = st.note;
@@ -529,5 +617,147 @@ var CHECK_KEY = 'rust-rust-concurrency-check:' + location.pathname;
 })();
 
 </script>
+<!-- section-sims -->
+<script>
+(function () {
+  // Section simulators: each figure.sim carries its steps as JSON and is drawn into its own SVG.
+  var NS = 'http://www.w3.org/2000/svg';
+  var INK = '#2d3142', SOFT = '#5a6580', RULE = '#bfc0c0', ACCENT = '#bf4520', LINK = '#2e5aa8', OK = '#2f7a4a', PAPER = '#f5f5f5';
+  var W = 640, BOX_H = 40, GAP_Y = 10, TOP = 40;
+  var fit = function (s, n) { s = String(s); return s.length > n ? s.slice(0, Math.max(1, n - 1)) + '\u2026' : s; };
+
+  function initSim(fig) {
+    var data = JSON.parse(fig.querySelector('script.sim-data').textContent);
+    var svg = fig.querySelector('svg'), lines = fig.querySelectorAll('.trace-code .ln');
+    var note = fig.querySelector('.trace-note'), live = fig.querySelector('.live');
+    var prev = fig.querySelector('[data-act="prev"]'), next = fig.querySelector('[data-act="next"]'), reset = fig.querySelector('[data-act="reset"]');
+    var steps = data.steps, heads = data.heads || [], cur = 0, uid = fig.id;
+    var hasOut = steps.some(function (s) { return s.o != null; });
+    var el = function (name, attrs, parent) {
+      var e = document.createElementNS(NS, name);
+      for (var k in attrs) if (attrs[k] !== '' && attrs[k] != null) e.setAttribute(k, attrs[k]);
+      (parent || svg).appendChild(e);
+      return e;
+    };
+    var txt = function (x, y, s, a, parent) {
+      var o = { x: x, y: y, 'font-size': 12, fill: INK, 'font-family': 'Geist Mono, monospace' };
+      for (var k in a) o[k] = a[k];
+      var t = el('text', o, parent); t.textContent = s; return t;
+    };
+    var clear = function () {
+      Array.prototype.slice.call(svg.childNodes).forEach(function (n) {
+        var nm = (n.localName || '').toLowerCase();
+        if (nm !== 'title' && nm !== 'desc') svg.removeChild(n);
+      });
+    };
+
+    function draw() {
+      var st = steps[cur], cols = st.cols || [];
+      var k = Math.max(1, heads.length, cols.length);
+      var left = 40, right = 24, gap = k === 1 ? 0 : (k === 2 ? 70 : 46);
+      var colW = (W - left - right - gap * (k - 1)) / k;
+      var chars = Math.floor((colW - 24) / 7.4);
+      clear();
+      var defs = el('defs', {});
+      [['a', INK], ['b', LINK], ['c', ACCENT]].forEach(function (m) {
+        var mk = el('marker', { id: uid + '-' + m[0], viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: 'auto-start-reverse' }, defs);
+        el('path', { d: 'M0 0 L10 5 L0 10 z', fill: m[1] }, mk);
+      });
+      var pos = {}, bottom = TOP;
+      for (var ci = 0; ci < k; ci++) {
+        var x = left + ci * (colW + gap), y = TOP, lastG = null, items = cols[ci] || [];
+        if (heads[ci]) txt(x, 24, heads[ci], { 'font-size': 11, fill: SOFT, 'letter-spacing': '2' });
+        items.forEach(function (it) {
+          if (it.g && it.g !== lastG) { txt(x, y + 12, fit(it.g, chars + 4), { 'font-size': 10.5, fill: SOFT, 'font-style': 'italic' }); y += 18; lastG = it.g; }
+          var s = it.s || '', faded = /moved|dropped|freed/.test(s);
+          var isRef = /ref|mut|weak/.test(s), hl = /hl/.test(s), err = /err/.test(s), ok = /ok/.test(s);
+          var stroke = err || hl ? ACCENT : (ok ? OK : (isRef ? LINK : (faded ? RULE : INK)));
+          var g = el('g', { opacity: /dropped|freed/.test(s) ? 0.4 : 1 });
+          el('rect', { x: x, y: y, width: colW, height: BOX_H, rx: 6, fill: err ? 'rgba(191,69,32,.08)' : (ok ? 'rgba(47,122,74,.07)' : (faded ? PAPER : '#fff')), stroke: stroke, 'stroke-width': hl || err ? 2 : 1.4, 'stroke-dasharray': faded ? '5 4' : '' }, g);
+          var stateWord = /moved/.test(s) ? 'moved' : (/dropped/.test(s) ? 'dropped' : (/freed/.test(s) ? 'freed' : null));
+          var val = stateWord && it.v == null ? stateWord : (it.v == null ? '' : it.v);
+          if (it.n != null) {
+            var nChars = Math.max(4, Math.min(String(it.n).length, Math.floor(chars * 0.45)));
+            txt(x + 12, y + 25, fit(it.n, nChars), { 'font-size': 13, 'font-weight': 600, fill: faded ? SOFT : INK }, g);
+            txt(x + colW - 12, y + 25, fit(val, Math.max(4, chars - nChars - 1)), { 'text-anchor': 'end', fill: faded ? SOFT : (err ? ACCENT : (isRef ? LINK : INK)) }, g);
+          } else {
+            txt(x + 12, y + 25, fit(val, chars), { fill: faded ? SOFT : (err ? ACCENT : INK) }, g);
+          }
+          var tag = it.t || (/mut/.test(s) ? '&mut' : (/weak/.test(s) ? 'weak' : (/ref/.test(s) ? '&' : null)));
+          if (tag) {
+            var tw = 10 + tag.length * 6.2;
+            el('rect', { x: x + colW - tw - 8, y: y - 8, width: tw, height: 15, rx: 3, fill: err ? ACCENT : (ok ? OK : (hl ? ACCENT : LINK)) }, g);
+            txt(x + colW - tw - 3, y + 3, tag, { 'font-size': 9.5, fill: '#fff', 'font-weight': 600 }, g);
+          }
+          var id = it.id != null ? it.id : it.n;
+          if (id != null) pos[id] = { x: x, y: y + BOX_H / 2, col: ci, faded: faded, freed: /freed|dropped/.test(s) };
+          it._id = id;
+          y += BOX_H + GAP_Y;
+        });
+        if (!items.length && heads[ci]) txt(x, TOP + 24, data.empty && data.empty[ci] ? data.empty[ci] : '(empty)', { fill: SOFT });
+        bottom = Math.max(bottom, y);
+      }
+      // arrows
+      cols.forEach(function (items) {
+        (items || []).forEach(function (it) {
+          if (!it.to || /moved|dropped|freed/.test(it.s || '')) return;
+          var a = pos[it._id]; if (!a) return;
+          [].concat(it.to).forEach(function (t) {
+            var weak = t.charAt(0) === '~', bad = t.charAt(0) === '!';
+            if (weak || bad) t = t.slice(1);
+            var b = pos[t]; if (!b) return;
+            var color = bad || b.freed ? ACCENT : (weak || /ref|mut/.test(it.s || '') ? LINK : INK);
+            var mk = 'url(#' + uid + '-' + (color === ACCENT ? 'c' : (color === LINK ? 'b' : 'a')) + ')';
+            var dash = weak || bad || b.freed ? '4 3' : '', d;
+            if (b.col === a.col) {
+              var dx = 18 + Math.min(22, Math.abs(a.y - b.y) / 6), lx = a.x;
+              d = 'M' + lx + ' ' + a.y + ' C' + (lx - dx) + ' ' + a.y + ' ' + (lx - dx) + ' ' + b.y + ' ' + (lx - 2) + ' ' + b.y;
+            } else if (b.col > a.col) {
+              var x1 = a.x + colW, x2 = b.x - 2, mx = (x1 + x2) / 2;
+              d = 'M' + x1 + ' ' + a.y + ' C' + mx + ' ' + a.y + ' ' + mx + ' ' + b.y + ' ' + x2 + ' ' + b.y;
+            } else {
+              var x3 = a.x, x4 = b.x + colW + 2, mx2 = (x3 + x4) / 2;
+              d = 'M' + x3 + ' ' + a.y + ' C' + mx2 + ' ' + a.y + ' ' + mx2 + ' ' + b.y + ' ' + x4 + ' ' + b.y;
+            }
+            el('path', { d: d, fill: 'none', stroke: color, 'stroke-width': 1.6, 'stroke-dasharray': dash, 'marker-end': mk });
+          });
+        });
+      });
+      var H = Math.max(bottom, 90) + 6;
+      if (hasOut) {
+        var out = [];
+        for (var i = 0; i <= cur; i++) if (steps[i].o != null) out = out.concat(steps[i].o);
+        var shown = out.slice(-6), oh = 30 + Math.max(1, shown.length) * 18;
+        el('rect', { x: left, y: H, width: W - left - right, height: oh, rx: 6, fill: INK });
+        txt(left + 12, H + 18, 'OUTPUT', { 'font-size': 10, fill: RULE, 'letter-spacing': '2' });
+        if (!shown.length) txt(left + 12, H + 38, '(nothing printed yet)', { fill: RULE, 'font-style': 'italic' });
+        shown.forEach(function (ln, j) {
+          var bad = String(ln).charAt(0) === '!';
+          txt(left + 12, H + 38 + j * 18, fit(bad ? String(ln).slice(1) : ln, 76), { fill: bad ? '#ff9b7a' : PAPER });
+        });
+        H += oh + 10;
+      }
+      svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+      var on = [].concat(st.l || []);
+      Array.prototype.forEach.call(lines, function (ln) { ln.classList.toggle('on', on.indexOf(+ln.getAttribute('data-l')) !== -1); });
+      note.innerHTML = st.note;
+      live.textContent = 'step ' + (cur + 1) + ' / ' + steps.length;
+      prev.disabled = cur === 0;
+      next.disabled = cur === steps.length - 1;
+    }
+    prev.addEventListener('click', function () { if (cur > 0) { cur--; draw(); } });
+    next.addEventListener('click', function () { if (cur < steps.length - 1) { cur++; draw(); } });
+    reset.addEventListener('click', function () { cur = 0; draw(); });
+    fig.addEventListener('keydown', function (e) {
+      if (e.target.tagName === 'INPUT') return;
+      if (e.key === 'ArrowRight' && cur < steps.length - 1) { cur++; draw(); e.preventDefault(); }
+      if (e.key === 'ArrowLeft' && cur > 0) { cur--; draw(); e.preventDefault(); }
+    });
+    draw();
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('figure.sim'), initSim);
+})();
+</script>
+<!-- /section-sims -->
 </body>
 </html>

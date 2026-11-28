@@ -166,6 +166,28 @@ table.ops td:first-child{font-weight:600}
     print_coordinates(&amp;(x, y));
 }</code></pre></div>
   <p>Unlike <code>match</code>, an <code>if let</code> chain is not checked for exhaustiveness; forgetting the last <code>else</code> is not caught.</p>
+<!-- sim:where -->
+  <figure class="card sim" id="sim-where" aria-label="Simulator: Patterns in let, for, while let and parameters">
+    <div class="card-top"><span class="eyebrow">Simulator 1</span><span class="card-title">Patterns in let, for, while let and parameters</span></div>
+    <div class="trace">
+      <pre class="trace-code"><code><span class="ln" data-l="1"><span class="lno">1</span><span class="k">fn</span> print_point(&amp;(x, y): &amp;(i32, i32)) { <span class="m">println!</span>(<span class="s">"({x}, {y})"</span>); }</span><span class="ln" data-l="2"><span class="lno">2</span><span class="k">fn</span> main() {</span><span class="ln" data-l="3"><span class="lno">3</span>    <span class="k">let</span> (a, b) = (<span class="n">1</span>, <span class="n">2</span>);</span><span class="ln" data-l="4"><span class="lno">4</span>    <span class="k">for</span> (i, c) <span class="k">in</span> [<span class="s">'x'</span>, <span class="s">'y'</span>].iter().enumerate() {</span><span class="ln" data-l="5"><span class="lno">5</span>        <span class="m">println!</span>(<span class="s">"{i}:{c}"</span>);</span><span class="ln" data-l="6"><span class="lno">6</span>    }</span><span class="ln" data-l="7"><span class="lno">7</span>    <span class="k">let</span> <span class="k">mut</span> stack = <span class="m">vec!</span>[<span class="n">1</span>, <span class="n">2</span>];</span><span class="ln" data-l="8"><span class="lno">8</span>    <span class="k">while</span> <span class="k">let</span> <span class="t">Some</span>(top) = stack.pop() { <span class="m">println!</span>(<span class="s">"pop {top}"</span>); }</span><span class="ln" data-l="9"><span class="lno">9</span>    print_point(&amp;(a, b));</span><span class="ln" data-l="10"><span class="lno">10</span>}</span></code></pre>
+      <div class="scroll"><svg viewBox="0 0 640 200" role="img" aria-labelledby="sim-where-title sim-where-desc">
+        <title id="sim-where-title">Patterns in let, for, while let and parameters</title>
+        <desc id="sim-where-desc">Step-by-step simulator for Patterns in let, for, while let and parameters. Use Prev and Next, or the arrow keys, to move through the steps; the note under the figure explains each one.</desc>
+      </svg></div>
+    </div>
+    <p class="trace-note" aria-live="polite"></p>
+    <div class="card-bottom">
+      <div class="row" style="margin:0">
+        <button type="button" class="btn" data-act="prev">&larr; Prev</button>
+        <button type="button" class="btn" data-act="next">Next &rarr;</button>
+        <button type="button" class="btn" data-act="reset">Reset</button>
+      </div>
+      <span class="live"></span>
+    </div>
+    <script type="application/json" class="sim-data">{"heads":["PATTERN","BINDINGS"],"steps":[{"l":3,"note":"\u003ccode>let\u003c/code> always takes a pattern. \u003ccode>(a, b)\u003c/code> destructures the tuple.","cols":[[{"v":"let (a, b)"}],[{"n":"a","v":"1"},{"n":"b","v":"2"}]]},{"l":[4,5],"note":"\u003ccode>for\u003c/code> takes a pattern too. \u003ccode>enumerate\u003c/code> yields \u003ccode>(index, item)\u003c/code> tuples.","o":["0:x","1:y"],"cols":[[{"v":"for (i, c) in …"}],[{"n":"i","v":"0 then 1"},{"n":"c","v":"&'x' then &'y'"}]]},{"l":[7,8],"note":"\u003ccode>while let\u003c/code> loops as long as the pattern matches. \u003ccode>pop\u003c/code> returns \u003ccode>Some(2)\u003c/code>, then \u003ccode>Some(1)\u003c/code>…","o":["pop 2","pop 1"],"cols":[[{"v":"while let Some(top)"}],[{"n":"top","v":"2, then 1","s":"hl"}]]},{"l":8,"note":"…then \u003ccode>None\u003c/code>, which does not match, and the loop ends.","cols":[[{"v":"while let Some(top)"}],[{"n":"pop()","v":"None → stop","s":"err"}]]},{"l":[9,1],"note":"Function parameters are patterns. \u003ccode>&amp;(x, y)\u003c/code> matches a reference to a tuple and binds the two \u003ccode>i32\u003c/code>s by copy.","o":"(1, 2)","cols":[[{"v":"&(x, y): &(i32, i32)"}],[{"n":"x","v":"1"},{"n":"y","v":"2"}]]}]}</script>
+  </figure>
+  <!-- /sim:where -->
 </section>
 
 <section id="refutable">
@@ -177,6 +199,28 @@ table.ops td:first-child{font-weight:600}
     <span class="k">let</span> <span class="t">Some</span>(x) = some_option_value; <span class="c2">// error[E0005]: refutable pattern in local binding</span>
 }</code></pre></div>
   <p>The fix is <code>let ... else</code> or <code>if let</code>. The opposite, an <code>if let</code> with an irrefutable pattern, compiles with a warning, because the <code>if</code> is pointless.</p>
+<!-- sim:refutable -->
+  <figure class="card sim" id="sim-refutable" aria-label="Simulator: Irrefutable versus refutable patterns">
+    <div class="card-top"><span class="eyebrow">Simulator 2</span><span class="card-title">Irrefutable versus refutable patterns</span></div>
+    <div class="trace">
+      <pre class="trace-code"><code><span class="ln" data-l="1"><span class="lno">1</span><span class="k">fn</span> main() {</span><span class="ln" data-l="2"><span class="lno">2</span>    <span class="k">let</span> x = <span class="n">5</span>;                     <span class="c2">// irrefutable</span></span><span class="ln" data-l="3"><span class="lno">3</span>    <span class="k">let</span> opt: <span class="t">Option</span>&lt;i32&gt; = <span class="t">None</span>;</span><span class="ln" data-l="4"><span class="lno">4</span>    <span class="c2">// let Some(v) = opt;           // E0005: None not covered</span></span><span class="ln" data-l="5"><span class="lno">5</span>    <span class="k">if</span> <span class="k">let</span> <span class="t">Some</span>(v) = opt { <span class="m">println!</span>(<span class="s">"{v}"</span>); }</span><span class="ln" data-l="6"><span class="lno">6</span>    <span class="k">let</span> <span class="t">Some</span>(v) = opt.or(<span class="t">Some</span>(<span class="n">1</span>)) <span class="k">else</span> { <span class="k">return</span> };</span><span class="ln" data-l="7"><span class="lno">7</span>    <span class="m">println!</span>(<span class="s">"{x} {v}"</span>);</span><span class="ln" data-l="8"><span class="lno">8</span>}</span></code></pre>
+      <div class="scroll"><svg viewBox="0 0 640 200" role="img" aria-labelledby="sim-refutable-title sim-refutable-desc">
+        <title id="sim-refutable-title">Irrefutable versus refutable patterns</title>
+        <desc id="sim-refutable-desc">Step-by-step simulator for Irrefutable versus refutable patterns. Use Prev and Next, or the arrow keys, to move through the steps; the note under the figure explains each one.</desc>
+      </svg></div>
+    </div>
+    <p class="trace-note" aria-live="polite"></p>
+    <div class="card-bottom">
+      <div class="row" style="margin:0">
+        <button type="button" class="btn" data-act="prev">&larr; Prev</button>
+        <button type="button" class="btn" data-act="next">Next &rarr;</button>
+        <button type="button" class="btn" data-act="reset">Reset</button>
+      </div>
+      <span class="live"></span>
+    </div>
+    <script type="application/json" class="sim-data">{"heads":["PATTERN","CAN FAIL?"],"steps":[{"l":2,"note":"A plain name matches any value. It is \u003cb>irrefutable\u003c/b>, which is what \u003ccode>let\u003c/code>, \u003ccode>for\u003c/code> and parameters require.","cols":[[{"v":"x"}],[{"v":"never fails","s":"ok"}]]},{"l":[3,4],"note":"\u003ccode>Some(v)\u003c/code> is \u003cb>refutable\u003c/b>: \u003ccode>opt\u003c/code> may be \u003ccode>None\u003c/code>. A plain \u003ccode>let\u003c/code> with it is E0005, \"refutable pattern in local binding\".","cols":[[{"v":"x"},{"v":"Some(v)"}],[{"v":"never fails"},{"v":"fails on None","s":"err","t":"E0005"}]]},{"l":5,"note":"\u003ccode>if let\u003c/code> is built for refutable patterns: when it fails, the block is skipped.","cols":[[{"v":"if let Some(v)"}],[{"v":"None → block skipped","s":"moved"}]]},{"l":6,"note":"\u003ccode>let … else\u003c/code> also accepts a refutable pattern, with a diverging fallback. Here \u003ccode>opt.or(Some(1))\u003c/code> is \u003ccode>Some(1)\u003c/code>, so it matches.","cols":[[{"v":"let Some(v) … else"}],[{"n":"v","v":"1","s":"ok"}]]},{"l":7,"note":"The reverse also warns: \u003ccode>if let x = 5\u003c/code> is an irrefutable pattern in a place meant for refutable ones.","o":"5 1","cols":[[{"v":"x, v"}],[{"v":"5, 1"}]]}]}</script>
+  </figure>
+  <!-- /sim:refutable -->
 </section>
 
 <section id="literal">
@@ -208,6 +252,28 @@ table.ops td:first-child{font-weight:600}
     <span class="m">println!</span>(<span class="s">"at the end: x = {x:?}, y = {y}"</span>);
 }</code></pre></div>
   <p>The <code>Some(y)</code> arm is a classic surprise: it does not compare with the outer <code>y</code>, it introduces a new <code>y</code> for that arm. To compare with an outer variable, use a match guard (below). Ranges work with numbers and <code>char</code>, the types whose values the compiler can enumerate.</p>
+<!-- sim:literal -->
+  <figure class="card sim" id="sim-literal" aria-label="Simulator: Literals, |, ranges and shadowing in match">
+    <div class="card-top"><span class="eyebrow">Simulator 3</span><span class="card-title">Literals, |, ranges and shadowing in match</span></div>
+    <div class="trace">
+      <pre class="trace-code"><code><span class="ln" data-l="1"><span class="lno">1</span><span class="k">fn</span> kind(n: u32) -&gt; &amp;<span class="lt">'static</span> str {</span><span class="ln" data-l="2"><span class="lno">2</span>    <span class="k">match</span> n {</span><span class="ln" data-l="3"><span class="lno">3</span>        <span class="n">0</span> =&gt; <span class="s">"zero"</span>,</span><span class="ln" data-l="4"><span class="lno">4</span>        <span class="n">1</span> | <span class="n">2</span> =&gt; <span class="s">"small"</span>,</span><span class="ln" data-l="5"><span class="lno">5</span>        <span class="n">3</span>..=<span class="n">9</span> =&gt; <span class="s">"digit"</span>,</span><span class="ln" data-l="6"><span class="lno">6</span>        _ =&gt; <span class="s">"big"</span>,</span><span class="ln" data-l="7"><span class="lno">7</span>    }</span><span class="ln" data-l="8"><span class="lno">8</span>}</span><span class="ln" data-l="9"><span class="lno">9</span><span class="k">fn</span> main() {</span><span class="ln" data-l="10"><span class="lno">10</span>    <span class="k">let</span> y = <span class="n">10</span>;</span><span class="ln" data-l="11"><span class="lno">11</span>    <span class="k">let</span> m = <span class="k">match</span> <span class="t">Some</span>(<span class="n">5</span>) { <span class="t">Some</span>(y) =&gt; y, <span class="t">None</span> =&gt; <span class="n">0</span> };</span><span class="ln" data-l="12"><span class="lno">12</span>    <span class="m">println!</span>(<span class="s">"{} {} {} {} {m} {y}"</span>, kind(<span class="n">0</span>), kind(<span class="n">2</span>), kind(<span class="n">7</span>), kind(<span class="n">42</span>));</span><span class="ln" data-l="13"><span class="lno">13</span>}</span></code></pre>
+      <div class="scroll"><svg viewBox="0 0 640 200" role="img" aria-labelledby="sim-literal-title sim-literal-desc">
+        <title id="sim-literal-title">Literals, |, ranges and shadowing in match</title>
+        <desc id="sim-literal-desc">Step-by-step simulator for Literals, |, ranges and shadowing in match. Use Prev and Next, or the arrow keys, to move through the steps; the note under the figure explains each one.</desc>
+      </svg></div>
+    </div>
+    <p class="trace-note" aria-live="polite"></p>
+    <div class="card-bottom">
+      <div class="row" style="margin:0">
+        <button type="button" class="btn" data-act="prev">&larr; Prev</button>
+        <button type="button" class="btn" data-act="next">Next &rarr;</button>
+        <button type="button" class="btn" data-act="reset">Reset</button>
+      </div>
+      <span class="live"></span>
+    </div>
+    <script type="application/json" class="sim-data">{"heads":["INPUT","ARM TAKEN"],"steps":[{"l":[3],"note":"A literal pattern matches one exact value.","cols":[[{"n":"n","v":"0"}],[{"v":"0 => \"zero\"","s":"ok"}]]},{"l":[4],"note":"\u003ccode>|\u003c/code> means \"or\": 2 matches \u003ccode>1 | 2\u003c/code>.","cols":[[{"n":"n","v":"2"}],[{"v":"1 | 2 => \"small\"","s":"ok"}]]},{"l":[5],"note":"\u003ccode>3..=9\u003c/code> is an inclusive range pattern, allowed for integers and \u003ccode>char\u003c/code>.","cols":[[{"n":"n","v":"7"}],[{"v":"3..=9 => \"digit\"","s":"ok"}]]},{"l":[6],"note":"Nothing else matched 42, so \u003ccode>_\u003c/code> does.","cols":[[{"n":"n","v":"42"}],[{"v":"_ => \"big\"","s":"ok"}]]},{"l":[10,11],"note":"Careful: a name in a pattern always \u003cb>binds\u003c/b> a new variable. \u003ccode>Some(y)\u003c/code> does not compare with the outer \u003ccode>y = 10\u003c/code>; it shadows it inside the arm. Use a guard to compare.","o":"zero small digit big 5 10","cols":[[{"n":"outer y","v":"10"},{"n":"arm y","v":"5","s":"hl"}],[{"v":"Some(y) => y  (y = 5)","s":"ok"}]]}]}</script>
+  </figure>
+  <!-- /sim:literal -->
 </section>
 
 <section id="destructure">
@@ -268,6 +334,28 @@ table.ops td:first-child{font-weight:600}
     <span class="m">println!</span>(<span class="s">"{sum}"</span>);
 }</code></pre></div>
   <p>When you match on a reference with a non-reference pattern, Rust automatically binds the fields by reference ("default binding modes"). <code>match &amp;opt { Some(s) =&gt; .. } </code> gives <code>s: &amp;String</code>, without moving out of <code>opt</code>.</p>
+<!-- sim:destructure -->
+  <figure class="card sim" id="sim-destructure" aria-label="Simulator: Destructuring structs, enums and references">
+    <div class="card-top"><span class="eyebrow">Simulator 4</span><span class="card-title">Destructuring structs, enums and references</span></div>
+    <div class="trace">
+      <pre class="trace-code"><code><span class="ln" data-l="1"><span class="lno">1</span><span class="k">struct</span> <span class="t">Point</span> { x: i32, y: i32 }</span><span class="ln" data-l="2"><span class="lno">2</span><span class="k">enum</span> <span class="t">Shape</span> { <span class="t">Circle</span> { r: u32 }, <span class="t">Rect</span>(<span class="t">Point</span>, <span class="t">Point</span>) }</span><span class="ln" data-l="3"><span class="lno">3</span><span class="k">fn</span> main() {</span><span class="ln" data-l="4"><span class="lno">4</span>    <span class="k">let</span> p = <span class="t">Point</span> { x: <span class="n">0</span>, y: <span class="n">7</span> };</span><span class="ln" data-l="5"><span class="lno">5</span>    <span class="k">let</span> <span class="t">Point</span> { x, y: height } = p;</span><span class="ln" data-l="6"><span class="lno">6</span>    <span class="k">let</span> s = <span class="t">Shape</span>::<span class="t">Rect</span>(<span class="t">Point</span> { x: <span class="n">1</span>, y: <span class="n">1</span> }, <span class="t">Point</span> { x: <span class="n">4</span>, y: <span class="n">3</span> });</span><span class="ln" data-l="7"><span class="lno">7</span>    <span class="k">let</span> area = <span class="k">match</span> s {</span><span class="ln" data-l="8"><span class="lno">8</span>        <span class="t">Shape</span>::<span class="t">Circle</span> { r } =&gt; <span class="n">3</span> * r * r,</span><span class="ln" data-l="9"><span class="lno">9</span>        <span class="t">Shape</span>::<span class="t">Rect</span>(<span class="t">Point</span> { x: x1, y: y1 }, <span class="t">Point</span> { x: x2, y: y2 }) =&gt;</span><span class="ln" data-l="10"><span class="lno">10</span>            ((x2 - x1) * (y2 - y1)) <span class="k">as</span> u32,</span><span class="ln" data-l="11"><span class="lno">11</span>    };</span><span class="ln" data-l="12"><span class="lno">12</span>    <span class="k">let</span> ((a, b), <span class="t">Point</span> { x: c, .. }) = ((<span class="n">1</span>, <span class="n">2</span>), <span class="t">Point</span> { x: <span class="n">3</span>, y: <span class="n">4</span> });</span><span class="ln" data-l="13"><span class="lno">13</span>    <span class="m">println!</span>(<span class="s">"{x} {height} {area} {a}{b}{c}"</span>);</span><span class="ln" data-l="14"><span class="lno">14</span>}</span></code></pre>
+      <div class="scroll"><svg viewBox="0 0 640 200" role="img" aria-labelledby="sim-destructure-title sim-destructure-desc">
+        <title id="sim-destructure-title">Destructuring structs, enums and references</title>
+        <desc id="sim-destructure-desc">Step-by-step simulator for Destructuring structs, enums and references. Use Prev and Next, or the arrow keys, to move through the steps; the note under the figure explains each one.</desc>
+      </svg></div>
+    </div>
+    <p class="trace-note" aria-live="polite"></p>
+    <div class="card-bottom">
+      <div class="row" style="margin:0">
+        <button type="button" class="btn" data-act="prev">&larr; Prev</button>
+        <button type="button" class="btn" data-act="next">Next &rarr;</button>
+        <button type="button" class="btn" data-act="reset">Reset</button>
+      </div>
+      <span class="live"></span>
+    </div>
+    <script type="application/json" class="sim-data">{"heads":["VALUE","BINDINGS"],"steps":[{"l":[4,5],"note":"A struct pattern names fields. \u003ccode>x\u003c/code> is shorthand for \u003ccode>x: x\u003c/code>; \u003ccode>y: height\u003c/code> binds the field \u003ccode>y\u003c/code> to a new name.","cols":[[{"n":"p","v":"Point { x: 0, y: 7 }"}],[{"n":"x","v":"0"},{"n":"height","v":"7"}]]},{"l":[6,7,8],"note":"Matching an enum checks the variant first. \u003ccode>Circle\u003c/code> does not match a \u003ccode>Rect\u003c/code>.","cols":[[{"n":"s","v":"Rect((1,1), (4,3))"}],[{"v":"Circle { r }","s":"moved"}]]},{"l":[9,10],"note":"Patterns nest: the \u003ccode>Rect\u003c/code> arm destructures both inner \u003ccode>Point\u003c/code>s in one go. (4 − 1) × (3 − 1) = 6.","cols":[[{"n":"s","v":"Rect((1,1), (4,3))"}],[{"n":"x1, y1","v":"1, 1"},{"n":"x2, y2","v":"4, 3"},{"n":"area","v":"6","s":"ok"}]]},{"l":12,"note":"Tuples and structs mix freely. \u003ccode>..\u003c/code> ignores the remaining fields.","o":"0 7 6 123","cols":[[{"n":"value","v":"((1, 2), Point{3, 4})"}],[{"n":"a, b","v":"1, 2"},{"n":"c","v":"3"},{"n":"y","v":"ignored by ..","s":"moved"}]]}]}</script>
+  </figure>
+  <!-- /sim:destructure -->
 </section>
 
 <section id="ignore">
@@ -309,6 +397,28 @@ table.ops td:first-child{font-weight:600}
     <span class="m">println!</span>(<span class="s">"{s:?}"</span>);
 }</code></pre></div>
   <p><code>..</code> must be unambiguous: <code>(.., second, ..)</code> is an error, since the compiler cannot know how many values each <code>..</code> skips.</p>
+<!-- sim:ignore -->
+  <figure class="card sim" id="sim-ignore" aria-label="Simulator: _, _name and .. do different things">
+    <div class="card-top"><span class="eyebrow">Simulator 5</span><span class="card-title">_, _name and .. do different things</span></div>
+    <div class="trace">
+      <pre class="trace-code"><code><span class="ln" data-l="1"><span class="lno">1</span><span class="k">fn</span> main() {</span><span class="ln" data-l="2"><span class="lno">2</span>    <span class="k">let</span> nums = (<span class="n">1</span>, <span class="n">2</span>, <span class="n">3</span>, <span class="n">4</span>, <span class="n">5</span>);</span><span class="ln" data-l="3"><span class="lno">3</span>    <span class="k">let</span> (first, .., last) = nums;</span><span class="ln" data-l="4"><span class="lno">4</span>    <span class="k">let</span> (_, second, _, _, _) = nums;</span><span class="ln" data-l="5"><span class="lno">5</span>    <span class="k">let</span> s = <span class="t">Some</span>(<span class="t">String</span>::from(<span class="s">"hi"</span>));</span><span class="ln" data-l="6"><span class="lno">6</span>    <span class="k">if</span> <span class="k">let</span> <span class="t">Some</span>(_) = s { <span class="m">println!</span>(<span class="s">"has value"</span>); }</span><span class="ln" data-l="7"><span class="lno">7</span>    <span class="k">if</span> <span class="k">let</span> <span class="t">Some</span>(_t) = &amp;s { <span class="m">println!</span>(<span class="s">"borrowed"</span>); }</span><span class="ln" data-l="8"><span class="lno">8</span>    <span class="m">println!</span>(<span class="s">"{first} {second} {last} {s:?}"</span>);</span><span class="ln" data-l="9"><span class="lno">9</span>}</span></code></pre>
+      <div class="scroll"><svg viewBox="0 0 640 200" role="img" aria-labelledby="sim-ignore-title sim-ignore-desc">
+        <title id="sim-ignore-title">_, _name and .. do different things</title>
+        <desc id="sim-ignore-desc">Step-by-step simulator for _, _name and .. do different things. Use Prev and Next, or the arrow keys, to move through the steps; the note under the figure explains each one.</desc>
+      </svg></div>
+    </div>
+    <p class="trace-note" aria-live="polite"></p>
+    <div class="card-bottom">
+      <div class="row" style="margin:0">
+        <button type="button" class="btn" data-act="prev">&larr; Prev</button>
+        <button type="button" class="btn" data-act="next">Next &rarr;</button>
+        <button type="button" class="btn" data-act="reset">Reset</button>
+      </div>
+      <span class="live"></span>
+    </div>
+    <script type="application/json" class="sim-data">{"heads":["PATTERN","EFFECT"],"steps":[{"l":3,"note":"\u003ccode>..\u003c/code> skips any number of elements in the middle. It can appear only once per tuple pattern.","cols":[[{"v":"(first, .., last)"}],[{"n":"first","v":"1"},{"n":"last","v":"5"}]]},{"l":4,"note":"Each \u003ccode>_\u003c/code> skips exactly one position.","cols":[[{"v":"(_, second, _, _, _)"}],[{"n":"second","v":"2"}]]},{"l":[5,6],"note":"\u003ccode>_\u003c/code> never binds, so it does not move the \u003ccode>String\u003c/code> out of \u003ccode>s\u003c/code>.","o":"has value","cols":[[{"v":"Some(_)"}],[{"n":"s","v":"still owns \"hi\"","s":"ok"}]]},{"l":7,"note":"\u003ccode>_t\u003c/code> is a real binding that only silences the unused warning. Matching on \u003ccode>s\u003c/code> directly would move the string into \u003ccode>_t\u003c/code>; matching on \u003ccode>&amp;s\u003c/code> borrows instead.","o":"borrowed","cols":[[{"v":"Some(_t) on &s"}],[{"n":"_t","v":"&String","s":"ref"}]]},{"l":8,"note":"\u003ccode>s\u003c/code> is intact.","o":"1 2 5 Some(\"hi\")","cols":[[{"v":"all done"}],[{"n":"s","v":"Some(\"hi\")"}]]}]}</script>
+  </figure>
+  <!-- /sim:ignore -->
 </section>
 
 <section id="guards">
@@ -339,6 +449,28 @@ table.ops td:first-child{font-weight:600}
     }
 }</code></pre></div>
   <p>The compiler does not consider guards when checking exhaustiveness: <code>Some(x) if x % 2 == 0</code> plus <code>Some(x) if x % 2 != 0</code> still needs a catch-all, because it cannot prove the two conditions cover everything.</p>
+<!-- sim:guards -->
+  <figure class="card sim" id="sim-guards" aria-label="Simulator: Match guards add a condition to an arm">
+    <div class="card-top"><span class="eyebrow">Simulator 6</span><span class="card-title">Match guards add a condition to an arm</span></div>
+    <div class="trace">
+      <pre class="trace-code"><code><span class="ln" data-l="1"><span class="lno">1</span><span class="k">fn</span> check(n: <span class="t">Option</span>&lt;i32&gt;, y: i32) -&gt; &amp;<span class="lt">'static</span> str {</span><span class="ln" data-l="2"><span class="lno">2</span>    <span class="k">match</span> n {</span><span class="ln" data-l="3"><span class="lno">3</span>        <span class="t">Some</span>(x) <span class="k">if</span> x == y =&gt; <span class="s">"equals y"</span>,</span><span class="ln" data-l="4"><span class="lno">4</span>        <span class="t">Some</span>(x) <span class="k">if</span> x % <span class="n">2</span> == <span class="n">0</span> =&gt; <span class="s">"even"</span>,</span><span class="ln" data-l="5"><span class="lno">5</span>        <span class="t">Some</span>(_) =&gt; <span class="s">"odd"</span>,</span><span class="ln" data-l="6"><span class="lno">6</span>        <span class="t">None</span> =&gt; <span class="s">"none"</span>,</span><span class="ln" data-l="7"><span class="lno">7</span>    }</span><span class="ln" data-l="8"><span class="lno">8</span>}</span><span class="ln" data-l="9"><span class="lno">9</span><span class="k">fn</span> main() {</span><span class="ln" data-l="10"><span class="lno">10</span>    <span class="m">println!</span>(<span class="s">"{} {} {}"</span>, check(<span class="t">Some</span>(<span class="n">4</span>), <span class="n">4</span>), check(<span class="t">Some</span>(<span class="n">6</span>), <span class="n">4</span>), check(<span class="t">Some</span>(<span class="n">3</span>), <span class="n">4</span>));</span><span class="ln" data-l="11"><span class="lno">11</span>}</span></code></pre>
+      <div class="scroll"><svg viewBox="0 0 640 200" role="img" aria-labelledby="sim-guards-title sim-guards-desc">
+        <title id="sim-guards-title">Match guards add a condition to an arm</title>
+        <desc id="sim-guards-desc">Step-by-step simulator for Match guards add a condition to an arm. Use Prev and Next, or the arrow keys, to move through the steps; the note under the figure explains each one.</desc>
+      </svg></div>
+    </div>
+    <p class="trace-note" aria-live="polite"></p>
+    <div class="card-bottom">
+      <div class="row" style="margin:0">
+        <button type="button" class="btn" data-act="prev">&larr; Prev</button>
+        <button type="button" class="btn" data-act="next">Next &rarr;</button>
+        <button type="button" class="btn" data-act="reset">Reset</button>
+      </div>
+      <span class="live"></span>
+    </div>
+    <script type="application/json" class="sim-data">{"heads":["INPUT","ARMS"],"steps":[{"l":[2,3],"note":"\u003ccode>Some(4)\u003c/code> with \u003ccode>y = 4\u003c/code>: the pattern matches and the guard \u003ccode>x == y\u003c/code> is true. A guard can use outer variables, unlike a pattern name.","cols":[[{"n":"n","v":"Some(4)"},{"n":"y","v":"4"}],[{"v":"Some(x) if x == y","s":"ok"}]]},{"l":[3,4],"note":"\u003ccode>Some(6)\u003c/code>: the first pattern matches but its guard is false, so matching continues to the next arm. The guard \u003ccode>x % 2 == 0\u003c/code> holds.","cols":[[{"n":"n","v":"Some(6)"},{"n":"y","v":"4"}],[{"v":"Some(x) if x == y","s":"moved"},{"v":"Some(x) if x % 2 == 0","s":"ok"}]]},{"l":[3,4,5],"note":"\u003ccode>Some(3)\u003c/code> fails both guards and lands on \u003ccode>Some(_)\u003c/code>.","o":"equals y even odd","cols":[[{"n":"n","v":"Some(3)"},{"n":"y","v":"4"}],[{"v":"Some(x) if x == y","s":"moved"},{"v":"Some(x) if x % 2 == 0","s":"moved"},{"v":"Some(_)","s":"ok"}]]},{"l":5,"note":"The compiler does not look inside guards when checking exhaustiveness. Without the \u003ccode>Some(_)\u003c/code> arm, this match would be E0004.","cols":[[{"n":"n","v":"Option\u003ci32>"}],[{"v":"guards ignored for coverage","s":"hl"}]]}]}</script>
+  </figure>
+  <!-- /sim:guards -->
 </section>
 
 <section id="at">
@@ -362,6 +494,28 @@ table.ops td:first-child{font-weight:600}
     <span class="k">if</span> <span class="k">let</span> [.., last] = v { <span class="m">println!</span>(<span class="s">"last = {last}"</span>); }
 }</code></pre></div>
   <div class="tw"><table class="ops"><thead><tr><th>Syntax</th><th>Matches</th></tr></thead><tbody><tr><td><code>5</code>, <code>"text"</code>, <code>true</code></td><td>that literal</td></tr><tr><td><code>x</code></td><td>anything, and binds it</td></tr><tr><td><code>_</code></td><td>anything, binds nothing</td></tr><tr><td><code>a | b</code></td><td>either pattern</td></tr><tr><td><code>1..=5</code>, <code>'a'..='z'</code></td><td>a value in the inclusive range</td></tr><tr><td><code>Point { x, y: 0 }</code></td><td>a struct, with field patterns</td></tr><tr><td><code>Some(p)</code>, <code>(a, b)</code></td><td>an enum variant or tuple</td></tr><tr><td><code>[first, .., last]</code></td><td>an array or slice</td></tr><tr><td><code>&amp;p</code></td><td>a reference, binding what it points to</td></tr><tr><td><code>ref r</code> / <code>ref mut r</code></td><td>bind by reference explicitly</td></tr><tr><td><code>p if cond</code></td><td>the pattern, then a guard</td></tr><tr><td><code>name @ p</code></td><td>the pattern, and bind the whole value</td></tr></tbody></table></div>
+<!-- sim:at -->
+  <figure class="card sim" id="sim-at" aria-label="Simulator: @ binds a value while testing it">
+    <div class="card-top"><span class="eyebrow">Simulator 7</span><span class="card-title">@ binds a value while testing it</span></div>
+    <div class="trace">
+      <pre class="trace-code"><code><span class="ln" data-l="1"><span class="lno">1</span><span class="k">enum</span> <span class="t">Msg</span> { <span class="t">Hello</span> { id: i32 } }</span><span class="ln" data-l="2"><span class="lno">2</span><span class="k">fn</span> route(m: <span class="t">Msg</span>) -&gt; <span class="t">String</span> {</span><span class="ln" data-l="3"><span class="lno">3</span>    <span class="k">match</span> m {</span><span class="ln" data-l="4"><span class="lno">4</span>        <span class="t">Msg</span>::<span class="t">Hello</span> { id: id @ <span class="n">3</span>..=<span class="n">7</span> } =&gt; <span class="m">format!</span>(<span class="s">"in range: {id}"</span>),</span><span class="ln" data-l="5"><span class="lno">5</span>        <span class="t">Msg</span>::<span class="t">Hello</span> { id: <span class="n">10</span>..=<span class="n">12</span> } =&gt; <span class="t">String</span>::from(<span class="s">"other range"</span>),</span><span class="ln" data-l="6"><span class="lno">6</span>        <span class="t">Msg</span>::<span class="t">Hello</span> { id } =&gt; <span class="m">format!</span>(<span class="s">"other id: {id}"</span>),</span><span class="ln" data-l="7"><span class="lno">7</span>    }</span><span class="ln" data-l="8"><span class="lno">8</span>}</span><span class="ln" data-l="9"><span class="lno">9</span><span class="k">fn</span> main() {</span><span class="ln" data-l="10"><span class="lno">10</span>    <span class="k">for</span> id <span class="k">in</span> [<span class="n">5</span>, <span class="n">11</span>, <span class="n">20</span>] { <span class="m">println!</span>(<span class="s">"{}"</span>, route(<span class="t">Msg</span>::<span class="t">Hello</span> { id })); }</span><span class="ln" data-l="11"><span class="lno">11</span>}</span></code></pre>
+      <div class="scroll"><svg viewBox="0 0 640 200" role="img" aria-labelledby="sim-at-title sim-at-desc">
+        <title id="sim-at-title">@ binds a value while testing it</title>
+        <desc id="sim-at-desc">Step-by-step simulator for @ binds a value while testing it. Use Prev and Next, or the arrow keys, to move through the steps; the note under the figure explains each one.</desc>
+      </svg></div>
+    </div>
+    <p class="trace-note" aria-live="polite"></p>
+    <div class="card-bottom">
+      <div class="row" style="margin:0">
+        <button type="button" class="btn" data-act="prev">&larr; Prev</button>
+        <button type="button" class="btn" data-act="next">Next &rarr;</button>
+        <button type="button" class="btn" data-act="reset">Reset</button>
+      </div>
+      <span class="live"></span>
+    </div>
+    <script type="application/json" class="sim-data">{"heads":["INPUT","RESULT"],"steps":[{"l":[10,4],"note":"\u003ccode>id @ 3..=7\u003c/code> tests the range \u003cb>and\u003c/b> keeps the value in \u003ccode>id\u003c/code>.","o":"in range: 5","cols":[[{"n":"id","v":"5"}],[{"v":"id @ 3..=7 → bound 5","s":"ok"}]]},{"l":[10,5],"note":"A bare range tests but binds nothing, so the arm cannot say which id it was.","o":"other range","cols":[[{"n":"id","v":"11"}],[{"v":"10..=12 → no binding","s":"ok"}]]},{"l":[10,6],"note":"A plain name binds without testing.","o":"other id: 20","cols":[[{"n":"id","v":"20"}],[{"v":"id → bound 20","s":"ok"}]]}]}</script>
+  </figure>
+  <!-- /sim:at -->
 </section>
 
 <section id="quiz">
@@ -532,7 +686,7 @@ var CHECK_KEY = 'rust-rust-patterns-check:' + location.pathname;
       if (!heap.length) txt(380, 64, '(nothing allocated)', { fill: SOFT });
       var H = Math.max(y, hy, 90) + 10;
       svg.setAttribute('viewBox', '0 0 640 ' + H);
-      Array.prototype.forEach.call(document.querySelectorAll('.trace-code .ln'), function (ln) {
+      Array.prototype.forEach.call(document.querySelectorAll('figure:not(.sim) .trace-code .ln'), function (ln) {
         ln.classList.toggle('on', +ln.getAttribute('data-l') === st.l);
       });
       $('traceNote').innerHTML = st.note;
@@ -589,5 +743,147 @@ var CHECK_KEY = 'rust-rust-patterns-check:' + location.pathname;
 })();
 
 </script>
+<!-- section-sims -->
+<script>
+(function () {
+  // Section simulators: each figure.sim carries its steps as JSON and is drawn into its own SVG.
+  var NS = 'http://www.w3.org/2000/svg';
+  var INK = '#2d3142', SOFT = '#5a6580', RULE = '#bfc0c0', ACCENT = '#bf4520', LINK = '#2e5aa8', OK = '#2f7a4a', PAPER = '#f5f5f5';
+  var W = 640, BOX_H = 40, GAP_Y = 10, TOP = 40;
+  var fit = function (s, n) { s = String(s); return s.length > n ? s.slice(0, Math.max(1, n - 1)) + '\u2026' : s; };
+
+  function initSim(fig) {
+    var data = JSON.parse(fig.querySelector('script.sim-data').textContent);
+    var svg = fig.querySelector('svg'), lines = fig.querySelectorAll('.trace-code .ln');
+    var note = fig.querySelector('.trace-note'), live = fig.querySelector('.live');
+    var prev = fig.querySelector('[data-act="prev"]'), next = fig.querySelector('[data-act="next"]'), reset = fig.querySelector('[data-act="reset"]');
+    var steps = data.steps, heads = data.heads || [], cur = 0, uid = fig.id;
+    var hasOut = steps.some(function (s) { return s.o != null; });
+    var el = function (name, attrs, parent) {
+      var e = document.createElementNS(NS, name);
+      for (var k in attrs) if (attrs[k] !== '' && attrs[k] != null) e.setAttribute(k, attrs[k]);
+      (parent || svg).appendChild(e);
+      return e;
+    };
+    var txt = function (x, y, s, a, parent) {
+      var o = { x: x, y: y, 'font-size': 12, fill: INK, 'font-family': 'Geist Mono, monospace' };
+      for (var k in a) o[k] = a[k];
+      var t = el('text', o, parent); t.textContent = s; return t;
+    };
+    var clear = function () {
+      Array.prototype.slice.call(svg.childNodes).forEach(function (n) {
+        var nm = (n.localName || '').toLowerCase();
+        if (nm !== 'title' && nm !== 'desc') svg.removeChild(n);
+      });
+    };
+
+    function draw() {
+      var st = steps[cur], cols = st.cols || [];
+      var k = Math.max(1, heads.length, cols.length);
+      var left = 40, right = 24, gap = k === 1 ? 0 : (k === 2 ? 70 : 46);
+      var colW = (W - left - right - gap * (k - 1)) / k;
+      var chars = Math.floor((colW - 24) / 7.4);
+      clear();
+      var defs = el('defs', {});
+      [['a', INK], ['b', LINK], ['c', ACCENT]].forEach(function (m) {
+        var mk = el('marker', { id: uid + '-' + m[0], viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: 'auto-start-reverse' }, defs);
+        el('path', { d: 'M0 0 L10 5 L0 10 z', fill: m[1] }, mk);
+      });
+      var pos = {}, bottom = TOP;
+      for (var ci = 0; ci < k; ci++) {
+        var x = left + ci * (colW + gap), y = TOP, lastG = null, items = cols[ci] || [];
+        if (heads[ci]) txt(x, 24, heads[ci], { 'font-size': 11, fill: SOFT, 'letter-spacing': '2' });
+        items.forEach(function (it) {
+          if (it.g && it.g !== lastG) { txt(x, y + 12, fit(it.g, chars + 4), { 'font-size': 10.5, fill: SOFT, 'font-style': 'italic' }); y += 18; lastG = it.g; }
+          var s = it.s || '', faded = /moved|dropped|freed/.test(s);
+          var isRef = /ref|mut|weak/.test(s), hl = /hl/.test(s), err = /err/.test(s), ok = /ok/.test(s);
+          var stroke = err || hl ? ACCENT : (ok ? OK : (isRef ? LINK : (faded ? RULE : INK)));
+          var g = el('g', { opacity: /dropped|freed/.test(s) ? 0.4 : 1 });
+          el('rect', { x: x, y: y, width: colW, height: BOX_H, rx: 6, fill: err ? 'rgba(191,69,32,.08)' : (ok ? 'rgba(47,122,74,.07)' : (faded ? PAPER : '#fff')), stroke: stroke, 'stroke-width': hl || err ? 2 : 1.4, 'stroke-dasharray': faded ? '5 4' : '' }, g);
+          var stateWord = /moved/.test(s) ? 'moved' : (/dropped/.test(s) ? 'dropped' : (/freed/.test(s) ? 'freed' : null));
+          var val = stateWord && it.v == null ? stateWord : (it.v == null ? '' : it.v);
+          if (it.n != null) {
+            var nChars = Math.max(4, Math.min(String(it.n).length, Math.floor(chars * 0.45)));
+            txt(x + 12, y + 25, fit(it.n, nChars), { 'font-size': 13, 'font-weight': 600, fill: faded ? SOFT : INK }, g);
+            txt(x + colW - 12, y + 25, fit(val, Math.max(4, chars - nChars - 1)), { 'text-anchor': 'end', fill: faded ? SOFT : (err ? ACCENT : (isRef ? LINK : INK)) }, g);
+          } else {
+            txt(x + 12, y + 25, fit(val, chars), { fill: faded ? SOFT : (err ? ACCENT : INK) }, g);
+          }
+          var tag = it.t || (/mut/.test(s) ? '&mut' : (/weak/.test(s) ? 'weak' : (/ref/.test(s) ? '&' : null)));
+          if (tag) {
+            var tw = 10 + tag.length * 6.2;
+            el('rect', { x: x + colW - tw - 8, y: y - 8, width: tw, height: 15, rx: 3, fill: err ? ACCENT : (ok ? OK : (hl ? ACCENT : LINK)) }, g);
+            txt(x + colW - tw - 3, y + 3, tag, { 'font-size': 9.5, fill: '#fff', 'font-weight': 600 }, g);
+          }
+          var id = it.id != null ? it.id : it.n;
+          if (id != null) pos[id] = { x: x, y: y + BOX_H / 2, col: ci, faded: faded, freed: /freed|dropped/.test(s) };
+          it._id = id;
+          y += BOX_H + GAP_Y;
+        });
+        if (!items.length && heads[ci]) txt(x, TOP + 24, data.empty && data.empty[ci] ? data.empty[ci] : '(empty)', { fill: SOFT });
+        bottom = Math.max(bottom, y);
+      }
+      // arrows
+      cols.forEach(function (items) {
+        (items || []).forEach(function (it) {
+          if (!it.to || /moved|dropped|freed/.test(it.s || '')) return;
+          var a = pos[it._id]; if (!a) return;
+          [].concat(it.to).forEach(function (t) {
+            var weak = t.charAt(0) === '~', bad = t.charAt(0) === '!';
+            if (weak || bad) t = t.slice(1);
+            var b = pos[t]; if (!b) return;
+            var color = bad || b.freed ? ACCENT : (weak || /ref|mut/.test(it.s || '') ? LINK : INK);
+            var mk = 'url(#' + uid + '-' + (color === ACCENT ? 'c' : (color === LINK ? 'b' : 'a')) + ')';
+            var dash = weak || bad || b.freed ? '4 3' : '', d;
+            if (b.col === a.col) {
+              var dx = 18 + Math.min(22, Math.abs(a.y - b.y) / 6), lx = a.x;
+              d = 'M' + lx + ' ' + a.y + ' C' + (lx - dx) + ' ' + a.y + ' ' + (lx - dx) + ' ' + b.y + ' ' + (lx - 2) + ' ' + b.y;
+            } else if (b.col > a.col) {
+              var x1 = a.x + colW, x2 = b.x - 2, mx = (x1 + x2) / 2;
+              d = 'M' + x1 + ' ' + a.y + ' C' + mx + ' ' + a.y + ' ' + mx + ' ' + b.y + ' ' + x2 + ' ' + b.y;
+            } else {
+              var x3 = a.x, x4 = b.x + colW + 2, mx2 = (x3 + x4) / 2;
+              d = 'M' + x3 + ' ' + a.y + ' C' + mx2 + ' ' + a.y + ' ' + mx2 + ' ' + b.y + ' ' + x4 + ' ' + b.y;
+            }
+            el('path', { d: d, fill: 'none', stroke: color, 'stroke-width': 1.6, 'stroke-dasharray': dash, 'marker-end': mk });
+          });
+        });
+      });
+      var H = Math.max(bottom, 90) + 6;
+      if (hasOut) {
+        var out = [];
+        for (var i = 0; i <= cur; i++) if (steps[i].o != null) out = out.concat(steps[i].o);
+        var shown = out.slice(-6), oh = 30 + Math.max(1, shown.length) * 18;
+        el('rect', { x: left, y: H, width: W - left - right, height: oh, rx: 6, fill: INK });
+        txt(left + 12, H + 18, 'OUTPUT', { 'font-size': 10, fill: RULE, 'letter-spacing': '2' });
+        if (!shown.length) txt(left + 12, H + 38, '(nothing printed yet)', { fill: RULE, 'font-style': 'italic' });
+        shown.forEach(function (ln, j) {
+          var bad = String(ln).charAt(0) === '!';
+          txt(left + 12, H + 38 + j * 18, fit(bad ? String(ln).slice(1) : ln, 76), { fill: bad ? '#ff9b7a' : PAPER });
+        });
+        H += oh + 10;
+      }
+      svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+      var on = [].concat(st.l || []);
+      Array.prototype.forEach.call(lines, function (ln) { ln.classList.toggle('on', on.indexOf(+ln.getAttribute('data-l')) !== -1); });
+      note.innerHTML = st.note;
+      live.textContent = 'step ' + (cur + 1) + ' / ' + steps.length;
+      prev.disabled = cur === 0;
+      next.disabled = cur === steps.length - 1;
+    }
+    prev.addEventListener('click', function () { if (cur > 0) { cur--; draw(); } });
+    next.addEventListener('click', function () { if (cur < steps.length - 1) { cur++; draw(); } });
+    reset.addEventListener('click', function () { cur = 0; draw(); });
+    fig.addEventListener('keydown', function (e) {
+      if (e.target.tagName === 'INPUT') return;
+      if (e.key === 'ArrowRight' && cur < steps.length - 1) { cur++; draw(); e.preventDefault(); }
+      if (e.key === 'ArrowLeft' && cur > 0) { cur--; draw(); e.preventDefault(); }
+    });
+    draw();
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('figure.sim'), initSim);
+})();
+</script>
+<!-- /section-sims -->
 </body>
 </html>
