@@ -1282,6 +1282,17 @@ const DOCS = [
     related: ['Rust CLI Project: minigrep', 'Rust Collections', 'Rust Fearless Concurrency', 'Rust Advanced Features'],
   },
   {
+    title: 'Rust Cargo and Crates.io',
+    path: 'content/engineering/rust/rust-cargo-crates/rust-cargo-crates.html',
+    category: 'Engineering',
+    topic: 'Rust',
+    order: 45,
+    level: 'Intermediate',
+    tags: ['rust', 'cargo', 'crates.io', 'release profiles', 'documentation', 'workspaces', 'publishing', 'semver'],
+    summary: 'Release profiles and opt-level, documentation comments and doc tests, a friendly public API with pub use, publishing to crates.io with metadata, yanking versions, Cargo workspaces with a shared lock file, cargo install, and custom cargo subcommands.',
+    related: ['Rust Packages, Crates and Modules', 'Rust Testing'],
+  },
+  {
     title: 'Quant Roadmap',
     path: 'content/quant/quant-roadmap/quant-roadmap.html',
     category: 'Quant',
