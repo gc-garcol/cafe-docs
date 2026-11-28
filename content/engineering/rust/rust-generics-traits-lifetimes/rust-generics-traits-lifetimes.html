@@ -191,7 +191,8 @@ table.ops td:first-child{font-weight:600}
 <span class="k">fn</span> main() {
     <span class="k">let</span> p = <span class="t">Point</span> { x: <span class="n">5</span>, y: <span class="n">10.4</span> };
     <span class="k">let</span> q = <span class="t">Point</span> { x: <span class="s">"Hello"</span>, y: <span class="s">'c'</span> };
-    <span class="m">println!</span>(<span class="s">"{} {:?}"</span>, p.x(), p.mixup(q));
+    <span class="m">println!</span>(<span class="s">"{}"</span>, p.x());
+    <span class="m">println!</span>(<span class="s">"{:?}"</span>, p.mixup(q)); <span class="c2">// p is moved: mixup takes self</span>
     <span class="m">println!</span>(<span class="s">"{}"</span>, <span class="t">Point</span> { x: <span class="n">3.0</span>, y: <span class="n">4.0</span> }.distance_from_origin());
 }</code></pre></div>
   <p><code>Option&lt;T&gt;</code> and <code>Result&lt;T, E&gt;</code> are ordinary generic enums. Note the <code>impl&lt;T, U&gt;</code>: the parameters are declared after <code>impl</code> so the compiler knows <code>Point&lt;T, U&gt;</code> refers to generic, not concrete, types.</p>
@@ -270,7 +271,9 @@ table.ops td:first-child{font-weight:600}
 <span class="k">fn</span> main() {
     <span class="k">let</span> s = <span class="t">String</span>::from(<span class="s">"hello there"</span>);
     notify(&amp;s);
-    notify_pair(&amp;s, &amp;make_summary());
+    notify(&amp;make_summary());
+    notify_pair(&amp;s, &amp;<span class="t">String</span>::from(<span class="s">"general kenobi"</span>));
+    <span class="c2">// notify_pair(&amp;s, &amp;make_summary()); // error: the opaque type is not String</span>
     <span class="m">println!</span>(<span class="s">"{}"</span>, report(&amp;<span class="n">1</span>, &amp;<span class="m">vec!</span>[<span class="n">2</span>]));
 }</code></pre></div>
   <div class="tw"><table class="ops"><thead><tr><th>Form</th><th>Meaning</th></tr></thead><tbody><tr><td><code>fn f(x: &amp;impl Tr)</code></td><td>Any type implementing <code>Tr</code>. Short, but the caller cannot name the type with turbofish.</td></tr><tr><td><code>fn f&lt;T: Tr&gt;(x: &amp;T, y: &amp;T)</code></td><td>Same type for both. Required when parameters must match.</td></tr><tr><td><code>T: A + B</code></td><td>Must implement both traits.</td></tr><tr><td><code>where T: ...</code></td><td>The same bounds, moved after the signature.</td></tr><tr><td><code>fn f() -&gt; impl Tr</code></td><td>Returns one concrete type the caller cannot name. Used for closures and iterators. All return paths must be the same type; for different types use <code>Box&lt;dyn Tr&gt;</code>.</td></tr></tbody></table></div>
