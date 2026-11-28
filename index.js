@@ -1348,6 +1348,17 @@ const DOCS = [
     related: ['Rust Enums and Pattern Matching', 'Rust Structs', 'Rust Advanced Features'],
   },
   {
+    title: 'Rust Advanced Features',
+    path: 'content/engineering/rust/rust-advanced/rust-advanced.html',
+    category: 'Engineering',
+    topic: 'Rust',
+    order: 51,
+    level: 'Advanced',
+    tags: ['rust', 'unsafe', 'raw pointers', 'ffi', 'associated types', 'operator overloading', 'newtype', 'macros', 'function pointers', 'never type'],
+    summary: 'Unsafe Rust (raw pointers, unsafe functions, safe abstractions like split_at_mut, extern and FFI, static mut, unsafe traits, Miri), advanced traits (associated types, default type parameters, operator overloading, disambiguation, supertraits, newtype), advanced types (aliases, !, DSTs and Sized), function pointers and returning closures, and declarative and procedural macros.',
+    related: ['Rust Smart Pointers', 'Rust Generics, Traits and Lifetimes', 'Rust OOP Features', 'Rust Patterns and Matching'],
+  },
+  {
     title: 'Quant Roadmap',
     path: 'content/quant/quant-roadmap/quant-roadmap.html',
     category: 'Quant',
