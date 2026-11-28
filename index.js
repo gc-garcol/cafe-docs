@@ -1183,6 +1183,17 @@ const DOCS = [
     related: ['Rust Common Concepts', 'Rust Structs', 'Rust Smart Pointers', 'Rust Generics, Traits and Lifetimes'],
   },
   {
+    title: 'Rust Structs',
+    path: 'content/engineering/rust/rust-structs/rust-structs.html',
+    category: 'Engineering',
+    topic: 'Rust',
+    order: 36,
+    level: 'Beginner',
+    tags: ['rust', 'structs', 'methods', 'impl', 'associated functions', 'tuple structs', 'derive', 'debug'],
+    summary: 'Define and instantiate structs, field init shorthand, struct update syntax, tuple and unit-like structs, ownership of fields, derive(Debug), methods with self, &self and &mut self, and associated functions.',
+    related: ['Rust Ownership', 'Rust Enums and Pattern Matching', 'Rust Generics, Traits and Lifetimes'],
+  },
+  {
     title: 'Quant Roadmap',
     path: 'content/quant/quant-roadmap/quant-roadmap.html',
     category: 'Quant',
