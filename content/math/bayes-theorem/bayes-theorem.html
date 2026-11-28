@@ -81,6 +81,11 @@ button:focus-visible,input:focus-visible,svg:focus-visible{outline:2px solid var
 .ev .row{flex-wrap:nowrap}
 .ev .row label.wide{flex:0 0 172px;min-width:0}
 .ev .row input[type=range]{flex:1 1 auto;width:auto;min-width:80px}
+.ev.colored{border-left:3px solid var(--evc);padding-left:12px;border-top-color:var(--rule)}
+.ev.colored .ev-head .group-label{color:var(--evc);font-weight:600;display:inline-flex;align-items:center;gap:8px}
+.ev.colored .ev-head .group-label::before{content:"";width:10px;height:10px;border-radius:2px;background:var(--evc)}
+.ev.colored .evq,.ev.colored .val{color:var(--evc)}
+.ev.colored .seg.mini button[aria-pressed="true"]{background:var(--evc)}
 .seg.mini{margin:0;flex:0 0 auto}
 .seg.mini button{flex:0 0 auto;min-height:32px;padding:0 12px}
 .qbar{display:flex;flex-wrap:wrap;gap:6px;padding:0 16px 12px;align-items:center}
@@ -171,12 +176,7 @@ p .katex,td .katex,li .katex{font-size:1.05em}
         <button type="button" data-p="1,999,1">Very rare</button>
         <button type="button" data-p="300,900,90">Common</button>
       </div>
-      <div class="legend" aria-label="Legend">
-        <span><i class="sw" style="background:#bf4520;border-color:#bf4520"></i>has it, this result</span>
-        <span><i class="sw" style="border-color:#bf4520;border-width:2px"></i>has it, other result</span>
-        <span><i class="sw" style="background:#2e5aa8;border-color:#2e5aa8"></i>does not, this result</span>
-        <span><i class="sw" style="background:#d6d8dd;border-color:#d6d8dd"></i>does not, other result</span>
-      </div>
+      <div class="legend" id="legend" aria-label="Legend"></div>
     </div>
     <div class="panel">
       <div class="group-label" id="ansLabel">P(has it | positive)</div>
@@ -488,6 +488,8 @@ document.addEventListener('DOMContentLoaded', function () {
   // Evidence list: nEv pieces in use, each with hit rate h, false alarm f (per mille) and observed result.
   // Values for all MAX_EV slots are kept so lowering and raising the count restores them.
   var MAX_EV = 6, nEv = 1, evs = [], SUB = '₀₁₂₃₄₅₆₇₈₉';
+  // one color per piece of evidence (used when there are several), all readable on white
+  var EVC = ['#00838f', '#827717', '#6a1b9a', '#0277bd', '#c62828', '#4e342e'];
   for (var ei = 0; ei < MAX_EV; ei++) evs.push({ h: 800, f: 170, pos: true });
   function values() { return { p: +$('prior').value / 1000, h: evs[0].h / 1000, f: evs[0].f / 1000 }; }
   // Symbol for "the observed evidence": E or ¬E for one piece, E₁…Eₙ for several
@@ -543,16 +545,31 @@ document.addEventListener('DOMContentLoaded', function () {
     return t;
   }
 
+  // Several pieces of evidence: split "other result" by the first piece each person misses.
+  // Returns drop counts per piece (index k = first miss at evidence k) from cumulative rounding,
+  // so they add up exactly to total - round(total * product).
+  function missCounts(total, ls) {
+    var out = [], prev = total, cum = 1;
+    for (var k = 0; k < ls.length; k++) { cum *= ls[k]; var m = Math.round(total * cum); out.push(prev - m); prev = m; }
+    return out;
+  }
+
   function drawDots(g, n) {
     var ROWS = 25, C = 11, X0 = 20, Y0 = 12, i = 0;
-    [[n.a, 'a'], [n.b, 'b'], [n.c, 'c'], [n.d, 'd']].forEach(function (k) {
-      var t = tier(k[1]);
+    // groups in drawing order; with several pieces b and d are split per first missed piece (k)
+    var list = [[n.a, 'a']];
+    if (n.bs) for (var k = n.bs.length - 1; k >= 0; k--) list.push([n.bs[k], 'b', k]); else list.push([n.b, 'b']);
+    list.push([n.c, 'c']);
+    if (n.ds) for (var j = n.ds.length - 1; j >= 0; j--) list.push([n.ds[j], 'd', j]); else list.push([n.d, 'd']);
+    list.forEach(function (k) {
+      var t = tier(k[1]), ec = k[2] === undefined ? null : EVC[k[2]];
       for (var m = 0; m < k[0]; m++, i++) {
         var col = Math.floor(i / ROWS), row = i % ROWS, cx = X0 + col * C + C / 2, cy = Y0 + row * C + C / 2;
         var at = { cx: cx, cy: cy, r: 3.6 };
         if (k[1] === 'a') { at.fill = ORANGE; at.stroke = ORANGE; }
-        else if (k[1] === 'b') { at.fill = '#fff'; at.stroke = ORANGE; at['stroke-width'] = 1.4; }
+        else if (k[1] === 'b') { at.fill = '#fff'; at.stroke = ec || ORANGE; at['stroke-width'] = 1.4; }
         else if (k[1] === 'c') { at.fill = BLUE; at.stroke = BLUE; }
+        else if (ec) { at.fill = ec; at['fill-opacity'] = 0.3; at.stroke = 'none'; }
         else { at.fill = GREY; at.stroke = GREY; }
         if (focus && t < 2) at.opacity = DIM[t];
         at['data-g'] = k[1];
@@ -577,6 +594,23 @@ document.addEventListener('DOMContentLoaded', function () {
     // one rect per group (data-g) so the side fraction can pick parts out of this same drawing
     rect(R.b, { fill: '#fff', stroke: ORANGE, 'data-g': 'b' });
     rect(R.d, { fill: '#fff', stroke: BLUE, 'data-g': 'd' });
+    if (nEv > 1) {
+      // several pieces: stack one band per piece above the shaded part, sized by the share
+      // that matched every earlier piece but misses this one, in that piece's color
+      var bandNotes = el('g', { 'data-g': 'x' }, g), cb = combined();
+      [[cb.ls, X0, wH, 'b', ORANGE], [cb.ns, X0 + wH, wN, 'd', BLUE]].forEach(function (s) {
+        var cum = 1; // piece 1's band is at the top, the last piece's sits right above the shaded part
+        for (var k = 0; k < nEv; k++) {
+          var before = cum; cum *= s[0][k];
+          var hgt = (before - cum) * S, yTop = Y0 + S - before * S;
+          if (hgt <= 0) continue;
+          rect([s[1], yTop, s[2], hgt], { fill: EVC[k], 'fill-opacity': 0.3, stroke: 'none', 'data-g': s[3] });
+          if (hgt >= 12 && s[2] >= 56) txt(bandNotes, s[1] + 4, yTop + 11, 'misses E' + SUB[k + 1], { 'font-size': 9, fill: EVC[k], 'font-weight': 600 });
+        }
+      });
+      rect(R.b, { fill: 'none', stroke: ORANGE, 'data-g': 'b' });
+      rect(R.d, { fill: 'none', stroke: BLUE, 'data-g': 'd' });
+    }
     rect(R.a, { fill: ORANGE, 'fill-opacity': 0.75, stroke: ORANGE, 'data-g': 'a' });
     rect(R.c, { fill: BLUE, 'fill-opacity': 0.75, stroke: BLUE, 'data-g': 'c' });
     if (focus) {
@@ -676,7 +710,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var fillC = paint || GREY, lineC = paint || '#aeb3bf', textC = paint || SOFT;
     Array.prototype.slice.call(g.querySelectorAll('circle, rect, line, path, text, tspan')).forEach(function (e) {
       var tag = e.localName;
-      if (tag === 'circle') { e.setAttribute('fill', fillC); e.setAttribute('stroke', fillC); }
+      if (tag === 'circle') { e.setAttribute('fill', fillC); e.setAttribute('stroke', fillC); e.removeAttribute('fill-opacity'); }
       else if (tag === 'rect' && e.hasAttribute('rx')) { e.setAttribute('fill', fillC); e.setAttribute('fill-opacity', 0.15); e.setAttribute('stroke', lineC); e.removeAttribute('stroke-dasharray'); }
       else if (tag === 'rect') { e.setAttribute('fill', fillC); e.setAttribute('fill-opacity', paint ? 0.85 : 1); e.setAttribute('stroke', lineC); }
       else if (tag === 'line' || tag === 'path') e.setAttribute('stroke', lineC);
@@ -804,6 +838,21 @@ document.addEventListener('DOMContentLoaded', function () {
     $('seqLive').textContent = 'LR(+) = ' + lrP.toFixed(2) + '   LR(−) = ' + lrN.toFixed(3) + '   now ' + pct(cur);
   }
 
+  // legend follows Fig 1: one piece = four groups; several = "other result" split per evidence color
+  function renderLegend() {
+    function item(style, label) { return '<span><i class="sw" style="' + style + '"></i>' + label + '</span>'; }
+    var h = item('background:' + ORANGE + ';border-color:' + ORANGE, nEv === 1 ? 'has it, this result' : 'has it, matches all evidence');
+    if (nEv === 1) h += item('border-color:' + ORANGE + ';border-width:2px', 'has it, other result');
+    h += item('background:' + BLUE + ';border-color:' + BLUE, nEv === 1 ? 'does not, this result' : 'does not, matches all evidence');
+    if (nEv === 1) h += item('background:' + GREY + ';border-color:' + GREY, 'does not, other result');
+    else for (var k = 0; k < nEv; k++) {
+      var c = EVC[k], s = 'E' + SUB[k + 1];
+      h += item('border-color:' + c + ';border-width:2px;background:#fff', '<b style="color:' + c + '">has it, first misses ' + s + '</b>');
+      h += item('background:' + c + '4d;border-color:transparent', '<b style="color:' + c + '">does not, first misses ' + s + '</b>');
+    }
+    $('legend').innerHTML = h;
+  }
+
   function render() {
     // with several pieces of evidence the figures show "all of this evidence" in the positive orientation
     result = nEv === 1 && !evs[0].pos ? 'neg' : 'pos';
@@ -820,6 +869,8 @@ document.addEventListener('DOMContentLoaded', function () {
     var sick = Math.round(TOTAL * v.p), healthy = TOTAL - sick;
     var sickThis = Math.round(sick * lh), healthyThis = Math.round(healthy * ln);
     var n = { a: sickThis, b: sick - sickThis, c: healthyThis, d: healthy - healthyThis };
+    if (nEv > 1) { n.bs = missCounts(sick, cb.ls); n.ds = missCounts(healthy, cb.ns); }
+    renderLegend();
 
     var svg = $('viz'), g = clear(svg);
     el('rect', { width: '100%', height: '100%', fill: '#fff' }, g);
@@ -855,7 +906,7 @@ document.addEventListener('DOMContentLoaded', function () {
     $('live').textContent = view === 'dots' ? (n.a + n.c) + ' ' + (nEv === 1 ? word : 'with this evidence') + ' · ' + n.a + ' truly have it' : 'posterior ' + pct(q);
     var lrLine = nEv === 1
       ? 'likelihood ratio = ' + sp('lH', f3(lh)) + ' / ' + sp('lN', f3(ln)) + ' = ' + (lh / ln).toFixed(3)
-      : 'likelihood ratio = ' + cb.ls.map(function (l, i) { return (l / cb.ns[i]).toFixed(2); }).join(' × ') + '\n                 = ' + (lh / ln).toFixed(3);
+      : 'likelihood ratio = ' + cb.ls.map(function (l, i) { return '<span style="color:' + EVC[i] + ';font-weight:600">' + (l / cb.ns[i]).toFixed(2) + '</span>'; }).join(' × ') + '\n                 = ' + (lh / ln).toFixed(3);
     $('readout').innerHTML =
       'expected, per ' + TOTAL + ' people:\n' +
       sp('pH', (TOTAL * v.p).toFixed(1)) + ' have it → ' + sp('joint', eH.toFixed(1)) + ' ' + vb + '\n' +
@@ -877,7 +928,9 @@ document.addEventListener('DOMContentLoaded', function () {
       var numS = tc('pH', 'P(H)') + pr + tc('lH', 'P(E_i\\mid H)');
       tex($('calc1'), tc('post', 'P(H\\mid ' + Es + ')') + '=\\frac{' + numS + '}{' + numS + '+' + tc('pN', 'P(\\neg H)') + pr + tc('lN', 'P(E_i\\mid \\neg H)') + '}=\\frac{' +
         tc('joint', 'P(H\\cap ' + Es + ')') + '}{' + tc('pE', 'P(' + Es + ')') + '}');
-      var lsT = cb.ls.map(function (x) { return tc('lH', f3(x)); }).join('\\cdot'), nsT = cb.ns.map(function (x) { return tc('lN', f3(x)); }).join('\\cdot');
+      // each factor in the color of its own piece of evidence
+      var ecol = function (i, s) { return '\\textcolor{' + EVC[i] + '}{' + s + '}'; };
+      var lsT = cb.ls.map(function (x, i) { return ecol(i, f3(x)); }).join('\\cdot'), nsT = cb.ns.map(function (x, i) { return ecol(i, f3(x)); }).join('\\cdot');
       var numN = tc('pH', p3) + '\\cdot' + lsT;
       tex($('calc2'), '=\\frac{' + numN + '}{' + numN + '+' + tc('pN', c3) + '\\cdot' + nsT +
         '}=\\frac{' + tc('joint', f4(lh * v.p)) + '}{' + tc('pE', f4(pe)) + '}=' + tc('post', q.toFixed(4)));
@@ -906,16 +959,19 @@ document.addEventListener('DOMContentLoaded', function () {
     for (var i = 0; i < nEv; i++) (function (i) {
       var e = evs[i], s = nEv === 1 ? 'E' : 'E' + SUB[i + 1];
       var d = document.createElement('div');
-      d.className = 'ev';
+      // one piece keeps the hit-rate / false-alarm colors; several pieces get one color each
+      var ec = nEv === 1 ? null : EVC[i];
+      d.className = ec ? 'ev colored' : 'ev';
+      if (ec) d.style.setProperty('--evc', ec);
       d.innerHTML =
         '<div class="ev-head"><span class="group-label" id="evl' + i + '">' + (nEv === 1 ? 'Test result' : 'Evidence ' + (i + 1) + ' result') + '</span>' +
         '<div class="seg mini" role="group" aria-labelledby="evl' + i + '">' +
         '<button type="button" data-v="1" aria-pressed="' + e.pos + '">Positive</button>' +
         '<button type="button" data-v="0" aria-pressed="' + !e.pos + '">Negative</button></div></div>' +
-        '<div class="row"><label class="wide" for="sens' + i + '">Hit rate <span class="q-lH">P(' + s + ' | H)</span></label>' +
-        '<input type="range" id="sens' + i + '" min="1" max="999" value="' + e.h + '" style="accent-color:#9a6200"><span class="val q-lH" id="v-sens' + i + '"></span></div>' +
-        '<div class="row"><label class="wide" for="fpr' + i + '">False alarm <span class="q-lN">P(' + s + ' | ¬H)</span></label>' +
-        '<input type="range" id="fpr' + i + '" min="1" max="999" value="' + e.f + '" style="accent-color:#7b52ab"><span class="val q-lN" id="v-fpr' + i + '"></span></div>';
+        '<div class="row"><label class="wide" for="sens' + i + '">Hit rate <span class="evq q-lH">P(' + s + ' | H)</span></label>' +
+        '<input type="range" id="sens' + i + '" min="1" max="999" value="' + e.h + '" style="accent-color:' + (ec || '#9a6200') + '"><span class="val q-lH" id="v-sens' + i + '"></span></div>' +
+        '<div class="row"><label class="wide" for="fpr' + i + '">False alarm <span class="evq q-lN">P(' + s + ' | ¬H)</span></label>' +
+        '<input type="range" id="fpr' + i + '" min="1" max="999" value="' + e.f + '" style="accent-color:' + (ec || '#7b52ab') + '"><span class="val q-lN" id="v-fpr' + i + '"></span></div>';
       box.appendChild(d);
       var btns = d.querySelectorAll('[data-v]');
       Array.prototype.forEach.call(btns, function (b) {
