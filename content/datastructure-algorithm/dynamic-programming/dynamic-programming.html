@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dynamic Programming: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8; --ok:#23774a;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+h3{font-family:var(--serif);font-weight:400;font-size:24px;line-height:1.2;margin:28px 0 10px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+
+.howto{margin:16px 0 0;padding:16px 20px;background:#fff;border:1px solid var(--rule-solid);border-left:3px solid var(--accent);border-radius:8px;max-width:760px}
+.howto h3{font:600 11px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--soft);margin:0 0 8px}
+.howto ol{margin:0;padding-left:20px}.howto li{margin:4px 0}
+
+.card{margin:24px 0 0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--ink)}
+.toolbar{padding:0 16px 12px;border-bottom:1px solid var(--rule);display:grid;gap:10px}
+.group-label{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);margin:0 0 6px}
+.seg{display:flex;flex-wrap:wrap;border:1px solid var(--rule-solid);border-radius:6px;overflow:hidden}
+.seg button{flex:1 1 20%;min-height:40px;border:0;background:transparent;font:500 13px var(--sans);color:var(--muted);cursor:pointer;padding:4px 10px;box-shadow:inset 1px 0 0 var(--rule-solid),inset 0 1px 0 var(--rule-solid)}
+.seg button:hover{background:var(--paper-2)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.inputs{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center}
+.inputs label{font-family:var(--mono);font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:8px}
+.inputs input[type=text]{font:500 13px var(--mono);min-height:36px;padding:0 10px;border:1px solid var(--rule-solid);border-radius:6px;background:#fff;color:var(--ink);width:180px}
+.inputs input.short{width:70px}
+.err{font-family:var(--mono);font-size:11.5px;color:var(--accent)}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.rec{padding:10px 16px 0;overflow-x:auto;text-align:center;min-height:54px}
+.stage{padding:8px;overflow-x:auto}
+.stage svg{display:block;height:auto;margin:0 auto;max-width:100%}
+
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px;margin-top:16px;display:grid;grid-template-columns:1.2fr 1fr;gap:0 24px}
+.res-label{font:500 11px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--soft);margin:0 0 6px}
+.readout{margin:0;padding:14px 16px;background:var(--paper);border:1px solid var(--rule);border-radius:6px;font-family:var(--mono);font-size:12px;line-height:1.7;white-space:pre-wrap;color:var(--ink);overflow-x:auto}
+.result{font-size:14px;line-height:1.6}
+.result b{font-family:var(--mono)}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:3px;border:1.5px solid var(--ink);display:inline-block}
+
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center;padding:0 16px 12px}
+.row label{font-family:var(--mono);font-size:12px;font-weight:600}
+input[type=range]{width:200px;max-width:100%;accent-color:var(--accent);min-height:28px}
+.val{font-family:var(--mono);font-size:13px;font-weight:600;min-width:24px}
+.row .seg{flex:0 1 320px}
+
+pre{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+pre.readout{background:var(--paper);border:1px solid var(--rule);padding:14px 16px;margin:0;font-size:12px}
+.k{color:var(--accent)} .t{color:var(--link)} .c{color:var(--soft);font-style:italic}
+
+.steps{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;max-width:760px}
+.steps ol{margin:0;padding-left:20px}.steps li{margin:8px 0}
+table.ops{border-collapse:collapse;width:100%;max-width:860px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:28px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+
+.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;text-align:center;overflow-x:auto}
+.formula .katex{font-size:1.2em}
+.katex{color:var(--ink)}
+p .katex,td .katex,li .katex{font-size:1.05em}
+
+@media (max-width:860px){.panel{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+.doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}.doc-tags a{font:500 12px "Geist Mono",ui-monospace,monospace;padding:4px 10px;border:1px solid var(--rule-solid,#bfc0c0);border-radius:4px;background:#fff;color:var(--muted,#4f5d75);text-decoration:none}.doc-tags a:hover{border-color:var(--ink,#2d3142);color:var(--ink,#2d3142)}.doc-tags a:focus-visible{outline:2px solid var(--accent,#bf4520);outline-offset:2px}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" style="margin-right:8px" href="../../../index.html">&larr; Back to home</a>
+<a class="back back-cat" href="../../../index.html#cat=Algorithms">&larr; Back to Algorithms</a>
+
+<header>
+  <div class="eyebrow">Algorithms · Dynamic programming</div>
+  <h1>Dynamic programming</h1>
+  <p class="lede">Some problems split into smaller problems that repeat. Solve each small problem once, store the answer, and build the big answer from the stored ones. That turns many exponential searches into a table you fill in polynomial time.</p>
+  <nav class="doc-tags" aria-label="Main tags"><a href="../../../index.html#tag=dynamic%20programming">#dynamic programming</a><a href="../../../index.html#tag=memoization">#memoization</a><a href="../../../index.html#tag=tabulation">#tabulation</a><a href="../../../index.html#tag=optimal%20substructure">#optimal substructure</a></nav>
+</header>
+
+<section>
+  <h2>Fill the table yourself</h2>
+  <p>Pick a classic problem, change its input, and fill the DP table one cell at a time. Each cell is computed only from cells that are already filled. The highlighted cells are the ones the current cell reads. When the table is full, the answer sits in the last cell, and following the choices backward rebuilds the solution.</p>
+
+  <div class="howto">
+    <h3>How to use this simulator</h3>
+    <ol>
+      <li>Choose a problem. The recurrence above the table is the rule every cell follows.</li>
+      <li>Press <b>Step</b> to fill one cell. The orange cell is being computed and the blue cells are what it reads; the readout shows the arithmetic.</li>
+      <li>Press <b>Fill all</b> to finish. The green path is the traceback that turns the table into an actual answer.</li>
+      <li>Edit the inputs and press <b>Apply</b>. Try coins <code>1,3,4</code> with amount <code>6</code>: the greedy choice is wrong, the table is not.</li>
+    </ol>
+  </div>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title" id="figTitle">DP table</span></div>
+    <div class="toolbar">
+      <div>
+        <div class="group-label" id="prob-label">Problem</div>
+        <div class="seg" role="group" aria-labelledby="prob-label">
+          <button type="button" data-prob="coin" aria-pressed="true">Coin change</button>
+          <button type="button" data-prob="knap" aria-pressed="false">0/1 knapsack</button>
+          <button type="button" data-prob="lcs" aria-pressed="false">Longest common subsequence</button>
+          <button type="button" data-prob="edit" aria-pressed="false">Edit distance</button>
+        </div>
+      </div>
+      <form class="inputs" id="inputs" autocomplete="off"></form>
+      <div class="btns">
+        <button type="button" class="btn" id="bStep">Step</button>
+        <button type="button" class="btn" id="bPlay" aria-pressed="false">Play</button>
+        <button type="button" class="btn" id="bAll">Fill all</button>
+        <button type="button" class="btn" id="bReset">Reset</button>
+      </div>
+    </div>
+    <div class="rec" id="rec" aria-label="Recurrence"></div>
+    <div class="stage">
+      <svg id="grid" viewBox="0 0 600 200" role="img" aria-labelledby="g-title g-desc">
+        <title id="g-title">Dynamic programming table</title>
+        <desc id="g-desc">A grid of subproblem answers. Rows and columns are labelled with the input. Filled cells show their value. The cell being computed is outlined in orange, the cells it reads are blue, and after the table is full the traceback path is green. The readout below the figure repeats the current computation in text.</desc>
+      </svg>
+    </div>
+    <div class="card-bottom"><span class="hint" id="hint"></span><span class="live" id="live"></span></div>
+  </figure>
+
+  <div class="panel">
+    <div><div class="res-label">Current cell</div><pre class="readout" id="readout" aria-live="polite"></pre></div>
+    <div><div class="res-label">Answer</div><div class="result" id="result" aria-live="polite"></div>
+      <div class="legend" aria-label="Legend">
+        <span><i class="sw" style="background:#f8ddd2;border-color:#bf4520"></i>computing</span>
+        <span><i class="sw" style="background:#dbe8fa;border-color:#2e5aa8"></i>read by it</span>
+        <span><i class="sw" style="background:#e3efe6;border-color:#23774a"></i>traceback</span>
+        <span><i class="sw" style="background:#fff;border-color:#bfc0c0"></i>not filled yet</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>1. The idea: overlapping subproblems</h2>
+  <p>The Fibonacci numbers are defined by $F(n) = F(n-1) + F(n-2)$ with $F(0) = 0$ and $F(1) = 1$. Written as plain recursion, the code follows the definition exactly, and it is terribly slow. Look at the call tree: $F(n-2)$ is computed once by $F(n)$ and again inside $F(n-1)$, and the waste doubles at every level.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 2</span><span class="card-title">The same calls, with and without a memo</span></div>
+    <div class="row">
+      <label for="fibN">n</label><input type="range" id="fibN" min="2" max="7" value="6"><span class="val" id="v-fibN">6</span>
+      <div class="seg" role="group" aria-label="Recursion mode">
+        <button type="button" data-fib="naive" aria-pressed="true">Plain recursion</button>
+        <button type="button" data-fib="memo" aria-pressed="false">With memo</button>
+      </div>
+    </div>
+    <div class="stage">
+      <svg id="fib" viewBox="0 0 600 260" role="img" aria-labelledby="f-title f-desc">
+        <title id="f-title">Call tree of the Fibonacci function</title>
+        <desc id="f-desc">Each circle is one call, labelled with its argument. Circles with the same argument share a color, so repeated work shows up as repeated colors. With the memo on, a repeated call returns immediately and is drawn as a dashed circle with no children.</desc>
+      </svg>
+    </div>
+    <div class="card-bottom"><span class="hint">Same color = same subproblem. Dashed = answered from the memo.</span><span class="live" id="fibLive"></span></div>
+  </figure>
+
+  <p>Plain recursion makes $2F(n+1) - 1$ calls, which grows like $1.618^n$: about 331 million calls for $n = 40$. There are only $n + 1$ different subproblems, though. Store each answer the first time and the call count drops to $2n - 1$.</p>
+  <p>Dynamic programming applies when a problem has two properties:</p>
+  <ul class="tight">
+    <li><b>Overlapping subproblems.</b> The same smaller problem comes up again and again. If every subproblem were new, as in merge sort, caching would not help, and plain divide and conquer is enough.</li>
+    <li><b>Optimal substructure.</b> The best answer to the whole problem is built from best answers to its parts. The shortest path from A to C through B contains a shortest path from A to B.</li>
+  </ul>
+  <p class="callout">Dynamic programming is recursion plus a memory: never solve the same subproblem twice.</p>
+</section>
+
+<section>
+  <h2>2. Top-down or bottom-up</h2>
+  <p>There are two ways to write the same idea. <b>Memoization</b> (top-down) keeps the recursive code and adds a cache. <b>Tabulation</b> (bottom-up) fills an array in an order where every dependency is already done, which is exactly what Fig 1 does.</p>
+<pre><span class="c"># Top-down: recursion + cache. Only the subproblems you actually need get computed.</span>
+<span class="k">from</span> functools <span class="k">import</span> cache
+
+<span class="k">@cache</span>
+<span class="k">def</span> fib(n):
+    <span class="k">return</span> n <span class="k">if</span> n &lt; <span class="t">2</span> <span class="k">else</span> fib(n - <span class="t">1</span>) + fib(n - <span class="t">2</span>)
+
+<span class="c"># Bottom-up: fill the table from the base cases upward. No recursion depth limit.</span>
+<span class="k">def</span> fib_table(n):
+    dp = [<span class="t">0</span>, <span class="t">1</span>] + [<span class="t">0</span>] * (n - <span class="t">1</span>)
+    <span class="k">for</span> i <span class="k">in</span> range(<span class="t">2</span>, n + <span class="t">1</span>):
+        dp[i] = dp[i - <span class="t">1</span>] + dp[i - <span class="t">2</span>]
+    <span class="k">return</span> dp[n]
+
+<span class="c"># Bottom-up, keeping only what the next step reads: O(1) memory.</span>
+<span class="k">def</span> fib_rolling(n):
+    a, b = <span class="t">0</span>, <span class="t">1</span>
+    <span class="k">for</span> _ <span class="k">in</span> range(n):
+        a, b = b, a + b
+    <span class="k">return</span> a</pre>
+  <table class="ops">
+    <thead><tr><th></th><th>Top-down (memoization)</th><th>Bottom-up (tabulation)</th></tr></thead>
+    <tbody>
+      <tr><td>Code shape</td><td>The recurrence, written as recursion, plus a cache</td><td>Loops in dependency order</td></tr>
+      <tr><td>Which states</td><td>Only those reachable from the question</td><td>Every state in the table</td></tr>
+      <tr><td>Overhead</td><td>Function calls and hash lookups, recursion depth limits</td><td>Tight loops over arrays, cache friendly</td></tr>
+      <tr><td>Memory tricks</td><td>Hard, the cache keeps everything</td><td>Easy, keep only the rows the next row reads</td></tr>
+      <tr><td>Good when</td><td>The state space is sparse or the order is awkward</td><td>Most states are needed and the order is clear</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>3. A recipe for any DP problem</h2>
+  <div class="steps"><ol>
+    <li><b>Define the state.</b> Write one sentence: "$dp[i][j]$ is the answer for ...". Most bugs are a vague state.</li>
+    <li><b>Write the transition.</b> How does a state follow from smaller states? Usually "try every last choice and keep the best".</li>
+    <li><b>Set the base cases.</b> The smallest states you can answer directly, such as an empty string or zero capacity.</li>
+    <li><b>Pick the order.</b> Every state must come after the states it reads. For a grid that reads up and left, row by row works.</li>
+    <li><b>Read the answer,</b> and if you need the actual solution, not just its value, store or recompute the choices and trace back.</li>
+  </ol></div>
+  <p>Take coin change: the fewest coins from the set $C$ that add up to amount $a$. The state is $dp[a]$, the fewest coins for amount $a$. The last coin used is some $c \in C$, and what remains is the smaller problem $a - c$:</p>
+  <div class="formula">$$dp[a] = \min_{c \in C,\ c \le a} \bigl(dp[a - c] + 1\bigr), \qquad dp[0] = 0$$</div>
+  <p>With coins $\{1, 3, 4\}$ and amount 6, greedy takes the largest coin first: $4 + 1 + 1$, three coins. The table tries every last coin and finds $3 + 3$, two coins. Greedy is right only for special coin systems; dynamic programming is right for all of them.</p>
+</section>
+
+<section>
+  <h2>4. Classic recurrences</h2>
+  <h3>0/1 knapsack</h3>
+  <p>Items have weight $w_i$ and value $v_i$, and the bag holds weight $W$. Let $dp[i][w]$ be the best value using the first $i$ items with capacity $w$. Item $i$ is either left out or taken:</p>
+  <div class="formula">$$dp[i][w] = \max\bigl(dp[i-1][w],\ dp[i-1][w - w_i] + v_i\bigr)$$</div>
+  <p>The table has $(n+1)(W+1)$ cells and each costs $O(1)$, so the run time is $O(nW)$. That is <b>pseudo-polynomial</b>: polynomial in the value $W$, but exponential in the number of bits needed to write $W$. Knapsack is NP-hard, and DP only makes it fast when $W$ is small.</p>
+
+  <h3>Longest common subsequence</h3>
+  <p>For strings $a$ and $b$, let $dp[i][j]$ be the length of the longest common subsequence of the first $i$ characters of $a$ and the first $j$ of $b$:</p>
+  <div class="formula">$$dp[i][j] = \begin{cases} dp[i-1][j-1] + 1 & \text{if } a_i = b_j \\ \max\bigl(dp[i-1][j],\ dp[i][j-1]\bigr) & \text{otherwise} \end{cases}$$</div>
+  <p>This is the core of <code>diff</code>: lines in the LCS are unchanged, everything else was added or removed. Real tools use Myers' algorithm, which finds the same answer faster when the two files are similar.</p>
+
+  <h3>Edit distance</h3>
+  <p>The Levenshtein distance is the fewest single-character inserts, deletes and replacements that turn $a$ into $b$. With $dp[i][0] = i$ and $dp[0][j] = j$:</p>
+  <div class="formula">$$dp[i][j] = \begin{cases} dp[i-1][j-1] & \text{if } a_i = b_j \\ 1 + \min\bigl(dp[i-1][j],\ dp[i][j-1],\ dp[i-1][j-1]\bigr) & \text{otherwise} \end{cases}$$</div>
+  <p>The three terms are delete, insert and replace. Spell checkers, fuzzy search and DNA alignment (Needleman–Wunsch, Smith–Waterman) are this table with different costs.</p>
+
+  <h3>Longest increasing subsequence</h3>
+  <p>Let $dp[i]$ be the length of the longest increasing subsequence that ends at element $i$. Then $dp[i] = 1 + \max\{dp[j] : j &lt; i,\ x_j &lt; x_i\}$, which is $O(n^2)$. Keeping, for each length, the smallest possible last element and binary-searching it brings this down to $O(n \log n)$. Better DP often means a smarter state, not a faster loop.</p>
+</section>
+
+<section>
+  <h2>5. Cost, and how to shrink memory</h2>
+  <p>The running time of a DP is almost always</p>
+  <div class="formula">$$\text{time} = \text{number of states} \times \text{work per transition}$$</div>
+  <table class="ops">
+    <thead><tr><th>Problem</th><th>States</th><th>Per state</th><th>Time</th><th>Memory, rolling</th></tr></thead>
+    <tbody>
+      <tr><td>Fibonacci</td><td>$n$</td><td>$O(1)$</td><td>$O(n)$</td><td>$O(1)$</td></tr>
+      <tr><td>Coin change</td><td>$A$</td><td>$O(|C|)$</td><td>$O(A\,|C|)$</td><td>$O(A)$</td></tr>
+      <tr><td>0/1 knapsack</td><td>$nW$</td><td>$O(1)$</td><td>$O(nW)$</td><td>$O(W)$</td></tr>
+      <tr><td>LCS, edit distance</td><td>$mn$</td><td>$O(1)$</td><td>$O(mn)$</td><td>$O(\min(m, n))$</td></tr>
+      <tr><td>LIS</td><td>$n$</td><td>$O(n)$ or $O(\log n)$</td><td>$O(n^2)$ or $O(n \log n)$</td><td>$O(n)$</td></tr>
+      <tr><td>Matrix chain, interval DP</td><td>$n^2$</td><td>$O(n)$</td><td>$O(n^3)$</td><td>$O(n^2)$</td></tr>
+    </tbody>
+  </table>
+  <p>When row $i$ only reads row $i-1$, keep two rows, or even one. In 0/1 knapsack the single-row version must loop the capacity <b>downward</b>, so that $dp[w - w_i]$ still holds the previous row's value. Loop upward and an item can be taken twice, which silently solves the unbounded knapsack instead.</p>
+<pre><span class="k">def</span> knapsack(items, W):
+    dp = [<span class="t">0</span>] * (W + <span class="t">1</span>)                 <span class="c"># dp[w] = best value with capacity w</span>
+    <span class="k">for</span> weight, value <span class="k">in</span> items:
+        <span class="k">for</span> w <span class="k">in</span> range(W, weight - <span class="t">1</span>, -<span class="t">1</span>):   <span class="c"># downward: each item used at most once</span>
+            dp[w] = max(dp[w], dp[w - weight] + value)
+    <span class="k">return</span> dp[W]
+
+knapsack([(<span class="t">1</span>, <span class="t">1</span>), (<span class="t">3</span>, <span class="t">4</span>), (<span class="t">4</span>, <span class="t">5</span>), (<span class="t">5</span>, <span class="t">7</span>)], <span class="t">7</span>)   <span class="c"># 9: weights 3 + 4</span></pre>
+  <p>Dropping rows loses the traceback, because the choices are gone. If you need the solution itself in little memory, Hirschberg's algorithm recovers an LCS or an alignment in linear space by splitting the problem in half.</p>
+</section>
+
+<section>
+  <h2>6. Common shapes of state</h2>
+  <table class="ops">
+    <thead><tr><th>Pattern</th><th>State</th><th>Examples</th></tr></thead>
+    <tbody>
+      <tr><td>Linear</td><td>$dp[i]$: best answer for the first $i$ elements</td><td>Climbing stairs, house robber, max subarray (Kadane)</td></tr>
+      <tr><td>Grid</td><td>$dp[r][c]$: best way to reach a cell</td><td>Unique paths, minimum path sum</td></tr>
+      <tr><td>Two sequences</td><td>$dp[i][j]$: prefixes of both inputs</td><td>LCS, edit distance, regex and wildcard matching</td></tr>
+      <tr><td>Knapsack</td><td>$dp[i][w]$: items so far, budget left</td><td>Subset sum, partition, coin change</td></tr>
+      <tr><td>Interval</td><td>$dp[l][r]$: the answer for a range, split at some $k$</td><td>Matrix chain order, burst balloons, optimal BST</td></tr>
+      <tr><td>Bitmask</td><td>$dp[\text{mask}][i]$: which items are used, where you are</td><td>Travelling salesman in $O(2^n n^2)$ (Held–Karp)</td></tr>
+      <tr><td>Tree</td><td>$dp[v]$: the answer for the subtree of $v$</td><td>Max independent set on a tree, tree diameter</td></tr>
+      <tr><td>On a DAG</td><td>$dp[v]$ in topological order</td><td>Longest path in a DAG, counting paths</td></tr>
+    </tbody>
+  </table>
+  <p>Every DP is a shortest or longest path in a directed acyclic graph whose nodes are states and whose edges are transitions. The fill order is a topological order of that graph. If the graph has a cycle, the recurrence is not well defined and you need a different tool, such as Dijkstra or Bellman–Ford.</p>
+</section>
+
+<section>
+  <h2>7. Where it shows up</h2>
+  <div class="cards">
+    <div class="stat focal"><div class="eyebrow">Text</div><div class="big">diff, spell check</div><p>LCS for <code>diff</code> and version control merges, edit distance for "did you mean".</p></div>
+    <div class="stat"><div class="eyebrow">Biology</div><div class="big">alignment</div><p>Needleman–Wunsch and Smith–Waterman align DNA and protein sequences.</p></div>
+    <div class="stat"><div class="eyebrow">Graphs</div><div class="big">shortest paths</div><p>Bellman–Ford and Floyd–Warshall are DPs over path length and allowed middle nodes.</p></div>
+    <div class="stat"><div class="eyebrow">Speech, tagging</div><div class="big">Viterbi</div><p>The most likely hidden state sequence of a Markov model, one time step per column.</p></div>
+    <div class="stat"><div class="eyebrow">Databases</div><div class="big">join order</div><p>Query planners such as PostgreSQL's pick the cheapest join order by DP over subsets of tables.</p></div>
+    <div class="stat"><div class="eyebrow">Control, RL</div><div class="big">Bellman equation</div><p>Value iteration is DP: a state's value is the best reward plus the value of where it leads.</p></div>
+  </div>
+</section>
+
+<section>
+  <h2>Pitfalls</h2>
+  <ul class="tight">
+    <li>Using greedy where only DP is correct, as with coins $\{1, 3, 4\}$. Prove the greedy choice, or use the table.</li>
+    <li>A state that leaves something out. If two situations with the same $dp$ index can need different answers, the state needs another dimension.</li>
+    <li>The wrong fill order, which reads a cell before it is computed. Check that every dependency comes earlier.</li>
+    <li>Looping the 1D knapsack upward, which allows reusing an item.</li>
+    <li>Deep recursion in top-down code: Python stops at about 1000 frames by default. Switch to bottom-up for long inputs.</li>
+    <li>A state space that is simply too big. $O(nW)$ with $W = 10^9$ will not finish; the problem needs a different idea.</li>
+  </ul>
+</section>
+
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var NS = 'http://www.w3.org/2000/svg', INF = Infinity;
+  var ORANGE = '#bf4520', BLUE = '#2e5aa8', GREEN = '#23774a', INK = '#2d3142', SOFT = '#5a6580';
+  var $ = function (id) { return document.getElementById(id); };
+  function el(name, attrs, parent) {
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function txt(parent, x, y, s, extra) {
+    var a = { x: x, y: y, 'font-size': 12, fill: INK, 'font-family': 'Geist Mono, monospace', 'text-anchor': 'middle' };
+    for (var k in extra) a[k] = extra[k];
+    var t = el('text', a, parent); t.textContent = s; return t;
+  }
+  function clear(svg) {
+    Array.prototype.slice.call(svg.childNodes).forEach(function (n) {
+      var nm = (n.localName || '').toLowerCase();
+      if (nm !== 'title' && nm !== 'desc') svg.removeChild(n);
+    });
+    return el('g', {}, svg);
+  }
+  function tex(target, s) {
+    if (window.katex) window.katex.render(s, target, { throwOnError: false, displayMode: true });
+    else target.textContent = s;
+  }
+  var show = function (v) { return v === INF ? '∞' : String(v); };
+
+  // ---------- problems ----------
+  // build(input) returns { rows, cols, rowLab, colLab, labW, cell(i, j, dp) -> {v, deps, expr, pick}, trace(dp, picks) -> {path, html} }
+  var PROBS = {
+    coin: {
+      title: 'Coin change: fewest coins',
+      rec: '\\text{dp}[a] = \\min_{c \\in C,\\ c \\le a} \\bigl(\\text{dp}[a-c] + 1\\bigr),\\qquad \\text{dp}[0] = 0',
+      inputs: [{ id: 'coins', label: 'Coins', value: '1,3,4' }, { id: 'amt', label: 'Amount', value: '6', short: true }],
+      parse: function (v) {
+        var coins = v.coins.split(/[\s,]+/).filter(Boolean).map(Number), A = +v.amt;
+        if (!coins.length || coins.some(function (c) { return !(c >= 1 && c <= 20 && c % 1 === 0); })) return 'Coins must be whole numbers from 1 to 20.';
+        if (!(A >= 1 && A <= 20 && A % 1 === 0)) return 'Amount must be a whole number from 1 to 20.';
+        coins = coins.filter(function (c, i) { return coins.indexOf(c) === i; }).sort(function (a, b) { return a - b; });
+        return { coins: coins, A: A };
+      },
+      build: function (p) {
+        var cols = [];
+        for (var a = 0; a <= p.A; a++) cols.push(String(a));
+        return {
+          rows: 1, cols: p.A + 1, rowLab: ['dp[a]'], colLab: cols, labW: 52, hint: 'Columns are amounts. Each cell reads the cells one coin to its left.',
+          cell: function (i, a, dp) {
+            if (a === 0) return { v: 0, deps: [], expr: 'dp[0] = 0  (amount 0 needs no coins)' };
+            var best = INF, pick = null, deps = [], parts = [];
+            p.coins.forEach(function (c) {
+              if (c > a) return;
+              var prev = dp[0][a - c], cand = prev === INF ? INF : prev + 1;
+              deps.push([0, a - c]);
+              parts.push('coin ' + c + ': dp[' + (a - c) + ']+1 = ' + show(cand));
+              if (cand < best) { best = cand; pick = c; }
+            });
+            if (!parts.length) parts.push('no coin fits');
+            return { v: best, deps: deps, pick: pick, expr: 'dp[' + a + '] = min of\n  ' + parts.join('\n  ') + '\n= ' + show(best) + (pick ? '  (last coin ' + pick + ')' : '') };
+          },
+          trace: function (dp, picks) {
+            if (dp[0][p.A] === INF) return { path: [[0, p.A]], html: 'Amount <b>' + p.A + '</b> cannot be made from these coins.' };
+            var path = [], used = [], a = p.A;
+            while (a > 0) { path.push([0, a]); used.push(picks[0][a]); a -= picks[0][a]; }
+            path.push([0, 0]);
+            // greedy for comparison
+            var g = [], r = p.A;
+            for (var k = p.coins.length - 1; k >= 0; k--) while (p.coins[k] <= r) { g.push(p.coins[k]); r -= p.coins[k]; }
+            var gtxt = r > 0 ? 'Greedy, largest coin first, gets stuck with ' + r + ' left over.' :
+              (g.length > used.length ? 'Greedy, largest coin first, takes ' + g.join(' + ') + ': <b style="color:#bf4520">' + g.length + ' coins</b>, worse.' : 'Greedy, largest coin first, also finds ' + g.length + ' coins here.');
+            return { path: path, html: 'Fewest coins for ' + p.A + ': <b>' + used.length + '</b>, as <b>' + used.join(' + ') + '</b>.<br>' + gtxt };
+          }
+        };
+      }
+    },
+    knap: {
+      title: '0/1 knapsack: best value within capacity',
+      rec: '\\text{dp}[i][w] = \\max\\bigl(\\text{dp}[i-1][w],\\ \\text{dp}[i-1][w-w_i] + v_i\\bigr)',
+      inputs: [{ id: 'items', label: 'Items weight:value', value: '1:1, 3:4, 4:5, 5:7' }, { id: 'cap', label: 'Capacity', value: '7', short: true }],
+      parse: function (v) {
+        var items = v.items.split(',').map(function (s) { return s.trim(); }).filter(Boolean).map(function (s) {
+          var m = s.match(/^(\d+)\s*:\s*(\d+)$/); return m ? { w: +m[1], v: +m[2] } : null;
+        });
+        if (!items.length || items.length > 6 || items.some(function (it) { return !it || it.w < 1 || it.w > 12 || it.v > 99; })) return 'Use 1 to 6 items written as weight:value, weights 1 to 12, values up to 99.';
+        var W = +v.cap;
+        if (!(W >= 1 && W <= 12 && W % 1 === 0)) return 'Capacity must be a whole number from 1 to 12.';
+        return { items: items, W: W };
+      },
+      build: function (p) {
+        var rl = ['none'], cl = [];
+        p.items.forEach(function (it, k) { rl.push('#' + (k + 1) + ' w' + it.w + ' v' + it.v); });
+        for (var w = 0; w <= p.W; w++) cl.push(String(w));
+        return {
+          rows: p.items.length + 1, cols: p.W + 1, rowLab: rl, colLab: cl, labW: 92, hint: 'Rows add one item at a time, columns are capacities.',
+          cell: function (i, w, dp) {
+            if (i === 0) return { v: 0, deps: [], expr: 'dp[0][' + w + '] = 0  (no items, no value)' };
+            var it = p.items[i - 1], skip = dp[i - 1][w], s = 'dp[' + i + '][' + w + ']: item #' + i + ' (w' + it.w + ', v' + it.v + ')\n  skip: dp[' + (i - 1) + '][' + w + '] = ' + skip;
+            if (it.w > w) return { v: skip, deps: [[i - 1, w]], pick: false, expr: s + '\n  take: does not fit\n= ' + skip };
+            var take = dp[i - 1][w - it.w] + it.v;
+            s += '\n  take: dp[' + (i - 1) + '][' + (w - it.w) + '] + ' + it.v + ' = ' + take;
+            return { v: Math.max(skip, take), deps: [[i - 1, w], [i - 1, w - it.w]], pick: take > skip, expr: s + '\n= ' + Math.max(skip, take) + (take > skip ? '  (take it)' : '  (skip it)') };
+          },
+          trace: function (dp, picks) {
+            var path = [], took = [], w = p.W;
+            for (var i = p.items.length; i > 0; i--) {
+              path.push([i, w]);
+              if (picks[i][w]) { took.push(i); w -= p.items[i - 1].w; }
+            }
+            path.push([0, w]);
+            took.reverse();
+            var tw = took.reduce(function (s, k) { return s + p.items[k - 1].w; }, 0);
+            return { path: path, html: 'Best value <b>' + dp[p.items.length][p.W] + '</b> with ' + (took.length ? 'items <b>#' + took.join(', #') + '</b>, total weight ' + tw + ' of ' + p.W + '.' : 'no items.') + '<br>Walk up from the corner: where the value changes between rows, the item was taken.' };
+          }
+        };
+      }
+    },
+    lcs: {
+      title: 'Longest common subsequence',
+      rec: '\\text{dp}[i][j] = \\begin{cases} \\text{dp}[i-1][j-1] + 1 & a_i = b_j \\\\ \\max\\bigl(\\text{dp}[i-1][j],\\ \\text{dp}[i][j-1]\\bigr) & \\text{otherwise} \\end{cases}',
+      inputs: [{ id: 'a', label: 'a', value: 'ABCBDAB' }, { id: 'b', label: 'b', value: 'BDCABA' }],
+      parse: function (v) {
+        var a = v.a.trim(), b = v.b.trim();
+        if (!a.length || !b.length || a.length > 10 || b.length > 10) return 'Both strings need 1 to 10 characters.';
+        return { a: a, b: b };
+      },
+      build: function (p) {
+        return {
+          rows: p.a.length + 1, cols: p.b.length + 1, rowLab: ['ε'].concat(p.a.split('')), colLab: ['ε'].concat(p.b.split('')), labW: 30, hint: 'Rows are prefixes of a, columns are prefixes of b. ε is the empty prefix.',
+          cell: function (i, j, dp) {
+            if (i === 0 || j === 0) return { v: 0, deps: [], expr: 'dp[' + i + '][' + j + '] = 0  (an empty prefix has nothing in common)' };
+            var x = p.a[i - 1], y = p.b[j - 1];
+            if (x === y) return { v: dp[i - 1][j - 1] + 1, deps: [[i - 1, j - 1]], pick: 'd', expr: 'dp[' + i + '][' + j + ']: a' + i + ' = b' + j + ' = "' + x + '", a match\n  dp[' + (i - 1) + '][' + (j - 1) + '] + 1 = ' + (dp[i - 1][j - 1] + 1) };
+            var up = dp[i - 1][j], left = dp[i][j - 1];
+            return { v: Math.max(up, left), deps: [[i - 1, j], [i, j - 1]], pick: up >= left ? 'u' : 'l', expr: 'dp[' + i + '][' + j + ']: "' + x + '" ≠ "' + y + '"\n  drop a' + i + ': dp[' + (i - 1) + '][' + j + '] = ' + up + '\n  drop b' + j + ': dp[' + i + '][' + (j - 1) + '] = ' + left + '\n= ' + Math.max(up, left) };
+          },
+          trace: function (dp, picks) {
+            var i = p.a.length, j = p.b.length, path = [], out = [];
+            while (i > 0 && j > 0) {
+              path.push([i, j]);
+              var k = picks[i][j];
+              if (k === 'd') { out.push(p.a[i - 1]); i--; j--; } else if (k === 'u') i--; else j--;
+            }
+            path.push([i, j]);
+            out.reverse();
+            return { path: path, html: 'Length <b>' + dp[p.a.length][p.b.length] + '</b>, for example <b>"' + out.join('') + '"</b>.<br>Diagonal steps on the green path are matched characters.' };
+          }
+        };
+      }
+    },
+    edit: {
+      title: 'Edit distance (Levenshtein)',
+      rec: '\\text{dp}[i][j] = \\begin{cases} \\text{dp}[i-1][j-1] & a_i = b_j \\\\ 1 + \\min\\bigl(\\text{dp}[i-1][j],\\ \\text{dp}[i][j-1],\\ \\text{dp}[i-1][j-1]\\bigr) & \\text{otherwise} \\end{cases}',
+      inputs: [{ id: 'a', label: 'from', value: 'kitten' }, { id: 'b', label: 'to', value: 'sitting' }],
+      parse: function (v) {
+        var a = v.a.trim(), b = v.b.trim();
+        if (!a.length || !b.length || a.length > 10 || b.length > 10) return 'Both words need 1 to 10 characters.';
+        return { a: a, b: b };
+      },
+      build: function (p) {
+        return {
+          rows: p.a.length + 1, cols: p.b.length + 1, rowLab: ['ε'].concat(p.a.split('')), colLab: ['ε'].concat(p.b.split('')), labW: 30, hint: 'Rows are prefixes of the source, columns are prefixes of the target.',
+          cell: function (i, j, dp) {
+            if (i === 0) return { v: j, deps: [], expr: 'dp[0][' + j + '] = ' + j + '  (insert ' + j + ' characters)' };
+            if (j === 0) return { v: i, deps: [], expr: 'dp[' + i + '][0] = ' + i + '  (delete ' + i + ' characters)' };
+            var x = p.a[i - 1], y = p.b[j - 1];
+            if (x === y) return { v: dp[i - 1][j - 1], deps: [[i - 1, j - 1]], pick: 'k', expr: 'dp[' + i + '][' + j + ']: "' + x + '" = "' + y + '", keep it\n  dp[' + (i - 1) + '][' + (j - 1) + '] = ' + dp[i - 1][j - 1] };
+            var del = dp[i - 1][j], ins = dp[i][j - 1], rep = dp[i - 1][j - 1], m = Math.min(del, ins, rep);
+            return { v: 1 + m, deps: [[i - 1, j], [i, j - 1], [i - 1, j - 1]], pick: m === rep ? 'r' : (m === del ? 'x' : 'i'),
+              expr: 'dp[' + i + '][' + j + ']: "' + x + '" ≠ "' + y + '"\n  delete  1 + dp[' + (i - 1) + '][' + j + '] = ' + (1 + del) + '\n  insert  1 + dp[' + i + '][' + (j - 1) + '] = ' + (1 + ins) + '\n  replace 1 + dp[' + (i - 1) + '][' + (j - 1) + '] = ' + (1 + rep) + '\n= ' + (1 + m) };
+          },
+          trace: function (dp, picks) {
+            var i = p.a.length, j = p.b.length, path = [], ops = [];
+            while (i > 0 || j > 0) {
+              path.push([i, j]);
+              var k = i === 0 ? 'i' : j === 0 ? 'x' : picks[i][j];
+              if (k === 'k') { i--; j--; }
+              else if (k === 'r') { ops.push('replace ' + p.a[i - 1] + '→' + p.b[j - 1]); i--; j--; }
+              else if (k === 'x') { ops.push('delete ' + p.a[i - 1]); i--; }
+              else { ops.push('insert ' + p.b[j - 1]); j--; }
+            }
+            path.push([0, 0]);
+            ops.reverse();
+            return { path: path, html: 'Distance <b>' + dp[p.a.length][p.b.length] + '</b>: ' + (ops.length ? '<b>' + ops.join(', ') + '</b>.' : 'the words are equal.') + '<br>Diagonal steps keep or replace, down deletes, right inserts.' };
+          }
+        };
+      }
+    }
+  };
+
+  // ---------- table state ----------
+  var st = { prob: 'coin', vals: {}, P: null, order: [], k: 0, dp: null, picks: null, info: null };
+  var timer = null;
+  Object.keys(PROBS).forEach(function (id) {
+    st.vals[id] = {};
+    PROBS[id].inputs.forEach(function (f) { st.vals[id][f.id] = f.value; });
+  });
+
+  function buildInputs() {
+    var form = $('inputs'), pr = PROBS[st.prob];
+    form.innerHTML = '';
+    pr.inputs.forEach(function (f) {
+      var lab = document.createElement('label'), inp = document.createElement('input');
+      lab.textContent = f.label;
+      inp.type = 'text'; inp.id = 'in-' + f.id; inp.value = st.vals[st.prob][f.id];
+      if (f.short) inp.className = 'short';
+      inp.setAttribute('spellcheck', 'false');
+      lab.appendChild(inp); form.appendChild(lab);
+    });
+    var b = document.createElement('button');
+    b.type = 'submit'; b.className = 'btn'; b.textContent = 'Apply';
+    form.appendChild(b);
+    var e = document.createElement('span'); e.className = 'err'; e.id = 'err'; e.setAttribute('role', 'status');
+    form.appendChild(e);
+  }
+  $('inputs').addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    var pr = PROBS[st.prob], next = {};
+    pr.inputs.forEach(function (f) { next[f.id] = $('in-' + f.id).value; });
+    var parsed = pr.parse(next);
+    if (typeof parsed === 'string') { $('err').textContent = parsed; return; }
+    st.vals[st.prob] = next;
+    setup();
+  });
+
+  function setup() {
+    stop();
+    var pr = PROBS[st.prob];
+    st.P = pr.build(pr.parse(st.vals[st.prob]));
+    st.order = [];
+    for (var i = 0; i < st.P.rows; i++) for (var j = 0; j < st.P.cols; j++) st.order.push([i, j]);
+    st.k = 0; st.info = null;
+    st.dp = []; st.picks = [];
+    for (var r = 0; r < st.P.rows; r++) { st.dp.push(new Array(st.P.cols).fill(null)); st.picks.push(new Array(st.P.cols).fill(null)); }
+    $('figTitle').textContent = pr.title;
+    tex($('rec'), pr.rec);
+    $('hint').textContent = st.P.hint;
+    render();
+  }
+
+  function stepCell() {
+    if (st.k >= st.order.length) return false;
+    var c = st.order[st.k], r = st.P.cell(c[0], c[1], st.dp);
+    st.dp[c[0]][c[1]] = r.v; st.picks[c[0]][c[1]] = r.pick;
+    st.info = { at: c, deps: r.deps, expr: r.expr };
+    st.k++;
+    return true;
+  }
+
+  function render() {
+    var P = st.P, svg = $('grid'), g = clear(svg), done = st.k >= st.order.length;
+    var cs = Math.max(30, Math.min(46, Math.floor((760 - P.labW) / P.cols))), X0 = P.labW + 8, Y0 = 30;
+    var W = X0 + P.cols * cs + 8, H = Y0 + P.rows * cs + 8;
+    svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+    svg.setAttribute('width', W);
+    var tr = done ? P.trace(st.dp, st.picks) : null, onPath = {};
+    if (tr) tr.path.forEach(function (c) { onPath[c[0] + ',' + c[1]] = 1; });
+    var isDep = {};
+    if (st.info && !done) st.info.deps.forEach(function (c) { isDep[c[0] + ',' + c[1]] = 1; });
+    var labels = [];
+    P.colLab.forEach(function (s, j) { txt(g, X0 + j * cs + cs / 2, Y0 - 10, s, { fill: SOFT, 'font-weight': 600 }); });
+    P.rowLab.forEach(function (s, i) { txt(g, X0 - 8, Y0 + i * cs + cs / 2 + 4, s, { fill: SOFT, 'font-weight': 600, 'text-anchor': 'end', 'font-size': P.labW > 60 ? 10.5 : 12 }); });
+    for (var i = 0; i < P.rows; i++) for (var j = 0; j < P.cols; j++) {
+      var key = i + ',' + j, v = st.dp[i][j], filled = v !== null;
+      var cur = st.info && !done && st.info.at[0] === i && st.info.at[1] === j;
+      var fill = '#fff', stroke = '#d6d8dd', sw = 1;
+      if (filled) { fill = '#f8f9fb'; stroke = '#bfc0c0'; }
+      if (isDep[key]) { fill = '#dbe8fa'; stroke = BLUE; sw = 1.6; }
+      if (onPath[key]) { fill = '#e3efe6'; stroke = GREEN; sw = 1.8; }
+      if (cur) { fill = '#f8ddd2'; stroke = ORANGE; sw = 2.2; }
+      el('rect', { x: X0 + j * cs + 1, y: Y0 + i * cs + 1, width: cs - 2, height: cs - 2, rx: 4, fill: fill, stroke: stroke, 'stroke-width': sw }, g);
+      if (filled) labels.push([X0 + j * cs + cs / 2, Y0 + i * cs + cs / 2 + 5, show(v), { 'font-size': cs > 38 ? 14 : 12, 'font-weight': cur || onPath[key] ? 600 : 500, fill: cur ? '#8f2f12' : onPath[key] ? '#174f31' : INK }]);
+    }
+    // traceback links between consecutive path cells, under the numbers
+    if (tr) for (var p = 0; p + 1 < tr.path.length; p++) {
+      var a = tr.path[p], b = tr.path[p + 1];
+      el('line', { x1: X0 + a[1] * cs + cs / 2, y1: Y0 + a[0] * cs + cs / 2, x2: X0 + b[1] * cs + cs / 2, y2: Y0 + b[0] * cs + cs / 2, stroke: GREEN, 'stroke-width': 2, 'stroke-opacity': 0.35, 'stroke-linecap': 'round' }, g);
+    }
+    labels.forEach(function (l) {
+      // white halo keeps digits readable where a traceback line passes
+      var t = txt(g, l[0], l[1], l[2], l[3]);
+      t.setAttribute('paint-order', 'stroke'); t.setAttribute('stroke', '#fff'); t.setAttribute('stroke-width', 3);
+    });
+    $('readout').textContent = st.info ? st.info.expr : 'Press Step to compute the first cell.';
+    $('live').textContent = st.k + ' / ' + st.order.length + ' cells filled';
+    $('result').innerHTML = tr ? tr.html : '<span style="color:#5a6580">Fill the whole table to read the answer from the last cell.</span>';
+  }
+
+  function stop() { if (timer) clearInterval(timer); timer = null; $('bPlay').textContent = 'Play'; $('bPlay').setAttribute('aria-pressed', 'false'); }
+  $('bStep').addEventListener('click', function () { stop(); stepCell(); render(); });
+  $('bAll').addEventListener('click', function () { stop(); while (stepCell()); render(); });
+  $('bReset').addEventListener('click', setup);
+  $('bPlay').addEventListener('click', function () {
+    if (timer) { stop(); return; }
+    if (st.k >= st.order.length) setup();
+    timer = setInterval(function () { if (!stepCell()) stop(); render(); }, 450);
+    $('bPlay').textContent = 'Pause'; $('bPlay').setAttribute('aria-pressed', 'true');
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('[data-prob]'), function (b, _, all) {
+    b.addEventListener('click', function () {
+      st.prob = b.getAttribute('data-prob');
+      Array.prototype.forEach.call(document.querySelectorAll('[data-prob]'), function (o) { o.setAttribute('aria-pressed', o === b ? 'true' : 'false'); });
+      buildInputs(); setup();
+    });
+  });
+
+  // ---------- Fig 2: Fibonacci call tree ----------
+  var FC = ['#5a6580', '#7b52ab', '#2e5aa8', '#1f7a8c', '#23774a', '#9a6200', '#bf4520', '#c2185b'];
+  var fib = { n: 6, mode: 'naive' };
+  function fibTree(n, memo) {
+    var nodes = [], leaf = 0, seen = {};
+    function rec(k, depth) {
+      var node = { k: k, depth: depth, kids: [], cached: false };
+      nodes.push(node);
+      if (memo && seen[k]) { node.cached = true; node.x = leaf++; return node; }
+      if (k >= 2) { node.kids.push(rec(k - 1, depth + 1)); node.kids.push(rec(k - 2, depth + 1)); }
+      seen[k] = true;
+      if (!node.kids.length) node.x = leaf++;
+      else node.x = (node.kids[0].x + node.kids[1].x) / 2;
+      return node;
+    }
+    rec(n, 0);
+    return { nodes: nodes, leaves: leaf };
+  }
+  // plain recursion makes 2·F(n+1) − 1 calls; b ends as F(n+1)
+  function naiveCalls(n) { var a = 1, b = 1; for (var i = 2; i <= n; i++) { var c = a + b; a = b; b = c; } return 2 * b - 1; }
+  function drawFib() {
+    var t = fibTree(fib.n, fib.mode === 'memo'), svg = $('fib'), g = clear(svg);
+    var dx = 34, dy = 52, X0 = 24, Y0 = 26, maxD = 0;
+    t.nodes.forEach(function (nd) { maxD = Math.max(maxD, nd.depth); });
+    var W = Math.max(420, X0 * 2 + (t.leaves - 1) * dx), H = Y0 + maxD * dy + 26;
+    var off = (W - (X0 * 2 + (t.leaves - 1) * dx)) / 2;
+    svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+    svg.setAttribute('width', W);
+    var X = function (nd) { return off + X0 + nd.x * dx; }, Y = function (nd) { return Y0 + nd.depth * dy; };
+    t.nodes.forEach(function (nd) { nd.kids.forEach(function (c) { el('line', { x1: X(nd), y1: Y(nd), x2: X(c), y2: Y(c), stroke: '#bfc0c0', 'stroke-width': 1.4 }, g); }); });
+    t.nodes.forEach(function (nd) {
+      var col = FC[nd.k % FC.length];
+      el('circle', nd.cached ? { cx: X(nd), cy: Y(nd), r: 13, fill: '#fff', stroke: col, 'stroke-width': 1.6, 'stroke-dasharray': '3 2' } : { cx: X(nd), cy: Y(nd), r: 13, fill: col, stroke: '#fff', 'stroke-width': 1.5 }, g);
+      txt(g, X(nd), Y(nd) + 4, String(nd.k), { 'font-size': 11, 'font-weight': 600, fill: nd.cached ? col : '#fff' });
+    });
+    var calls = t.nodes.length, nv = naiveCalls(fib.n);
+    $('fibLive').textContent = 'F(' + fib.n + '): ' + calls + ' calls' + (fib.mode === 'memo' ? ' (plain recursion: ' + nv + ')' : ' (with memo: ' + (2 * fib.n - 1) + ')');
+  }
+  $('fibN').addEventListener('input', function () { fib.n = +this.value; $('v-fibN').textContent = fib.n; drawFib(); });
+  Array.prototype.forEach.call(document.querySelectorAll('[data-fib]'), function (b) {
+    b.addEventListener('click', function () {
+      fib.mode = b.getAttribute('data-fib');
+      Array.prototype.forEach.call(document.querySelectorAll('[data-fib]'), function (o) { o.setAttribute('aria-pressed', o === b ? 'true' : 'false'); });
+      drawFib();
+    });
+  });
+
+  buildInputs(); setup(); drawFib();
+  if (window.renderMathInElement) window.renderMathInElement(document.body, {
+    delimiters: [{ left: '$$', right: '$$', display: true }, { left: '$', right: '$', display: false }],
+    ignoredTags: ['script', 'style', 'textarea', 'pre', 'code'],
+    throwOnError: false
+  });
+});
+</script>
+</body>
+</html>
