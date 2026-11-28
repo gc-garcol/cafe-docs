@@ -1260,6 +1260,17 @@ const DOCS = [
     related: ['Rust Packages, Crates and Modules', 'Rust CLI Project: minigrep', 'Rust Cargo and Crates.io'],
   },
   {
+    title: 'Rust CLI Project: minigrep',
+    path: 'content/engineering/rust/rust-cli-project/rust-cli-project.html',
+    category: 'Engineering',
+    topic: 'Rust',
+    order: 43,
+    level: 'Intermediate',
+    tags: ['rust', 'cli', 'project', 'std::env', 'file io', 'refactoring', 'tdd', 'environment variables', 'stderr'],
+    summary: 'Build minigrep, a small grep: read arguments with std::env::args, read a file, move logic into lib.rs, parse into a Config struct, return Result instead of panicking, drive search with tests first, add case-insensitive search through an environment variable, and print errors to stderr.',
+    related: ['Rust Error Handling', 'Rust Testing', 'Rust Closures and Iterators'],
+  },
+  {
     title: 'Quant Roadmap',
     path: 'content/quant/quant-roadmap/quant-roadmap.html',
     category: 'Quant',
