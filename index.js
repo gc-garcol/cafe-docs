@@ -1205,6 +1205,17 @@ const DOCS = [
     related: ['Rust Structs', 'Rust Patterns and Matching', 'Rust Error Handling'],
   },
   {
+    title: 'Rust Packages, Crates and Modules',
+    path: 'content/engineering/rust/rust-modules/rust-modules.html',
+    category: 'Engineering',
+    topic: 'Rust',
+    order: 38,
+    level: 'Beginner',
+    tags: ['rust', 'modules', 'crates', 'packages', 'visibility', 'pub', 'use', 'paths', 'cargo'],
+    summary: 'Packages, binary and library crates, the module tree, absolute and relative paths, pub and privacy rules for structs and enums, use and re-exports with pub use, external crates, and splitting modules into files.',
+    related: ['Rust Cargo and Crates.io', 'Rust Structs', 'Rust Testing'],
+  },
+  {
     title: 'Quant Roadmap',
     path: 'content/quant/quant-roadmap/quant-roadmap.html',
     category: 'Quant',
