@@ -1315,6 +1315,17 @@ const DOCS = [
     related: ['Rust Smart Pointers', 'Rust Async and Await', 'Rust Ownership', 'Java Memory Model', 'Memory Fence'],
   },
   {
+    title: 'Rust Async and Await',
+    path: 'content/engineering/rust/rust-async/rust-async.html',
+    category: 'Engineering',
+    topic: 'Rust',
+    order: 48,
+    level: 'Advanced',
+    tags: ['rust', 'async', 'await', 'futures', 'streams', 'tokio', 'concurrency', 'pin', 'executor'],
+    summary: 'Futures, async fn and .await, runtimes and executors, concurrency with join and spawn_task, message passing over async channels, racing futures with select and timeouts, yielding, streams, the Future and Stream traits, Pin and Unpin, and when to use threads versus async.',
+    related: ['Rust Fearless Concurrency', 'Rust Closures and Iterators', 'Rust Advanced Features'],
+  },
+  {
     title: 'Quant Roadmap',
     path: 'content/quant/quant-roadmap/quant-roadmap.html',
     category: 'Quant',
