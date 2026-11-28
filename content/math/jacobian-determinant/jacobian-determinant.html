@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jacobian Determinant: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+h3{font-family:var(--serif);font-weight:400;font-size:24px;line-height:1.2;margin:32px 0 10px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+a{color:var(--link)}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+
+.card{margin:24px 0 0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
+.card-title{font-family:var(--serif);font-size:20px}
+.hint{font-family:var(--mono);font-size:11px;color:var(--soft)}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.scroll{overflow-x:auto;padding:0 8px;text-align:center}
+.scroll svg{display:inline-block;width:100%;max-width:720px;height:auto}
+.trio{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,.9fr);gap:0;border-top:1px solid var(--rule)}
+.trio>div+div{border-left:1px solid var(--rule)}
+.trio svg{display:block;width:100%;height:auto}
+#dom{touch-action:none;cursor:crosshair}
+.fig-pad{padding:12px 16px}
+.panel-label{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);margin:0 0 6px}
+
+.controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;margin-top:16px;align-items:start}
+.panel{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:20px}
+.row{display:grid;grid-template-columns:72px 1fr 60px;gap:12px;align-items:center;margin:0 0 10px}
+.row label{font-family:var(--mono);font-size:13px;font-weight:600}
+.row output{font-family:var(--mono);font-size:12px;text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent);min-height:28px}
+.group-label{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);margin:16px 0 6px}
+.seg{display:flex;flex-wrap:wrap;border:1px solid var(--rule-solid);border-radius:6px;overflow:hidden}
+.seg button{flex:1 1 30%;min-height:40px;border:0;background:transparent;font:500 13px var(--sans);color:var(--muted);cursor:pointer;padding:0 10px;box-shadow:inset 1px 0 0 var(--rule-solid),inset 0 1px 0 var(--rule-solid)}
+.seg button:hover{background:var(--paper-2)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.big-answer{font-family:var(--serif);font-size:44px;line-height:1.1;margin:4px 0 8px;color:var(--accent)}
+.readout{margin:0;padding:0;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:var(--ink);border:0;background:none;overflow-x:auto}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;border-radius:3px;border:1px solid var(--ink);display:inline-block}
+.sw.dash{border-style:dashed;background:transparent}
+.map-note{font-size:14px;color:var(--muted);margin:12px 0 0;max-width:none}
+
+pre.code{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:16px 0}
+.k{color:var(--accent)} .t{color:var(--link)} .c{color:var(--soft);font-style:italic}
+.formula{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;text-align:center;overflow-x:auto}
+.formula .katex{font-size:1.25em}
+.katex{color:var(--ink)}
+p .katex,td .katex,li .katex{font-size:1.05em}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.stat{background:#fff;border:1px solid var(--rule-solid);border-radius:6px;padding:18px 20px}
+.stat .big{font-family:var(--serif);font-size:28px;line-height:1.1;margin:6px 0}
+.stat p{font-size:14px;color:var(--muted);margin:0}
+.stat.focal{border-color:var(--accent);background:var(--accent-tint)}
+.steps{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0;max-width:760px}
+.steps ol{margin:0;padding-left:20px}.steps li{margin:8px 0}
+table.ops{border-collapse:collapse;width:100%;max-width:760px;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+.tw{overflow-x:auto}
+ul.tight{padding-left:20px;max-width:68ch}ul.tight li{margin:6px 0}
+@media (max-width:860px){.controls,.trio{grid-template-columns:1fr}.trio>div+div{border-left:0;border-top:1px solid var(--rule)}.cards{grid-template-columns:1fr}.page{padding:32px 16px 72px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+.doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}.doc-tags a{font:500 12px "Geist Mono",ui-monospace,monospace;padding:4px 10px;border:1px solid var(--rule-solid,#bfc0c0);border-radius:4px;background:#fff;color:var(--muted,#4f5d75);text-decoration:none}.doc-tags a:hover{border-color:var(--ink,#2d3142);color:var(--ink,#2d3142)}.doc-tags a:focus-visible{outline:2px solid var(--accent,#bf4520);outline-offset:2px}
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" style="margin-right:8px" href="../../../index.html">&larr; Back to home</a>
+<a class="back back-cat" href="../../../index.html#cat=Mathematics">&larr; Back to Mathematics</a>
+
+<header>
+  <div class="eyebrow">Mathematics · Multivariable calculus</div>
+  <h1>Jacobian Determinant</h1>
+  <p class="lede">A curved map bends the grid, so it has no single determinant. Zoom in far enough, though, and every smooth map looks linear. The determinant of that local linear map, the Jacobian determinant, tells how much the map stretches area at each point, and whether it flips it. It is the factor behind $dA = r\,dr\,d\theta$ and every change of variables in an integral.</p>
+  <nav class="doc-tags" aria-label="Main tags"><a href="../../../index.html#tag=jacobian">#jacobian</a><a href="../../../index.html#tag=determinant">#determinant</a><a href="../../../index.html#tag=change%20of%20variables">#change of variables</a><a href="../../../index.html#tag=multivariable%20calculus">#multivariable calculus</a></nav>
+</header>
+
+<section>
+  <h2>Try it first</h2>
+  <p>The left panel is the $(u, v)$ plane with a small square of side $h$. The middle panel shows where a map $\mathbf{f}$ sends the grid and the square. Click or drag in the left panel to move the square, then shrink $h$. The curved image patch and the dashed parallelogram $J\,h$ grow closer, and the ratio of areas settles on $\det J$ at that point. Try "Fold": in the band where the determinant is negative, the patch comes out mirrored.</p>
+
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">A small square and its image</span></div>
+    <div class="trio">
+      <div class="fig-pad">
+        <div class="panel-label">Domain (u, v)</div>
+        <svg id="dom" viewBox="0 0 320 320" role="img" aria-labelledby="dom-title dom-desc">
+          <title id="dom-title">Domain grid with a small square</title>
+          <desc id="dom-desc">A square grid of the u v plane. A small filled square of side h sits at the chosen point. Click or drag to move it.</desc>
+        </svg>
+      </div>
+      <div class="fig-pad">
+        <div class="panel-label">Image (x, y) = f(u, v)</div>
+        <svg id="img" viewBox="0 0 320 320" role="img" aria-labelledby="img-title img-desc">
+          <title id="img-title">Image of the grid and of the small square</title>
+          <desc id="img-desc">The grid after the map, with curved lines. The image of the small square is filled, blue where the Jacobian determinant is positive and orange where it is negative. A dashed parallelogram shows the linear approximation, the Jacobian matrix applied to the square.</desc>
+        </svg>
+      </div>
+      <div class="fig-pad">
+        <div class="panel-label">det J at the point</div>
+        <div class="big-answer" id="answer"></div>
+        <pre class="readout" id="readout" aria-live="polite"></pre>
+      </div>
+    </div>
+    <div class="card-bottom"><span class="hint">Shrink h: image area / h² approaches det J</span><span class="live" id="live"></span></div>
+  </figure>
+
+  <div class="controls">
+    <div class="panel">
+      <div class="row"><label for="u">u</label><input type="range" id="u" min="0" max="1000" value="500"><output id="o-u" for="u"></output></div>
+      <div class="row"><label for="v">v</label><input type="range" id="v" min="0" max="1000" value="500"><output id="o-v" for="v"></output></div>
+      <div class="row"><label for="h">side h</label><input type="range" id="h" min="1" max="100" value="40"><output id="o-h" for="h"></output></div>
+      <p class="map-note" id="mapNote"></p>
+    </div>
+    <div class="panel">
+      <div class="group-label" id="map-label" style="margin-top:0">Map</div>
+      <div class="seg" role="group" aria-labelledby="map-label">
+        <button type="button" data-m="linear">Linear</button>
+        <button type="button" data-m="polar">Polar</button>
+        <button type="button" data-m="square">z²</button>
+        <button type="button" data-m="swirl">Swirl</button>
+        <button type="button" data-m="fold">Fold</button>
+      </div>
+      <div class="legend" aria-label="Legend">
+        <span><i class="sw" style="background:rgba(46,90,168,.3)"></i>det J &gt; 0</span>
+        <span><i class="sw" style="background:rgba(191,69,32,.3)"></i>det J &lt; 0</span>
+        <span><i class="sw dash"></i>linear approximation J h</span>
+        <span><i class="sw" style="background:#2e5aa8"></i>u edge</span>
+        <span><i class="sw" style="background:#bf4520"></i>v edge</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>1. Start with one variable</h2>
+  <p>For $y = f(x)$, a tiny interval of length $dx$ around $x$ lands on an interval of length about $|f'(x)|\,dx$. The derivative is the local stretch factor for length. Its sign says whether the interval keeps its direction or is reversed.</p>
+  <p>That is why substitution in a one-variable integral carries a derivative: with $x = g(u)$, $\int f(x)\,dx = \int f(g(u))\,g'(u)\,du$. The Jacobian determinant is the same idea for maps from $\mathbb{R}^n$ to $\mathbb{R}^n$: a stretch factor for area, volume, and their higher-dimensional versions.</p>
+</section>
+
+<section>
+  <h2>2. The Jacobian matrix</h2>
+  <p>Take a map $\mathbf{f}(u, v) = (x(u, v),\, y(u, v))$. Near a point $\mathbf{p}$, a small step $\mathbf{h}$ in the domain moves the output by approximately a linear function of $\mathbf{h}$:</p>
+  <div class="formula">$$\mathbf{f}(\mathbf{p} + \mathbf{h}) \approx \mathbf{f}(\mathbf{p}) + J(\mathbf{p})\,\mathbf{h}, \qquad J = \begin{bmatrix} \dfrac{\partial x}{\partial u} & \dfrac{\partial x}{\partial v} \\[2mm] \dfrac{\partial y}{\partial u} & \dfrac{\partial y}{\partial v} \end{bmatrix}$$</div>
+  <p>Row $i$ holds the partial derivatives of output $i$; column $j$ is how the output moves when you nudge input $j$. In the lab, the blue edge of the image patch is close to the first column times $h$ and the red edge to the second column times $h$. For a map from $\mathbb{R}^n$ to $\mathbb{R}^m$ the matrix is $m \times n$, but only a square one has a determinant.</p>
+  <p>$J(\mathbf{p})$ is the best linear approximation of $\mathbf{f}$ at $\mathbf{p}$: the multivariable <a href="../derivatives/derivatives.html">derivative</a>, the same role the <a href="../differentials/differentials.html">differential</a> $dy = f'(x)\,dx$ plays in one variable.</p>
+</section>
+
+<section>
+  <h2>3. The Jacobian determinant</h2>
+  <p>A linear map scales every area by $|\det|$ of its matrix (see <a href="../determinants/determinants.html">Determinants</a>). Near $\mathbf{p}$, $\mathbf{f}$ behaves like the linear map $J(\mathbf{p})$, so small regions near $\mathbf{p}$ are scaled by $|\det J(\mathbf{p})|$:</p>
+  <div class="formula">$$\det J = \frac{\partial(x, y)}{\partial(u, v)} = \frac{\partial x}{\partial u}\frac{\partial y}{\partial v} - \frac{\partial x}{\partial v}\frac{\partial y}{\partial u}, \qquad \text{Area}\big(\mathbf{f}(\text{small region})\big) \approx |\det J|\cdot \text{Area}(\text{region})$$</div>
+  <p>Unlike a matrix determinant, this one is a function: it can change from point to point. The approximation becomes exact in the limit, which is what the ratio in the lab shows as $h \to 0$.</p>
+  <table class="ops">
+    <thead><tr><th>Sign of det J</th><th>Meaning near the point</th></tr></thead>
+    <tbody>
+      <tr><td>$\det J &gt; 0$</td><td>orientation kept: a counter-clockwise loop stays counter-clockwise</td></tr>
+      <tr><td>$\det J &lt; 0$</td><td>orientation flipped: the patch is mirrored</td></tr>
+      <tr><td>$\det J = 0$</td><td>area is crushed to zero there; the map may fold, and has no smooth local inverse</td></tr>
+    </tbody>
+  </table>
+  <div class="callout">The Jacobian determinant is the determinant of the map's best local linear approximation: a local, signed area-scaling factor.</div>
+</section>
+
+<section>
+  <h2>4. Polar coordinates: where the r comes from</h2>
+  <p>The map from $(r, \theta)$ to $(x, y)$ is $x = r\cos\theta$, $y = r\sin\theta$. Its Jacobian:</p>
+  <div class="formula">$$J = \begin{bmatrix} \cos\theta & -r\sin\theta \\ \sin\theta & r\cos\theta \end{bmatrix}, \qquad \det J = r\cos^2\theta + r\sin^2\theta = r$$</div>
+  <p>A small $dr \times d\theta$ box becomes a piece of a ring: $dr$ thick and $r\,d\theta$ long, because an arc of angle $d\theta$ at radius $r$ has length $r\,d\theta$. Far from the origin the same $d\theta$ sweeps a longer arc, so the patch is bigger. At $r = 0$ the whole side $\theta \in [0, 2\pi)$ collapses to one point, and $\det J = 0$.</p>
+  <div class="scroll">
+<svg width="720" height="280" viewBox="0 0 720 280" role="img" aria-labelledby="pc-title pc-desc">
+<title id="pc-title">A polar box and its area</title>
+<desc id="pc-desc">Left: a rectangle in the r theta plane with sides dr and d theta. Right: its image, a piece of a ring between radius r and r plus dr, spanning angle d theta. Its sides are dr and r d theta, so its area is about r dr d theta. The exact area is the midpoint radius times dr times d theta.</desc>
+<g font-family="'Geist Mono',monospace" font-size="11" fill="#5a6580">
+<text x="40" y="24">(r, θ) PLANE</text><text x="380" y="24">(x, y) PLANE</text>
+</g>
+<line x1="40" y1="250" x2="300" y2="250" stroke="#4f5d75"/><line x1="40" y1="250" x2="40" y2="40" stroke="#4f5d75"/>
+<rect x="160" y="110" width="70" height="60" fill="rgba(46,90,168,.25)" stroke="#2e5aa8" stroke-width="2"/>
+<g font-family="'Instrument Serif',serif" font-size="19" fill="#2d3142">
+<text x="296" y="270">r</text><text x="20" y="48">θ</text>
+<text x="182" y="192">dr</text><text x="238" y="146">dθ</text>
+</g>
+<path d="M392 250 L700 250 M392 250 L392 40" stroke="#4f5d75" fill="none"/>
+<path d="M392 250 L656.9 109.2" stroke="rgba(45,49,66,.3)" stroke-dasharray="4 3" fill="none"/>
+<path d="M392 250 L614.9 49.3" stroke="rgba(45,49,66,.3)" stroke-dasharray="4 3" fill="none"/>
+<path d="M568.6 156.1 L621.6 127.9 A260 260 0 0 0 585.2 76.0 L540.6 116.2 A200 200 0 0 1 568.6 156.1 Z" fill="rgba(46,90,168,.25)" stroke="#2e5aa8" stroke-width="2"/>
+<path d="M480 250 A88 88 0 0 0 469.7 208.7" stroke="#5a6580" fill="none"/>
+<g font-family="'Instrument Serif',serif" font-size="19" fill="#2d3142">
+<text x="486" y="236">θ</text>
+<text x="610" y="168">dr</text>
+<text x="620" y="96">r dθ</text>
+<text x="470" y="176" fill="#4f5d75">r</text>
+</g>
+</svg>
+  </div>
+  <p>So $dA = dx\,dy = r\,dr\,d\theta$. In fact the ring piece between radii $r_1$ and $r_2$ has area exactly $\tfrac{1}{2}(r_2^2 - r_1^2)\,\Delta\theta = \bar r\,\Delta r\,\Delta\theta$ with $\bar r$ the midpoint radius. The classic payoff is the Gaussian integral, impossible with ordinary antiderivatives but two lines in polar form:</p>
+  <div class="formula">$$\left(\int_{-\infty}^{\infty} e^{-x^2}\,dx\right)^{2} = \iint_{\mathbb{R}^2} e^{-(x^2+y^2)}\,dx\,dy = \int_0^{2\pi}\!\!\int_0^\infty e^{-r^2}\,r\,dr\,d\theta = 2\pi\cdot\tfrac{1}{2} = \pi$$</div>
+  <p>Hence $\int_{-\infty}^{\infty} e^{-x^2}\,dx = \sqrt{\pi}$, the constant in the <a href="../gaussian-distribution/gaussian-distribution.html">Gaussian distribution</a>. The factor $r$ is what makes the inner integral solvable: $\int_0^\infty r e^{-r^2}\,dr = \tfrac{1}{2}$.</p>
+</section>
+
+<section>
+  <h2>5. The change of variables formula</h2>
+  <p>Chop the region $S$ in the $(u, v)$ plane into tiny squares. Each one maps to a tiny patch of $R = \mathbf{f}(S)$ with area $|\det J|\,du\,dv$. Summing $g$ times those areas gives:</p>
+  <div class="formula">$$\iint_{R} g(x, y)\,dx\,dy = \iint_{S} g\big(\mathbf{f}(u, v)\big)\,\left|\det J(u, v)\right|\,du\,dv$$</div>
+  <p>This holds when $\mathbf{f}$ is one-to-one on $S$ (apart from a set of zero area, like the line $r = 0$) and has continuous partial derivatives. The absolute value is there because areas in an integral are positive; the sign only tracks orientation.</p>
+  <h3>Worked example: a tilted region</h3>
+  <p>Compute $\iint_R (x + y)^2\,dA$ over the parallelogram $0 \le x + y \le 2$, $0 \le x - y \le 1$. The region is a rectangle in $u = x + y$, $v = x - y$. Invert: $x = \frac{u + v}{2}$, $y = \frac{u - v}{2}$.</p>
+  <div class="steps"><ol>
+    <li>Jacobian of $(u, v) \mapsto (x, y)$: $\det\begin{bmatrix} 1/2 & 1/2 \\ 1/2 & -1/2 \end{bmatrix} = -\frac{1}{4} - \frac{1}{4} = -\frac{1}{2}$, so $|\det J| = \frac{1}{2}$.</li>
+    <li>Rewrite: $\iint_R (x+y)^2\,dA = \int_0^1\!\int_0^2 u^2 \cdot \frac{1}{2}\,du\,dv$.</li>
+    <li>Inner integral: $\int_0^2 u^2\,du = \frac{8}{3}$. Outer: $\frac{1}{2}\cdot\frac{8}{3}\cdot 1 = \frac{4}{3}$.</li>
+    <li>Sanity check with $g = 1$: area of $R$ is $\frac{1}{2}\cdot 2 \cdot 1 = 1$. Its sides are $(1, 1)$ and $(\tfrac{1}{2}, -\tfrac{1}{2})$, and $|1\cdot(-\tfrac{1}{2}) - 1\cdot\tfrac{1}{2}| = 1$. ✓</li>
+  </ol></div>
+  <p>Note which direction the Jacobian goes: it is $\partial(x, y)/\partial(u, v)$, the derivative of the old variables with respect to the new ones. If you only have $u, v$ as functions of $x, y$, use the inverse rule $\frac{\partial(x, y)}{\partial(u, v)} = 1 \big/ \frac{\partial(u, v)}{\partial(x, y)}$. Here $\frac{\partial(u,v)}{\partial(x,y)} = \det\begin{bmatrix} 1 & 1 \\ 1 & -1 \end{bmatrix} = -2$, and indeed $1/(-2) = -\frac{1}{2}$.</p>
+</section>
+
+<section>
+  <h2>6. Three dimensions</h2>
+  <p>In space the Jacobian is $3 \times 3$ and its determinant scales volume. The two standard coordinate systems:</p>
+  <div class="tw"><table class="ops">
+    <thead><tr><th>Coordinates</th><th>Map</th><th>|det J|</th><th>Volume element</th></tr></thead>
+    <tbody>
+      <tr><td>Cylindrical</td><td>$x = r\cos\theta,\ y = r\sin\theta,\ z = z$</td><td>$r$</td><td>$dV = r\,dr\,d\theta\,dz$</td></tr>
+      <tr><td>Spherical</td><td>$x = \rho\sin\varphi\cos\theta,\ y = \rho\sin\varphi\sin\theta,\ z = \rho\cos\varphi$</td><td>$\rho^2\sin\varphi$</td><td>$dV = \rho^2\sin\varphi\,d\rho\,d\varphi\,d\theta$</td></tr>
+    </tbody>
+  </table></div>
+  <p>A spherical box has edges $d\rho$, $\rho\,d\varphi$ and $\rho\sin\varphi\,d\theta$ (the circle of latitude has radius $\rho\sin\varphi$), which multiply to the same factor. Volume of a ball of radius $R$:</p>
+  <div class="formula">$$\int_0^{2\pi}\!\!\int_0^{\pi}\!\!\int_0^{R} \rho^2\sin\varphi\;d\rho\,d\varphi\,d\theta = 2\pi \cdot 2 \cdot \frac{R^3}{3} = \frac{4}{3}\pi R^3$$</div>
+  <p>Here $\varphi$ is the angle from the $z$-axis. With the angle from the $xy$-plane instead, the factor becomes $\rho^2\cos$ of that angle, so check the convention before copying a formula.</p>
+</section>
+
+<section>
+  <h2>7. When the determinant is zero</h2>
+  <p><b>Inverse function theorem.</b> If $\mathbf{f}$ has continuous partial derivatives and $\det J(\mathbf{p}) \ne 0$, then near $\mathbf{p}$ the map has a smooth inverse, and the inverse's Jacobian is the matrix inverse: $J_{\mathbf{f}^{-1}}(\mathbf{f}(\mathbf{p})) = J_{\mathbf{f}}(\mathbf{p})^{-1}$. Its determinant is therefore $1/\det J_{\mathbf{f}}(\mathbf{p})$.</p>
+  <p>Where $\det J = 0$ this can fail. In the lab:</p>
+  <ul class="tight">
+    <li><b>Fold</b>, $(u, v) \mapsto (u,\ v^3 - v)$: $\det J = 3v^2 - 1$ vanishes on the lines $v = \pm 1/\sqrt{3}$. Between them the patch is mirrored, and every output with $|y| \lt 2/(3\sqrt{3}) \approx 0.385$ has three preimages. The grid visibly overlaps itself.</li>
+    <li><b>z²</b>, $(u, v) \mapsto (u^2 - v^2,\ 2uv)$, which is squaring a complex number: $\det J = 4(u^2 + v^2)$, zero only at the origin, where angles double and no local inverse exists.</li>
+    <li><b>Polar</b> at $r = 0$: a whole edge of the domain collapses to a point.</li>
+  </ul>
+  <p>The converse is false: $\det J \ne 0$ everywhere does not make a map one-to-one globally. Polar coordinates on all of $r &gt; 0$ have $\det J = r &gt; 0$, yet $\theta$ and $\theta + 2\pi$ land on the same point.</p>
+</section>
+
+<section>
+  <h2>8. The chain rule multiplies determinants</h2>
+  <p>Doing $\mathbf{f}$ and then $\mathbf{g}$ composes their local linear maps, so the Jacobians multiply as matrices, and their determinants multiply as numbers:</p>
+  <div class="formula">$$J_{\mathbf{g}\circ\mathbf{f}}(\mathbf{p}) = J_{\mathbf{g}}\big(\mathbf{f}(\mathbf{p})\big)\,J_{\mathbf{f}}(\mathbf{p}), \qquad \det J_{\mathbf{g}\circ\mathbf{f}} = \det J_{\mathbf{g}} \cdot \det J_{\mathbf{f}}$$</div>
+  <p>Area scaled by one factor and then by another is scaled by the product. Two consequences: a map composed with its inverse has determinant $1$, which gives the inverse rule of section 5; and a map built from area-preserving steps preserves area. The "Swirl" map rotates each circle by an angle that grows with its radius. It twists shapes badly, yet $\det J = 1$ everywhere: in polar terms it is a shear, $(r, \theta) \mapsto (r,\ \theta + k r^2)$.</p>
+</section>
+
+<section>
+  <h2>9. Probability densities</h2>
+  <p>A density is probability per unit area. If $\mathbf{y} = \mathbf{f}(\mathbf{x})$ is one-to-one and smooth, probability is conserved, but areas change by $|\det J|$, so density changes by the inverse factor:</p>
+  <div class="formula">$$p_Y(\mathbf{y}) = p_X(\mathbf{x})\,\frac{1}{\left|\det J_{\mathbf{f}}(\mathbf{x})\right|}, \qquad \mathbf{x} = \mathbf{f}^{-1}(\mathbf{y})$$</div>
+  <p>In one dimension: if $X$ is uniform on $[0, 1]$ and $Y = 2X$, then $Y$ is uniform on $[0, 2]$ with density $\tfrac{1}{2}$. The values are spread over twice the length, so they are half as dense.</p>
+  <ul class="tight">
+    <li><b>Box–Muller.</b> Two uniform numbers $U_1, U_2$ become two independent standard normals via $R = \sqrt{-2\ln U_1}$, $\Theta = 2\pi U_2$, $(Z_1, Z_2) = (R\cos\Theta,\ R\sin\Theta)$. The polar Jacobian $r$ is what makes the result Gaussian.</li>
+    <li><b>Normalizing flows.</b> Generative models push a simple density through a chain of invertible neural maps. Training maximizes $\log p_X(\mathbf{x}) = \log p_Z(\mathbf{z}) + \log\left|\det \frac{\partial \mathbf{z}}{\partial \mathbf{x}}\right|$, so the layers are designed to have triangular Jacobians, whose determinant is just the product of the diagonal.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>10. The same thing in code</h2>
+  <p>When the partial derivatives are tedious, approximate them with central differences. The error is about $\epsilon^2$ per entry, so $\epsilon \approx 10^{-5}$ is a good default in double precision.</p>
+  <pre class="code"><span class="c">// f maps [u, v] to [x, y]; returns the 2x2 Jacobian and its determinant</span>
+<span class="k">function</span> jacobian(f, u, v, eps = <span class="t">1e-5</span>) {
+  <span class="k">const</span> [xu1, yu1] = f(u + eps, v), [xu0, yu0] = f(u - eps, v);
+  <span class="k">const</span> [xv1, yv1] = f(u, v + eps), [xv0, yv0] = f(u, v - eps);
+  <span class="k">const</span> J = [[(xu1 - xu0) / (<span class="t">2</span> * eps), (xv1 - xv0) / (<span class="t">2</span> * eps)],
+             [(yu1 - yu0) / (<span class="t">2</span> * eps), (yv1 - yv0) / (<span class="t">2</span> * eps)]];
+  <span class="k">return</span> { J, det: J[<span class="t">0</span>][<span class="t">0</span>] * J[<span class="t">1</span>][<span class="t">1</span>] - J[<span class="t">0</span>][<span class="t">1</span>] * J[<span class="t">1</span>][<span class="t">0</span>] };
+}
+
+<span class="k">const</span> polar = (r, t) =&gt; [r * Math.cos(t), r * Math.sin(t)];
+jacobian(polar, <span class="t">1.5</span>, <span class="t">0.7</span>).det;   <span class="c">// ≈ 1.5, equal to r</span>
+
+<span class="c">// Area of the unit disk as a sum over a polar grid: sum of |det J| du dv</span>
+<span class="k">function</span> diskArea(n) {
+  <span class="k">let</span> s = <span class="t">0</span>;
+  <span class="k">const</span> dr = <span class="t">1</span> / n, dt = <span class="t">2</span> * Math.PI / n;
+  <span class="k">for</span> (<span class="k">let</span> i = <span class="t">0</span>; i &lt; n; i++)
+    <span class="k">for</span> (<span class="k">let</span> j = <span class="t">0</span>; j &lt; n; j++)
+      s += Math.abs(jacobian(polar, (i + <span class="t">0.5</span>) * dr, (j + <span class="t">0.5</span>) * dt).det) * dr * dt;
+  <span class="k">return</span> s;
+}
+diskArea(<span class="t">50</span>);   <span class="c">// 3.14159..., while forgetting the factor gives 2π</span></pre>
+  <p>Automatic differentiation libraries (JAX's <code>jax.jacfwd</code>, PyTorch's <code>torch.autograd.functional.jacobian</code>) compute the exact matrix instead. For large $n$, never expand the determinant by cofactors: use an LU factorization, or better, design the map so the Jacobian is triangular.</p>
+</section>
+
+<section>
+  <h2>11. Common mistakes</h2>
+  <ul class="tight">
+    <li>Writing $dx\,dy = dr\,d\theta$. The factor $r$ is missing; integrating $1$ over the unit disk would give $2\pi$ instead of $\pi$.</li>
+    <li>Dropping the absolute value in the change of variables formula. The worked example's $-\tfrac{1}{2}$ would make an area negative.</li>
+    <li>Using the Jacobian in the wrong direction: multiplying by $\partial(u, v)/\partial(x, y)$ when you need $\partial(x, y)/\partial(u, v)$. They are reciprocals.</li>
+    <li>Changing variables with a map that is not one-to-one on the region, so parts of it are counted twice. The z² map on the full square covers the plane twice.</li>
+    <li>Forgetting to transform the limits of integration along with the integrand.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>12. Where it shows up</h2>
+  <div class="cards">
+    <div class="stat focal"><div class="eyebrow">Integration</div><div class="big">change of variables</div><p>Polar, cylindrical and spherical coordinates, and any substitution that turns a skewed region into a box.</p></div>
+    <div class="stat"><div class="eyebrow">Probability</div><div class="big">density transforms</div><p>Box–Muller sampling, the multivariate normal, and normalizing flows all divide by $|\det J|$.</p></div>
+    <div class="stat"><div class="eyebrow">Physics</div><div class="big">Liouville</div><p>Hamiltonian flow has $\det J = 1$, so volume in phase space is conserved. Incompressible fluids satisfy the same at every instant.</p></div>
+    <div class="stat"><div class="eyebrow">Mechanics</div><div class="big">deformation</div><p>In continuum mechanics $\det F$ of the deformation gradient is the local volume ratio; $\det F &lt; 0$ would mean matter passing through itself.</p></div>
+    <div class="stat"><div class="eyebrow">Graphics</div><div class="big">texture maps</div><p>The Jacobian of a UV map tells how much a texture is stretched on screen, which drives mipmap level selection.</p></div>
+    <div class="stat"><div class="eyebrow">Robotics</div><div class="big">singularities</div><p>A robot arm's joint-to-tool Jacobian with $\det J = 0$ marks a pose where the tool cannot move in some direction.</p></div>
+  </div>
+</section>
+
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var NS = 'http://www.w3.org/2000/svg';
+  var INK = '#2d3142', SOFT = '#5a6580', BLUE = '#2e5aa8', ORANGE = '#bf4520';
+  var $ = function (id) { return document.getElementById(id); };
+  function el(name, attrs, parent) {
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function reset(svg) {
+    Array.prototype.slice.call(svg.childNodes).forEach(function (n) {
+      var nm = (n.localName || '').toLowerCase();
+      if (nm !== 'title' && nm !== 'desc') svg.removeChild(n);
+    });
+    return el('g', {}, svg);
+  }
+  function f(x, d) {
+    d = d === undefined ? 3 : d;
+    var s = (Math.abs(x) < 0.5 * Math.pow(10, -d) ? 0 : x).toFixed(d);
+    return (s.charAt(0) === '-' ? '' : ' ') + s;
+  }
+
+  var MAPS = {
+    linear: { u: [-1, 1], v: [-1, 1], p: [0.2, 0.3], fn: function (u, v) { return [1.2 * u + 0.6 * v, 0.3 * u + 0.9 * v]; },
+      formula: 'det J = 1.2·0.9 − 0.6·0.3 = 0.9', note: 'A linear map: the Jacobian is the matrix itself, the same at every point. Every patch is scaled by 0.9.' },
+    polar: { u: [0, 2], v: [0, Math.PI / 2], p: [1.2, 0.6], fn: function (r, t) { return [r * Math.cos(t), r * Math.sin(t)]; },
+      formula: 'det J = r', note: 'u = r, v = θ. Patches far from the origin are bigger: det J = r. The edge r = 0 collapses to a point.' },
+    square: { u: [0, 1.4], v: [0, 1.4], p: [0.9, 0.5], fn: function (u, v) { return [u * u - v * v, 2 * u * v]; },
+      formula: 'det J = 4(u² + v²)', note: 'Complex squaring z ↦ z². It stretches more far from 0 and doubles angles; det J = 0 only at the origin.' },
+    swirl: { u: [-1.5, 1.5], v: [-1.5, 1.5], p: [0.6, 0.4], fn: function (u, v) { var a = 0.6 * (u * u + v * v), c = Math.cos(a), s = Math.sin(a); return [u * c - v * s, u * s + v * c]; },
+      formula: 'det J = 1', note: 'Each circle is rotated by 0.6·r². Shapes twist, but det J = 1 everywhere: area is preserved.' },
+    fold: { u: [-1.5, 1.5], v: [-1.5, 1.5], p: [0, 0.2], fn: function (u, v) { return [u, v * v * v - v]; },
+      formula: 'det J = 3v² − 1', note: 'Negative for |v| < 1/√3 ≈ 0.577: the patch comes out mirrored and the grid folds over itself.' }
+  };
+  var mapKey = 'polar', M = MAPS[mapKey], pu = M.p[0], pv = M.p[1], imgBox = null;
+
+  function jac(u, v) {
+    var e = 1e-5, a = M.fn(u + e, v), b = M.fn(u - e, v), c = M.fn(u, v + e), d = M.fn(u, v - e);
+    var J = [[(a[0] - b[0]) / (2 * e), (c[0] - d[0]) / (2 * e)], [(a[1] - b[1]) / (2 * e), (c[1] - d[1]) / (2 * e)]];
+    return { J: J, det: J[0][0] * J[1][1] - J[0][1] * J[1][0] };
+  }
+  var S = 320, PAD = 18;
+  function frame(x0, x1, y0, y1) {
+    var s = Math.min((S - 2 * PAD) / (x1 - x0), (S - 2 * PAD) / (y1 - y0));
+    var ox = (S - s * (x1 - x0)) / 2, oy = (S - s * (y1 - y0)) / 2;
+    return { s: s, X: function (x) { return ox + (x - x0) * s; }, Y: function (y) { return S - oy - (y - y0) * s; },
+      inv: function (px, py) { return [x0 + (px - ox) / s, y0 + (S - oy - py) / s]; } };
+  }
+  function computeImageBox() {
+    var b = [Infinity, -Infinity, Infinity, -Infinity];
+    for (var i = 0; i <= 40; i++) for (var j = 0; j <= 40; j++) {
+      var q = M.fn(M.u[0] + (M.u[1] - M.u[0]) * i / 40, M.v[0] + (M.v[1] - M.v[0]) * j / 40);
+      b[0] = Math.min(b[0], q[0]); b[1] = Math.max(b[1], q[0]); b[2] = Math.min(b[2], q[1]); b[3] = Math.max(b[3], q[1]);
+    }
+    var mx = (b[1] - b[0]) * 0.04 || 0.1, my = (b[3] - b[2]) * 0.04 || 0.1;
+    imgBox = frame(b[0] - mx, b[1] + mx, b[2] - my, b[3] + my);
+  }
+  function hValue() { return +$('h').value / 100 * 0.45 * Math.min(M.u[1] - M.u[0], M.v[1] - M.v[0]); }
+  function boundary(h, n) {
+    // counter-clockwise loop around the square: bottom, right, top, left
+    var pts = [], a = pu - h / 2, b = pv - h / 2, i;
+    for (i = 0; i < n; i++) pts.push([a + h * i / n, b]);
+    for (i = 0; i < n; i++) pts.push([a + h, b + h * i / n]);
+    for (i = 0; i < n; i++) pts.push([a + h - h * i / n, b + h]);
+    for (i = 0; i < n; i++) pts.push([a, b + h - h * i / n]);
+    return pts;
+  }
+  function shoelace(pts) {
+    var s = 0;
+    for (var i = 0; i < pts.length; i++) { var p = pts[i], q = pts[(i + 1) % pts.length]; s += p[0] * q[1] - q[0] * p[1]; }
+    return s / 2;
+  }
+  function path(pts, F, close) {
+    return pts.map(function (p, i) { return (i ? 'L' : 'M') + F.X(p[0]).toFixed(1) + ' ' + F.Y(p[1]).toFixed(1); }).join(' ') + (close ? ' Z' : '');
+  }
+  function grid(g, F, mapped) {
+    var N = 10, K = 60, i, k, pts;
+    for (i = 0; i <= N; i++) {
+      var uu = M.u[0] + (M.u[1] - M.u[0]) * i / N, vv = M.v[0] + (M.v[1] - M.v[0]) * i / N;
+      pts = []; for (k = 0; k <= K; k++) { var q = [uu, M.v[0] + (M.v[1] - M.v[0]) * k / K]; pts.push(mapped ? M.fn(q[0], q[1]) : q); }
+      el('path', { d: path(pts, F), fill: 'none', stroke: 'rgba(46,90,168,.28)', 'stroke-width': 1 }, g);
+      pts = []; for (k = 0; k <= K; k++) { var r = [M.u[0] + (M.u[1] - M.u[0]) * k / K, vv]; pts.push(mapped ? M.fn(r[0], r[1]) : r); }
+      el('path', { d: path(pts, F), fill: 'none', stroke: 'rgba(191,69,32,.24)', 'stroke-width': 1 }, g);
+    }
+  }
+
+  function draw() {
+    var h = hValue(), jd = jac(pu, pv), det = jd.det, J = jd.J, pos = det >= 0;
+    var fill = pos ? 'rgba(46,90,168,.3)' : 'rgba(191,69,32,.3)', edge = pos ? BLUE : ORANGE;
+    // domain
+    var D = frame(M.u[0], M.u[1], M.v[0], M.v[1]), g = reset($('dom'));
+    el('rect', { x: D.X(M.u[0]), y: D.Y(M.v[1]), width: D.s * (M.u[1] - M.u[0]), height: D.s * (M.v[1] - M.v[0]), fill: '#fff', stroke: 'rgba(45,49,66,.25)' }, g);
+    grid(g, D, false);
+    var sq = boundary(h, 1);
+    el('path', { d: path(sq, D, true), fill: fill, stroke: INK, 'stroke-width': 1.4 }, g);
+    el('line', { x1: D.X(sq[0][0]), y1: D.Y(sq[0][1]), x2: D.X(sq[1][0]), y2: D.Y(sq[1][1]), stroke: BLUE, 'stroke-width': 3 }, g);
+    el('line', { x1: D.X(sq[0][0]), y1: D.Y(sq[0][1]), x2: D.X(sq[3][0]), y2: D.Y(sq[3][1]), stroke: ORANGE, 'stroke-width': 3 }, g);
+    el('circle', { cx: D.X(pu), cy: D.Y(pv), r: 3, fill: INK }, g);
+    // image
+    var I = imgBox, gi = reset($('img'));
+    el('rect', { x: 0.5, y: 0.5, width: S - 1, height: S - 1, fill: '#fff', stroke: 'rgba(45,49,66,.12)' }, gi);
+    grid(gi, I, true);
+    var loop = boundary(h, 24).map(function (q) { return M.fn(q[0], q[1]); });
+    el('path', { d: path(loop, I, true), fill: fill, stroke: INK, 'stroke-width': 1.4 }, gi);
+    var c0 = M.fn(pu - h / 2, pv - h / 2), e1 = M.fn(pu + h / 2, pv - h / 2), e2 = M.fn(pu - h / 2, pv + h / 2);
+    el('line', { x1: I.X(c0[0]), y1: I.Y(c0[1]), x2: I.X(e1[0]), y2: I.Y(e1[1]), stroke: BLUE, 'stroke-width': 2.5 }, gi);
+    el('line', { x1: I.X(c0[0]), y1: I.Y(c0[1]), x2: I.X(e2[0]), y2: I.Y(e2[1]), stroke: ORANGE, 'stroke-width': 2.5 }, gi);
+    var fp = M.fn(pu, pv), corners = [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(function (c) {
+      var du = c[0] * h / 2, dv = c[1] * h / 2;
+      return [fp[0] + J[0][0] * du + J[0][1] * dv, fp[1] + J[1][0] * du + J[1][1] * dv];
+    });
+    el('path', { d: path(corners, I, true), fill: 'none', stroke: INK, 'stroke-width': 1.3, 'stroke-dasharray': '5 4' }, gi);
+    el('circle', { cx: I.X(fp[0]), cy: I.Y(fp[1]), r: 3, fill: INK }, gi);
+    // readout
+    var area = shoelace(loop), ratio = area / (h * h);
+    $('answer').textContent = f(det, 3).trim();
+    $('answer').style.color = pos ? BLUE : ORANGE;
+    $('readout').textContent =
+      'p     (u, v) = (' + f(pu, 2) + ',' + f(pv, 2) + ')\n' +
+      'f(p)  (x, y) = (' + f(fp[0], 2) + ',' + f(fp[1], 2) + ')\n\n' +
+      'J = [' + f(J[0][0], 2) + '  ' + f(J[0][1], 2) + ' ]\n' +
+      '    [' + f(J[1][0], 2) + '  ' + f(J[1][1], 2) + ' ]\n' +
+      M.formula + '\n\n' +
+      'h            = ' + f(h, 3) + '\n' +
+      'square area  = ' + f(h * h, 4) + '\n' +
+      'image area   = ' + f(area, 4) + '  (signed)\n' +
+      'image / h²   = ' + f(ratio, 3) + '\n' +
+      'det J        = ' + f(det, 3) + '\n' +
+      'gap          = ' + f(Math.abs(ratio - det), 4);
+    $('live').textContent = Math.abs(det) < 1e-3 ? 'det J ≈ 0: area crushed' : (pos ? 'orientation kept' : 'orientation flipped');
+    $('o-u').textContent = f(pu, 2).trim();
+    $('o-v').textContent = f(pv, 2).trim();
+    $('o-h').textContent = f(h, 3).trim();
+  }
+
+  function syncSliders() {
+    $('u').value = Math.round((pu - M.u[0]) / (M.u[1] - M.u[0]) * 1000);
+    $('v').value = Math.round((pv - M.v[0]) / (M.v[1] - M.v[0]) * 1000);
+  }
+  function setMap(key) {
+    mapKey = key; M = MAPS[key]; pu = M.p[0]; pv = M.p[1];
+    computeImageBox(); syncSliders();
+    $('mapNote').textContent = M.note;
+    document.querySelectorAll('.seg button').forEach(function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-m') === key ? 'true' : 'false'); });
+    draw();
+  }
+  $('u').addEventListener('input', function () { pu = M.u[0] + (M.u[1] - M.u[0]) * this.value / 1000; draw(); });
+  $('v').addEventListener('input', function () { pv = M.v[0] + (M.v[1] - M.v[0]) * this.value / 1000; draw(); });
+  $('h').addEventListener('input', draw);
+  document.querySelectorAll('.seg button').forEach(function (b) { b.addEventListener('click', function () { setMap(b.getAttribute('data-m')); }); });
+
+  var dom = $('dom'), dragging = false;
+  function pick(ev) {
+    var r = dom.getBoundingClientRect(), D = frame(M.u[0], M.u[1], M.v[0], M.v[1]);
+    var q = D.inv((ev.clientX - r.left) / r.width * S, (ev.clientY - r.top) / r.height * S);
+    pu = Math.min(M.u[1], Math.max(M.u[0], q[0])); pv = Math.min(M.v[1], Math.max(M.v[0], q[1]));
+    syncSliders(); draw();
+  }
+  dom.addEventListener('pointerdown', function (ev) { dragging = true; dom.setPointerCapture(ev.pointerId); pick(ev); });
+  dom.addEventListener('pointermove', function (ev) { if (dragging) pick(ev); });
+  dom.addEventListener('pointerup', function () { dragging = false; });
+  dom.addEventListener('pointercancel', function () { dragging = false; });
+
+  setMap('polar');
+
+  if (window.renderMathInElement) {
+    window.renderMathInElement(document.body, {
+      delimiters: [{ left: '$$', right: '$$', display: true }, { left: '$', right: '$', display: false }],
+      ignoredTags: ['script', 'style', 'textarea', 'pre', 'code'],
+      throwOnError: false
+    });
+  }
+});
+</script>
+</body>
+</html>
