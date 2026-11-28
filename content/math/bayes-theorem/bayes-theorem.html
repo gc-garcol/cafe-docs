@@ -75,6 +75,14 @@ button:focus-visible,input:focus-visible,svg:focus-visible{outline:2px solid var
 #calc>div{padding:4px 0;white-space:nowrap}
 .big-answer{color:#c2185b}
 .q-pH{color:#bf4520}.q-lH{color:#9a6200}.q-lN{color:#7b52ab}
+.ev{border-top:1px solid var(--rule);padding-top:12px;margin-top:4px}
+.ev-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:0 0 10px}
+.ev-head .group-label{margin:0}
+.ev .row{flex-wrap:nowrap}
+.ev .row label.wide{flex:0 0 172px;min-width:0}
+.ev .row input[type=range]{flex:1 1 auto;width:auto;min-width:80px}
+.seg.mini{margin:0;flex:0 0 auto}
+.seg.mini button{flex:0 0 auto;min-height:32px;padding:0 12px}
 .qbar{display:flex;flex-wrap:wrap;gap:6px;padding:0 16px 12px;align-items:center}
 .qbar .hint{flex:1 0 100%;margin-bottom:2px}
 .qchip{--c:#2d3142;display:inline-flex;align-items:center;gap:8px;min-height:34px;padding:0 10px;border:1px solid var(--c);border-radius:6px;background:#fff;color:var(--muted);font:500 12px var(--mono);cursor:pointer}
@@ -128,7 +136,7 @@ p .katex,td .katex,li .katex{font-size:1.05em}
 
 <section>
   <h2>Try the machine first</h2>
-  <p>A test for a condition comes back. How likely is it that the person really has the condition? Move the sliders and switch the result between positive and negative. Look at the same numbers three ways: 1000 people as dots, a square split by area, or a probability tree. In every view the answer is the same ratio: the people who have the condition <b>and</b> got this result, out of everyone who got this result.</p>
+  <p>A test for a condition comes back. How likely is it that the person really has the condition? Move the sliders and switch the result between positive and negative. Raise the number of pieces of evidence to combine several independent results, each with its own hit rate, false alarm rate and outcome. Look at the same numbers three ways: 1000 people as dots, a square split by area, or a probability tree. In every view the answer is the same ratio: the people who have the condition <b>and</b> got this result, out of everyone who got this result.</p>
 
   <figure class="card">
     <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title" id="figTitle">1000 people, one positive test</span></div>
@@ -146,14 +154,9 @@ p .katex,td .katex,li .katex{font-size:1.05em}
   <div class="controls">
     <div class="panel">
       <div class="row"><label class="wide" for="prior">Base rate <span class="q-pH">P(H)</span></label><input type="range" id="prior" min="1" max="999" value="350" style="accent-color:#bf4520"><span class="val q-pH" id="v-prior"></span></div>
-      <div class="row"><label class="wide" for="sens">Hit rate <span class="q-lH">P(E | H)</span></label><input type="range" id="sens" min="1" max="999" value="800" style="accent-color:#9a6200"><span class="val q-lH" id="v-sens"></span></div>
-      <div class="row"><label class="wide" for="fpr">False alarm <span class="q-lN">P(E | ¬H)</span></label><input type="range" id="fpr" min="1" max="999" value="170" style="accent-color:#7b52ab"><span class="val q-lN" id="v-fpr"></span></div>
-      <div class="group-label" id="res-label">Test result</div>
-      <div class="seg" role="group" aria-labelledby="res-label">
-        <button type="button" data-res="pos" aria-pressed="true">Positive</button>
-        <button type="button" data-res="neg" aria-pressed="false">Negative</button>
-      </div>
-      <div class="group-label" id="view-label">View</div>
+      <div class="row"><label class="wide" for="evN">Pieces of evidence</label><input type="range" id="evN" min="1" max="6" step="1" value="1" style="accent-color:#2d3142"><span class="val" id="v-evN">1</span></div>
+      <div id="evList"></div>
+      <div class="group-label" id="view-label" style="margin-top:16px">View</div>
       <div class="seg" role="group" aria-labelledby="view-label">
         <button type="button" data-view="dots" aria-pressed="true">1000 people</button>
         <button type="button" data-view="area" aria-pressed="false">Area</button>
@@ -482,7 +485,25 @@ document.addEventListener('DOMContentLoaded', function () {
   function post(p, lh, ln) { var pe = lh * p + ln * (1 - p); return pe > 0 ? lh * p / pe : 0; }
 
   var result = 'pos', view = 'dots', seqResults = [], focus = null;
-  function values() { return { p: +$('prior').value / 1000, h: +$('sens').value / 1000, f: +$('fpr').value / 1000 }; }
+  // Evidence list: nEv pieces in use, each with hit rate h, false alarm f (per mille) and observed result.
+  // Values for all MAX_EV slots are kept so lowering and raising the count restores them.
+  var MAX_EV = 6, nEv = 1, evs = [], SUB = '₀₁₂₃₄₅₆₇₈₉';
+  for (var ei = 0; ei < MAX_EV; ei++) evs.push({ h: 800, f: 170, pos: true });
+  function values() { return { p: +$('prior').value / 1000, h: evs[0].h / 1000, f: evs[0].f / 1000 }; }
+  // Symbol for "the observed evidence": E or ¬E for one piece, E₁…Eₙ for several
+  function Esym() { return nEv === 1 ? (result === 'pos' ? 'E' : '¬E') : 'E₁…E' + SUB[nEv]; }
+  function verb() { return nEv === 1 ? 'test ' + (result === 'pos' ? 'positive' : 'negative') : 'show this evidence'; }
+  // Combined likelihoods of everything observed, assuming independence given H
+  function combined() {
+    var lh = 1, ln = 1, ls = [], ns = [];
+    for (var i = 0; i < nEv; i++) {
+      var e = evs[i], h = e.h / 1000, f = e.f / 1000, li = e.pos ? h : 1 - h, ni = e.pos ? f : 1 - f;
+      lh *= li; ln *= ni; ls.push(li); ns.push(ni);
+    }
+    return { lh: lh, ln: ln, ls: ls, ns: ns };
+  }
+  function f3(x) { return x > 0 && x < 0.001 ? x.toExponential(1) : x.toFixed(3); }
+  function f4(x) { return x > 0 && x < 0.0001 ? x.toExponential(2) : x.toFixed(4); }
 
   // Named quantities. Groups: a = has it & this result, b = has it & other result,
   // c = does not & this result, d = does not & other result.
@@ -500,7 +521,7 @@ document.addEventListener('DOMContentLoaded', function () {
   };
   var DIM = [0.1, 0.4, 1];
   function qLabel(k) {
-    var E = result === 'pos' ? 'E' : '¬E';
+    var E = Esym();
     return { pH: 'P(H)', pN: 'P(¬H)', lH: 'P(' + E + ' | H)', lN: 'P(' + E + ' | ¬H)', joint: 'P(H ∩ ' + E + ')', pE: 'P(' + E + ')', post: 'P(H | ' + E + ')' }[k];
   }
   function qValues(v, lh, ln) {
@@ -570,14 +591,14 @@ document.addEventListener('DOMContentLoaded', function () {
     rich(notes, X0, Y0 + S + 16, [['P(H)', QC.pH], [' = ' + pct(v.p) + (widened ? ' (widened to be visible)' : '')]], { 'font-size': 10, fill: SOFT });
     txt(notes, X0 + S, Y0 + S + 16, 'P(¬H)', { 'font-size': 10, fill: QC.pN, 'text-anchor': 'end', 'font-weight': 600 });
     var rx = X0 + S + 22, word = pos ? 'positive' : 'negative', pe = lh * v.p + ln * (1 - v.p);
-    txt(notes, rx, Y0 + 14, 'shaded = tested ' + word, { 'font-size': 11, 'font-weight': 600 });
+    txt(notes, rx, Y0 + 14, 'shaded = ' + (nEv === 1 ? 'tested ' + word : 'shows this evidence'), { 'font-size': 11, 'font-weight': 600 });
     rich(notes, rx, Y0 + 44, [['orange area', ORANGE], [' = '], [qLabel('joint'), QC.joint]]);
-    rich(notes, rx, Y0 + 60, [['= '], [lh.toFixed(3), QC.lH], [' × '], [v.p.toFixed(3), QC.pH]]);
-    rich(notes, rx, Y0 + 76, [['= '], [(lh * v.p).toFixed(4), QC.joint]]);
+    rich(notes, rx, Y0 + 60, [['= '], [f3(lh), QC.lH], [' × '], [v.p.toFixed(3), QC.pH]]);
+    rich(notes, rx, Y0 + 76, [['= '], [f4(lh * v.p), QC.joint]]);
     txt(notes, rx, Y0 + 106, 'blue area', { fill: BLUE, 'font-weight': 600 });
-    rich(notes, rx, Y0 + 122, [['= '], [ln.toFixed(3), QC.lN], [' × '], [(1 - v.p).toFixed(3), QC.pN]]);
-    txt(notes, rx, Y0 + 138, '= ' + (ln * (1 - v.p)).toFixed(4));
-    rich(notes, rx, Y0 + 160, [['sum = '], [qLabel('pE'), QC.pE], [' = '], [pe.toFixed(4), QC.pE]]);
+    rich(notes, rx, Y0 + 122, [['= '], [f3(ln), QC.lN], [' × '], [(1 - v.p).toFixed(3), QC.pN]]);
+    txt(notes, rx, Y0 + 138, '= ' + f4(ln * (1 - v.p)));
+    rich(notes, rx, Y0 + 160, [['sum = '], [qLabel('pE'), QC.pE], [' = '], [f4(pe), QC.pE]]);
     rich(notes, rx, Y0 + 188, [[qLabel('post'), QC.post], [' =']]);
     txt(notes, rx, Y0 + 204, 'orange / (orange + blue)');
     txt(notes, rx, Y0 + 226, '= ' + pct(post(v.p, lh, ln)), { 'font-size': 16, fill: QC.post, 'font-weight': 600 });
@@ -586,8 +607,10 @@ document.addEventListener('DOMContentLoaded', function () {
   function drawTree(g, v, lh, ln) {
     var pos = result === 'pos', root = [30, 150], nH = [175, 75], nN = [175, 225];
     var grp = pos ? ['a', 'b', 'c', 'd'] : ['b', 'a', 'd', 'c'];
-    var leaves = [[330, 40, 'H, +', v.p * v.h, ORANGE, pos], [330, 110, 'H, −', v.p * (1 - v.h), ORANGE, !pos],
-                  [330, 190, '¬H, +', (1 - v.p) * v.f, BLUE, pos], [330, 260, '¬H, −', (1 - v.p) * (1 - v.f), BLUE, !pos]];
+    // one piece of evidence: branch on + / −. Several: branch on "all of this evidence" (E) vs the rest.
+    var th = nEv === 1 ? v.h : lh, tf = nEv === 1 ? v.f : ln, P = nEv === 1 ? '+' : 'E', M = nEv === 1 ? '−' : 'rest';
+    var leaves = [[330, 40, 'H, ' + P, v.p * th, ORANGE, pos], [330, 110, 'H, ' + M, v.p * (1 - th), ORANGE, !pos],
+                  [330, 190, '¬H, ' + P, (1 - v.p) * tf, BLUE, pos], [330, 260, '¬H, ' + M, (1 - v.p) * (1 - tf), BLUE, !pos]];
     var hT = pos ? 'e0' : 'e1', nT = pos ? 'e2' : 'e3';
     var keyName = { rH: 'rH', rN: 'rN' }; keyName[hT] = 'hT'; keyName[nT] = 'nT';
     var labelCol = { rH: QC.pH, rN: QC.pN, hT: QC.lH, nT: QC.lN };
@@ -603,10 +626,10 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     edge('rH', root, nH, 'P(H)=' + v.p.toFixed(3), ORANGE);
     edge('rN', root, nN, 'P(¬H)=' + (1 - v.p).toFixed(3), BLUE);
-    edge('e0', nH, [leaves[0][0], leaves[0][1]], '+ ' + v.h.toFixed(3), ORANGE);
-    edge('e1', nH, [leaves[1][0], leaves[1][1]], '− ' + (1 - v.h).toFixed(3), ORANGE);
-    edge('e2', nN, [leaves[2][0], leaves[2][1]], '+ ' + v.f.toFixed(3), BLUE);
-    edge('e3', nN, [leaves[3][0], leaves[3][1]], '− ' + (1 - v.f).toFixed(3), BLUE);
+    edge('e0', nH, [leaves[0][0], leaves[0][1]], P + ' ' + f3(th), ORANGE);
+    edge('e1', nH, [leaves[1][0], leaves[1][1]], M + ' ' + f3(1 - th), ORANGE);
+    edge('e2', nN, [leaves[2][0], leaves[2][1]], P + ' ' + f3(tf), BLUE);
+    edge('e3', nN, [leaves[3][0], leaves[3][1]], M + ' ' + f3(1 - tf), BLUE);
     el('circle', { cx: root[0], cy: root[1], r: 6, fill: INK }, g);
     [[nH, 'has it', ORANGE, 'ab'], [nN, 'does not', BLUE, 'cd']].forEach(function (n) {
       el('circle', { cx: n[0][0], cy: n[0][1], r: 6, fill: n[2], 'data-g': n[3] }, g);
@@ -620,7 +643,7 @@ document.addEventListener('DOMContentLoaded', function () {
       var at = { x: L[0] - 6, y: L[1] - 14, width: 140, height: 26, rx: 4, fill: L[5] ? L[4] : '#fff', 'fill-opacity': L[5] ? 0.15 : 1, stroke: stroke, 'stroke-width': sw, opacity: o, 'data-g': grp[i] };
       if (dash) at['stroke-dasharray'] = dash;
       el('rect', at, g);
-      txt(g, L[0], L[1] + 4, L[2] + '  ' + L[3].toFixed(4) + '  (' + (L[3] * TOTAL).toFixed(1) + ')', { 'font-size': 10.5, fill: grp[i] === 'a' ? QC.joint : (L[5] ? INK : SOFT), 'font-weight': L[5] ? 600 : 400, opacity: o, 'data-g': grp[i] });
+      txt(g, L[0], L[1] + 4, L[2] + '  ' + f4(L[3]) + '  (' + (L[3] * TOTAL).toFixed(1) + ')', { 'font-size': 10.5, fill: grp[i] === 'a' ? QC.joint : (L[5] ? INK : SOFT), 'font-weight': L[5] ? 600 : 400, opacity: o, 'data-g': grp[i] });
     });
     txt(g, 470, 292, 'joint probability (count per 1000)', { 'font-size': 9.5, fill: SOFT, 'text-anchor': 'end', 'data-g': 'x' });
   }
@@ -629,7 +652,7 @@ document.addEventListener('DOMContentLoaded', function () {
   var FRAC = { pH: ['pH', 'one'], pN: ['pN', 'one'], lH: ['joint', 'pH'], lN: ['nJ', 'pN'], joint: ['joint', 'one'], pE: ['pE', 'one'], post: ['joint', 'pE'] };
   var FCOL = { pH: QC.pH, pN: QC.pN, joint: QC.joint, nJ: '#1d3f7a', pE: QC.pE, one: INK };
   function fracText(key) {
-    var E = result === 'pos' ? 'E' : '¬E';
+    var E = Esym();
     return { pH: 'P(H)', pN: 'P(¬H)', joint: qLabel('joint'), nJ: 'P(¬H ∩ ' + E + ')', pE: qLabel('pE'), one: '1 (everyone)' }[key];
   }
   // The side figure is a fraction built from the same drawing as Fig 1:
@@ -688,15 +711,15 @@ document.addEventListener('DOMContentLoaded', function () {
     svg.setAttribute('aria-label', qLabel(focus) + ' as a ratio of ' + unit + ': ' + fv(top) + ' over ' + fv(bot) + ' = ' + pct(ratio));
   }
 
-  function focusNote(k, c, f, qv, word) {
+  function focusNote(k, c, f, qv, vb) {
     var s = {
       pH: f(c.a + c.b) + ' of 1000 have it',
       pN: f(c.c + c.d) + ' of 1000 do not have it',
-      lH: 'of ' + f(c.a + c.b) + ' who have it, ' + f(c.a) + ' test ' + word,
-      lN: 'of ' + f(c.c + c.d) + ' who do not, ' + f(c.c) + ' test ' + word + ' anyway',
-      joint: f(c.a) + ' of 1000 have it and test ' + word,
-      pE: f(c.a + c.c) + ' of 1000 test ' + word,
-      post: 'of ' + f(c.a + c.c) + ' who test ' + word + ', ' + f(c.a) + ' have it'
+      lH: 'of ' + f(c.a + c.b) + ' who have it, ' + f(c.a) + ' ' + vb,
+      lN: 'of ' + f(c.c + c.d) + ' who do not, ' + f(c.c) + ' ' + vb + ' anyway',
+      joint: f(c.a) + ' of 1000 have it and ' + vb,
+      pE: f(c.a + c.c) + ' of 1000 ' + vb,
+      post: 'of ' + f(c.a + c.c) + ' who ' + vb + ', ' + f(c.a) + ' have it'
     }[k];
     return qLabel(k) + ': ' + s + ' → ' + pct(qv[k]);
   }
@@ -738,13 +761,22 @@ document.addEventListener('DOMContentLoaded', function () {
       dp += (i ? ' L' : 'M') + X(p).toFixed(1) + ' ' + Y(post(p, v.h, v.f)).toFixed(1);
       dn += (i ? ' L' : 'M') + X(p).toFixed(1) + ' ' + Y(post(p, 1 - v.h, 1 - v.f)).toFixed(1);
     }
-    el('path', { d: dp, fill: 'none', stroke: ORANGE, 'stroke-width': 2.2 }, g);
-    el('path', { d: dn, fill: 'none', stroke: BLUE, 'stroke-width': 2.2 }, g);
-    var cp = result === 'pos' ? post(v.p, v.h, v.f) : post(v.p, 1 - v.h, 1 - v.f);
     el('line', { x1: X(v.p), x2: X(v.p), y1: T, y2: T + H, stroke: INK, 'stroke-dasharray': '2 3', opacity: 0.6 }, g);
-    el('circle', { cx: X(v.p), cy: Y(cp), r: 5, fill: result === 'pos' ? ORANGE : BLUE, stroke: '#fff', 'stroke-width': 1.5 }, g);
-    txt(g, L + 6, T + 14, 'after positive', { 'font-size': 10, fill: ORANGE, 'font-weight': 600 });
-    txt(g, L + 6, T + 28, 'after negative', { 'font-size': 10, fill: BLUE, 'font-weight': 600 });
+    if (nEv === 1) {
+      el('path', { d: dp, fill: 'none', stroke: ORANGE, 'stroke-width': 2.2 }, g);
+      el('path', { d: dn, fill: 'none', stroke: BLUE, 'stroke-width': 2.2 }, g);
+      var cp = result === 'pos' ? post(v.p, v.h, v.f) : post(v.p, 1 - v.h, 1 - v.f);
+      el('circle', { cx: X(v.p), cy: Y(cp), r: 5, fill: result === 'pos' ? ORANGE : BLUE, stroke: '#fff', 'stroke-width': 1.5 }, g);
+      txt(g, L + 6, T + 14, 'after positive', { 'font-size': 10, fill: ORANGE, 'font-weight': 600 });
+      txt(g, L + 6, T + 28, 'after negative', { 'font-size': 10, fill: BLUE, 'font-weight': 600 });
+    } else {
+      // several pieces: one curve for the whole observed evidence set
+      var cb = combined(), dc = '';
+      for (var j = 0; j <= 200; j++) dc += (j ? ' L' : 'M') + X(j / 200).toFixed(1) + ' ' + Y(post(j / 200, cb.lh, cb.ln)).toFixed(1);
+      el('path', { d: dc, fill: 'none', stroke: QC.post, 'stroke-width': 2.2 }, g);
+      el('circle', { cx: X(v.p), cy: Y(post(v.p, cb.lh, cb.ln)), r: 5, fill: QC.post, stroke: '#fff', 'stroke-width': 1.5 }, g);
+      txt(g, L + 6, T + 14, 'after all ' + nEv + ' pieces of evidence', { 'font-size': 10, fill: QC.post, 'font-weight': 600 });
+    }
     txt(g, L + W - 6, T + H - 8, 'no change', { 'font-size': 9, fill: SOFT, 'text-anchor': 'end' });
     txt(g, L + W / 2, T + H + 30, 'base rate P(H)', { 'font-size': 10, fill: SOFT, 'text-anchor': 'middle' });
   }
@@ -766,19 +798,23 @@ document.addEventListener('DOMContentLoaded', function () {
       el('circle', { cx: X(k), cy: Y(q), r: 4.5, fill: col, stroke: '#fff', 'stroke-width': 1.2 }, g);
       txt(g, X(k), T + H + 14, k === 0 ? 'start' : (seqResults[k - 1] ? '+' : '−'), { 'font-size': 10, fill: col, 'text-anchor': 'middle' });
     });
-    txt(g, L + 6, T + 14, 'P(H) after each result', { 'font-size': 10, fill: INK, 'font-weight': 600 });
+    txt(g, L + 6, T + 14, 'P(H) after each result' + (nEv > 1 ? ' (repeats evidence 1)' : ''), { 'font-size': 10, fill: INK, 'font-weight': 600 });
     txt(g, L + W / 2, T + H + 30, 'test number', { 'font-size': 10, fill: SOFT, 'text-anchor': 'middle' });
     var lrP = v.h / v.f, lrN = (1 - v.h) / (1 - v.f);
     $('seqLive').textContent = 'LR(+) = ' + lrP.toFixed(2) + '   LR(−) = ' + lrN.toFixed(3) + '   now ' + pct(cur);
   }
 
   function render() {
+    // with several pieces of evidence the figures show "all of this evidence" in the positive orientation
+    result = nEv === 1 && !evs[0].pos ? 'neg' : 'pos';
     var v = values(), pos = result === 'pos';
     $('v-prior').textContent = pct(v.p);
-    $('v-sens').textContent = pct(v.h);
-    $('v-fpr').textContent = pct(v.f);
-    var lh = pos ? v.h : 1 - v.h, ln = pos ? v.f : 1 - v.f, pe = lh * v.p + ln * (1 - v.p), q = post(v.p, lh, ln);
-    var word = pos ? 'positive' : 'negative';
+    for (var i = 0; i < nEv; i++) {
+      $('v-sens' + i).textContent = pct(evs[i].h / 1000);
+      $('v-fpr' + i).textContent = pct(evs[i].f / 1000);
+    }
+    var cb = combined(), lh = cb.lh, ln = cb.ln, pe = lh * v.p + ln * (1 - v.p), q = post(v.p, lh, ln);
+    var word = pos ? 'positive' : 'negative', vb = verb();
 
     // counts per 1000 for the icon array (rounded) and exact expected counts for the readout
     var sick = Math.round(TOTAL * v.p), healthy = TOTAL - sick;
@@ -791,7 +827,7 @@ document.addEventListener('DOMContentLoaded', function () {
     else if (view === 'area') drawArea(g, v, lh, ln);
     else drawTree(g, v, lh, ln);
     drawFrac(v, lh, ln, n);
-    $('figTitle').textContent = view === 'dots' ? '1000 people, one ' + word + ' test' : (view === 'area' ? 'Everyone as a unit square' : 'Probability tree');
+    $('figTitle').textContent = view === 'dots' ? (nEv === 1 ? '1000 people, one ' + word + ' test' : '1000 people, ' + nEv + ' pieces of evidence') : (view === 'area' ? 'Everyone as a unit square' : 'Probability tree');
 
     var qv = qValues(v, lh, ln);
     QORDER.forEach(function (k) {
@@ -803,33 +839,49 @@ document.addEventListener('DOMContentLoaded', function () {
     if (focus) {
       var cnt = view === 'dots' ? n : { a: TOTAL * v.p * lh, b: TOTAL * v.p * (1 - lh), c: TOTAL * (1 - v.p) * ln, d: TOTAL * (1 - v.p) * (1 - ln) };
       var fmt = view === 'dots' ? function (x) { return String(Math.round(x)); } : function (x) { return x.toFixed(1); };
-      hint.textContent = focusNote(focus, cnt, fmt, qv, word);
+      hint.textContent = focusNote(focus, cnt, fmt, qv, vb);
       hint.style.color = QC[focus];
       hint.style.fontWeight = 600;
     } else {
-      hint.textContent = view === 'dots' ? 'Groups run top to bottom, left to right' : (view === 'area' ? 'Width = P(H), shaded height = chance of this result' : 'Multiply along a path, then compare the highlighted leaves');
+      hint.textContent = (view === 'dots' ? 'Groups run top to bottom, left to right' : (view === 'area' ? 'Width = P(H), shaded height = chance of this result' : 'Multiply along a path, then compare the highlighted leaves')) +
+        (nEv > 1 ? '. ' + Esym() + ' = all ' + nEv + ' observed results together' : '');
       hint.style.color = '';
       hint.style.fontWeight = '';
     }
 
-    $('ansLabel').textContent = qLabel('post') + ', has it given ' + word;
+    $('ansLabel').textContent = qLabel('post') + ', has it given ' + (nEv === 1 ? word : 'all ' + nEv + ' results');
     $('answer').textContent = pct(q);
     var eH = TOTAL * v.p * lh, eN = TOTAL * (1 - v.p) * ln;
-    $('live').textContent = view === 'dots' ? (n.a + n.c) + ' ' + word + ' · ' + n.a + ' truly have it' : 'posterior ' + pct(q);
+    $('live').textContent = view === 'dots' ? (n.a + n.c) + ' ' + (nEv === 1 ? word : 'with this evidence') + ' · ' + n.a + ' truly have it' : 'posterior ' + pct(q);
+    var lrLine = nEv === 1
+      ? 'likelihood ratio = ' + sp('lH', f3(lh)) + ' / ' + sp('lN', f3(ln)) + ' = ' + (lh / ln).toFixed(3)
+      : 'likelihood ratio = ' + cb.ls.map(function (l, i) { return (l / cb.ns[i]).toFixed(2); }).join(' × ') + '\n                 = ' + (lh / ln).toFixed(3);
     $('readout').innerHTML =
       'expected, per ' + TOTAL + ' people:\n' +
-      sp('pH', (TOTAL * v.p).toFixed(1)) + ' have it → ' + sp('joint', eH.toFixed(1)) + ' test ' + word + '\n' +
-      sp('pN', (TOTAL * (1 - v.p)).toFixed(1)) + ' do not → ' + eN.toFixed(1) + ' test ' + word + '\n\n' +
-      word + ' results: ' + sp('pE', (eH + eN).toFixed(1)) + ', of which ' + sp('joint', eH.toFixed(1)) + ' have it\n' +
-      'base rate ' + sp('pH', pct(v.p)) + ' → ' + sp('post', pct(q)) + '  (×' + (q / v.p).toFixed(2) + ')\n' +
-      'likelihood ratio = ' + sp('lH', lh.toFixed(3)) + ' / ' + sp('lN', ln.toFixed(3)) + ' = ' + (lh / ln).toFixed(3);
+      sp('pH', (TOTAL * v.p).toFixed(1)) + ' have it → ' + sp('joint', eH.toFixed(1)) + ' ' + vb + '\n' +
+      sp('pN', (TOTAL * (1 - v.p)).toFixed(1)) + ' do not → ' + eN.toFixed(1) + ' ' + vb + '\n\n' +
+      (nEv === 1 ? word + ' results: ' : 'with this evidence: ') + sp('pE', (eH + eN).toFixed(1)) + ', of which ' + sp('joint', eH.toFixed(1)) + ' have it\n' +
+      'base rate ' + sp('pH', pct(v.p)) + ' → ' + sp('post', pct(q)) + '  (×' + (q / v.p).toFixed(2) + ')\n' + lrLine;
 
-    var Et = pos ? 'E' : '\\neg E', l3 = lh.toFixed(3), n3 = ln.toFixed(3), p3 = v.p.toFixed(3), c3 = (1 - v.p).toFixed(3);
-    tex($('calc1'), tc('post', 'P(H\\mid ' + Et + ')') + '=\\frac{' + tc('lH', 'P(' + Et + '\\mid H)') + '\\,' + tc('pH', 'P(H)') + '}{' +
-      tc('lH', 'P(' + Et + '\\mid H)') + '\\,' + tc('pH', 'P(H)') + '+' + tc('lN', 'P(' + Et + '\\mid \\neg H)') + '\\,' + tc('pN', 'P(\\neg H)') + '}=\\frac{' +
-      tc('joint', 'P(H\\cap ' + Et + ')') + '}{' + tc('pE', 'P(' + Et + ')') + '}');
-    tex($('calc2'), '=\\frac{' + tc('lH', l3) + '\\cdot' + tc('pH', p3) + '}{' + tc('lH', l3) + '\\cdot' + tc('pH', p3) + '+' + tc('lN', n3) + '\\cdot' + tc('pN', c3) +
-      '}=\\frac{' + tc('joint', (lh * v.p).toFixed(4)) + '}{' + tc('pE', pe.toFixed(4)) + '}=' + tc('post', q.toFixed(4)));
+    var p3 = v.p.toFixed(3), c3 = (1 - v.p).toFixed(3);
+    if (nEv === 1) {
+      var Et = pos ? 'E' : '\\neg E', l3 = f3(lh), n3 = f3(ln);
+      tex($('calc1'), tc('post', 'P(H\\mid ' + Et + ')') + '=\\frac{' + tc('lH', 'P(' + Et + '\\mid H)') + '\\,' + tc('pH', 'P(H)') + '}{' +
+        tc('lH', 'P(' + Et + '\\mid H)') + '\\,' + tc('pH', 'P(H)') + '+' + tc('lN', 'P(' + Et + '\\mid \\neg H)') + '\\,' + tc('pN', 'P(\\neg H)') + '}=\\frac{' +
+        tc('joint', 'P(H\\cap ' + Et + ')') + '}{' + tc('pE', 'P(' + Et + ')') + '}');
+      tex($('calc2'), '=\\frac{' + tc('lH', l3) + '\\cdot' + tc('pH', p3) + '}{' + tc('lH', l3) + '\\cdot' + tc('pH', p3) + '+' + tc('lN', n3) + '\\cdot' + tc('pN', c3) +
+        '}=\\frac{' + tc('joint', f4(lh * v.p)) + '}{' + tc('pE', f4(pe)) + '}=' + tc('post', q.toFixed(4)));
+    } else {
+      // E_i is the observed result of piece i (positive or negative); likelihoods multiply
+      var Es = 'E_1\\ldots E_{' + nEv + '}', pr = '\\prod_{i=1}^{' + nEv + '}';
+      var numS = tc('pH', 'P(H)') + pr + tc('lH', 'P(E_i\\mid H)');
+      tex($('calc1'), tc('post', 'P(H\\mid ' + Es + ')') + '=\\frac{' + numS + '}{' + numS + '+' + tc('pN', 'P(\\neg H)') + pr + tc('lN', 'P(E_i\\mid \\neg H)') + '}=\\frac{' +
+        tc('joint', 'P(H\\cap ' + Es + ')') + '}{' + tc('pE', 'P(' + Es + ')') + '}');
+      var lsT = cb.ls.map(function (x) { return tc('lH', f3(x)); }).join('\\cdot'), nsT = cb.ns.map(function (x) { return tc('lN', f3(x)); }).join('\\cdot');
+      var numN = tc('pH', p3) + '\\cdot' + lsT;
+      tex($('calc2'), '=\\frac{' + numN + '}{' + numN + '+' + tc('pN', c3) + '\\cdot' + nsT +
+        '}=\\frac{' + tc('joint', f4(lh * v.p)) + '}{' + tc('pE', f4(pe)) + '}=' + tc('post', q.toFixed(4)));
+    }
 
     drawCurve(v);
     drawSeq(v);
@@ -845,16 +897,54 @@ document.addEventListener('DOMContentLoaded', function () {
       });
     });
   }
-  wireSeg('data-res', function (r) { result = r; });
   wireSeg('data-view', function (r) { view = r; });
+
+  // one block per piece of evidence: result toggle, hit rate and false alarm sliders
+  function buildEvidence() {
+    var box = $('evList');
+    box.innerHTML = '';
+    for (var i = 0; i < nEv; i++) (function (i) {
+      var e = evs[i], s = nEv === 1 ? 'E' : 'E' + SUB[i + 1];
+      var d = document.createElement('div');
+      d.className = 'ev';
+      d.innerHTML =
+        '<div class="ev-head"><span class="group-label" id="evl' + i + '">' + (nEv === 1 ? 'Test result' : 'Evidence ' + (i + 1) + ' result') + '</span>' +
+        '<div class="seg mini" role="group" aria-labelledby="evl' + i + '">' +
+        '<button type="button" data-v="1" aria-pressed="' + e.pos + '">Positive</button>' +
+        '<button type="button" data-v="0" aria-pressed="' + !e.pos + '">Negative</button></div></div>' +
+        '<div class="row"><label class="wide" for="sens' + i + '">Hit rate <span class="q-lH">P(' + s + ' | H)</span></label>' +
+        '<input type="range" id="sens' + i + '" min="1" max="999" value="' + e.h + '" style="accent-color:#9a6200"><span class="val q-lH" id="v-sens' + i + '"></span></div>' +
+        '<div class="row"><label class="wide" for="fpr' + i + '">False alarm <span class="q-lN">P(' + s + ' | ¬H)</span></label>' +
+        '<input type="range" id="fpr' + i + '" min="1" max="999" value="' + e.f + '" style="accent-color:#7b52ab"><span class="val q-lN" id="v-fpr' + i + '"></span></div>';
+      box.appendChild(d);
+      var btns = d.querySelectorAll('[data-v]');
+      Array.prototype.forEach.call(btns, function (b) {
+        b.addEventListener('click', function () {
+          e.pos = b.getAttribute('data-v') === '1';
+          Array.prototype.forEach.call(btns, function (o) { o.setAttribute('aria-pressed', o === b ? 'true' : 'false'); });
+          render();
+        });
+      });
+      $('sens' + i).addEventListener('input', function () { e.h = +this.value; render(); });
+      $('fpr' + i).addEventListener('input', function () { e.f = +this.value; render(); });
+    })(i);
+  }
+  $('evN').addEventListener('input', function () {
+    nEv = +this.value;
+    $('v-evN').textContent = nEv;
+    buildEvidence(); render();
+  });
+  // presets describe one test; every piece of evidence gets it (a repeated test)
   Array.prototype.forEach.call(document.querySelectorAll('[data-p]'), function (b) {
     b.addEventListener('click', function () {
       var p = b.getAttribute('data-p').split(',');
-      $('prior').value = p[0]; $('sens').value = p[1]; $('fpr').value = p[2];
-      seqResults = []; render();
+      $('prior').value = p[0];
+      evs.forEach(function (e) { e.h = +p[1]; e.f = +p[2]; });
+      buildEvidence(); seqResults = []; render();
     });
   });
-  ['prior', 'sens', 'fpr'].forEach(function (id) { $(id).addEventListener('input', render); });
+  $('prior').addEventListener('input', render);
+  buildEvidence();
   $('addPos').addEventListener('click', function () { if (seqResults.length < 14) seqResults.push(true); render(); });
   $('addNeg').addEventListener('click', function () { if (seqResults.length < 14) seqResults.push(false); render(); });
   $('seqReset').addEventListener('click', function () { seqResults = []; render(); });
