@@ -1326,6 +1326,17 @@ const DOCS = [
     related: ['Rust Fearless Concurrency', 'Rust Closures and Iterators', 'Rust Advanced Features'],
   },
   {
+    title: 'Rust OOP Features',
+    path: 'content/engineering/rust/rust-oop/rust-oop.html',
+    category: 'Engineering',
+    topic: 'Rust',
+    order: 49,
+    level: 'Intermediate',
+    tags: ['rust', 'oop', 'trait objects', 'dyn trait', 'dynamic dispatch', 'encapsulation', 'state pattern', 'polymorphism', 'dyn compatibility'],
+    summary: 'How Rust covers objects, encapsulation, inheritance and polymorphism, trait objects with Box<dyn Trait>, static versus dynamic dispatch and vtables, dyn compatibility rules, and the state pattern written two ways: with trait objects and with types.',
+    related: ['Rust Generics, Traits and Lifetimes', 'Rust Smart Pointers', 'Rust Advanced Features'],
+  },
+  {
     title: 'Quant Roadmap',
     path: 'content/quant/quant-roadmap/quant-roadmap.html',
     category: 'Quant',
