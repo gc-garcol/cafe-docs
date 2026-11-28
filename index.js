@@ -1161,6 +1161,17 @@ const DOCS = [
     related: ['Aeron Transport', 'AWS Compute'],
   },
   {
+    title: 'Rust Common Concepts',
+    path: 'content/engineering/rust/rust-common-concepts/rust-common-concepts.html',
+    category: 'Engineering',
+    topic: 'Rust',
+    order: 34,
+    level: 'Beginner',
+    tags: ['rust', 'variables', 'mutability', 'shadowing', 'data types', 'functions', 'control flow', 'loops', 'expressions'],
+    summary: 'Variables and mutability, constants, shadowing, scalar and compound types, functions, statements versus expressions, if, loop, while and for. Step through shadowing and a labeled loop.',
+    related: ['Rust Ownership', 'Rust Structs'],
+  },
+  {
     title: 'Quant Roadmap',
     path: 'content/quant/quant-roadmap/quant-roadmap.html',
     category: 'Quant',
