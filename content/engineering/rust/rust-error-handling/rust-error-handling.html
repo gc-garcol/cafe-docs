@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rust Error Handling: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8; --ok:#2f7a4a;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible,a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+h3{font-family:var(--serif);font-weight:400;font-size:24px;line-height:1.2;margin:32px 0 10px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+a{color:var(--link)}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code,.quiz-q code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+ul.tight{padding-left:22px;max-width:68ch}ul.tight li{margin:6px 0}
+
+.pre-wrap{position:relative;margin:16px 0}
+.pre-tag{position:absolute;top:0;right:0;font:600 10px var(--mono);letter-spacing:.1em;text-transform:uppercase;padding:4px 10px;border-radius:0 8px 0 6px;background:var(--paper-2);color:var(--soft)}
+.pre-tag.bad{background:var(--accent);color:#fff}
+pre{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:0}
+pre code{font-size:inherit;background:none;padding:0}
+pre.shell{background:#2d3142;color:#f5f5f5;border-color:#2d3142}
+.k{color:var(--accent)} .c2{color:var(--soft);font-style:italic} .t{color:var(--link)}
+.s{color:var(--ok)} .m{color:#7a3d8a} .n{color:var(--link)} .lt{color:var(--accent);font-style:italic} .at{color:var(--soft)}
+
+.card{margin:24px 0 0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:center;flex-wrap:wrap}
+.card-title{font-family:var(--serif);font-size:20px}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.scroll{overflow-x:auto}
+.scroll svg{display:block;width:100%;min-width:560px;height:auto}
+.trace{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:0;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule)}
+.trace-code{border:0;border-right:1px solid var(--rule);border-radius:0;padding:12px 0;font-size:12.5px}
+.trace-code .ln{display:block;padding:0 14px 0 0;white-space:pre;border-left:3px solid transparent}
+.trace-code .lno{display:inline-block;width:34px;text-align:right;padding-right:12px;color:var(--rule-solid);user-select:none}
+.trace-code .ln.on{background:var(--accent-tint);border-left-color:var(--accent)}
+.trace-code .ln.on .lno{color:var(--accent)}
+.trace-note{margin:0;padding:12px 16px;font-size:14px;color:var(--ink);min-height:3.4em;max-width:none}
+
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:0 0 12px}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.btn:disabled{opacity:.4;cursor:not-allowed;background:transparent;color:var(--ink)}
+.btn.right{border-color:var(--ok);background:var(--ok);color:#fff}
+.btn.wrong{border-color:var(--accent);background:var(--accent);color:#fff}
+
+table.ops{border-collapse:collapse;width:100%;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+table.ops td:first-child{font-weight:600}
+.tw{overflow-x:auto}
+
+.quiz{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0}
+.quiz .pre-wrap{margin:10px 0 12px}
+.quiz pre{background:var(--paper)}
+.quiz-q{font-weight:500}
+.quiz-why{font-size:14px;color:var(--muted);margin:0}
+
+.check{list-style:none;padding:0;margin:12px 0 0;max-width:640px}
+.check li{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--rule)}
+.check input{width:18px;height:18px;accent-color:var(--accent)}
+.check li.done a{color:var(--soft);text-decoration:line-through}
+.prog{font-family:var(--mono);font-size:12px;color:var(--soft)}
+
+.chapters{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:72px}
+.chap{display:block;padding:16px 20px;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;text-decoration:none;color:var(--ink)}
+.chap:hover{border-color:var(--ink)}
+.chap b{display:block;font:400 22px var(--serif);margin-top:4px}
+.chap.next{text-align:right}
+.source{font-size:13px;color:var(--soft);margin-top:24px}
+
+.doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}.doc-tags a{font:500 12px "Geist Mono",ui-monospace,monospace;padding:4px 10px;border:1px solid var(--rule-solid,#bfc0c0);border-radius:4px;background:#fff;color:var(--muted,#4f5d75);text-decoration:none}.doc-tags a:hover{border-color:var(--ink,#2d3142);color:var(--ink,#2d3142)}.doc-tags a:focus-visible{outline:2px solid var(--accent,#bf4520);outline-offset:2px}
+
+@media (max-width:860px){.trace{grid-template-columns:1fr}.trace-code{border-right:0;border-bottom:1px solid var(--rule)}.page{padding:32px 16px 72px}.chapters{grid-template-columns:1fr}.chap.next{text-align:left}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" style="margin-right:8px" href="../../../../index.html">&larr; Back to home</a>
+<a class="back back-cat" href="../../../../index.html#cat=Engineering">&larr; Back to Engineering</a>
+
+<header>
+  <div class="eyebrow">Engineering · Rust · Chapter 9</div>
+  <h1>Rust Error Handling</h1>
+  <p class="lede">Rust splits errors in two. A bug, such as an index past the end, is <b>unrecoverable</b> and stops the thread with <code>panic!</code>. A failure the caller should handle, such as a missing file, is <b>recoverable</b> and is returned as a <code>Result</code>. There are no exceptions, so every fallible call is visible in the types.</p>
+  <nav class="doc-tags" aria-label="Main tags"><a href="../../../../index.html#tag=rust">#rust</a><a href="../../../../index.html#tag=error%20handling">#error handling</a><a href="../../../../index.html#tag=result">#result</a><a href="../../../../index.html#tag=panic">#panic</a></nav>
+</header>
+
+<section>
+  <h2>Step through it</h2>
+  <p>Each <code>?</code> either unwraps an <code>Ok</code> and continues, or returns the <code>Err</code> to the caller right away. Step through a run where the second step fails.</p>
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">The ? operator returns early</span></div>
+    <div class="trace">
+      <pre class="trace-code"><code><span class="ln" data-l="1"><span class="lno">1</span><span class="k">use</span> std::num::<span class="t">ParseIntError</span>;</span><span class="ln" data-l="2"><span class="lno">2</span><span class="k">fn</span> parse_pair(s: &amp;<span class="t">str</span>) -&gt; <span class="t">Result</span>&lt;(<span class="t">i32</span>, <span class="t">i32</span>), <span class="t">ParseIntError</span>&gt; {</span><span class="ln" data-l="3"><span class="lno">3</span>    <span class="k">let</span> (a, b) = s.split_once(<span class="s">','</span>).unwrap_or((s, <span class="s">""</span>));</span><span class="ln" data-l="4"><span class="lno">4</span>    <span class="k">let</span> x = a.trim().parse::&lt;<span class="t">i32</span>&gt;()?;</span><span class="ln" data-l="5"><span class="lno">5</span>    <span class="k">let</span> y = b.trim().parse::&lt;<span class="t">i32</span>&gt;()?;</span><span class="ln" data-l="6"><span class="lno">6</span>    <span class="t">Ok</span>((x, y))</span><span class="ln" data-l="7"><span class="lno">7</span>}</span><span class="ln" data-l="8"><span class="lno">8</span><span class="k">fn</span> main() {</span><span class="ln" data-l="9"><span class="lno">9</span>    <span class="k">match</span> parse_pair(<span class="s">"4, x"</span>) {</span><span class="ln" data-l="10"><span class="lno">10</span>        <span class="t">Ok</span>(p) =&gt; <span class="m">println!</span>(<span class="s">"{p:?}"</span>),</span><span class="ln" data-l="11"><span class="lno">11</span>        <span class="t">Err</span>(e) =&gt; <span class="m">println!</span>(<span class="s">"error: {e}"</span>),</span><span class="ln" data-l="12"><span class="lno">12</span>    }</span><span class="ln" data-l="13"><span class="lno">13</span>}</span></code></pre>
+      <div class="scroll"><svg id="mem" viewBox="0 0 640 300" role="img" aria-labelledby="mem-title mem-desc">
+        <title id="mem-title">The ? operator returns early</title>
+        <desc id="mem-desc">Each ? either unwraps an Ok value and continues, or converts the Err and returns it from the function immediately.</desc>
+      </svg></div>
+    </div>
+    <p class="trace-note" id="traceNote" aria-live="polite"></p>
+    <div class="card-bottom">
+      <div class="row" style="margin:0">
+        <button type="button" class="btn" id="tPrev">&larr; Prev</button>
+        <button type="button" class="btn" id="tNext">Next &rarr;</button>
+        <button type="button" class="btn" id="tReset">Reset</button>
+      </div>
+      <span class="live" id="traceLive"></span>
+    </div>
+  </figure>
+  <script type="application/json" id="traceData">[{"l":9,"note":"\u003ccode>main\u003c/code> calls \u003ccode>parse_pair(\"4, x\")\u003c/code>.","stack":[{"f":"main","n":"arg","v":"\"4, x\""}]},{"l":3,"note":"Split on the comma: \u003ccode>a = \"4\"\u003c/code>, \u003ccode>b = \" x\"\u003c/code>. Both are slices of the argument; nothing is copied.","stack":[{"f":"main","n":"arg","v":"\"4, x\""},{"f":"parse_pair","n":"a","v":"\"4\"","s":"ref","to":"@arg"},{"f":"parse_pair","n":"b","v":"\" x\"","s":"ref","to":"@arg"}]},{"l":4,"note":"\u003ccode>parse\u003c/code> returns \u003ccode>Ok(4)\u003c/code>. \u003ccode>?\u003c/code> unwraps it: \u003ccode>x = 4\u003c/code>, execution continues.","stack":[{"f":"main","n":"arg","v":"\"4, x\""},{"f":"parse_pair","n":"a","v":"\"4\"","s":"ref","to":"@arg"},{"f":"parse_pair","n":"b","v":"\" x\"","s":"ref","to":"@arg"},{"f":"parse_pair","n":"x","v":"4: i32"}]},{"l":5,"note":"\u003ccode>\"x\".parse()\u003c/code> returns \u003ccode>Err(ParseIntError)\u003c/code>. \u003ccode>?\u003c/code> calls \u003ccode>From::from\u003c/code> on the error (identity here) and does \u003ccode>return Err(e)\u003c/code>. Line 6 never runs.","stack":[{"f":"main","n":"arg","v":"\"4, x\""},{"f":"parse_pair","n":"x","v":"4: i32"},{"f":"parse_pair","n":"return","v":"Err(InvalidDigit)"}]},{"l":11,"note":"Back in \u003ccode>main\u003c/code>, the \u003ccode>Err\u003c/code> arm runs: \u003ccode>error: invalid digit found in string\u003c/code>.","stack":[{"f":"main","n":"e","v":"ParseIntError"}]}]</script>
+</section>
+
+<section>
+  <h2>Contents</h2>
+  <div class="prog" id="prog" aria-live="polite"></div>
+  <ol class="check">
+    <li><input type="checkbox" id="c-panic" aria-label="Mark Unrecoverable errors with panic! as done"><a href="#panic">1. Unrecoverable errors with panic!</a></li>
+    <li><input type="checkbox" id="c-result" aria-label="Mark Recoverable errors with Result as done"><a href="#result">2. Recoverable errors with Result</a></li>
+    <li><input type="checkbox" id="c-propagate" aria-label="Mark Propagating errors with ? as done"><a href="#propagate">3. Propagating errors with ?</a></li>
+    <li><input type="checkbox" id="c-custom" aria-label="Mark Your own error types as done"><a href="#custom">4. Your own error types</a></li>
+    <li><input type="checkbox" id="c-when" aria-label="Mark To panic or not to panic as done"><a href="#when">5. To panic or not to panic</a></li>
+    <li><input type="checkbox" id="c-quiz" aria-label="Mark Check yourself as done"><a href="#quiz">6. Check yourself</a></li>
+  </ol>
+</section>
+
+<section id="panic">
+  <h2>1. Unrecoverable errors with panic!</h2>
+
+  <p>A panic prints a message, unwinds the stack of the current thread (running <code>drop</code> for every value on the way) and ends the thread. If it is the main thread, the program exits with a non-zero code. Panics come from <code>panic!</code> or from code that detects a bug, such as an out-of-bounds index.</p>
+  <div class="pre-wrap"><pre><code><span class="k">fn</span> main() {
+    <span class="k">let</span> v = <span class="m">vec!</span>[<span class="n">1</span>, <span class="n">2</span>, <span class="n">3</span>];
+    v[<span class="n">99</span>]; <span class="c2">// thread 'main' panicked at src/main.rs:3:5: index out of bounds: the len is 3 but the index is 99</span>
+}</code></pre></div>
+  <div class="pre-wrap"><pre class="shell"><code>$ RUST_BACKTRACE=1 cargo run      # show the call stack that led to the panic
+$ RUST_BACKTRACE=full cargo run   # with every frame</code></pre></div>
+  <p>Unwinding takes work and code size. In <code>Cargo.toml</code>, <code>[profile.release] panic = 'abort'</code> makes a panic end the process immediately and leaves cleanup to the OS.</p>
+</section>
+
+<section id="result">
+  <h2>2. Recoverable errors with Result</h2>
+
+  <div class="pre-wrap"><pre><code><span class="k">enum</span> <span class="t">Result</span>&lt;<span class="t">T</span>, <span class="t">E</span>&gt; {
+    <span class="t">Ok</span>(<span class="t">T</span>),
+    <span class="t">Err</span>(<span class="t">E</span>),
+}
+<span class="k">fn</span> main() {}</code></pre></div>
+  <p>A function that can fail returns <code>Result</code>. The caller has to look inside to get the value, and <code>Result</code> is marked <code>#[must_use]</code>, so ignoring one gives a warning.</p>
+  <div class="pre-wrap"><pre><code><span class="k">use</span> std::fs::<span class="t">File</span>;
+<span class="k">use</span> std::io::<span class="t">ErrorKind</span>;
+
+<span class="k">fn</span> main() {
+    <span class="k">let</span> path = <span class="s">"/tmp/hello-rust-book.txt"</span>;
+    <span class="k">let</span> file = <span class="k">match</span> <span class="t">File</span>::open(path) {
+        <span class="t">Ok</span>(f) =&gt; f,
+        <span class="t">Err</span>(e) <span class="k">if</span> e.kind() == <span class="t">ErrorKind</span>::<span class="t">NotFound</span> =&gt; <span class="k">match</span> <span class="t">File</span>::create(path) {
+            <span class="t">Ok</span>(f) =&gt; f,
+            <span class="t">Err</span>(e) =&gt; <span class="m">panic!</span>(<span class="s">"cannot create {path}: {e:?}"</span>),
+        },
+        <span class="t">Err</span>(e) =&gt; <span class="m">panic!</span>(<span class="s">"cannot open {path}: {e:?}"</span>),
+    };
+    <span class="m">println!</span>(<span class="s">"{file:?}"</span>);
+}</code></pre></div>
+  <p>Nested matches grow quickly. Closures make the same logic shorter:</p>
+  <div class="pre-wrap"><pre><code><span class="k">use</span> std::fs::<span class="t">File</span>;
+<span class="k">use</span> std::io::<span class="t">ErrorKind</span>;
+
+<span class="k">fn</span> main() {
+    <span class="k">let</span> path = <span class="s">"/tmp/hello-rust-book.txt"</span>;
+    <span class="k">let</span> file = <span class="t">File</span>::open(path).unwrap_or_else(|e| {
+        <span class="k">if</span> e.kind() == <span class="t">ErrorKind</span>::<span class="t">NotFound</span> {
+            <span class="t">File</span>::create(path).expect(<span class="s">"cannot create file"</span>)
+        } <span class="k">else</span> {
+            <span class="m">panic!</span>(<span class="s">"cannot open file: {e:?}"</span>);
+        }
+    });
+    <span class="m">println!</span>(<span class="s">"{file:?}"</span>);
+}</code></pre></div>
+  <h3>unwrap and expect</h3>
+  <p><code>unwrap()</code> returns the <code>Ok</code> value or panics with the error. <code>expect("msg")</code> does the same with your message, which should say why you expected success: <code>expect("config.toml is shipped with the binary")</code>. Production code prefers <code>expect</code>, because the message explains the assumption that broke.</p>
+</section>
+
+<section id="propagate">
+  <h2>3. Propagating errors with ?</h2>
+
+  <p>Often a function should not decide what to do with an error, only pass it up. Writing that with <code>match</code> is repetitive:</p>
+  <div class="pre-wrap"><pre><code><span class="k">use</span> std::fs::<span class="t">File</span>;
+<span class="k">use</span> std::io::{<span class="k">self</span>, <span class="t">Read</span>};
+
+<span class="k">fn</span> read_username_long() -&gt; <span class="t">Result</span>&lt;<span class="t">String</span>, io::<span class="t">Error</span>&gt; {
+    <span class="k">let</span> <span class="k">mut</span> f = <span class="k">match</span> <span class="t">File</span>::open(<span class="s">"username.txt"</span>) {
+        <span class="t">Ok</span>(f) =&gt; f,
+        <span class="t">Err</span>(e) =&gt; <span class="k">return</span> <span class="t">Err</span>(e),
+    };
+    <span class="k">let</span> <span class="k">mut</span> s = <span class="t">String</span>::new();
+    <span class="k">match</span> f.read_to_string(&amp;<span class="k">mut</span> s) {
+        <span class="t">Ok</span>(_) =&gt; <span class="t">Ok</span>(s),
+        <span class="t">Err</span>(e) =&gt; <span class="t">Err</span>(e),
+    }
+}
+
+<span class="k">fn</span> read_username() -&gt; <span class="t">Result</span>&lt;<span class="t">String</span>, io::<span class="t">Error</span>&gt; {
+    <span class="k">let</span> <span class="k">mut</span> s = <span class="t">String</span>::new();
+    <span class="t">File</span>::open(<span class="s">"username.txt"</span>)?.read_to_string(&amp;<span class="k">mut</span> s)?;
+    <span class="t">Ok</span>(s)
+}
+
+<span class="k">fn</span> main() {
+    <span class="m">println!</span>(<span class="s">"{:?} {:?}"</span>, read_username_long().is_err(), read_username().is_err());
+}</code></pre></div>
+  <p><code>expr?</code> means: if <code>Ok(v)</code>, evaluate to <code>v</code>; if <code>Err(e)</code>, <code>return Err(From::from(e))</code>. The <code>From</code> conversion lets one function return a single error type while calling functions with different ones. (For this exact task, <code>std::fs::read_to_string</code> does it all in one call.)</p>
+  <h3>Where ? can be used</h3>
+  <p>Only in a function whose return type is compatible: <code>Result</code> with <code>Result</code>, <code>Option</code> with <code>Option</code> (where <code>None</code> returns early), or another type implementing <code>FromResidual</code>. It does not convert between <code>Option</code> and <code>Result</code> on its own; use <code>ok_or</code> or <code>.ok()</code>.</p>
+  <div class="pre-wrap"><span class="pre-tag bad">does not compile</span><pre><code><span class="k">use</span> std::fs::<span class="t">File</span>;
+<span class="k">fn</span> main() {
+    <span class="k">let</span> f = <span class="t">File</span>::open(<span class="s">"hello.txt"</span>)?; <span class="c2">// error[E0277]: the `?` operator can only be used in a function that returns `Result` or `Option`</span>
+}</code></pre></div>
+  <div class="pre-wrap"><pre><code><span class="k">use</span> std::error::<span class="t">Error</span>;
+<span class="k">use</span> std::fs::<span class="t">File</span>;
+
+<span class="k">fn</span> main() -&gt; <span class="t">Result</span>&lt;(), <span class="t">Box</span>&lt;<span class="k">dyn</span> <span class="t">Error</span>&gt;&gt; {
+    <span class="k">let</span> _f = <span class="t">File</span>::open(<span class="s">"/etc/hosts"</span>)?;
+    <span class="k">let</span> n: <span class="t">i32</span> = <span class="s">"42"</span>.parse()?;   <span class="c2">// a different error type, boxed by From</span>
+    <span class="m">println!</span>(<span class="s">"{n}"</span>);
+    <span class="t">Ok</span>(())                        <span class="c2">// exit code 0; an Err gives a non-zero code</span>
+}</code></pre></div>
+  <div class="pre-wrap"><pre><code><span class="k">fn</span> last_char_of_first_line(text: &amp;<span class="t">str</span>) -&gt; <span class="t">Option</span>&lt;<span class="t">char</span>&gt; {
+    text.lines().next()?.chars().last()
+}
+<span class="k">fn</span> main() {
+    <span class="m">println!</span>(<span class="s">"{:?} {:?}"</span>, last_char_of_first_line(<span class="s">"Hi\nthere"</span>), last_char_of_first_line(<span class="s">""</span>));
+}</code></pre></div>
+</section>
+
+<section id="custom">
+  <h2>4. Your own error types</h2>
+
+  <p>A library should return a specific error type that callers can match on. An enum with one variant per failure, plus <code>Display</code>, <code>Error</code> and <code>From</code> implementations, makes <code>?</code> work across layers.</p>
+  <div class="pre-wrap"><pre><code><span class="k">use</span> std::fmt;
+<span class="k">use</span> std::num::<span class="t">ParseIntError</span>;
+
+<span class="at">#[derive(Debug)]</span>
+<span class="k">enum</span> <span class="t">ConfigError</span> {
+    <span class="t">Missing</span>(&amp;<span class="lt">'static</span> <span class="t">str</span>),
+    <span class="t">BadNumber</span>(<span class="t">ParseIntError</span>),
+}
+
+<span class="k">impl</span> fmt::<span class="t">Display</span> <span class="k">for</span> <span class="t">ConfigError</span> {
+    <span class="k">fn</span> fmt(&amp;<span class="k">self</span>, f: &amp;<span class="k">mut</span> fmt::<span class="t">Formatter</span>) -&gt; fmt::<span class="t">Result</span> {
+        <span class="k">match</span> <span class="k">self</span> {
+            <span class="t">ConfigError</span>::<span class="t">Missing</span>(k) =&gt; <span class="m">write!</span>(f, <span class="s">"missing key {k}"</span>),
+            <span class="t">ConfigError</span>::<span class="t">BadNumber</span>(e) =&gt; <span class="m">write!</span>(f, <span class="s">"bad number: {e}"</span>),
+        }
+    }
+}
+<span class="k">impl</span> std::error::<span class="t">Error</span> <span class="k">for</span> <span class="t">ConfigError</span> {}
+
+<span class="k">impl</span> <span class="t">From</span>&lt;<span class="t">ParseIntError</span>&gt; <span class="k">for</span> <span class="t">ConfigError</span> {
+    <span class="k">fn</span> from(e: <span class="t">ParseIntError</span>) -&gt; <span class="k">Self</span> { <span class="t">ConfigError</span>::<span class="t">BadNumber</span>(e) }
+}
+
+<span class="k">fn</span> port(value: <span class="t">Option</span>&lt;&amp;<span class="t">str</span>&gt;) -&gt; <span class="t">Result</span>&lt;<span class="t">u16</span>, <span class="t">ConfigError</span>&gt; {
+    <span class="k">let</span> v = value.ok_or(<span class="t">ConfigError</span>::<span class="t">Missing</span>(<span class="s">"port"</span>))?;
+    <span class="k">let</span> n: <span class="t">u16</span> = v.parse()?;            <span class="c2">// ParseIntError -&gt; ConfigError via From</span>
+    <span class="t">Ok</span>(n)
+}
+
+<span class="k">fn</span> main() {
+    <span class="m">println!</span>(<span class="s">"{:?}"</span>, port(<span class="t">Some</span>(<span class="s">"8080"</span>)));
+    <span class="k">for</span> bad <span class="k">in</span> [<span class="t">None</span>, <span class="t">Some</span>(<span class="s">"80x"</span>)] {
+        <span class="k">if</span> <span class="k">let</span> <span class="t">Err</span>(e) = port(bad) { <span class="m">println!</span>(<span class="s">"{e}"</span>); }
+    }
+}</code></pre></div>
+  <div class="tw"><table class="ops"><thead><tr><th>Situation</th><th>Common choice</th></tr></thead><tbody><tr><td>Application code, errors are reported, not matched</td><td><code>Box&lt;dyn Error&gt;</code> or the <code>anyhow</code> crate</td></tr><tr><td>Library code, callers match on causes</td><td>An error enum, often written with the <code>thiserror</code> crate</td></tr><tr><td>Absence is not an error</td><td><code>Option&lt;T&gt;</code></td></tr></tbody></table></div>
+</section>
+
+<section id="when">
+  <h2>5. To panic or not to panic</h2>
+
+  <p>Returning <code>Result</code> leaves the decision to the caller, so it is the right default for functions that might fail. Panicking is appropriate when continuing would be wrong:</p>
+  <ul class="tight">
+    <li><b>Examples, prototypes and tests.</b> <code>unwrap</code> keeps the code short, and a failing <code>unwrap</code> in a test is the failure you want.</li>
+    <li><b>You know more than the compiler.</b> <code>"127.0.0.1".parse::&lt;IpAddr&gt;().expect("hardcoded IP is valid")</code> cannot fail; document why.</li>
+    <li><b>A broken contract.</b> If a caller passes a value that violates the documented precondition, that is a bug in the caller, and panicking points at it. Standard library indexing does this.</li>
+    <li><b>Bad state you cannot recover from</b>, such as a corrupted invariant.</li>
+  </ul>
+  <p>When the failure is expected (bad user input, a network timeout, a parse error), return <code>Result</code>.</p>
+  <h3>Let types carry the validation</h3>
+  <p>Instead of checking a value in every function, check it once in a constructor and make the type impossible to build otherwise. Then functions that take the type need no checks.</p>
+  <div class="pre-wrap"><pre><code><span class="k">pub</span> <span class="k">struct</span> <span class="t">Guess</span> {
+    value: <span class="t">i32</span>, <span class="c2">// private: only new() can set it</span>
+}
+
+<span class="k">impl</span> <span class="t">Guess</span> {
+    <span class="k">pub</span> <span class="k">fn</span> new(value: <span class="t">i32</span>) -&gt; <span class="t">Guess</span> {
+        <span class="k">if</span> !(<span class="n">1</span>..=<span class="n">100</span>).contains(&amp;value) {
+            <span class="m">panic!</span>(<span class="s">"Guess must be between 1 and 100, got {value}."</span>);
+        }
+        <span class="t">Guess</span> { value }
+    }
+    <span class="k">pub</span> <span class="k">fn</span> value(&amp;<span class="k">self</span>) -&gt; <span class="t">i32</span> { <span class="k">self</span>.value }
+}
+
+<span class="k">fn</span> main() {
+    <span class="m">println!</span>(<span class="s">"{}"</span>, <span class="t">Guess</span>::new(<span class="n">42</span>).value());
+}</code></pre></div>
+</section>
+
+<section id="quiz">
+  <h2>6. Check yourself</h2>
+  <p>Read each snippet and decide whether the compiler accepts it. Every answer was checked with <code>rustc</code> (edition 2024).</p>
+<div class="quiz" data-a="1">
+    <div class="quiz-q"><span class="eyebrow">Q1</span> Does this compile?</div>
+    <div class="pre-wrap"><pre><code><span class="k">fn</span> half(n: &amp;<span class="t">str</span>) -&gt; <span class="t">Option</span>&lt;<span class="t">i32</span>&gt; {
+    <span class="k">let</span> x: <span class="t">i32</span> = n.parse()?;
+    <span class="t">Some</span>(x / <span class="n">2</span>)
+}
+<span class="k">fn</span> main() {}</code></pre></div>
+    <div class="row" role="group" aria-label="Answer for question 1">
+      <button type="button" class="btn" data-i="0">Compiles</button>
+      <button type="button" class="btn" data-i="1">Compile error</button>
+    </div>
+    <p class="quiz-why" aria-live="polite" hidden><code>parse</code> returns a <code>Result</code>, but the function returns <code>Option</code>. <code>?</code> does not convert between them; write <code>n.parse().ok()?</code>.</p>
+  </div>
+<div class="quiz" data-a="0">
+    <div class="quiz-q"><span class="eyebrow">Q2</span> Does this compile?</div>
+    <div class="pre-wrap"><pre><code><span class="k">fn</span> half(n: &amp;<span class="t">str</span>) -&gt; <span class="t">Result</span>&lt;<span class="t">i32</span>, std::num::<span class="t">ParseIntError</span>&gt; {
+    <span class="k">let</span> x: <span class="t">i32</span> = n.parse()?;
+    <span class="t">Ok</span>(x / <span class="n">2</span>)
+}
+<span class="k">fn</span> main() { <span class="m">println!</span>(<span class="s">"{:?}"</span>, half(<span class="s">"8"</span>)); }</code></pre></div>
+    <div class="row" role="group" aria-label="Answer for question 2">
+      <button type="button" class="btn" data-i="0">Compiles</button>
+      <button type="button" class="btn" data-i="1">Compile error</button>
+    </div>
+    <p class="quiz-why" aria-live="polite" hidden>The error type of <code>parse::&lt;i32&gt;</code> is <code>ParseIntError</code>, the same as the function returns. Prints <code>Ok(4)</code>.</p>
+  </div>
+<div class="quiz" data-a="1">
+    <div class="quiz-q"><span class="eyebrow">Q3</span> Does this compile?</div>
+    <div class="pre-wrap"><pre><code><span class="k">fn</span> main() {
+    <span class="k">let</span> n: <span class="t">i32</span> = <span class="s">"5"</span>.parse()?;
+    <span class="m">println!</span>(<span class="s">"{n}"</span>);
+}</code></pre></div>
+    <div class="row" role="group" aria-label="Answer for question 3">
+      <button type="button" class="btn" data-i="0">Compiles</button>
+      <button type="button" class="btn" data-i="1">Compile error</button>
+    </div>
+    <p class="quiz-why" aria-live="polite" hidden><code>main</code> returns <code>()</code>, so <code>?</code> has nowhere to return the error to. Make <code>main</code> return <code>Result&lt;(), Box&lt;dyn Error&gt;&gt;</code>.</p>
+  </div>
+<div class="quiz" data-a="0">
+    <div class="quiz-q"><span class="eyebrow">Q4</span> Does this compile?</div>
+    <div class="pre-wrap"><pre><code><span class="k">use</span> std::error::<span class="t">Error</span>;
+<span class="k">fn</span> run() -&gt; <span class="t">Result</span>&lt;<span class="t">u8</span>, <span class="t">Box</span>&lt;<span class="k">dyn</span> <span class="t">Error</span>&gt;&gt; {
+    <span class="k">let</span> a: <span class="t">u8</span> = <span class="s">"7"</span>.parse()?;
+    <span class="k">let</span> f = std::fs::read_to_string(<span class="s">"/nonexistent"</span>)?;
+    <span class="t">Ok</span>(a + f.len() <span class="k">as</span> <span class="t">u8</span>)
+}
+<span class="k">fn</span> main() { <span class="m">println!</span>(<span class="s">"{}"</span>, run().is_err()); }</code></pre></div>
+    <div class="row" role="group" aria-label="Answer for question 4">
+      <button type="button" class="btn" data-i="0">Compiles</button>
+      <button type="button" class="btn" data-i="1">Compile error</button>
+    </div>
+    <p class="quiz-why" aria-live="polite" hidden>Both <code>ParseIntError</code> and <code>io::Error</code> convert into <code>Box&lt;dyn Error&gt;</code> through <code>From</code>, so <code>?</code> accepts both.</p>
+  </div>
+  <p class="prog" id="quizScore" aria-live="polite"></p>
+</section>
+
+<nav class="chapters" aria-label="Rust chapters">
+  <a class="chap prev" href="../rust-collections/rust-collections.html"><span class="eyebrow">&larr; Chapter 8</span><b>Rust Collections</b></a>
+  <a class="chap next" href="../rust-generics-traits-lifetimes/rust-generics-traits-lifetimes.html"><span class="eyebrow">Chapter 10 &rarr;</span><b>Rust Generics, Traits and Lifetimes</b></a>
+</nav>
+<p class="source">Based on chapter 9 of <a href="https://doc.rust-lang.org/book/ch09-00-error-handling.html">The Rust Programming Language</a>. Content was rewritten and condensed for this page.</p>
+
+</main>
+<script>
+var CHECK_KEY = 'rust-rust-error-handling-check:' + location.pathname;
+(function () {
+  var NS = 'http://www.w3.org/2000/svg';
+  var INK = '#2d3142', SOFT = '#5a6580', RULE = '#bfc0c0', ACCENT = '#bf4520', LINK = '#2e5aa8', OK = '#2f7a4a', PAPER = '#f5f5f5';
+  var $ = function (id) { return document.getElementById(id); };
+
+  // ---------- memory trace ----------
+  var dataEl = $('traceData');
+  if (dataEl) {
+    var steps = JSON.parse(dataEl.textContent), cur = 0, svg = $('mem');
+    var el = function (name, attrs, parent) {
+      var e = document.createElementNS(NS, name);
+      for (var k in attrs) e.setAttribute(k, attrs[k]);
+      (parent || svg).appendChild(e);
+      return e;
+    };
+    var txt = function (x, y, s, a) {
+      var o = { x: x, y: y, 'font-size': 12, fill: INK, 'font-family': 'Geist Mono, monospace' };
+      for (var k in a) o[k] = a[k];
+      var t = el('text', o); t.textContent = s; return t;
+    };
+    var clear = function () {
+      Array.prototype.slice.call(svg.childNodes).forEach(function (n) {
+        var nm = (n.localName || '').toLowerCase();
+        if (nm !== 'title' && nm !== 'desc') svg.removeChild(n);
+      });
+    };
+    var fit = function (s, n) { s = String(s); return s.length > n ? s.slice(0, n - 1) + '…' : s; };
+    var draw = function () {
+      var st = steps[cur], stack = st.stack || [], heap = st.heap || [];
+      clear();
+      var defs = el('defs', {});
+      [['ah', INK], ['ahr', LINK]].forEach(function (m) {
+        var mk = el('marker', { id: m[0], viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: 'auto-start-reverse' }, defs);
+        el('path', { d: 'M0 0 L10 5 L0 10 z', fill: m[1] }, mk);
+      });
+      txt(56, 24, 'STACK', { 'font-size': 11, fill: SOFT, 'letter-spacing': '2' });
+      txt(380, 24, 'HEAP', { 'font-size': 11, fill: SOFT, 'letter-spacing': '2' });
+      var pos = {}, y = 40, lastF = null;
+      stack.forEach(function (c) {
+        if (c.f && c.f !== lastF) { txt(56, y + 12, c.f, { 'font-size': 10.5, fill: SOFT, 'font-style': 'italic' }); y += 18; lastF = c.f; }
+        var moved = c.s === 'moved', dropped = c.s === 'dropped', isRef = c.s === 'ref' || c.s === 'mut';
+        var g = el('g', { opacity: dropped ? 0.35 : 1 });
+        el('rect', { x: 56, y: y, width: 240, height: 40, rx: 6, fill: moved || dropped ? PAPER : '#fff', stroke: isRef ? LINK : (moved ? RULE : INK), 'stroke-width': 1.4, 'stroke-dasharray': moved || dropped ? '5 4' : '' }, g);
+        var t1 = document.createElementNS(NS, 'text');
+        t1.setAttribute('x', 68); t1.setAttribute('y', y + 25); t1.setAttribute('font-size', 13); t1.setAttribute('font-weight', 600);
+        t1.setAttribute('font-family', 'Geist Mono, monospace'); t1.setAttribute('fill', moved ? SOFT : INK); t1.textContent = fit(c.n, 14); g.appendChild(t1);
+        var t2 = document.createElementNS(NS, 'text');
+        t2.setAttribute('x', 284); t2.setAttribute('y', y + 25); t2.setAttribute('font-size', 12); t2.setAttribute('text-anchor', 'end');
+        t2.setAttribute('font-family', 'Geist Mono, monospace'); t2.setAttribute('fill', moved ? SOFT : (isRef ? LINK : INK));
+        t2.textContent = fit(moved ? 'moved' : (dropped ? 'dropped' : (c.v == null ? '' : c.v)), 20); g.appendChild(t2);
+        if (c.s === 'mut' || c.s === 'ref') {
+          el('rect', { x: 248 - 4, y: y - 8, width: c.s === 'mut' ? 52 : 36, height: 15, rx: 3, fill: LINK }, g);
+          var t3 = document.createElementNS(NS, 'text');
+          t3.setAttribute('x', 248); t3.setAttribute('y', y + 3); t3.setAttribute('font-size', 9.5); t3.setAttribute('fill', '#fff'); t3.setAttribute('font-weight', 600);
+          t3.setAttribute('font-family', 'Geist Mono, monospace'); t3.textContent = c.s === 'mut' ? '&mut' : '&'; g.appendChild(t3);
+        }
+        svg.appendChild(g);
+        pos[c.n] = { y: y + 20, c: c };
+        y += 50;
+      });
+      var hy = 40, hpos = {};
+      heap.forEach(function (h) {
+        var freed = h.s === 'freed';
+        el('rect', { x: 380, y: hy, width: 236, height: 40, rx: 6, fill: freed ? PAPER : '#fff', stroke: freed ? RULE : INK, 'stroke-width': 1.4, 'stroke-dasharray': freed ? '5 4' : '', opacity: freed ? 0.5 : 1 });
+        txt(392, hy + 25, fit(freed ? 'freed' : h.v, 28), { fill: freed ? SOFT : INK });
+        hpos[h.id] = { y: hy + 20, freed: freed };
+        hy += 50;
+      });
+      // pointers
+      stack.forEach(function (c) {
+        if (!c.to || c.s === 'moved' || c.s === 'dropped') return;
+        var a = pos[c.n];
+        if (c.to.charAt(0) === '@') {
+          var b = pos[c.to.slice(1)]; if (!b) return;
+          var dx = 18 + Math.min(30, Math.abs(a.y - b.y) / 6);
+          el('path', { d: 'M56 ' + a.y + ' C' + (56 - dx) + ' ' + a.y + ' ' + (56 - dx) + ' ' + b.y + ' 54 ' + b.y, fill: 'none', stroke: LINK, 'stroke-width': 1.6, 'marker-end': 'url(#ahr)' });
+        } else {
+          var h = hpos[c.to]; if (!h) return;
+          el('path', { d: 'M296 ' + a.y + ' C338 ' + a.y + ' 338 ' + h.y + ' 378 ' + h.y, fill: 'none', stroke: h.freed ? ACCENT : INK, 'stroke-width': 1.6, 'stroke-dasharray': h.freed ? '4 3' : '', 'marker-end': 'url(#ah)' });
+        }
+      });
+      if (!stack.length) txt(56, 64, '(empty)', { fill: SOFT });
+      if (!heap.length) txt(380, 64, '(nothing allocated)', { fill: SOFT });
+      var H = Math.max(y, hy, 90) + 10;
+      svg.setAttribute('viewBox', '0 0 640 ' + H);
+      Array.prototype.forEach.call(document.querySelectorAll('.trace-code .ln'), function (ln) {
+        ln.classList.toggle('on', +ln.getAttribute('data-l') === st.l);
+      });
+      $('traceNote').innerHTML = st.note;
+      $('traceLive').textContent = 'step ' + (cur + 1) + ' / ' + steps.length;
+      $('tPrev').disabled = cur === 0;
+      $('tNext').disabled = cur === steps.length - 1;
+    };
+    $('tPrev').addEventListener('click', function () { if (cur > 0) { cur--; draw(); } });
+    $('tNext').addEventListener('click', function () { if (cur < steps.length - 1) { cur++; draw(); } });
+    $('tReset').addEventListener('click', function () { cur = 0; draw(); });
+    draw();
+  }
+
+  // ---------- quiz ----------
+  var quizzes = document.querySelectorAll('.quiz'), score = $('quizScore');
+  var upScore = function () {
+    var done = 0, right = 0;
+    quizzes.forEach(function (q) { if (q.dataset.picked != null) { done++; if (q.dataset.picked === q.dataset.a) right++; } });
+    score.textContent = done ? right + ' / ' + quizzes.length + ' correct' + (done < quizzes.length ? ' so far' : '') : quizzes.length + ' questions';
+  };
+  quizzes.forEach(function (q) {
+    var btns = q.querySelectorAll('button'), why = q.querySelector('.quiz-why');
+    btns.forEach(function (b) {
+      b.addEventListener('click', function () {
+        q.dataset.picked = b.dataset.i;
+        btns.forEach(function (o) {
+          o.classList.remove('right', 'wrong');
+          o.setAttribute('aria-pressed', o === b ? 'true' : 'false');
+          if (o.dataset.i === q.dataset.a) o.classList.add('right');
+          else if (o === b) o.classList.add('wrong');
+        });
+        why.hidden = false;
+        why.textContent = '';
+        why.insertAdjacentHTML('afterbegin', (b.dataset.i === q.dataset.a ? '<b>Correct.</b> ' : '<b>Not quite.</b> ') + why.dataset.html);
+        upScore();
+      });
+    });
+    why.dataset.html = why.innerHTML;
+  });
+  if (score) upScore();
+
+  // ---------- contents checklist ----------
+  var saved = {};
+  try { saved = JSON.parse(localStorage.getItem(CHECK_KEY) || '{}'); } catch (e) {}
+  var boxes = document.querySelectorAll('.check input'), out = $('prog');
+  var upd = function () {
+    var n = 0, o = {};
+    boxes.forEach(function (b) { if (b.checked) { n++; o[b.id] = 1; } b.closest('li').classList.toggle('done', b.checked); });
+    out.textContent = n + '/' + boxes.length + ' completed';
+    try { localStorage.setItem(CHECK_KEY, JSON.stringify(o)); } catch (e) {}
+  };
+  boxes.forEach(function (b) { b.checked = !!saved[b.id]; b.addEventListener('change', upd); });
+  upd();
+})();
+
+</script>
+</body>
+</html>

@@ -1227,6 +1227,17 @@ const DOCS = [
     related: ['Rust Ownership', 'Rust Closures and Iterators', 'Rust Error Handling'],
   },
   {
+    title: 'Rust Error Handling',
+    path: 'content/engineering/rust/rust-error-handling/rust-error-handling.html',
+    category: 'Engineering',
+    topic: 'Rust',
+    order: 40,
+    level: 'Beginner',
+    tags: ['rust', 'error handling', 'result', 'panic', 'question mark operator', 'unwrap', 'error propagation', 'custom errors'],
+    summary: 'Unrecoverable errors with panic! and backtraces, recoverable errors with Result<T, E>, matching on error kinds, unwrap and expect, propagating with ?, From conversions, Box<dyn Error>, and when to panic versus return an error.',
+    related: ['Rust Enums and Pattern Matching', 'Rust CLI Project: minigrep', 'Rust Generics, Traits and Lifetimes'],
+  },
+  {
     title: 'Quant Roadmap',
     path: 'content/quant/quant-roadmap/quant-roadmap.html',
     category: 'Quant',
