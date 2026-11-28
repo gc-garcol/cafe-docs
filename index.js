@@ -1271,6 +1271,17 @@ const DOCS = [
     related: ['Rust Error Handling', 'Rust Testing', 'Rust Closures and Iterators'],
   },
   {
+    title: 'Rust Closures and Iterators',
+    path: 'content/engineering/rust/rust-closures-iterators/rust-closures-iterators.html',
+    category: 'Engineering',
+    topic: 'Rust',
+    order: 44,
+    level: 'Intermediate',
+    tags: ['rust', 'closures', 'iterators', 'fn traits', 'fnmut', 'fnonce', 'move', 'lazy evaluation', 'zero-cost abstractions'],
+    summary: 'Closures that capture by reference, by mutable reference or by move, the Fn, FnMut and FnOnce traits, the Iterator trait and next, consuming and adapter methods, lazy evaluation, writing your own iterator, improving minigrep, and why iterators compile to the same code as loops.',
+    related: ['Rust CLI Project: minigrep', 'Rust Collections', 'Rust Fearless Concurrency', 'Rust Advanced Features'],
+  },
+  {
     title: 'Quant Roadmap',
     path: 'content/quant/quant-roadmap/quant-roadmap.html',
     category: 'Quant',
