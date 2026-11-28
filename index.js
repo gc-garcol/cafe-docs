@@ -1249,6 +1249,17 @@ const DOCS = [
     related: ['Rust Ownership', 'Rust Structs', 'Rust OOP Features', 'Rust Advanced Features'],
   },
   {
+    title: 'Rust Testing',
+    path: 'content/engineering/rust/rust-testing/rust-testing.html',
+    category: 'Engineering',
+    topic: 'Rust',
+    order: 42,
+    level: 'Beginner',
+    tags: ['rust', 'testing', 'unit tests', 'integration tests', 'cargo test', 'assert', 'should_panic', 'doc tests'],
+    summary: 'Write tests with #[test], assert!, assert_eq! and custom messages, check panics with should_panic, return Result from tests, control cargo test (threads, output, filters, ignored tests), and organize unit tests, integration tests and doc tests.',
+    related: ['Rust Packages, Crates and Modules', 'Rust CLI Project: minigrep', 'Rust Cargo and Crates.io'],
+  },
+  {
     title: 'Quant Roadmap',
     path: 'content/quant/quant-roadmap/quant-roadmap.html',
     category: 'Quant',
