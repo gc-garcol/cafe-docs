@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rust Enums and Pattern Matching: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8; --ok:#2f7a4a;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible,a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+h3{font-family:var(--serif);font-weight:400;font-size:24px;line-height:1.2;margin:32px 0 10px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+a{color:var(--link)}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code,.quiz-q code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+ul.tight{padding-left:22px;max-width:68ch}ul.tight li{margin:6px 0}
+
+.pre-wrap{position:relative;margin:16px 0}
+.pre-tag{position:absolute;top:0;right:0;font:600 10px var(--mono);letter-spacing:.1em;text-transform:uppercase;padding:4px 10px;border-radius:0 8px 0 6px;background:var(--paper-2);color:var(--soft)}
+.pre-tag.bad{background:var(--accent);color:#fff}
+pre{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:0}
+pre code{font-size:inherit;background:none;padding:0}
+pre.shell{background:#2d3142;color:#f5f5f5;border-color:#2d3142}
+.k{color:var(--accent)} .c2{color:var(--soft);font-style:italic} .t{color:var(--link)}
+.s{color:var(--ok)} .m{color:#7a3d8a} .n{color:var(--link)} .lt{color:var(--accent);font-style:italic} .at{color:var(--soft)}
+
+.card{margin:24px 0 0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:center;flex-wrap:wrap}
+.card-title{font-family:var(--serif);font-size:20px}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.scroll{overflow-x:auto}
+.scroll svg{display:block;width:100%;min-width:560px;height:auto}
+.trace{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:0;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule)}
+.trace-code{border:0;border-right:1px solid var(--rule);border-radius:0;padding:12px 0;font-size:12.5px}
+.trace-code .ln{display:block;padding:0 14px 0 0;white-space:pre;border-left:3px solid transparent}
+.trace-code .lno{display:inline-block;width:34px;text-align:right;padding-right:12px;color:var(--rule-solid);user-select:none}
+.trace-code .ln.on{background:var(--accent-tint);border-left-color:var(--accent)}
+.trace-code .ln.on .lno{color:var(--accent)}
+.trace-note{margin:0;padding:12px 16px;font-size:14px;color:var(--ink);min-height:3.4em;max-width:none}
+
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:0 0 12px}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.btn:disabled{opacity:.4;cursor:not-allowed;background:transparent;color:var(--ink)}
+.btn.right{border-color:var(--ok);background:var(--ok);color:#fff}
+.btn.wrong{border-color:var(--accent);background:var(--accent);color:#fff}
+
+table.ops{border-collapse:collapse;width:100%;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+table.ops td:first-child{font-weight:600}
+.tw{overflow-x:auto}
+
+.quiz{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0}
+.quiz .pre-wrap{margin:10px 0 12px}
+.quiz pre{background:var(--paper)}
+.quiz-q{font-weight:500}
+.quiz-why{font-size:14px;color:var(--muted);margin:0}
+
+.check{list-style:none;padding:0;margin:12px 0 0;max-width:640px}
+.check li{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--rule)}
+.check input{width:18px;height:18px;accent-color:var(--accent)}
+.check li.done a{color:var(--soft);text-decoration:line-through}
+.prog{font-family:var(--mono);font-size:12px;color:var(--soft)}
+
+.chapters{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:72px}
+.chap{display:block;padding:16px 20px;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;text-decoration:none;color:var(--ink)}
+.chap:hover{border-color:var(--ink)}
+.chap b{display:block;font:400 22px var(--serif);margin-top:4px}
+.chap.next{text-align:right}
+.source{font-size:13px;color:var(--soft);margin-top:24px}
+
+.doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}.doc-tags a{font:500 12px "Geist Mono",ui-monospace,monospace;padding:4px 10px;border:1px solid var(--rule-solid,#bfc0c0);border-radius:4px;background:#fff;color:var(--muted,#4f5d75);text-decoration:none}.doc-tags a:hover{border-color:var(--ink,#2d3142);color:var(--ink,#2d3142)}.doc-tags a:focus-visible{outline:2px solid var(--accent,#bf4520);outline-offset:2px}
+
+@media (max-width:860px){.trace{grid-template-columns:1fr}.trace-code{border-right:0;border-bottom:1px solid var(--rule)}.page{padding:32px 16px 72px}.chapters{grid-template-columns:1fr}.chap.next{text-align:left}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" style="margin-right:8px" href="../../../../index.html">&larr; Back to home</a>
+<a class="back back-cat" href="../../../../index.html#cat=Engineering">&larr; Back to Engineering</a>
+
+<header>
+  <div class="eyebrow">Engineering · Rust · Chapter 6</div>
+  <h1>Rust Enums and Pattern Matching</h1>
+  <p class="lede">An enum says a value is exactly one of a fixed set of variants, and each variant can carry its own data. Combined with <code>match</code>, which forces you to handle every variant, enums let the compiler check that no case is forgotten. <code>Option</code> uses this to replace null.</p>
+  <nav class="doc-tags" aria-label="Main tags"><a href="../../../../index.html#tag=rust">#rust</a><a href="../../../../index.html#tag=enums">#enums</a><a href="../../../../index.html#tag=match">#match</a><a href="../../../../index.html#tag=option">#option</a></nav>
+</header>
+
+<section>
+  <h2>Step through it</h2>
+  <p>A <code>match</code> tries the arms top to bottom and runs the first pattern that fits. Step through two calls and watch the bindings.</p>
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">How match picks an arm</span></div>
+    <div class="trace">
+      <pre class="trace-code"><code><span class="ln" data-l="1"><span class="lno">1</span><span class="k">enum</span> <span class="t">Shape</span> {</span><span class="ln" data-l="2"><span class="lno">2</span>    <span class="t">Circle</span> { r: <span class="t">f64</span> },</span><span class="ln" data-l="3"><span class="lno">3</span>    <span class="t">Rect</span>(<span class="t">f64</span>, <span class="t">f64</span>),</span><span class="ln" data-l="4"><span class="lno">4</span>    <span class="t">Dot</span>,</span><span class="ln" data-l="5"><span class="lno">5</span>}</span><span class="ln" data-l="6"><span class="lno">6</span><span class="k">fn</span> area(s: &amp;<span class="t">Shape</span>) -&gt; <span class="t">f64</span> {</span><span class="ln" data-l="7"><span class="lno">7</span>    <span class="k">match</span> s {</span><span class="ln" data-l="8"><span class="lno">8</span>        <span class="t">Shape</span>::<span class="t">Circle</span> { r } =&gt; <span class="n">3.14</span> * r * r,</span><span class="ln" data-l="9"><span class="lno">9</span>        <span class="t">Shape</span>::<span class="t">Rect</span>(w, h) =&gt; w * h,</span><span class="ln" data-l="10"><span class="lno">10</span>        <span class="t">Shape</span>::<span class="t">Dot</span> =&gt; <span class="n">0.0</span>,</span><span class="ln" data-l="11"><span class="lno">11</span>    }</span><span class="ln" data-l="12"><span class="lno">12</span>}</span><span class="ln" data-l="13"><span class="lno">13</span><span class="k">fn</span> main() {</span><span class="ln" data-l="14"><span class="lno">14</span>    <span class="k">let</span> a = area(&amp;<span class="t">Shape</span>::<span class="t">Rect</span>(<span class="n">2.0</span>, <span class="n">3.0</span>));</span><span class="ln" data-l="15"><span class="lno">15</span>    <span class="k">let</span> b = area(&amp;<span class="t">Shape</span>::<span class="t">Dot</span>);</span><span class="ln" data-l="16"><span class="lno">16</span>    <span class="m">println!</span>(<span class="s">"{a} {b}"</span>);</span><span class="ln" data-l="17"><span class="lno">17</span>}</span></code></pre>
+      <div class="scroll"><svg id="mem" viewBox="0 0 640 300" role="img" aria-labelledby="mem-title mem-desc">
+        <title id="mem-title">How match picks an arm</title>
+        <desc id="mem-desc">The value is compared against each pattern from top to bottom. The first pattern that fits runs, and its bindings take values from inside the variant.</desc>
+      </svg></div>
+    </div>
+    <p class="trace-note" id="traceNote" aria-live="polite"></p>
+    <div class="card-bottom">
+      <div class="row" style="margin:0">
+        <button type="button" class="btn" id="tPrev">&larr; Prev</button>
+        <button type="button" class="btn" id="tNext">Next &rarr;</button>
+        <button type="button" class="btn" id="tReset">Reset</button>
+      </div>
+      <span class="live" id="traceLive"></span>
+    </div>
+  </figure>
+  <script type="application/json" id="traceData">[{"l":14,"note":"A \u003ccode>Shape::Rect(2.0, 3.0)\u003c/code> is built. An enum value is a tag saying which variant it is, plus room for the largest variant.","stack":[{"f":"main","n":"temp","v":"tag=Rect 2.0 3.0"}]},{"l":7,"note":"\u003ccode>area\u003c/code> receives a reference. \u003ccode>match\u003c/code> looks at the tag.","stack":[{"f":"main","n":"temp","v":"tag=Rect 2.0 3.0"},{"f":"area","n":"s","v":"&Shape","s":"ref","to":"@temp"}]},{"l":8,"note":"Arm 1: \u003ccode>Circle { r }\u003c/code>. The tag is Rect, not Circle, so this arm is skipped.","stack":[{"f":"main","n":"temp","v":"tag=Rect 2.0 3.0"},{"f":"area","n":"s","v":"&Shape","s":"ref","to":"@temp"}]},{"l":9,"note":"Arm 2 fits. \u003ccode>w\u003c/code> and \u003ccode>h\u003c/code> bind to the fields. Because \u003ccode>s\u003c/code> is a reference, they bind as \u003ccode>&amp;f64\u003c/code> (default binding mode).","stack":[{"f":"main","n":"temp","v":"tag=Rect 2.0 3.0"},{"f":"area","n":"s","v":"&Shape","s":"ref","to":"@temp"},{"f":"area","n":"w","v":"&f64 = 2.0","s":"ref"},{"f":"area","n":"h","v":"&f64 = 3.0","s":"ref"}]},{"l":14,"note":"The arm expression \u003ccode>w * h\u003c/code> is the value of the match and of the function: \u003ccode>a = 6.0\u003c/code>.","stack":[{"f":"main","n":"a","v":"6.0"}]},{"l":15,"note":"Second call with \u003ccode>Shape::Dot\u003c/code>. Arms 1 and 2 do not fit, arm 3 does. No data to bind.","stack":[{"f":"main","n":"a","v":"6.0"},{"f":"main","n":"temp","v":"tag=Dot"},{"f":"area","n":"s","v":"&Shape","s":"ref","to":"@temp"}]},{"l":16,"note":"Prints \u003ccode>6 0\u003c/code>. Remove any arm and the program stops compiling: \u003ccode>match\u003c/code> must be exhaustive.","stack":[{"f":"main","n":"a","v":"6.0"},{"f":"main","n":"b","v":"0.0"}]}]</script>
+</section>
+
+<section>
+  <h2>Contents</h2>
+  <div class="prog" id="prog" aria-live="polite"></div>
+  <ol class="check">
+    <li><input type="checkbox" id="c-define" aria-label="Mark Defining an enum as done"><a href="#define">1. Defining an enum</a></li>
+    <li><input type="checkbox" id="c-option" aria-label="Mark Option instead of null as done"><a href="#option">2. Option instead of null</a></li>
+    <li><input type="checkbox" id="c-match" aria-label="Mark The match control flow construct as done"><a href="#match">3. The match control flow construct</a></li>
+    <li><input type="checkbox" id="c-exhaustive" aria-label="Mark Matches are exhaustive as done"><a href="#exhaustive">4. Matches are exhaustive</a></li>
+    <li><input type="checkbox" id="c-iflet" aria-label="Mark if let and let else as done"><a href="#iflet">5. if let and let else</a></li>
+    <li><input type="checkbox" id="c-quiz" aria-label="Mark Check yourself as done"><a href="#quiz">6. Check yourself</a></li>
+  </ol>
+</section>
+
+<section id="define">
+  <h2>1. Defining an enum</h2>
+
+  <p>Each variant of an enum can hold different data: nothing, a tuple, or named fields. All variants are the same type, so one function can take any of them.</p>
+  <div class="pre-wrap"><pre><code><span class="at">#[derive(Debug)]</span>
+<span class="k">enum</span> <span class="t">IpAddr</span> {
+    <span class="t">V4</span>(<span class="t">u8</span>, <span class="t">u8</span>, <span class="t">u8</span>, <span class="t">u8</span>),
+    <span class="t">V6</span>(<span class="t">String</span>),
+}
+
+<span class="at">#[derive(Debug)]</span>
+<span class="k">enum</span> <span class="t">Message</span> {
+    <span class="t">Quit</span>,                       <span class="c2">// no data</span>
+    <span class="t">Move</span> { x: <span class="t">i32</span>, y: <span class="t">i32</span> },    <span class="c2">// named fields</span>
+    <span class="t">Write</span>(<span class="t">String</span>),              <span class="c2">// one value</span>
+    <span class="t">ChangeColor</span>(<span class="t">u8</span>, <span class="t">u8</span>, <span class="t">u8</span>),    <span class="c2">// several values</span>
+}
+
+<span class="k">impl</span> <span class="t">Message</span> {
+    <span class="k">fn</span> call(&amp;<span class="k">self</span>) {
+        <span class="m">println!</span>(<span class="s">"{self:?}"</span>);
+    }
+}
+
+<span class="k">fn</span> main() {
+    <span class="k">let</span> home = <span class="t">IpAddr</span>::<span class="t">V4</span>(<span class="n">127</span>, <span class="n">0</span>, <span class="n">0</span>, <span class="n">1</span>);
+    <span class="k">let</span> lo = <span class="t">IpAddr</span>::<span class="t">V6</span>(<span class="t">String</span>::from(<span class="s">"::1"</span>));
+    <span class="m">println!</span>(<span class="s">"{home:?} {lo:?}"</span>);
+    <span class="t">Message</span>::<span class="t">Move</span> { x: <span class="n">1</span>, y: <span class="n">2</span> }.call();
+    <span class="t">Message</span>::<span class="t">Write</span>(<span class="s">"hi"</span>.into()).call();
+}</code></pre></div>
+  <p>With structs you would need four types and a shared trait to pass them around. The enum keeps them in one type, and its size is the size of the largest variant plus a tag. A variant name is also a constructor function: <code>IpAddr::V6</code> has type <code>fn(String) -&gt; IpAddr</code>.</p>
+</section>
+
+<section id="option">
+  <h2>2. Option instead of null</h2>
+
+  <p>Rust has no null. A value that might be absent has type <code>Option&lt;T&gt;</code>, defined in the standard library as:</p>
+  <div class="pre-wrap"><pre><code><span class="k">enum</span> <span class="t">Option</span>&lt;<span class="t">T</span>&gt; {
+    <span class="t">None</span>,
+    <span class="t">Some</span>(<span class="t">T</span>),
+}
+<span class="k">fn</span> main() {}</code></pre></div>
+  <p><code>Option</code>, <code>Some</code> and <code>None</code> are in the prelude, so you use them without a path. The point is that <code>Option&lt;i32&gt;</code> and <code>i32</code> are different types. You cannot add them, and you cannot forget to check:</p>
+  <div class="pre-wrap"><span class="pre-tag bad">does not compile</span><pre><code><span class="k">fn</span> main() {
+    <span class="k">let</span> x: <span class="t">i8</span> = <span class="n">5</span>;
+    <span class="k">let</span> y: <span class="t">Option</span>&lt;<span class="t">i8</span>&gt; = <span class="t">Some</span>(<span class="n">5</span>);
+    <span class="k">let</span> sum = x + y; <span class="c2">// error[E0277]: cannot add `Option&lt;i8&gt;` to `i8`</span>
+}</code></pre></div>
+  <p>To get the <code>i8</code> out you must handle <code>None</code>. Everywhere else, any value of type <code>T</code> is guaranteed to be there. Tony Hoare called null references his "billion-dollar mistake"; <code>Option</code> keeps the idea of absence but moves the check to compile time.</p>
+  <div class="tw"><table class="ops"><thead><tr><th>Method</th><th>Returns</th><th>If None</th></tr></thead><tbody><tr><td><code>unwrap_or(d)</code></td><td>the value or <code>d</code></td><td>uses <code>d</code></td></tr><tr><td><code>unwrap_or_default()</code></td><td>the value or <code>T::default()</code></td><td>uses the default</td></tr><tr><td><code>map(f)</code></td><td><code>Option&lt;U&gt;</code></td><td>stays <code>None</code></td></tr><tr><td><code>and_then(f)</code></td><td><code>Option&lt;U&gt;</code>, where <code>f</code> returns an Option</td><td>stays <code>None</code></td></tr><tr><td><code>ok_or(e)</code></td><td><code>Result&lt;T, E&gt;</code></td><td><code>Err(e)</code></td></tr><tr><td><code>expect(msg)</code> / <code>unwrap()</code></td><td>the value</td><td>panics</td></tr><tr><td><code>is_some()</code> / <code>is_none()</code></td><td><code>bool</code></td><td>-</td></tr></tbody></table></div>
+</section>
+
+<section id="match">
+  <h2>3. The match control flow construct</h2>
+
+  <p><code>match</code> compares a value against patterns in order and runs the first arm that fits. Each arm is <code>pattern =&gt; expression</code>. Fig 1 steps through one.</p>
+  <div class="pre-wrap"><pre><code><span class="at">#[derive(Debug)]</span>
+<span class="k">enum</span> <span class="t">UsState</span> { <span class="t">Alaska</span>, <span class="t">Alabama</span> }
+
+<span class="k">enum</span> <span class="t">Coin</span> {
+    <span class="t">Penny</span>,
+    <span class="t">Nickel</span>,
+    <span class="t">Dime</span>,
+    <span class="t">Quarter</span>(<span class="t">UsState</span>),
+}
+
+<span class="k">fn</span> value_in_cents(coin: <span class="t">Coin</span>) -&gt; <span class="t">u8</span> {
+    <span class="k">match</span> coin {
+        <span class="t">Coin</span>::<span class="t">Penny</span> =&gt; {
+            <span class="m">println!</span>(<span class="s">"Lucky penny!"</span>);
+            <span class="n">1</span>
+        }
+        <span class="t">Coin</span>::<span class="t">Nickel</span> =&gt; <span class="n">5</span>,
+        <span class="t">Coin</span>::<span class="t">Dime</span> =&gt; <span class="n">10</span>,
+        <span class="t">Coin</span>::<span class="t">Quarter</span>(state) =&gt; {     <span class="c2">// binds the inner value</span>
+            <span class="m">println!</span>(<span class="s">"State quarter from {state:?}!"</span>);
+            <span class="n">25</span>
+        }
+    }
+}
+
+<span class="k">fn</span> main() {
+    <span class="m">println!</span>(<span class="s">"{}"</span>, value_in_cents(<span class="t">Coin</span>::<span class="t">Quarter</span>(<span class="t">UsState</span>::<span class="t">Alaska</span>)));
+    <span class="m">println!</span>(<span class="s">"{}"</span>, value_in_cents(<span class="t">Coin</span>::<span class="t">Penny</span>));
+    <span class="k">let</span> _ = (<span class="t">Coin</span>::<span class="t">Nickel</span>, <span class="t">Coin</span>::<span class="t">Dime</span>, <span class="t">UsState</span>::<span class="t">Alabama</span>);
+}</code></pre></div>
+  <h3>Matching Option</h3>
+  <div class="pre-wrap"><pre><code><span class="k">fn</span> plus_one(x: <span class="t">Option</span>&lt;<span class="t">i32</span>&gt;) -&gt; <span class="t">Option</span>&lt;<span class="t">i32</span>&gt; {
+    <span class="k">match</span> x {
+        <span class="t">None</span> =&gt; <span class="t">None</span>,
+        <span class="t">Some</span>(i) =&gt; <span class="t">Some</span>(i + <span class="n">1</span>),
+    }
+}
+
+<span class="k">fn</span> main() {
+    <span class="k">let</span> five = <span class="t">Some</span>(<span class="n">5</span>);
+    <span class="m">println!</span>(<span class="s">"{:?} {:?}"</span>, plus_one(five), plus_one(<span class="t">None</span>));
+}</code></pre></div>
+</section>
+
+<section id="exhaustive">
+  <h2>4. Matches are exhaustive</h2>
+
+  <p>The compiler checks that the arms cover every possible value. Forget <code>None</code> and it tells you exactly which pattern is missing:</p>
+  <div class="pre-wrap"><span class="pre-tag bad">does not compile</span><pre><code><span class="k">fn</span> plus_one(x: <span class="t">Option</span>&lt;<span class="t">i32</span>&gt;) -&gt; <span class="t">Option</span>&lt;<span class="t">i32</span>&gt; {
+    <span class="k">match</span> x { <span class="c2">// error[E0004]: non-exhaustive patterns: `None` not covered</span>
+        <span class="t">Some</span>(i) =&gt; <span class="t">Some</span>(i + <span class="n">1</span>),
+    }
+}</code></pre></div>
+  <p>This is the strongest reason to prefer <code>match</code> over chains of <code>if</code>. When you add a variant to an enum later, every <code>match</code> that does not handle it stops compiling, and the errors are a to-do list.</p>
+  <h3>Catch-all patterns and _</h3>
+  <div class="pre-wrap"><pre><code><span class="k">fn</span> add_fancy_hat() {}
+<span class="k">fn</span> remove_fancy_hat() {}
+<span class="k">fn</span> move_player(n: <span class="t">u8</span>) { <span class="m">println!</span>(<span class="s">"move {n}"</span>); }
+
+<span class="k">fn</span> main() {
+    <span class="k">let</span> roll = <span class="n">9</span>;
+    <span class="k">match</span> roll {
+        <span class="n">3</span> =&gt; add_fancy_hat(),
+        <span class="n">7</span> =&gt; remove_fancy_hat(),
+        other =&gt; move_player(other), <span class="c2">// binds the value</span>
+    }
+    <span class="k">match</span> roll {
+        <span class="n">3</span> =&gt; add_fancy_hat(),
+        _ =&gt; (),                     <span class="c2">// ignore everything else</span>
+    }
+}</code></pre></div>
+  <p>A named catch-all binds the value; <code>_</code> matches anything without binding it. Both must come last, because arms are tried in order and anything after them is unreachable (the compiler warns).</p>
+</section>
+
+<section id="iflet">
+  <h2>5. if let and let else</h2>
+
+  <p>When you care about one pattern and want to ignore the rest, <code>match</code> is verbose. <code>if let</code> is shorthand for a <code>match</code> with one arm and <code>_ =&gt; ()</code>, optionally with an <code>else</code>.</p>
+  <div class="pre-wrap"><pre><code><span class="k">fn</span> main() {
+    <span class="k">let</span> config_max = <span class="t">Some</span>(<span class="n">3u8</span>);
+    <span class="k">if</span> <span class="k">let</span> <span class="t">Some</span>(max) = config_max {
+        <span class="m">println!</span>(<span class="s">"max is {max}"</span>);
+    } <span class="k">else</span> {
+        <span class="m">println!</span>(<span class="s">"no max"</span>);
+    }
+}</code></pre></div>
+  <p>You trade exhaustiveness checking for brevity, so use it when the other cases really do not matter.</p>
+  <h3>let else</h3>
+  <p><code>let PATTERN = EXPR else { ... };</code> binds the pattern in the surrounding scope or runs the <code>else</code> block, which must leave the scope (<code>return</code>, <code>break</code>, <code>continue</code> or panic). It keeps the happy path flat instead of nesting it inside <code>if let</code>.</p>
+  <div class="pre-wrap"><pre><code><span class="k">fn</span> parse_kv(line: &amp;<span class="t">str</span>) -&gt; <span class="t">Option</span>&lt;(<span class="t">String</span>, <span class="t">i32</span>)&gt; {
+    <span class="k">let</span> <span class="t">Some</span>((k, v)) = line.split_once(<span class="s">'='</span>) <span class="k">else</span> {
+        <span class="k">return</span> <span class="t">None</span>;
+    };
+    <span class="k">let</span> <span class="t">Ok</span>(n) = v.trim().parse::&lt;<span class="t">i32</span>&gt;() <span class="k">else</span> {
+        <span class="k">return</span> <span class="t">None</span>;
+    };
+    <span class="t">Some</span>((k.trim().to_string(), n))
+}
+
+<span class="k">fn</span> main() {
+    <span class="m">println!</span>(<span class="s">"{:?}"</span>, parse_kv(<span class="s">"port = 8080"</span>));
+    <span class="m">println!</span>(<span class="s">"{:?}"</span>, parse_kv(<span class="s">"garbage"</span>));
+}</code></pre></div>
+  <div class="tw"><table class="ops"><thead><tr><th>Form</th><th>Use when</th></tr></thead><tbody><tr><td><code>match</code></td><td>Several variants need different handling, or you want exhaustiveness.</td></tr><tr><td><code>if let</code></td><td>One variant matters; the rest are ignored or handled in one <code>else</code>.</td></tr><tr><td><code>let ... else</code></td><td>You need the value to continue, and otherwise you bail out early.</td></tr><tr><td><code>matches!(v, P)</code></td><td>You only want a <code>bool</code>: does it fit the pattern?</td></tr></tbody></table></div>
+</section>
+
+<section id="quiz">
+  <h2>6. Check yourself</h2>
+  <p>Read each snippet and decide whether the compiler accepts it. Every answer was checked with <code>rustc</code> (edition 2024).</p>
+<div class="quiz" data-a="1">
+    <div class="quiz-q"><span class="eyebrow">Q1</span> Does this compile?</div>
+    <div class="pre-wrap"><pre><code><span class="k">enum</span> <span class="t">Dir</span> { <span class="t">N</span>, <span class="t">S</span>, <span class="t">E</span>, <span class="t">W</span> }
+<span class="k">fn</span> turn(d: <span class="t">Dir</span>) -&gt; <span class="t">Dir</span> {
+    <span class="k">match</span> d {
+        <span class="t">Dir</span>::<span class="t">N</span> =&gt; <span class="t">Dir</span>::<span class="t">E</span>,
+        <span class="t">Dir</span>::<span class="t">E</span> =&gt; <span class="t">Dir</span>::<span class="t">S</span>,
+        <span class="t">Dir</span>::<span class="t">S</span> =&gt; <span class="t">Dir</span>::<span class="t">W</span>,
+    }
+}
+<span class="k">fn</span> main() {}</code></pre></div>
+    <div class="row" role="group" aria-label="Answer for question 1">
+      <button type="button" class="btn" data-i="0">Compiles</button>
+      <button type="button" class="btn" data-i="1">Compile error</button>
+    </div>
+    <p class="quiz-why" aria-live="polite" hidden>The match is not exhaustive: <code>Dir::W</code> is not covered.</p>
+  </div>
+<div class="quiz" data-a="0">
+    <div class="quiz-q"><span class="eyebrow">Q2</span> Does this compile?</div>
+    <div class="pre-wrap"><pre><code><span class="k">fn</span> main() {
+    <span class="k">let</span> x: <span class="t">Option</span>&lt;<span class="t">u32</span>&gt; = <span class="t">Some</span>(<span class="n">2</span>);
+    <span class="k">let</span> y = x.unwrap_or(<span class="n">0</span>) + <span class="n">1</span>;
+    <span class="m">println!</span>(<span class="s">"{y}"</span>);
+}</code></pre></div>
+    <div class="row" role="group" aria-label="Answer for question 2">
+      <button type="button" class="btn" data-i="0">Compiles</button>
+      <button type="button" class="btn" data-i="1">Compile error</button>
+    </div>
+    <p class="quiz-why" aria-live="polite" hidden><code>unwrap_or</code> turns the <code>Option&lt;u32&gt;</code> into a <code>u32</code>, so the addition is fine.</p>
+  </div>
+<div class="quiz" data-a="0">
+    <div class="quiz-q"><span class="eyebrow">Q3</span> Does this compile?</div>
+    <div class="pre-wrap"><pre><code><span class="k">fn</span> main() {
+    <span class="k">let</span> n = <span class="n">4</span>;
+    <span class="k">let</span> s = <span class="k">match</span> n {
+        _ =&gt; <span class="s">"any"</span>,
+        <span class="n">4</span> =&gt; <span class="s">"four"</span>,
+    };
+    <span class="m">println!</span>(<span class="s">"{s}"</span>);
+}</code></pre></div>
+    <div class="row" role="group" aria-label="Answer for question 3">
+      <button type="button" class="btn" data-i="0">Compiles</button>
+      <button type="button" class="btn" data-i="1">Compile error</button>
+    </div>
+    <p class="quiz-why" aria-live="polite" hidden>It compiles with an "unreachable pattern" warning. <code>_</code> matches everything, so the <code>4</code> arm never runs and it prints <code>any</code>.</p>
+  </div>
+<div class="quiz" data-a="1">
+    <div class="quiz-q"><span class="eyebrow">Q4</span> Does this compile?</div>
+    <div class="pre-wrap"><pre><code><span class="k">fn</span> first(v: &amp;[<span class="t">i32</span>]) -&gt; <span class="t">i32</span> {
+    <span class="k">let</span> <span class="t">Some</span>(x) = v.first() <span class="k">else</span> {
+        <span class="m">println!</span>(<span class="s">"empty"</span>);
+    };
+    *x
+}
+<span class="k">fn</span> main() {}</code></pre></div>
+    <div class="row" role="group" aria-label="Answer for question 4">
+      <button type="button" class="btn" data-i="0">Compiles</button>
+      <button type="button" class="btn" data-i="1">Compile error</button>
+    </div>
+    <p class="quiz-why" aria-live="polite" hidden>The <code>else</code> block of <code>let else</code> must diverge (return, break, continue or panic). Printing and falling through is not allowed.</p>
+  </div>
+  <p class="prog" id="quizScore" aria-live="polite"></p>
+</section>
+
+<nav class="chapters" aria-label="Rust chapters">
+  <a class="chap prev" href="../rust-structs/rust-structs.html"><span class="eyebrow">&larr; Chapter 5</span><b>Rust Structs</b></a>
+  <a class="chap next" href="../rust-modules/rust-modules.html"><span class="eyebrow">Chapter 7 &rarr;</span><b>Rust Packages, Crates and Modules</b></a>
+</nav>
+<p class="source">Based on chapter 6 of <a href="https://doc.rust-lang.org/book/ch06-00-enums.html">The Rust Programming Language</a>. Content was rewritten and condensed for this page.</p>
+
+</main>
+<script>
+var CHECK_KEY = 'rust-rust-enums-match-check:' + location.pathname;
+(function () {
+  var NS = 'http://www.w3.org/2000/svg';
+  var INK = '#2d3142', SOFT = '#5a6580', RULE = '#bfc0c0', ACCENT = '#bf4520', LINK = '#2e5aa8', OK = '#2f7a4a', PAPER = '#f5f5f5';
+  var $ = function (id) { return document.getElementById(id); };
+
+  // ---------- memory trace ----------
+  var dataEl = $('traceData');
+  if (dataEl) {
+    var steps = JSON.parse(dataEl.textContent), cur = 0, svg = $('mem');
+    var el = function (name, attrs, parent) {
+      var e = document.createElementNS(NS, name);
+      for (var k in attrs) e.setAttribute(k, attrs[k]);
+      (parent || svg).appendChild(e);
+      return e;
+    };
+    var txt = function (x, y, s, a) {
+      var o = { x: x, y: y, 'font-size': 12, fill: INK, 'font-family': 'Geist Mono, monospace' };
+      for (var k in a) o[k] = a[k];
+      var t = el('text', o); t.textContent = s; return t;
+    };
+    var clear = function () {
+      Array.prototype.slice.call(svg.childNodes).forEach(function (n) {
+        var nm = (n.localName || '').toLowerCase();
+        if (nm !== 'title' && nm !== 'desc') svg.removeChild(n);
+      });
+    };
+    var fit = function (s, n) { s = String(s); return s.length > n ? s.slice(0, n - 1) + '…' : s; };
+    var draw = function () {
+      var st = steps[cur], stack = st.stack || [], heap = st.heap || [];
+      clear();
+      var defs = el('defs', {});
+      [['ah', INK], ['ahr', LINK]].forEach(function (m) {
+        var mk = el('marker', { id: m[0], viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: 'auto-start-reverse' }, defs);
+        el('path', { d: 'M0 0 L10 5 L0 10 z', fill: m[1] }, mk);
+      });
+      txt(56, 24, 'STACK', { 'font-size': 11, fill: SOFT, 'letter-spacing': '2' });
+      txt(380, 24, 'HEAP', { 'font-size': 11, fill: SOFT, 'letter-spacing': '2' });
+      var pos = {}, y = 40, lastF = null;
+      stack.forEach(function (c) {
+        if (c.f && c.f !== lastF) { txt(56, y + 12, c.f, { 'font-size': 10.5, fill: SOFT, 'font-style': 'italic' }); y += 18; lastF = c.f; }
+        var moved = c.s === 'moved', dropped = c.s === 'dropped', isRef = c.s === 'ref' || c.s === 'mut';
+        var g = el('g', { opacity: dropped ? 0.35 : 1 });
+        el('rect', { x: 56, y: y, width: 240, height: 40, rx: 6, fill: moved || dropped ? PAPER : '#fff', stroke: isRef ? LINK : (moved ? RULE : INK), 'stroke-width': 1.4, 'stroke-dasharray': moved || dropped ? '5 4' : '' }, g);
+        var t1 = document.createElementNS(NS, 'text');
+        t1.setAttribute('x', 68); t1.setAttribute('y', y + 25); t1.setAttribute('font-size', 13); t1.setAttribute('font-weight', 600);
+        t1.setAttribute('font-family', 'Geist Mono, monospace'); t1.setAttribute('fill', moved ? SOFT : INK); t1.textContent = fit(c.n, 14); g.appendChild(t1);
+        var t2 = document.createElementNS(NS, 'text');
+        t2.setAttribute('x', 284); t2.setAttribute('y', y + 25); t2.setAttribute('font-size', 12); t2.setAttribute('text-anchor', 'end');
+        t2.setAttribute('font-family', 'Geist Mono, monospace'); t2.setAttribute('fill', moved ? SOFT : (isRef ? LINK : INK));
+        t2.textContent = fit(moved ? 'moved' : (dropped ? 'dropped' : (c.v == null ? '' : c.v)), 20); g.appendChild(t2);
+        if (c.s === 'mut' || c.s === 'ref') {
+          el('rect', { x: 248 - 4, y: y - 8, width: c.s === 'mut' ? 52 : 36, height: 15, rx: 3, fill: LINK }, g);
+          var t3 = document.createElementNS(NS, 'text');
+          t3.setAttribute('x', 248); t3.setAttribute('y', y + 3); t3.setAttribute('font-size', 9.5); t3.setAttribute('fill', '#fff'); t3.setAttribute('font-weight', 600);
+          t3.setAttribute('font-family', 'Geist Mono, monospace'); t3.textContent = c.s === 'mut' ? '&mut' : '&'; g.appendChild(t3);
+        }
+        svg.appendChild(g);
+        pos[c.n] = { y: y + 20, c: c };
+        y += 50;
+      });
+      var hy = 40, hpos = {};
+      heap.forEach(function (h) {
+        var freed = h.s === 'freed';
+        el('rect', { x: 380, y: hy, width: 236, height: 40, rx: 6, fill: freed ? PAPER : '#fff', stroke: freed ? RULE : INK, 'stroke-width': 1.4, 'stroke-dasharray': freed ? '5 4' : '', opacity: freed ? 0.5 : 1 });
+        txt(392, hy + 25, fit(freed ? 'freed' : h.v, 28), { fill: freed ? SOFT : INK });
+        hpos[h.id] = { y: hy + 20, freed: freed };
+        hy += 50;
+      });
+      // pointers
+      stack.forEach(function (c) {
+        if (!c.to || c.s === 'moved' || c.s === 'dropped') return;
+        var a = pos[c.n];
+        if (c.to.charAt(0) === '@') {
+          var b = pos[c.to.slice(1)]; if (!b) return;
+          var dx = 18 + Math.min(30, Math.abs(a.y - b.y) / 6);
+          el('path', { d: 'M56 ' + a.y + ' C' + (56 - dx) + ' ' + a.y + ' ' + (56 - dx) + ' ' + b.y + ' 54 ' + b.y, fill: 'none', stroke: LINK, 'stroke-width': 1.6, 'marker-end': 'url(#ahr)' });
+        } else {
+          var h = hpos[c.to]; if (!h) return;
+          el('path', { d: 'M296 ' + a.y + ' C338 ' + a.y + ' 338 ' + h.y + ' 378 ' + h.y, fill: 'none', stroke: h.freed ? ACCENT : INK, 'stroke-width': 1.6, 'stroke-dasharray': h.freed ? '4 3' : '', 'marker-end': 'url(#ah)' });
+        }
+      });
+      if (!stack.length) txt(56, 64, '(empty)', { fill: SOFT });
+      if (!heap.length) txt(380, 64, '(nothing allocated)', { fill: SOFT });
+      var H = Math.max(y, hy, 90) + 10;
+      svg.setAttribute('viewBox', '0 0 640 ' + H);
+      Array.prototype.forEach.call(document.querySelectorAll('.trace-code .ln'), function (ln) {
+        ln.classList.toggle('on', +ln.getAttribute('data-l') === st.l);
+      });
+      $('traceNote').innerHTML = st.note;
+      $('traceLive').textContent = 'step ' + (cur + 1) + ' / ' + steps.length;
+      $('tPrev').disabled = cur === 0;
+      $('tNext').disabled = cur === steps.length - 1;
+    };
+    $('tPrev').addEventListener('click', function () { if (cur > 0) { cur--; draw(); } });
+    $('tNext').addEventListener('click', function () { if (cur < steps.length - 1) { cur++; draw(); } });
+    $('tReset').addEventListener('click', function () { cur = 0; draw(); });
+    draw();
+  }
+
+  // ---------- quiz ----------
+  var quizzes = document.querySelectorAll('.quiz'), score = $('quizScore');
+  var upScore = function () {
+    var done = 0, right = 0;
+    quizzes.forEach(function (q) { if (q.dataset.picked != null) { done++; if (q.dataset.picked === q.dataset.a) right++; } });
+    score.textContent = done ? right + ' / ' + quizzes.length + ' correct' + (done < quizzes.length ? ' so far' : '') : quizzes.length + ' questions';
+  };
+  quizzes.forEach(function (q) {
+    var btns = q.querySelectorAll('button'), why = q.querySelector('.quiz-why');
+    btns.forEach(function (b) {
+      b.addEventListener('click', function () {
+        q.dataset.picked = b.dataset.i;
+        btns.forEach(function (o) {
+          o.classList.remove('right', 'wrong');
+          o.setAttribute('aria-pressed', o === b ? 'true' : 'false');
+          if (o.dataset.i === q.dataset.a) o.classList.add('right');
+          else if (o === b) o.classList.add('wrong');
+        });
+        why.hidden = false;
+        why.textContent = '';
+        why.insertAdjacentHTML('afterbegin', (b.dataset.i === q.dataset.a ? '<b>Correct.</b> ' : '<b>Not quite.</b> ') + why.dataset.html);
+        upScore();
+      });
+    });
+    why.dataset.html = why.innerHTML;
+  });
+  if (score) upScore();
+
+  // ---------- contents checklist ----------
+  var saved = {};
+  try { saved = JSON.parse(localStorage.getItem(CHECK_KEY) || '{}'); } catch (e) {}
+  var boxes = document.querySelectorAll('.check input'), out = $('prog');
+  var upd = function () {
+    var n = 0, o = {};
+    boxes.forEach(function (b) { if (b.checked) { n++; o[b.id] = 1; } b.closest('li').classList.toggle('done', b.checked); });
+    out.textContent = n + '/' + boxes.length + ' completed';
+    try { localStorage.setItem(CHECK_KEY, JSON.stringify(o)); } catch (e) {}
+  };
+  boxes.forEach(function (b) { b.checked = !!saved[b.id]; b.addEventListener('change', upd); });
+  upd();
+})();
+
+</script>
+</body>
+</html>

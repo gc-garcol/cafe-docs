@@ -1194,6 +1194,17 @@ const DOCS = [
     related: ['Rust Ownership', 'Rust Enums and Pattern Matching', 'Rust Generics, Traits and Lifetimes'],
   },
   {
+    title: 'Rust Enums and Pattern Matching',
+    path: 'content/engineering/rust/rust-enums-match/rust-enums-match.html',
+    category: 'Engineering',
+    topic: 'Rust',
+    order: 37,
+    level: 'Beginner',
+    tags: ['rust', 'enums', 'match', 'option', 'pattern matching', 'if let', 'let else', 'exhaustiveness'],
+    summary: 'Enums whose variants carry data, Option<T> instead of null, match and its exhaustiveness check, binding values in patterns, the catch-all and _ placeholder, if let and let else.',
+    related: ['Rust Structs', 'Rust Patterns and Matching', 'Rust Error Handling'],
+  },
+  {
     title: 'Quant Roadmap',
     path: 'content/quant/quant-roadmap/quant-roadmap.html',
     category: 'Quant',
