@@ -1304,6 +1304,17 @@ const DOCS = [
     related: ['Rust Ownership', 'Rust Fearless Concurrency', 'Rust Advanced Features'],
   },
   {
+    title: 'Rust Fearless Concurrency',
+    path: 'content/engineering/rust/rust-concurrency/rust-concurrency.html',
+    category: 'Engineering',
+    topic: 'Rust',
+    order: 47,
+    level: 'Intermediate',
+    tags: ['rust', 'concurrency', 'threads', 'channels', 'mutex', 'arc', 'send', 'sync', 'data races', 'scoped threads'],
+    summary: 'Spawn threads and join them, move data into closures, scoped threads, message passing with mpsc channels, shared state with Mutex<T> and Arc<T>, deadlocks, atomics, and the Send and Sync traits that let the compiler rule out data races.',
+    related: ['Rust Smart Pointers', 'Rust Async and Await', 'Rust Ownership', 'Java Memory Model', 'Memory Fence'],
+  },
+  {
     title: 'Quant Roadmap',
     path: 'content/quant/quant-roadmap/quant-roadmap.html',
     category: 'Quant',

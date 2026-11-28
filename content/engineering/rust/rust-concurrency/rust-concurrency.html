@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rust Fearless Concurrency: a visual guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0;
+  --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8; --ok:#2f7a4a;
+  --serif:'Instrument Serif','Noto Serif',serif;
+  --sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+.page{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;margin-bottom:24px;border:1px solid var(--ink);border-radius:6px;color:var(--ink);font:500 14px var(--sans);text-decoration:none}
+.back:hover{background:var(--ink);color:var(--paper)}
+.back:focus-visible,a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(40px,7vw,64px);line-height:1.02;margin:12px 0 16px;letter-spacing:-.01em}
+h2{font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.15;margin:0 0 12px}
+h3{font-family:var(--serif);font-weight:400;font-size:24px;line-height:1.2;margin:32px 0 10px}
+.lede{font-size:18px;color:var(--muted);max-width:64ch;margin:0}
+section{margin-top:64px}
+section p{max-width:68ch;margin:0 0 14px}
+a{color:var(--link)}
+code,.mono{font-family:var(--mono);font-size:.88em}
+p code,li code,td code,.quiz-q code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
+.callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+ul.tight{padding-left:22px;max-width:68ch}ul.tight li{margin:6px 0}
+
+.pre-wrap{position:relative;margin:16px 0}
+.pre-tag{position:absolute;top:0;right:0;font:600 10px var(--mono);letter-spacing:.1em;text-transform:uppercase;padding:4px 10px;border-radius:0 8px 0 6px;background:var(--paper-2);color:var(--soft)}
+.pre-tag.bad{background:var(--accent);color:#fff}
+pre{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:0}
+pre code{font-size:inherit;background:none;padding:0}
+pre.shell{background:#2d3142;color:#f5f5f5;border-color:#2d3142}
+.k{color:var(--accent)} .c2{color:var(--soft);font-style:italic} .t{color:var(--link)}
+.s{color:var(--ok)} .m{color:#7a3d8a} .n{color:var(--link)} .lt{color:var(--accent);font-style:italic} .at{color:var(--soft)}
+
+.card{margin:24px 0 0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
+.card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:center;flex-wrap:wrap}
+.card-title{font-family:var(--serif);font-size:20px}
+.live{font-family:var(--mono);font-size:12px;font-weight:600}
+.scroll{overflow-x:auto}
+.scroll svg{display:block;width:100%;min-width:560px;height:auto}
+.trace{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:0;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule)}
+.trace-code{border:0;border-right:1px solid var(--rule);border-radius:0;padding:12px 0;font-size:12.5px}
+.trace-code .ln{display:block;padding:0 14px 0 0;white-space:pre;border-left:3px solid transparent}
+.trace-code .lno{display:inline-block;width:34px;text-align:right;padding-right:12px;color:var(--rule-solid);user-select:none}
+.trace-code .ln.on{background:var(--accent-tint);border-left-color:var(--accent)}
+.trace-code .ln.on .lno{color:var(--accent)}
+.trace-note{margin:0;padding:12px 16px;font-size:14px;color:var(--ink);min-height:3.4em;max-width:none}
+
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:0 0 12px}
+.btn{min-height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:transparent;color:var(--ink);font:500 14px var(--sans);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.btn:disabled{opacity:.4;cursor:not-allowed;background:transparent;color:var(--ink)}
+.btn.right{border-color:var(--ok);background:var(--ok);color:#fff}
+.btn.wrong{border-color:var(--accent);background:var(--accent);color:#fff}
+
+table.ops{border-collapse:collapse;width:100%;margin:16px 0;background:#fff;border:1px solid var(--rule-solid);font-size:14px}
+table.ops th,table.ops td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
+table.ops th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.ops tr:last-child td{border-bottom:0}
+table.ops td:first-child{font-weight:600}
+.tw{overflow-x:auto}
+
+.quiz{background:#fff;border:1px solid var(--rule-solid);border-radius:8px;padding:16px 20px;margin:16px 0}
+.quiz .pre-wrap{margin:10px 0 12px}
+.quiz pre{background:var(--paper)}
+.quiz-q{font-weight:500}
+.quiz-why{font-size:14px;color:var(--muted);margin:0}
+
+.check{list-style:none;padding:0;margin:12px 0 0;max-width:640px}
+.check li{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--rule)}
+.check input{width:18px;height:18px;accent-color:var(--accent)}
+.check li.done a{color:var(--soft);text-decoration:line-through}
+.prog{font-family:var(--mono);font-size:12px;color:var(--soft)}
+
+.chapters{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:72px}
+.chap{display:block;padding:16px 20px;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;text-decoration:none;color:var(--ink)}
+.chap:hover{border-color:var(--ink)}
+.chap b{display:block;font:400 22px var(--serif);margin-top:4px}
+.chap.next{text-align:right}
+.source{font-size:13px;color:var(--soft);margin-top:24px}
+
+.doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}.doc-tags a{font:500 12px "Geist Mono",ui-monospace,monospace;padding:4px 10px;border:1px solid var(--rule-solid,#bfc0c0);border-radius:4px;background:#fff;color:var(--muted,#4f5d75);text-decoration:none}.doc-tags a:hover{border-color:var(--ink,#2d3142);color:var(--ink,#2d3142)}.doc-tags a:focus-visible{outline:2px solid var(--accent,#bf4520);outline-offset:2px}
+
+@media (max-width:860px){.trace{grid-template-columns:1fr}.trace-code{border-right:0;border-bottom:1px solid var(--rule)}.page{padding:32px 16px 72px}.chapters{grid-template-columns:1fr}.chap.next{text-align:left}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none!important;animation:none!important}}
+
+</style>
+</head>
+<body>
+<main class="page">
+
+<a class="back" style="margin-right:8px" href="../../../../index.html">&larr; Back to home</a>
+<a class="back back-cat" href="../../../../index.html#cat=Engineering">&larr; Back to Engineering</a>
+
+<header>
+  <div class="eyebrow">Engineering · Rust · Chapter 16</div>
+  <h1>Rust Fearless Concurrency</h1>
+  <p class="lede">Concurrency bugs are usually found in production, under load, and are hard to reproduce. Rust moves most of them to compile time. The same ownership and type rules that stop dangling pointers also stop data races, which is why the book calls it <b>fearless concurrency</b>.</p>
+  <nav class="doc-tags" aria-label="Main tags"><a href="../../../../index.html#tag=rust">#rust</a><a href="../../../../index.html#tag=concurrency">#concurrency</a><a href="../../../../index.html#tag=threads">#threads</a><a href="../../../../index.html#tag=channels">#channels</a></nav>
+</header>
+
+<section>
+  <h2>Step through it</h2>
+  <p><code>Arc</code> gives each thread an owner; <code>Mutex</code> makes sure only one of them touches the counter at a time. The <code>MutexGuard</code> unlocks when it is dropped.</p>
+  <figure class="card">
+    <div class="card-top"><span class="eyebrow">Fig 1</span><span class="card-title">Arc&lt;Mutex&lt;T&gt;&gt; shared by two threads</span></div>
+    <div class="trace">
+      <pre class="trace-code"><code><span class="ln" data-l="1"><span class="lno">1</span><span class="k">use</span> std::sync::{<span class="t">Arc</span>, <span class="t">Mutex</span>};</span><span class="ln" data-l="2"><span class="lno">2</span><span class="k">use</span> std::thread;</span><span class="ln" data-l="3"><span class="lno">3</span><span class="k">fn</span> main() {</span><span class="ln" data-l="4"><span class="lno">4</span>    <span class="k">let</span> counter = <span class="t">Arc</span>::new(<span class="t">Mutex</span>::new(<span class="n">0</span>));</span><span class="ln" data-l="5"><span class="lno">5</span>    <span class="k">let</span> c1 = <span class="t">Arc</span>::clone(&amp;counter);</span><span class="ln" data-l="6"><span class="lno">6</span>    <span class="k">let</span> h = thread::spawn(<span class="k">move</span> || {</span><span class="ln" data-l="7"><span class="lno">7</span>        <span class="k">let</span> <span class="k">mut</span> n = c1.lock().unwrap();</span><span class="ln" data-l="8"><span class="lno">8</span>        *n += <span class="n">1</span>;</span><span class="ln" data-l="9"><span class="lno">9</span>    });</span><span class="ln" data-l="10"><span class="lno">10</span>    h.join().unwrap();</span><span class="ln" data-l="11"><span class="lno">11</span>    *counter.lock().unwrap() += <span class="n">1</span>;</span><span class="ln" data-l="12"><span class="lno">12</span>    <span class="m">println!</span>(<span class="s">"{}"</span>, *counter.lock().unwrap());</span><span class="ln" data-l="13"><span class="lno">13</span>}</span></code></pre>
+      <div class="scroll"><svg id="mem" viewBox="0 0 640 300" role="img" aria-labelledby="mem-title mem-desc">
+        <title id="mem-title">Arc&lt;Mutex&lt;T&gt;&gt; shared by two threads</title>
+        <desc id="mem-desc">An Arc holds the strong count and the Mutex. Each thread owns an Arc clone; lock returns a guard that releases the lock when dropped.</desc>
+      </svg></div>
+    </div>
+    <p class="trace-note" id="traceNote" aria-live="polite"></p>
+    <div class="card-bottom">
+      <div class="row" style="margin:0">
+        <button type="button" class="btn" id="tPrev">&larr; Prev</button>
+        <button type="button" class="btn" id="tNext">Next &rarr;</button>
+        <button type="button" class="btn" id="tReset">Reset</button>
+      </div>
+      <span class="live" id="traceLive"></span>
+    </div>
+  </figure>
+  <script type="application/json" id="traceData">[{"l":4,"note":"One allocation holds the Arc counts and the \u003ccode>Mutex\u003c/code>, which holds the value and a lock flag.","stack":[{"f":"main","n":"counter","v":"Arc\u003cMutex\u003ci32>>","to":"m"}],"heap":[{"id":"m","v":"strong=1 unlocked 0"}]},{"l":5,"note":"\u003ccode>Arc::clone\u003c/code> atomically increments the count. Atomic counting is what makes \u003ccode>Arc\u003c/code> \u003ccode>Send\u003c/code>, unlike \u003ccode>Rc\u003c/code>.","stack":[{"f":"main","n":"counter","v":"Arc","to":"m"},{"f":"main","n":"c1","v":"Arc","to":"m"}],"heap":[{"id":"m","v":"strong=2 unlocked 0"}]},{"l":6,"note":"\u003ccode>move\u003c/code> transfers \u003ccode>c1\u003c/code> into the new thread. The main thread can no longer use \u003ccode>c1\u003c/code>.","stack":[{"f":"main","n":"counter","v":"Arc","to":"m"},{"f":"main","n":"c1","s":"moved"},{"f":"thread 1","n":"c1","v":"Arc","to":"m"}],"heap":[{"id":"m","v":"strong=2 unlocked 0"}]},{"l":7,"note":"\u003ccode>lock()\u003c/code> blocks until the mutex is free, then returns a \u003ccode>MutexGuard\u003c/code>. The only way to reach the \u003ccode>i32\u003c/code> is through the guard.","stack":[{"f":"main","n":"counter","v":"Arc","to":"m"},{"f":"thread 1","n":"c1","v":"Arc","to":"m"},{"f":"thread 1","n":"n","v":"MutexGuard","s":"mut","to":"m"}],"heap":[{"id":"m","v":"strong=2 LOCKED 0"}]},{"l":8,"note":"The guard derefs to \u003ccode>&amp;mut i32\u003c/code>. If main tried to lock now, it would wait.","stack":[{"f":"main","n":"counter","v":"Arc","to":"m"},{"f":"thread 1","n":"c1","v":"Arc","to":"m"},{"f":"thread 1","n":"n","v":"MutexGuard","s":"mut","to":"m"}],"heap":[{"id":"m","v":"strong=2 LOCKED 1"}]},{"l":9,"note":"The closure ends: the guard is dropped (unlock), then \u003ccode>c1\u003c/code> is dropped (count 1).","stack":[{"f":"main","n":"counter","v":"Arc","to":"m"},{"f":"thread 1","n":"n","s":"dropped"},{"f":"thread 1","n":"c1","s":"dropped"}],"heap":[{"id":"m","v":"strong=1 unlocked 1"}]},{"l":11,"note":"Main locks, adds one, and the temporary guard is dropped at the semicolon.","stack":[{"f":"main","n":"counter","v":"Arc","to":"m"}],"heap":[{"id":"m","v":"strong=1 unlocked 2"}]},{"l":12,"note":"Prints 2. No data race was possible: the type system only exposes the counter through a lock.","stack":[{"f":"main","n":"counter","v":"Arc","to":"m"}],"heap":[{"id":"m","v":"strong=1 unlocked 2"}]}]</script>
+</section>
+
+<section>
+  <h2>Contents</h2>
+  <div class="prog" id="prog" aria-live="polite"></div>
+  <ol class="check">
+    <li><input type="checkbox" id="c-threads" aria-label="Mark Creating threads as done"><a href="#threads">1. Creating threads</a></li>
+    <li><input type="checkbox" id="c-channels" aria-label="Mark Message passing with channels as done"><a href="#channels">2. Message passing with channels</a></li>
+    <li><input type="checkbox" id="c-mutex" aria-label="Mark Shared state with Mutex&lt;T&gt; as done"><a href="#mutex">3. Shared state with Mutex&lt;T&gt;</a></li>
+    <li><input type="checkbox" id="c-send-sync" aria-label="Mark Send and Sync as done"><a href="#send-sync">4. Send and Sync</a></li>
+    <li><input type="checkbox" id="c-quiz" aria-label="Mark Check yourself as done"><a href="#quiz">5. Check yourself</a></li>
+  </ol>
+</section>
+
+<section id="threads">
+  <h2>1. Creating threads</h2>
+
+  <p><code>thread::spawn</code> runs a closure on a new OS thread (a 1:1 model) and returns a <code>JoinHandle</code>. When <code>main</code> returns, the process ends and all other threads are stopped, finished or not. <code>join</code> blocks until a thread finishes and returns its result.</p>
+  <div class="pre-wrap"><pre><code><span class="k">use</span> std::thread;
+<span class="k">use</span> std::time::<span class="t">Duration</span>;
+
+<span class="k">fn</span> main() {
+    <span class="k">let</span> handle = thread::spawn(|| {
+        <span class="k">for</span> i <span class="k">in</span> <span class="n">1</span>..<span class="n">5</span> {
+            <span class="m">println!</span>(<span class="s">"hi number {i} from the spawned thread!"</span>);
+            thread::sleep(<span class="t">Duration</span>::from_millis(<span class="n">1</span>));
+        }
+        <span class="n">42</span>
+    });
+
+    <span class="k">for</span> i <span class="k">in</span> <span class="n">1</span>..<span class="n">3</span> {
+        <span class="m">println!</span>(<span class="s">"hi number {i} from the main thread!"</span>);
+        thread::sleep(<span class="t">Duration</span>::from_millis(<span class="n">1</span>));
+    }
+
+    <span class="k">let</span> answer = handle.join().unwrap(); <span class="c2">// Err if the thread panicked</span>
+    <span class="m">println!</span>(<span class="s">"thread returned {answer}"</span>);
+}</code></pre></div>
+  <p>The interleaving of the two loops changes from run to run; only the scheduler decides.</p>
+  <h3>move closures</h3>
+  <div class="pre-wrap"><span class="pre-tag bad">does not compile</span><pre><code><span class="k">use</span> std::thread;
+<span class="k">fn</span> main() {
+    <span class="k">let</span> v = <span class="m">vec!</span>[<span class="n">1</span>, <span class="n">2</span>, <span class="n">3</span>];
+    <span class="k">let</span> handle = thread::spawn(|| {
+        <span class="m">println!</span>(<span class="s">"{v:?}"</span>); <span class="c2">// error[E0373]: closure may outlive the current function, but it borrows `v`</span>
+    });
+    drop(v);
+    handle.join().unwrap();
+}</code></pre></div>
+  <p>The thread might run after <code>main</code> has dropped <code>v</code>. Adding <code>move</code> transfers ownership into the thread, and then the <code>drop(v)</code> in <code>main</code> is the error instead: use after move. Either way the compiler catches it.</p>
+  <h3>Scoped threads</h3>
+  <p><code>thread::scope</code> guarantees that every thread spawned inside it is joined before it returns. The threads may then borrow local data without <code>move</code> or <code>Arc</code>.</p>
+  <div class="pre-wrap"><pre><code><span class="k">use</span> std::thread;
+
+<span class="k">fn</span> main() {
+    <span class="k">let</span> <span class="k">mut</span> data = <span class="m">vec!</span>[<span class="n">1</span>, <span class="n">2</span>, <span class="n">3</span>, <span class="n">4</span>];
+    <span class="k">let</span> (left, right) = data.split_at_mut(<span class="n">2</span>);
+    thread::scope(|s| {
+        s.spawn(|| left.iter_mut().for_each(|x| *x *= <span class="n">10</span>));
+        s.spawn(|| right.iter_mut().for_each(|x| *x += <span class="n">1</span>));
+    }); <span class="c2">// both threads joined here</span>
+    <span class="m">println!</span>(<span class="s">"{data:?}"</span>); <span class="c2">// [10, 20, 4, 5]</span>
+}</code></pre></div>
+</section>
+
+<section id="channels">
+  <h2>2. Message passing with channels</h2>
+
+  <p class="callout">Do not communicate by sharing memory; instead, share memory by communicating. (From the Go documentation.)</p>
+  <p><code>mpsc::channel</code> returns a transmitter and a receiver: multiple producer, single consumer. Sending <b>moves</b> the value into the channel, so the sender cannot touch it afterwards.</p>
+  <div class="pre-wrap"><pre><code><span class="k">use</span> std::sync::mpsc;
+<span class="k">use</span> std::thread;
+<span class="k">use</span> std::time::<span class="t">Duration</span>;
+
+<span class="k">fn</span> main() {
+    <span class="k">let</span> (tx, rx) = mpsc::channel();
+    <span class="k">let</span> tx2 = tx.clone();                    <span class="c2">// a second producer</span>
+
+    thread::spawn(<span class="k">move</span> || {
+        <span class="k">for</span> val <span class="k">in</span> [<span class="s">"hi"</span>, <span class="s">"from"</span>, <span class="s">"the"</span>, <span class="s">"thread"</span>] {
+            tx.send(val.to_string()).unwrap();
+            thread::sleep(<span class="t">Duration</span>::from_millis(<span class="n">5</span>));
+        }
+    });
+    thread::spawn(<span class="k">move</span> || {
+        <span class="k">for</span> val <span class="k">in</span> [<span class="s">"more"</span>, <span class="s">"messages"</span>] {
+            tx2.send(val.to_string()).unwrap();
+            thread::sleep(<span class="t">Duration</span>::from_millis(<span class="n">5</span>));
+        }
+    });
+
+    <span class="k">for</span> received <span class="k">in</span> rx {                     <span class="c2">// ends when every tx is dropped</span>
+        <span class="m">println!</span>(<span class="s">"Got: {received}"</span>);
+    }
+}</code></pre></div>
+  <div class="pre-wrap"><span class="pre-tag bad">does not compile</span><pre><code><span class="k">use</span> std::sync::mpsc;
+<span class="k">use</span> std::thread;
+<span class="k">fn</span> main() {
+    <span class="k">let</span> (tx, rx) = mpsc::channel();
+    thread::spawn(<span class="k">move</span> || {
+        <span class="k">let</span> val = <span class="t">String</span>::from(<span class="s">"hi"</span>);
+        tx.send(val).unwrap();
+        <span class="m">println!</span>(<span class="s">"val is {val}"</span>); <span class="c2">// error[E0382]: borrow of moved value: `val`</span>
+    });
+    <span class="m">println!</span>(<span class="s">"{}"</span>, rx.recv().unwrap());
+}</code></pre></div>
+  <div class="tw"><table class="ops"><thead><tr><th>Receiver method</th><th>Behaviour</th></tr></thead><tbody><tr><td><code>recv()</code></td><td>Block until a value arrives. <code>Err</code> once all senders are gone.</td></tr><tr><td><code>try_recv()</code></td><td>Return immediately: a value, <code>Empty</code> or <code>Disconnected</code>.</td></tr><tr><td><code>recv_timeout(d)</code></td><td>Block for at most <code>d</code>.</td></tr><tr><td><code>for v in rx</code></td><td>Iterate until the channel is closed.</td></tr></tbody></table></div>
+  <p><code>mpsc::channel</code> is unbounded. <code>mpsc::sync_channel(n)</code> has a capacity of <code>n</code>, and <code>send</code> blocks when it is full, which gives back-pressure.</p>
+</section>
+
+<section id="mutex">
+  <h2>3. Shared state with Mutex&lt;T&gt;</h2>
+
+  <p>A mutex allows one thread at a time to access data. In many languages the lock and the data are separate, and nothing stops you from touching the data without the lock. In Rust the data lives <i>inside</i> the <code>Mutex</code>, and <code>lock()</code> returns a <code>MutexGuard</code>, the only way in. The guard unlocks in its <code>Drop</code>, so you cannot forget.</p>
+  <div class="pre-wrap"><pre><code><span class="k">use</span> std::sync::<span class="t">Mutex</span>;
+
+<span class="k">fn</span> main() {
+    <span class="k">let</span> m = <span class="t">Mutex</span>::new(<span class="n">5</span>);
+    {
+        <span class="k">let</span> <span class="k">mut</span> num = m.lock().unwrap(); <span class="c2">// Err if another thread panicked while holding it</span>
+        *num = <span class="n">6</span>;
+    }                                    <span class="c2">// unlocked here</span>
+    <span class="m">println!</span>(<span class="s">"m = {m:?}"</span>);
+}</code></pre></div>
+  <p>To share the mutex between threads it needs several owners. <code>Rc</code> does not work: its count is not updated atomically, so it is not <code>Send</code>. <code>Arc</code>, atomically reference counted, is the thread-safe version (Fig 1):</p>
+  <div class="pre-wrap"><span class="pre-tag bad">does not compile</span><pre><code><span class="k">use</span> std::rc::<span class="t">Rc</span>;
+<span class="k">use</span> std::sync::<span class="t">Mutex</span>;
+<span class="k">use</span> std::thread;
+<span class="k">fn</span> main() {
+    <span class="k">let</span> counter = <span class="t">Rc</span>::new(<span class="t">Mutex</span>::new(<span class="n">0</span>));
+    <span class="k">let</span> c = <span class="t">Rc</span>::clone(&amp;counter);
+    thread::spawn(<span class="k">move</span> || { <span class="c2">// error[E0277]: `Rc&lt;Mutex&lt;i32&gt;&gt;` cannot be sent between threads safely</span>
+        *c.lock().unwrap() += <span class="n">1</span>;
+    });
+}</code></pre></div>
+  <div class="pre-wrap"><pre><code><span class="k">use</span> std::sync::{<span class="t">Arc</span>, <span class="t">Mutex</span>};
+<span class="k">use</span> std::thread;
+
+<span class="k">fn</span> main() {
+    <span class="k">let</span> counter = <span class="t">Arc</span>::new(<span class="t">Mutex</span>::new(<span class="n">0</span>));
+    <span class="k">let</span> <span class="k">mut</span> handles = <span class="m">vec!</span>[];
+    <span class="k">for</span> _ <span class="k">in</span> <span class="n">0</span>..<span class="n">10</span> {
+        <span class="k">let</span> counter = <span class="t">Arc</span>::clone(&amp;counter);
+        handles.push(thread::spawn(<span class="k">move</span> || {
+            *counter.lock().unwrap() += <span class="n">1</span>;
+        }));
+    }
+    <span class="k">for</span> h <span class="k">in</span> handles { h.join().unwrap(); }
+    <span class="m">println!</span>(<span class="s">"Result: {}"</span>, *counter.lock().unwrap()); <span class="c2">// 10</span>
+}</code></pre></div>
+  <p><code>Mutex&lt;T&gt;</code> provides interior mutability just like <code>RefCell&lt;T&gt;</code>, and <code>Arc&lt;Mutex&lt;T&gt;&gt;</code> mirrors <code>Rc&lt;RefCell&lt;T&gt;&gt;</code>. It shares the same weakness too: the compiler cannot stop a <b>deadlock</b>, where two threads each hold one lock and wait for the other. Acquire locks in a consistent order, and hold them for as short a time as possible.</p>
+  <div class="tw"><table class="ops"><thead><tr><th>Tool</th><th>Use for</th></tr></thead><tbody><tr><td><code>Mutex&lt;T&gt;</code></td><td>exclusive access, short critical sections</td></tr><tr><td><code>RwLock&lt;T&gt;</code></td><td>many readers or one writer, read-heavy data</td></tr><tr><td><code>AtomicUsize</code>, <code>AtomicBool</code>, ...</td><td>single counters and flags without a lock</td></tr><tr><td><code>OnceLock&lt;T&gt;</code> / <code>LazyLock&lt;T&gt;</code></td><td>initialize a global once</td></tr><tr><td><code>Condvar</code>, <code>Barrier</code></td><td>wait for a condition or for N threads</td></tr></tbody></table></div>
+  <div class="pre-wrap"><pre><code><span class="k">use</span> std::sync::atomic::{<span class="t">AtomicUsize</span>, <span class="t">Ordering</span>};
+<span class="k">use</span> std::thread;
+
+<span class="k">static</span> <span class="t">HITS</span>: <span class="t">AtomicUsize</span> = <span class="t">AtomicUsize</span>::new(<span class="n">0</span>);
+
+<span class="k">fn</span> main() {
+    thread::scope(|s| {
+        <span class="k">for</span> _ <span class="k">in</span> <span class="n">0</span>..<span class="n">4</span> {
+            s.spawn(|| <span class="k">for</span> _ <span class="k">in</span> <span class="n">0</span>..<span class="n">1000</span> { <span class="t">HITS</span>.fetch_add(<span class="n">1</span>, <span class="t">Ordering</span>::<span class="t">Relaxed</span>); });
+        }
+    });
+    <span class="m">println!</span>(<span class="s">"{}"</span>, <span class="t">HITS</span>.load(<span class="t">Ordering</span>::<span class="t">Relaxed</span>)); <span class="c2">// 4000</span>
+}</code></pre></div>
+</section>
+
+<section id="send-sync">
+  <h2>4. Send and Sync</h2>
+
+  <p>The language itself knows almost nothing about concurrency; threads, channels and mutexes are library code. What makes them safe are two marker traits, which have no methods:</p>
+  <div class="tw"><table class="ops"><thead><tr><th>Trait</th><th>Means</th><th>Not implemented by</th></tr></thead><tbody><tr><td><code>Send</code></td><td>Ownership of a value can move to another thread.</td><td><code>Rc&lt;T&gt;</code>, raw pointers</td></tr><tr><td><code>Sync</code></td><td>A <code>&amp;T</code> can be shared between threads. <code>T: Sync</code> exactly when <code>&amp;T: Send</code>.</td><td><code>Rc&lt;T&gt;</code>, <code>RefCell&lt;T&gt;</code>, <code>Cell&lt;T&gt;</code></td></tr></tbody></table></div>
+  <p>Both are <b>auto traits</b>: a type made only of <code>Send</code> parts is <code>Send</code>, and the same for <code>Sync</code>. <code>thread::spawn</code> requires its closure to be <code>Send + 'static</code>, which is how the <code>Rc</code> example above was rejected. Implementing them by hand requires <code>unsafe</code>, because the compiler can no longer check the promise.</p>
+  <p class="callout">A data race needs shared, mutable, unsynchronized access. Ownership removes "shared and mutable"; Send and Sync remove "unsynchronized".</p>
+</section>
+
+<section id="quiz">
+  <h2>5. Check yourself</h2>
+  <p>Read each snippet and decide whether the compiler accepts it. Every answer was checked with <code>rustc</code> (edition 2024).</p>
+<div class="quiz" data-a="0">
+    <div class="quiz-q"><span class="eyebrow">Q1</span> Does this compile?</div>
+    <div class="pre-wrap"><pre><code><span class="k">use</span> std::thread;
+<span class="k">fn</span> main() {
+    <span class="k">let</span> s = <span class="t">String</span>::from(<span class="s">"hi"</span>);
+    <span class="k">let</span> h = thread::spawn(<span class="k">move</span> || <span class="m">println!</span>(<span class="s">"{s}"</span>));
+    h.join().unwrap();
+}</code></pre></div>
+    <div class="row" role="group" aria-label="Answer for question 1">
+      <button type="button" class="btn" data-i="0">Compiles</button>
+      <button type="button" class="btn" data-i="1">Compile error</button>
+    </div>
+    <p class="quiz-why" aria-live="polite" hidden><code>move</code> gives the thread ownership of <code>s</code>, and <code>String</code> is <code>Send</code>.</p>
+  </div>
+<div class="quiz" data-a="1">
+    <div class="quiz-q"><span class="eyebrow">Q2</span> Does this compile?</div>
+    <div class="pre-wrap"><pre><code><span class="k">use</span> std::cell::<span class="t">RefCell</span>;
+<span class="k">use</span> std::sync::<span class="t">Arc</span>;
+<span class="k">use</span> std::thread;
+<span class="k">fn</span> main() {
+    <span class="k">let</span> a = <span class="t">Arc</span>::new(<span class="t">RefCell</span>::new(<span class="n">0</span>));
+    <span class="k">let</span> b = <span class="t">Arc</span>::clone(&amp;a);
+    thread::spawn(<span class="k">move</span> || *b.borrow_mut() += <span class="n">1</span>);
+}</code></pre></div>
+    <div class="row" role="group" aria-label="Answer for question 2">
+      <button type="button" class="btn" data-i="0">Compiles</button>
+      <button type="button" class="btn" data-i="1">Compile error</button>
+    </div>
+    <p class="quiz-why" aria-live="polite" hidden><code>RefCell</code> is not <code>Sync</code>, so <code>Arc&lt;RefCell&lt;i32&gt;&gt;</code> is not <code>Send</code>. Use <code>Arc&lt;Mutex&lt;i32&gt;&gt;</code>.</p>
+  </div>
+<div class="quiz" data-a="0">
+    <div class="quiz-q"><span class="eyebrow">Q3</span> Does this compile?</div>
+    <div class="pre-wrap"><pre><code><span class="k">use</span> std::thread;
+<span class="k">fn</span> main() {
+    <span class="k">let</span> v = <span class="m">vec!</span>[<span class="n">1</span>, <span class="n">2</span>, <span class="n">3</span>];
+    thread::scope(|s| {
+        s.spawn(|| <span class="m">println!</span>(<span class="s">"{v:?}"</span>));
+    });
+    <span class="m">println!</span>(<span class="s">"{}"</span>, v.len());
+}</code></pre></div>
+    <div class="row" role="group" aria-label="Answer for question 3">
+      <button type="button" class="btn" data-i="0">Compiles</button>
+      <button type="button" class="btn" data-i="1">Compile error</button>
+    </div>
+    <p class="quiz-why" aria-live="polite" hidden>Scoped threads are joined before <code>scope</code> returns, so they may borrow <code>v</code> without <code>move</code>.</p>
+  </div>
+<div class="quiz" data-a="1">
+    <div class="quiz-q"><span class="eyebrow">Q4</span> Does this compile?</div>
+    <div class="pre-wrap"><pre><code><span class="k">use</span> std::sync::mpsc;
+<span class="k">fn</span> main() {
+    <span class="k">let</span> (tx, rx) = mpsc::channel();
+    <span class="k">let</span> v = <span class="m">vec!</span>[<span class="n">1</span>];
+    tx.send(v).unwrap();
+    <span class="m">println!</span>(<span class="s">"{:?} {:?}"</span>, v, rx.recv());
+}</code></pre></div>
+    <div class="row" role="group" aria-label="Answer for question 4">
+      <button type="button" class="btn" data-i="0">Compiles</button>
+      <button type="button" class="btn" data-i="1">Compile error</button>
+    </div>
+    <p class="quiz-why" aria-live="polite" hidden><code>send</code> takes ownership of <code>v</code>. After sending, only the receiver may use it.</p>
+  </div>
+  <p class="prog" id="quizScore" aria-live="polite"></p>
+</section>
+
+<nav class="chapters" aria-label="Rust chapters">
+  <a class="chap prev" href="../rust-smart-pointers/rust-smart-pointers.html"><span class="eyebrow">&larr; Chapter 15</span><b>Rust Smart Pointers</b></a>
+  <a class="chap next" href="../rust-async/rust-async.html"><span class="eyebrow">Chapter 17 &rarr;</span><b>Rust Async and Await</b></a>
+</nav>
+<p class="source">Based on chapter 16 of <a href="https://doc.rust-lang.org/book/ch16-00-concurrency.html">The Rust Programming Language</a>. Content was rewritten and condensed for this page.</p>
+
+</main>
+<script>
+var CHECK_KEY = 'rust-rust-concurrency-check:' + location.pathname;
+(function () {
+  var NS = 'http://www.w3.org/2000/svg';
+  var INK = '#2d3142', SOFT = '#5a6580', RULE = '#bfc0c0', ACCENT = '#bf4520', LINK = '#2e5aa8', OK = '#2f7a4a', PAPER = '#f5f5f5';
+  var $ = function (id) { return document.getElementById(id); };
+
+  // ---------- memory trace ----------
+  var dataEl = $('traceData');
+  if (dataEl) {
+    var steps = JSON.parse(dataEl.textContent), cur = 0, svg = $('mem');
+    var el = function (name, attrs, parent) {
+      var e = document.createElementNS(NS, name);
+      for (var k in attrs) e.setAttribute(k, attrs[k]);
+      (parent || svg).appendChild(e);
+      return e;
+    };
+    var txt = function (x, y, s, a) {
+      var o = { x: x, y: y, 'font-size': 12, fill: INK, 'font-family': 'Geist Mono, monospace' };
+      for (var k in a) o[k] = a[k];
+      var t = el('text', o); t.textContent = s; return t;
+    };
+    var clear = function () {
+      Array.prototype.slice.call(svg.childNodes).forEach(function (n) {
+        var nm = (n.localName || '').toLowerCase();
+        if (nm !== 'title' && nm !== 'desc') svg.removeChild(n);
+      });
+    };
+    var fit = function (s, n) { s = String(s); return s.length > n ? s.slice(0, n - 1) + '…' : s; };
+    var draw = function () {
+      var st = steps[cur], stack = st.stack || [], heap = st.heap || [];
+      clear();
+      var defs = el('defs', {});
+      [['ah', INK], ['ahr', LINK]].forEach(function (m) {
+        var mk = el('marker', { id: m[0], viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: 'auto-start-reverse' }, defs);
+        el('path', { d: 'M0 0 L10 5 L0 10 z', fill: m[1] }, mk);
+      });
+      txt(56, 24, 'STACK', { 'font-size': 11, fill: SOFT, 'letter-spacing': '2' });
+      txt(380, 24, 'HEAP', { 'font-size': 11, fill: SOFT, 'letter-spacing': '2' });
+      var pos = {}, y = 40, lastF = null;
+      stack.forEach(function (c) {
+        if (c.f && c.f !== lastF) { txt(56, y + 12, c.f, { 'font-size': 10.5, fill: SOFT, 'font-style': 'italic' }); y += 18; lastF = c.f; }
+        var moved = c.s === 'moved', dropped = c.s === 'dropped', isRef = c.s === 'ref' || c.s === 'mut';
+        var g = el('g', { opacity: dropped ? 0.35 : 1 });
+        el('rect', { x: 56, y: y, width: 240, height: 40, rx: 6, fill: moved || dropped ? PAPER : '#fff', stroke: isRef ? LINK : (moved ? RULE : INK), 'stroke-width': 1.4, 'stroke-dasharray': moved || dropped ? '5 4' : '' }, g);
+        var t1 = document.createElementNS(NS, 'text');
+        t1.setAttribute('x', 68); t1.setAttribute('y', y + 25); t1.setAttribute('font-size', 13); t1.setAttribute('font-weight', 600);
+        t1.setAttribute('font-family', 'Geist Mono, monospace'); t1.setAttribute('fill', moved ? SOFT : INK); t1.textContent = fit(c.n, 14); g.appendChild(t1);
+        var t2 = document.createElementNS(NS, 'text');
+        t2.setAttribute('x', 284); t2.setAttribute('y', y + 25); t2.setAttribute('font-size', 12); t2.setAttribute('text-anchor', 'end');
+        t2.setAttribute('font-family', 'Geist Mono, monospace'); t2.setAttribute('fill', moved ? SOFT : (isRef ? LINK : INK));
+        t2.textContent = fit(moved ? 'moved' : (dropped ? 'dropped' : (c.v == null ? '' : c.v)), 20); g.appendChild(t2);
+        if (c.s === 'mut' || c.s === 'ref') {
+          el('rect', { x: 248 - 4, y: y - 8, width: c.s === 'mut' ? 52 : 36, height: 15, rx: 3, fill: LINK }, g);
+          var t3 = document.createElementNS(NS, 'text');
+          t3.setAttribute('x', 248); t3.setAttribute('y', y + 3); t3.setAttribute('font-size', 9.5); t3.setAttribute('fill', '#fff'); t3.setAttribute('font-weight', 600);
+          t3.setAttribute('font-family', 'Geist Mono, monospace'); t3.textContent = c.s === 'mut' ? '&mut' : '&'; g.appendChild(t3);
+        }
+        svg.appendChild(g);
+        pos[c.n] = { y: y + 20, c: c };
+        y += 50;
+      });
+      var hy = 40, hpos = {};
+      heap.forEach(function (h) {
+        var freed = h.s === 'freed';
+        el('rect', { x: 380, y: hy, width: 236, height: 40, rx: 6, fill: freed ? PAPER : '#fff', stroke: freed ? RULE : INK, 'stroke-width': 1.4, 'stroke-dasharray': freed ? '5 4' : '', opacity: freed ? 0.5 : 1 });
+        txt(392, hy + 25, fit(freed ? 'freed' : h.v, 28), { fill: freed ? SOFT : INK });
+        hpos[h.id] = { y: hy + 20, freed: freed };
+        hy += 50;
+      });
+      // pointers
+      stack.forEach(function (c) {
+        if (!c.to || c.s === 'moved' || c.s === 'dropped') return;
+        var a = pos[c.n];
+        if (c.to.charAt(0) === '@') {
+          var b = pos[c.to.slice(1)]; if (!b) return;
+          var dx = 18 + Math.min(30, Math.abs(a.y - b.y) / 6);
+          el('path', { d: 'M56 ' + a.y + ' C' + (56 - dx) + ' ' + a.y + ' ' + (56 - dx) + ' ' + b.y + ' 54 ' + b.y, fill: 'none', stroke: LINK, 'stroke-width': 1.6, 'marker-end': 'url(#ahr)' });
+        } else {
+          var h = hpos[c.to]; if (!h) return;
+          el('path', { d: 'M296 ' + a.y + ' C338 ' + a.y + ' 338 ' + h.y + ' 378 ' + h.y, fill: 'none', stroke: h.freed ? ACCENT : INK, 'stroke-width': 1.6, 'stroke-dasharray': h.freed ? '4 3' : '', 'marker-end': 'url(#ah)' });
+        }
+      });
+      if (!stack.length) txt(56, 64, '(empty)', { fill: SOFT });
+      if (!heap.length) txt(380, 64, '(nothing allocated)', { fill: SOFT });
+      var H = Math.max(y, hy, 90) + 10;
+      svg.setAttribute('viewBox', '0 0 640 ' + H);
+      Array.prototype.forEach.call(document.querySelectorAll('.trace-code .ln'), function (ln) {
+        ln.classList.toggle('on', +ln.getAttribute('data-l') === st.l);
+      });
+      $('traceNote').innerHTML = st.note;
+      $('traceLive').textContent = 'step ' + (cur + 1) + ' / ' + steps.length;
+      $('tPrev').disabled = cur === 0;
+      $('tNext').disabled = cur === steps.length - 1;
+    };
+    $('tPrev').addEventListener('click', function () { if (cur > 0) { cur--; draw(); } });
+    $('tNext').addEventListener('click', function () { if (cur < steps.length - 1) { cur++; draw(); } });
+    $('tReset').addEventListener('click', function () { cur = 0; draw(); });
+    draw();
+  }
+
+  // ---------- quiz ----------
+  var quizzes = document.querySelectorAll('.quiz'), score = $('quizScore');
+  var upScore = function () {
+    var done = 0, right = 0;
+    quizzes.forEach(function (q) { if (q.dataset.picked != null) { done++; if (q.dataset.picked === q.dataset.a) right++; } });
+    score.textContent = done ? right + ' / ' + quizzes.length + ' correct' + (done < quizzes.length ? ' so far' : '') : quizzes.length + ' questions';
+  };
+  quizzes.forEach(function (q) {
+    var btns = q.querySelectorAll('button'), why = q.querySelector('.quiz-why');
+    btns.forEach(function (b) {
+      b.addEventListener('click', function () {
+        q.dataset.picked = b.dataset.i;
+        btns.forEach(function (o) {
+          o.classList.remove('right', 'wrong');
+          o.setAttribute('aria-pressed', o === b ? 'true' : 'false');
+          if (o.dataset.i === q.dataset.a) o.classList.add('right');
+          else if (o === b) o.classList.add('wrong');
+        });
+        why.hidden = false;
+        why.textContent = '';
+        why.insertAdjacentHTML('afterbegin', (b.dataset.i === q.dataset.a ? '<b>Correct.</b> ' : '<b>Not quite.</b> ') + why.dataset.html);
+        upScore();
+      });
+    });
+    why.dataset.html = why.innerHTML;
+  });
+  if (score) upScore();
+
+  // ---------- contents checklist ----------
+  var saved = {};
+  try { saved = JSON.parse(localStorage.getItem(CHECK_KEY) || '{}'); } catch (e) {}
+  var boxes = document.querySelectorAll('.check input'), out = $('prog');
+  var upd = function () {
+    var n = 0, o = {};
+    boxes.forEach(function (b) { if (b.checked) { n++; o[b.id] = 1; } b.closest('li').classList.toggle('done', b.checked); });
+    out.textContent = n + '/' + boxes.length + ' completed';
+    try { localStorage.setItem(CHECK_KEY, JSON.stringify(o)); } catch (e) {}
+  };
+  boxes.forEach(function (b) { b.checked = !!saved[b.id]; b.addEventListener('change', upd); });
+  upd();
+})();
+
+</script>
+</body>
+</html>
