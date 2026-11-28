@@ -33,6 +33,7 @@ a{color:var(--link)}
 code,.mono{font-family:var(--mono);font-size:.88em}
 p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
 .callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+section h3{font-family:var(--serif);font-weight:400;font-size:24px;line-height:1.2;margin:32px 0 10px}
 
 .card{margin:24px 0 0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
 .card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
@@ -157,6 +158,7 @@ select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
     <li><a href="#ipc">IPC and network</a></li>
     <li><a href="#threads">Threading modes</a></li>
     <li><a href="#api">Offering and polling</a></li>
+    <li><a href="#production">In production</a></li>
     <li><a href="#sources">Sources</a></li>
   </ol>
 </section>
@@ -229,10 +231,36 @@ termIndex  = termCount % 3        <span class="c2">// which of the three buffers
   <p>A negative result is normal flow, not an error. Aeron never blocks the caller. It reports the state and lets the application choose how to wait.</p>
 </section>
 
+<section id="production">
+  <h2>7. In production</h2>
+  <p>Aeron is open source and sponsored by Adaptive. Transport is the base of the suite: high-throughput messaging with latency in microseconds. Archive and Cluster are built on top of it. Adaptive's paid Aeron Premium adds components such as kernel bypass networking.</p>
+
+  <h3>Man Group: FX execution</h3>
+  <p>Man Group runs a fully automated FX trading system that handles around $1.5 trillion of trades a year. Liquidity providers stream quotes, and the fastest responder gets the best price, so latency decides results. The team replaced its legacy messaging middleware with Aeron Transport. What they wanted:</p>
+  <ul class="tight">
+    <li><b>Low and steady latency</b>, without long tail spikes under load.</li>
+    <li><b>Proven reliability</b> from wide use in finance.</li>
+    <li><b>Sound design</b>, based on the mechanical sympathy ideas Aeron is known for.</li>
+  </ul>
+  <p>The first rollout ran into the Linux kernel on the old host, which held back the gains from Aeron's idle strategy. The team built a simulated execution environment and varied quote count, quote rate and idle strategy to tune the setup before going live. On a new host with a newer kernel, latency improved at every percentile, and Aeron spread to the firm's equities and futures platforms.</p>
+  <p class="callout">Simulate the real load first, then migrate in phases.</p>
+
+  <h3>Cloud benchmark</h3>
+  <p>In February 2024 Adaptive and Google tested Aeron 1.43.0 on Google Cloud C3 instances. Figures are 99th percentile round trip for 288-byte messages at 100,000 messages per second.</p>
+  <table class="ops">
+    <thead><tr><th>Transport edition</th><th>Round trip</th><th>Throughput</th></tr></thead>
+    <tbody>
+      <tr><td>Open source</td><td>57 µs</td><td>800,000 msg/s</td></tr>
+      <tr><td>Premium (kernel bypass)</td><td>18 µs</td><td>4,700,000 msg/s</td></tr>
+    </tbody>
+  </table>
+  <p>These are vendor numbers from one setup. Treat them as an order of magnitude and measure your own workload.</p>
+</section>
+
 
 <section id="sources">
   <h2>Sources</h2>
-  <p class="src">Written from the Aeron project documentation on the <a href="https://github.com/aeron-io/aeron/wiki">Aeron GitHub wiki</a> and <a href="https://aeron.io/docs/">aeron.io</a>. The text and the demo are original summaries. Aeron is open source, and its trademark belongs to its owner.</p>
+  <p class="src">Written from the Aeron project documentation on the <a href="https://github.com/aeron-io/aeron/wiki">Aeron GitHub wiki</a> and <a href="https://aeron.io/docs/">aeron.io</a>. Section 7 draws on <a href="https://weareadaptive.com/aeron/">Adaptive's Aeron page</a>, the <a href="https://aeron.io/case-studies/man-group-aeron-fx-trading/">Man Group case study</a> and the <a href="https://weareadaptive.com/trading-resources/blog/aeron-google-cloud-performance-testing/">Google Cloud test results</a>. The text and the demo are original summaries. Aeron is open source, and its trademark belongs to its owner.</p>
 </section>
 
 </main>

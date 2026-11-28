@@ -163,6 +163,7 @@ select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
     <li><a href="#durable">Durability and checksums</a></li>
     <li><a href="#manage">Managing recordings</a></li>
     <li><a href="#threads">Threading</a></li>
+    <li><a href="#production">In production</a></li>
     <li><a href="#sources">Sources</a></li>
   </ol>
 </section>
@@ -260,10 +261,20 @@ select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
   <p>The Archive embeds a media driver, so the total thread count is the Archive mode plus the driver mode.</p>
 </section>
 
+<section id="production">
+  <h2>9. In production</h2>
+  <p>Aeron is open source and sponsored by Adaptive, which describes Archive as the part of the suite that gives zero message loss through fast, reliable storage and replay. It sits between Transport, which moves messages, and Cluster, which uses Archive to keep its replicated log on disk.</p>
+  <ul class="tight">
+    <li><b>Man Group</b> moved its FX execution system to Aeron Transport and named Archive as the next step, for real-time replay and monitoring of the message flow.</li>
+    <li><b>SIX</b> runs Swiss instant payments on Aeron Cluster, so every settled payment rests on a log that Archive records and replays during recovery.</li>
+  </ul>
+  <p>Both cases are covered in more depth on the <a href="../aeron-transport/aeron-transport.html#production">Transport</a> and <a href="../aeron/aeron.html#production">Cluster</a> pages.</p>
+</section>
+
 
 <section id="sources">
   <h2>Sources</h2>
-  <p class="src">Written from the Aeron project documentation on the <a href="https://github.com/aeron-io/aeron/wiki">Aeron GitHub wiki</a> and <a href="https://aeron.io/docs/">aeron.io</a>. The text and the demo are original summaries. Aeron is open source, and its trademark belongs to its owner.</p>
+  <p class="src">Written from the Aeron project documentation on the <a href="https://github.com/aeron-io/aeron/wiki">Aeron GitHub wiki</a> and <a href="https://aeron.io/docs/">aeron.io</a>. Section 9 draws on <a href="https://weareadaptive.com/aeron/">Adaptive's Aeron page</a> and the <a href="https://aeron.io/case-studies/man-group-aeron-fx-trading/">Man Group</a> and <a href="https://aeron.io/case-studies/six-swiss-instant-payments-aeron-cluster/">SIX</a> case studies. The text and the demo are original summaries. Aeron is open source, and its trademark belongs to its owner.</p>
 </section>
 
 </main>

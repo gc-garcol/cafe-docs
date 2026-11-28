@@ -33,6 +33,7 @@ a{color:var(--link)}
 code,.mono{font-family:var(--mono);font-size:.88em}
 p code,li code,td code{background:var(--paper-2);padding:1px 5px;border-radius:4px}
 .callout{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ink);border-left:2px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;max-width:60ch}
+section h3{font-family:var(--serif);font-weight:400;font-size:24px;line-height:1.2;margin:32px 0 10px}
 
 .card{margin:24px 0 0;background:#fff;border:1px solid var(--rule-solid);border-radius:8px;overflow:hidden}
 .card-top,.card-bottom{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;align-items:baseline;flex-wrap:wrap}
@@ -137,6 +138,7 @@ ul.tight,ol.toc{padding-left:22px;max-width:68ch}ul.tight li,ol.toc li{margin:6p
     <li><a href="#elections">Elections and quorum</a></li>
     <li><a href="#service">Writing a clustered service</a></li>
     <li><a href="#modes">Ways to run it</a></li>
+    <li><a href="#production">In production</a></li>
     <li><a href="#sources">Sources</a></li>
   </ol>
 </section>
@@ -267,9 +269,39 @@ ul.tight,ol.toc{padding-left:22px;max-width:68ch}ul.tight li,ol.toc li{margin:6p
   <p>Aeron Cluster also provides reliable distributed timers, messaging between services, and backup to a remote data centre.</p>
 </section>
 
+<section id="production">
+  <h2>9. In production</h2>
+  <p>Aeron is open source and sponsored by Adaptive, which ships it as a suite of three parts: Transport for messaging, Archive for recording and replay, and Cluster as a fault-tolerant container for replicated state. Adaptive also sells Aeron Premium, extra components such as kernel bypass networking, with SLA-backed support.</p>
+
+  <h3>SIX: Swiss instant payments</h3>
+  <p>SIX runs the Swiss Interbank Clearing (SIC) system, Switzerland's central payment system, for the Swiss National Bank. Adding instant payments meant settling each payment in real time, final and irrevocable, around the clock.</p>
+  <table class="ops">
+    <thead><tr><th>Requirement</th><th>Target</th></tr></thead>
+    <tbody>
+      <tr><td>End-to-end time</td><td>At most 10 s, and at most 200 ms inside SIC</td></tr>
+      <tr><td>Volume</td><td>35 million payments a day, peaks near 2,000 per second for an hour</td></tr>
+      <tr><td>Durability</td><td>No lost transactions, even if a data centre fails</td></tr>
+      <tr><td>Availability</td><td>24/7, all year</td></tr>
+    </tbody>
+  </table>
+  <p>The existing database-centric design would have needed heavy tuning from day one, hard upgrades and big changes to add redundancy. SIX built a new design instead: a processing cluster on Aeron Cluster holds account balances in memory and runs the settlement logic, with daily snapshots for persistence. A stateless gateway in front validates and authorises payments. The cluster nodes are spread across sites.</p>
+  <p>SIX reported that it met the latency targets without performance tuning. Its lessons: upgrades of a system that never stops need careful planning and testing, and moving away from a database meant building new monitoring tools.</p>
+
+  <h3>Cloud benchmark</h3>
+  <p>In February 2024 Adaptive and Google tested Aeron 1.43.0 on Google Cloud C3 instances. Figures are 99th percentile round trip for 288-byte messages at 100,000 messages per second.</p>
+  <table class="ops">
+    <thead><tr><th>Cluster edition</th><th>Latency</th><th>Throughput under 1 ms</th></tr></thead>
+    <tbody>
+      <tr><td>Open source</td><td>109 µs</td><td>Over 250,000 msg/s</td></tr>
+      <tr><td>Premium</td><td>36 µs</td><td>Over 2,200,000 msg/s</td></tr>
+    </tbody>
+  </table>
+  <p>These are vendor numbers from one setup. Treat them as an order of magnitude and measure your own workload.</p>
+</section>
+
 <section id="sources">
   <h2>Sources</h2>
-  <p class="src">Written from the Aeron project documentation: the <a href="https://github.com/aeron-io/aeron/blob/master/aeron-cluster/README.md">aeron-cluster README</a>, the <a href="https://github.com/aeron-io/aeron/wiki/Cluster-Tutorial">Cluster Tutorial</a> on the Aeron GitHub wiki, and the <a href="https://aeron.io/docs/">Aeron documentation</a>. The text and the demo are original summaries. Aeron is open source, and its trademark belongs to its owner.</p>
+  <p class="src">Written from the Aeron project documentation: the <a href="https://github.com/aeron-io/aeron/blob/master/aeron-cluster/README.md">aeron-cluster README</a>, the <a href="https://github.com/aeron-io/aeron/wiki/Cluster-Tutorial">Cluster Tutorial</a> on the Aeron GitHub wiki, and the <a href="https://aeron.io/docs/">Aeron documentation</a>. Section 9 draws on <a href="https://weareadaptive.com/aeron/">Adaptive's Aeron page</a>, the <a href="https://aeron.io/case-studies/six-swiss-instant-payments-aeron-cluster/">SIX case study</a> and the <a href="https://weareadaptive.com/trading-resources/blog/aeron-google-cloud-performance-testing/">Google Cloud test results</a>. The text and the demo are original summaries. Aeron is open source, and its trademark belongs to its owner.</p>
 </section>
 
 </main>
