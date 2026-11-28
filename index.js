@@ -1172,6 +1172,17 @@ const DOCS = [
     related: ['Rust Ownership', 'Rust Structs'],
   },
   {
+    title: 'Rust Ownership',
+    path: 'content/engineering/rust/rust-ownership/rust-ownership.html',
+    category: 'Engineering',
+    topic: 'Rust',
+    order: 35,
+    level: 'Beginner',
+    tags: ['rust', 'ownership', 'borrowing', 'references', 'move semantics', 'slices', 'stack and heap', 'borrow checker', 'drop'],
+    summary: 'The three ownership rules, moves versus copies, clone, shared and mutable references, the borrowing rules, dangling references and slices. Step a String through a move, a clone and two borrows on the stack and heap.',
+    related: ['Rust Common Concepts', 'Rust Structs', 'Rust Smart Pointers', 'Rust Generics, Traits and Lifetimes'],
+  },
+  {
     title: 'Quant Roadmap',
     path: 'content/quant/quant-roadmap/quant-roadmap.html',
     category: 'Quant',
